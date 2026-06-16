@@ -1,0 +1,83 @@
+{
+  "period": "30d",
+  "audit_time": "2026-06-15T18:45:51.579873",
+  "total_cost": 0.182279,
+  "total_events": 7470,
+  "alert_count": 0,
+  "alerts": [],
+  "trends": [
+    {
+      "skill_id": "test-design/page-analysis",
+      "calls": 18,
+      "avg_tokens": 938,
+      "total_cost": 0.016486
+    },
+    {
+      "skill_id": "knowledge/completeness-check",
+      "calls": 7,
+      "avg_tokens": 2140,
+      "total_cost": 0.016378
+    },
+    {
+      "skill_id": "test-design/risk-modeling",
+      "calls": 6,
+      "avg_tokens": 2609,
+      "total_cost": 0.01476
+    },
+    {
+      "skill_id": "execution/excel-exporter",
+      "calls": 1,
+      "avg_tokens": 12217,
+      "total_cost": 0.007519
+    },
+    {
+      "skill_id": "automation/tech-analysis",
+      "calls": 4,
+      "avg_tokens": 1704,
+      "total_cost": 0.007279
+    },
+    {
+      "skill_id": "test-design/testcase-design",
+      "calls": 1,
+      "avg_tokens": 8542,
+      "total_cost": 0.006685
+    },
+    {
+      "skill_id": "architecture/project-scanner",
+      "calls": 2,
+      "avg_tokens": 3402,
+      "total_cost": 0.00572
+    },
+    {
+      "skill_id": "automation/auto-strategy",
+      "calls": 1,
+      "avg_tokens": 2861,
+      "total_cost": 0.002696
+    },
+    {
+      "skill_id": "requirements/module-modeling",
+      "calls": 1,
+      "avg_tokens": 2194,
+      "total_cost": 0.002353
+    },
+    {
+      "skill_id": "requirements/requirement-analysis",
+      "calls": 1,
+      "avg_tokens": 1881,
+      "total_cost": 0.001974
+    }
+  ],
+  "optimizations": [
+    {
+      "type": "model_selection",
+      "action": "增加 haiku 使用比例",
+      "current_haiku_ratio": 0.0,
+      "est_saving": "~40-60% for low-complexity skills",
+      "applicable_skills": [
+        "knowledge/knowledge-manager",
+        "project/context-sync",
+        "execution/excel-exporter"
+      ]
+    }
+  ]
+}

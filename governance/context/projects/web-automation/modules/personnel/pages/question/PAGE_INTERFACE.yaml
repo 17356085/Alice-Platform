@@ -1,0 +1,382 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 13:00"
+
+meta:
+  module: "personnel"
+  page_name: "QuestionBankPage"
+  page_slug: "question"
+  page_url: "/personnel/training/question"
+  vue_components:
+    - component: el-input
+      count: 2
+      risk_flags: ["题干搜索输入框"]
+    - component: el-select
+      count: 3
+      risk_flags: ["题型下拉/难度下拉/分类下拉"]
+    - component: el-table
+      count: 1
+      risk_flags: ["表格数据异步加载，loading遮罩影响交互"]
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 2
+      risk_flags: ["新增/编辑弹窗(动态表单)；分类管理弹窗"]
+    - component: el-tree
+      count: 1
+      risk_flags: ["试题分类树，侧边栏独立组件"]
+    - component: el-button
+      count: 8
+      risk_flags: ["搜索/重置/新建/导入/批量删除/分类CRUD/弹窗确认取消"]
+    - component: el-radio
+      count: 1
+      risk_flags: ["难度选择radio组(简单/中等/困难)"]
+    - component: el-checkbox
+      count: 1
+      risk_flags: ["表格批量选择checkbox"]
+    - component: el-message-box
+      count: 1
+      risk_flags: ["删除确认弹窗"]
+
+elements:
+  - name: "searchKeywordInput"
+    selector: "//input[contains(@placeholder,'题干')]"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "题干关键词搜索输入框"
+    risk_level: low
+    risk_reason: "标准输入框"
+
+  - name: "searchTypeSelect"
+    selector: ".el-form .el-select:nth-child(1)"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "题型下拉（单选/多选/判断/填空/简答）"
+    risk_level: low
+    risk_reason: "标准下拉"
+
+  - name: "searchDifficultySelect"
+    selector: ".el-form .el-select:nth-child(2)"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "难度下拉（简单/中等/困难）"
+    risk_level: low
+    risk_reason: "标准下拉"
+
+  - name: "searchButton"
+    selector: "//button[.//span[normalize-space(.)='查询' or normalize-space(.)='搜索']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "JS点击绕过拦截"
+    risk_level: medium
+    risk_reason: "可能被loading遮罩拦截"
+
+  - name: "resetButton"
+    selector: "//button[.//span[normalize-space(.)='重置']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "JS点击"
+    risk_level: low
+    risk_reason: "标准重置"
+
+  - name: "addQuestionButton"
+    selector: "//button[.//span[normalize-space(.)='新建试题' or normalize-space(.)='新建']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    locator_notes: "打开新增试题弹窗，需等待弹窗可见"
+    risk_level: medium
+    risk_reason: "可能被现有弹窗遮挡，需先确保弹窗已关闭"
+
+  - name: "importButton"
+    selector: "//button[.//span[normalize-space(.)='导入']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "Excel批量导入"
+    risk_level: medium
+    risk_reason: "触发文件选择或弹窗"
+
+  - name: "batchDeleteButton"
+    selector: "//button[.//span[normalize-space(.)='批量删除']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "需先勾选行checkbox"
+    risk_level: high
+    risk_reason: "破坏性批量操作，需选中行+二次确认"
+
+  - name: "questionTable"
+    selector: ".el-table__body-wrapper"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: WebDriverWait
+    locator_notes: "需等待loading遮罩消失后读取"
+    risk_level: medium
+    risk_reason: "异步loading遮罩影响元素交互"
+
+  - name: "tableCheckboxAll"
+    selector: ".el-table__header-wrapper label.el-checkbox"
+    selector_type: CSS_SELECTOR
+    element_type: checkbox
+    el_component: el-checkbox
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "全选checkbox"
+    risk_level: low
+    risk_reason: "标准checkbox"
+
+  - name: "pagination"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "标准分页"
+    risk_level: low
+    risk_reason: "标准组件"
+
+  # — 弹窗：新增/编辑试题 —
+  - name: "dialog_questionCategorySelect"
+    selector: "//span[contains(text(),'请选择分类')]/ancestor::div[contains(@class,'el-select')]"
+    selector_type: XPATH
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "试题分类级联选择"
+    risk_level: medium
+    risk_reason: "可能为树形级联选择器"
+
+  - name: "dialog_questionTypeSelect"
+    selector: "(//div[contains(@class,'el-dialog') and not(contains(@style,'display: none'))])[last()]//div[contains(@class,'el-select')][2]"
+    selector_type: XPATH
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "题型选择(单选/多选/判断/填空/简答)，切换时动态调整表单结构"
+    risk_level: high
+    risk_reason: "题型切换触发动态表单，选项区+答案区结构变化"
+
+  - name: "dialog_difficultyRadio"
+    selector: "//span[contains(@class,'el-radio__label')][normalize-space()='简单']/ancestor::label"
+    selector_type: XPATH
+    element_type: radio
+    el_component: el-radio
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "难度radio组（简单/中等/困难），JS点击"
+    risk_level: low
+    risk_reason: "标准radio组"
+
+  - name: "dialog_questionTextInput"
+    selector: "//textarea[@placeholder='请输入题目内容']"
+    selector_type: XPATH
+    element_type: textarea
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "题干文本域"
+    risk_level: low
+    risk_reason: "标准文本域"
+
+  - name: "dialog_optionInput"
+    selector: "//input[@placeholder='请输入选项内容']"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "选项输入（A/B/C/D），按索引定位多个input"
+    risk_level: low
+    risk_reason: "标准输入框，但需按索引区分选项"
+
+  - name: "dialog_scoreInput"
+    selector: "//input[@type='number']"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "分值输入（数字类型）"
+    risk_level: low
+    risk_reason: "数字输入"
+
+  - name: "dialog_analysisTextarea"
+    selector: "//textarea[@placeholder='请输入答案解析（选填）']"
+    selector_type: XPATH
+    element_type: textarea
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "答案解析输入（选填）"
+    risk_level: low
+    risk_reason: "可选字段"
+
+  - name: "dialog_confirmButton"
+    selector: "//div[contains(@class,'el-dialog') and not(contains(@style,'display: none'))]//button[.//span[normalize-space(.)='确定']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_for_element_disappear
+    locator_notes: "多策略查找确定按钮，JS点击"
+    risk_level: medium
+    risk_reason: "多策略fallback，提交后需等待弹窗关闭"
+
+  - name: "dialog_cancelButton"
+    selector: "//div[contains(@class,'el-dialog') and not(contains(@style,'display: none'))]//button[.//span[normalize-space(.)='取消' or normalize-space(.)='关闭']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "支持'取消'和'关闭'两种按钮文字"
+    risk_level: low
+    risk_reason: "关闭操作简单"
+
+  # — 分类树侧边栏 —
+  - name: "categoryTree"
+    selector: ".el-tree"
+    selector_type: CSS_SELECTOR
+    element_type: tree
+    el_component: el-tree
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "试题分类树，span.category-name定位节点"
+    risk_level: medium
+    risk_reason: "树形结构需展开节点+选中"
+
+  - name: "categoryAddBtn"
+    selector: "//section//button[.//span[normalize-space(.)='新增']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    locator_notes: "新增分类按钮，需等待分类弹窗打开"
+    risk_level: medium
+    risk_reason: "多策略fallback查找"
+
+  - name: "categoryEditBtn"
+    selector: "//section//button[.//span[normalize-space(.)='编辑']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    locator_notes: "需先选中分类树节点"
+    risk_level: medium
+    risk_reason: "依赖先选中节点"
+
+  - name: "categoryDeleteBtn"
+    selector: "//section//button[.//span[normalize-space(.)='删除']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "需先选中分类树节点，点击后弹出确认框"
+    risk_level: high
+    risk_reason: "破坏性操作，依赖选中+二次确认"
+
+test_scenarios:
+  - id: TC-QB-001
+    title: "页面正常加载"
+    priority: P0
+    type: smoke
+    preconditions: ["用户已登录且具有培训管理员权限"]
+    steps_summary: "导航至题库管理页面，验证表格、搜索区、分类树、分页器可见"
+    expected: "题库表格展示，搜索区各控件正常，分类树加载，分页器存在"
+    relates_to_elements: ["questionTable", "searchKeywordInput", "searchTypeSelect", "searchDifficultySelect", "categoryTree", "pagination"]
+
+  - id: TC-QB-002
+    title: "按题干搜索"
+    priority: P0
+    type: functional
+    preconditions: ["存在匹配的题目"]
+    steps_summary: "输入题干关键词→点击搜索"
+    expected: "表格仅显示题干含关键词的题目"
+    relates_to_elements: ["searchKeywordInput", "searchButton", "questionTable"]
+
+  - id: TC-QB-003
+    title: "按题型筛选"
+    priority: P0
+    type: functional
+    preconditions: ["存在多种题型的题目"]
+    steps_summary: "选择'单选题'→搜索"
+    expected: "表格仅显示单选题"
+    relates_to_elements: ["searchTypeSelect", "searchButton", "questionTable"]
+
+  - id: TC-QB-004
+    title: "新增试题-单选题"
+    priority: P0
+    type: functional
+    preconditions: ["题库管理权限"]
+    steps_summary: "点击新建→选择题型(单选题)→填题干→填选项A/B/C/D→选正确答案→确定"
+    expected: "表格新增一条单选题，toast提示成功"
+    relates_to_elements: ["addQuestionButton", "dialog_questionTypeSelect", "dialog_questionTextInput", "dialog_optionInput", "dialog_confirmButton"]
+
+  - id: TC-QB-005
+    title: "新增试题-必填校验"
+    priority: P1
+    type: negative
+    preconditions: ["题库管理权限"]
+    steps_summary: "点击新建→不填题干→确定"
+    expected: "必填字段校验提示"
+    relates_to_elements: ["addQuestionButton", "dialog_confirmButton"]
+
+  - id: TC-QB-006
+    title: "题型切换动态表单"
+    priority: P1
+    type: functional
+    preconditions: ["题库管理权限"]
+    steps_summary: "新建试题→切换题型(单选→多选→判断→简答)"
+    expected: "每次切换后选项区和答案区结构正确变化"
+    relates_to_elements: ["dialog_questionTypeSelect"]
+
+  - id: TC-QB-007
+    title: "分类树CRUD"
+    priority: P1
+    type: functional
+    preconditions: ["培训管理员权限"]
+    steps_summary: "新增分类→编辑→删除"
+    expected: "分类树节点正确增删改"
+    relates_to_elements: ["categoryTree", "categoryAddBtn", "categoryEditBtn", "categoryDeleteBtn"]
+
+  - id: TC-QB-008
+    title: "批量删除"
+    priority: P1
+    type: functional
+    preconditions: ["存在多条题目"]
+    steps_summary: "勾选多行→点击批量删除→确认"
+    expected: "选中题目从表格消失"
+    relates_to_elements: ["tableCheckboxAll", "batchDeleteButton", "questionTable"]

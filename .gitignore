@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.env.local
+.claude/settings.local.json
+
+# Test artifacts
+allure-results/
+allure-report/
+*.log
+
+# Governance runtime data (large, machine-generated)
+governance/.chroma/
+governance/.graph_state/
+governance/.traces/
+governance/.events/
+governance/.workflow_state/
+governance/.errors/
+governance/.feedback/
+governance/.data/
+
+# Runtime databases
+chat_sessions.db
+
+# Local work data
+downloads/
+.workbuddy/
+
+# ZJSN project
+ZJSN_Test-master526/driver/
+ZJSN_Test-master526/downloads/
+ZJSN_Test-master526/report/
+ZJSN_Test-master526/debug_output/
+ZJSN_Test-master526/artifacts/
+ZJSN_Test-master526/data/coverage_matrix.md
+ZJSN_Test-master526/data/coverage_matrix.json

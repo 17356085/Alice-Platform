@@ -1,0 +1,109 @@
+# =============================================================================
+# ZJSN 测试 — Jenkins CI/CD 本地部署
+# =============================================================================
+# 用法:
+#   # 1. 构建测试执行镜像
+#   docker compose build
+#
+#   # 2. 启动 Jenkins
+#   docker compose up -d
+#
+#   # 3. 获取初始密码
+#   docker compose exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+#
+#   # 4. 浏览器打开 http://localhost:8080
+#   #     安装推荐插件 → 创建用户 → 配置 Job → 指向本仓库的 Jenkinsfile
+#
+#   # 5. 停止
+#   docker compose down
+#
+#   # 仅运行测试（不启动 Jenkins）:
+#   docker compose run --rm test-runner pytest -m smoke
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # ── Jenkins 主节点 ──────────────────────────────────────────────
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: zjsn-jenkins
+    restart: unless-stopped
+    ports:
+      - "8080:8080"      # Web UI
+      - "50000:50000"    # Agent 通信 (JNLP)
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock  # 允许 Jenkins 管理 Docker
+      - ../:/var/jenkins_home/workspace/ZJSN_Test  # 项目代码挂载（开发时可用）
+    environment:
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=true -Dorg.apache.commons.jelly.tags.fmt.timeZone=Asia/Shanghai"
+    networks:
+      - jenkins-net
+
+  # ── Jenkins Agent（SSH 模式）────────────────────────────────────
+  # 使用自定义镜像，预装 Chrome + Python + 测试依赖
+  jenkins-agent:
+    build:
+      context: ..
+      dockerfile: ci/Dockerfile
+    container_name: zjsn-agent
+    restart: unless-stopped
+    # Agent 通过 SSH 连接 Jenkins Master
+    # 需要先在 Jenkins UI 中添加 node，获取 secret
+    command: |
+      bash -c "
+        if [ -z \"\${JENKINS_SECRET}\" ]; then
+          echo 'WARNING: JENKINS_SECRET not set. Agent will not connect.'
+          echo '1. 打开 Jenkins → Manage Jenkins → Nodes → New Node'
+          echo '2. 创建 Permanent Agent, Remote root: /home/jenkins'
+          echo '3. 获取 secret，设入 JENKINS_SECRET 环境变量'
+          tail -f /dev/null
+        else
+          echo 'Connecting to Jenkins Master...'
+          curl -sO \${JENKINS_URL}/jnlpJars/agent.jar
+          java -jar agent.jar -url \${JENKINS_URL} -secret \${JENKINS_SECRET} -name \${AGENT_NAME:-zjsn-agent} -workDir /home/jenkins
+        fi
+      "
+    environment:
+      JENKINS_URL: "http://jenkins:8080/"
+      JENKINS_SECRET: "${JENKINS_AGENT_SECRET:-}"
+      AGENT_NAME: "zjsn-agent"
+    volumes:
+      - agent_workspace:/home/jenkins
+      - ../:/app  # 项目代码只读挂载
+    networks:
+      - jenkins-net
+    depends_on:
+      - jenkins
+
+  # ── 仅测试执行（不启动 Jenkins）─────────────────────────────
+  test-runner:
+    build:
+      context: ..
+      dockerfile: ci/Dockerfile
+    container_name: zjsn-test-runner
+    profiles:
+      - test-only    # docker compose --profile test-only run test-runner ...
+    environment:
+      ENV: "test"
+      HEADLESS: "true"
+      BASE_URL: "${BASE_URL:-http://8.136.215.171:8081/}"
+      DEFAULT_USERNAME: "${DEFAULT_USERNAME:-admin}"
+      DEFAULT_PASSWORD: "${DEFAULT_PASSWORD:-}"
+    volumes:
+      - ../allure-results:/app/allure-results
+      - ../artifacts:/app/artifacts
+      - ../log:/app/log
+    networks:
+      - jenkins-net
+
+volumes:
+  jenkins_home:
+    name: zjsn_jenkins_home
+  agent_workspace:
+    name: zjsn_agent_workspace
+
+networks:
+  jenkins-net:
+    name: zjsn_jenkins_net

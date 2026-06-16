@@ -1,0 +1,9 @@
+{
+  "answerStrategy": [
+    { "type": "single", "answer": "A" },
+    { "type": "multi", "answer": "A" },
+    { "type": "judge", "answer": "A" },
+    { "type": "fill", "answer": "自动化测试" },
+    { "type": "short_answer", "answer": "这是自动化测试的答案" }
+  ]
+}

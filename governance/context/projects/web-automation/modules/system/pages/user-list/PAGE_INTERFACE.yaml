@@ -1,0 +1,298 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:29"
+
+meta:
+  module: "system-user"
+  page_name: "UserList"
+  page_slug: "user-list"
+  page_url: "/system-user/user-list"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags:
+        - id: "TABLE_DYNAMIC_COLUMNS"
+          description: "表格列可能根据权限动态显示，需在测试前确认列可见"
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-select
+      count: 2
+      risk_flags:
+        - id: "SELECT_TELEPORT"
+          description: "下拉选项通过 Teleport 渲染，需等待 overlay 出现"
+    - component: el-input
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 5
+      risk_flags:
+        - id: "BUTTON_DISABLED_STATE"
+          description: "删除按钮在无选中行时自动禁用"
+
+elements:
+  - name: "搜索输入框"
+    selector: ".el-input--suffix input.el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder='搜索用户名/姓名/手机号'，宽度240px"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "角色下拉选择"
+    selector: ".el-select:has(.el-select__placeholder:contains('全部角色'))"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_loading_gone
+    locator_notes: "默认显示'全部角色'，宽度200px，下拉菜单通过Teleport渲染"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "状态下拉选择"
+    selector: ".el-select:has(.el-select__placeholder:contains('全部'))"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_loading_gone
+    locator_notes: "默认显示'全部'，宽度120px，注意不是radio-group"
+    risk_level: medium
+    risk_reason: "PAGE_CONTEXT提示与PageObject假设存在差异(el-radio-group vs el-select)，可能影响已有测试脚本"
+
+  - name: "查询按钮"
+    selector: "button.el-button--primary:has(.el-icon-search)"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "包含search图标的el-button--primary"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "重置按钮"
+    selector: "button.el-button--default:not(.el-button--primary)"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "纯文字'重置'，一般紧邻查询按钮"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "新增按钮"
+    selector: "button.el-button--primary:first-child"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "工具栏中第一个el-button--primary，文字'新增'"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "导出按钮"
+    selector: "button.el-button--success"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "绿色按钮，文字'导出'"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "删除按钮（批量）"
+    selector: "button.el-button--danger:not(.is-disabled)"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "红色按钮，文字'删除'，无选中行时带is-disabled类"
+    risk_level: medium
+    risk_reason: "按钮状态动态变化，需确保选中行后可用"
+
+  - name: "数据表格主体"
+    selector: ".el-table__body-wrapper tbody"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格行内可点击单元格（如用户名、状态tag等）"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "表格列头复选框"
+    selector: ".el-table__header-wrapper .el-checkbox"
+    selector_type: CSS_SELECTOR
+    element_type: checkbox
+    el_component: el-checkbox
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格第一列全选复选框"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "行复选框"
+    selector: ".el-table__body-wrapper .el-checkbox"
+    selector_type: CSS_SELECTOR
+    element_type: checkbox
+    el_component: el-checkbox
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "每行第一列的复选框"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "分页组件"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "包含页码、每页条数、总条数"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "搜索区整体"
+    selector: ".el-form:has(.el-input--suffix)"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-form
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索筛选区的form容器"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "状态标签（表格列）"
+    selector: ".el-table__body .cell .el-tag"
+    selector_type: CSS_SELECTOR
+    element_type: tag
+    el_component: el-tag
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "用户状态显示为彩色tag，点击无操作仅展示"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "角色标签（表格列）"
+    selector: ".el-table__body .cell .el-tag:not(.el-tag--success)"
+    selector_type: CSS_SELECTOR
+    element_type: tag
+    el_component: el-tag
+    interaction: hover
+    wait_strategy: wait_vue_stable
+    locator_notes: "角色列包含多个tag，鼠标悬浮可能显示完整文本"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "操作列链接/按钮"
+    selector: ".el-table__body .cell .el-button--text"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "文字'查看', '编辑', '删除'等链接按钮"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "表格行"
+    selector: ".el-table__body tr.el-table__row"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-table
+    interaction: hover
+    wait_strategy: wait_vue_stable
+    locator_notes: "行hover高亮，也可用于右键菜单"
+    risk_level: low
+    risk_reason: ""
+
+test_scenarios:
+  - id: TC-001
+    title: "用户管理页面正常加载"
+    priority: P0
+    type: positive
+    preconditions:
+      - "管理员已登录系统"
+    steps_summary: "点击系统管理→用户管理，等待页面加载完毕"
+    expected: "页面显示用户列表表格，且表格行数大于0"
+    relates_to_elements:
+      - "数据表格主体"
+
+  - id: TC-002
+    title: "表格列头正确显示"
+    priority: P1
+    type: positive
+    preconditions:
+      - "用户列表页已加载"
+    steps_summary: "检查表格列头文字是否包含：用户名、姓名、部门、角色、状态、操作"
+    expected: "列头依次显示为：用户名、姓名、手机号、角色、组织名称、状态、最后登录、操作"
+    relates_to_elements:
+      - "数据表格主体"
+
+  - id: TC-003
+    title: "分页组件正常显示"
+    priority: P1
+    type: positive
+    preconditions:
+      - "用户总数大于10"
+    steps_summary: "查看页面底部分页组件，检查总条数、页码、每页条数"
+    expected: "显示总条数151，每页10条，页码1-16，且可点击切换"
+    relates_to_elements:
+      - "分页组件"
+
+page_behaviors:
+  - behavior: "表格数据加载与渲染"
+    triggers:
+      - "页面初次加载"
+      - "搜索/筛选条件变化后点击查询"
+      - "重置按钮点击"
+      - "分页切换"
+    wait_required: true
+    wait_suggestion: "使用 wait_vue_stable 等待表格 body 出现且 loading 消失"
+
+  - behavior: "下拉选择框（角色/状态）"
+    triggers:
+      - "点击下拉箭头或选中框"
+      - "键盘输入进行过滤"
+    wait_required: true
+    wait_suggestion: "等待 popper 层插入DOM (可通过 select-dropdown__popper 判断)"
+
+  - behavior: "批量删除操作"
+    triggers:
+      - "勾选至少一行后点击删除按钮"
+      - "弹出确认对话框"
+    wait_required: true
+    wait_suggestion: "删除后等待 el-message 或数据刷新，使用 wait_loading_gone"
+
+  - behavior: "新增/编辑弹窗"
+    triggers:
+      - "点击新增按钮"
+      - "点击操作列的编辑按钮"
+    wait_required: true
+    wait_suggestion: "等待 el-dialog 出现并完全渲染，然后填充表单"
+
+  - behavior: "导出操作"
+    triggers:
+      - "点击导出按钮"
+    wait_required: true
+    wait_suggestion: "可能触发文件下载，使用 WebDriverWait 等待下载完成或弹窗确认"
+
+  - behavior: "行 hover 高亮"
+    triggers:
+      - "鼠标悬停在表格行上"
+    wait_required: false
+    wait_suggestion: "直接使用 ActionChains 进行 hover 即可"

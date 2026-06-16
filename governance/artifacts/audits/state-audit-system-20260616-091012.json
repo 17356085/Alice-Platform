@@ -1,0 +1,217 @@
+{
+  "module": "system",
+  "audit_time": "2026-06-16T09:10:12.719947",
+  "overall_status": "error",
+  "drift_count": 18,
+  "error_count": 1,
+  "warning_count": 16,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Project Init",
+      "description": "Phase 'Project Init' 已完成，但模块级产物缺失: PROJECT_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\PROJECT_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Project Init 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'api-management' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\pages\\api-management\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'api-management' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\pages\\api-management\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'monitor-management' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\pages\\monitor-management\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'monitor-management' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\pages\\monitor-management\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'api-management' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\pages\\api-management\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'api-management' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\pages\\api-management\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'api-management' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\pages\\api-management\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'monitor-management' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\pages\\monitor-management\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'monitor-management' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\pages\\monitor-management\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'monitor-management' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\pages\\monitor-management\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'user-form' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\pages\\user-form\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'user-form' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\pages\\user-form\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=21, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "orphan",
+      "severity": "info",
+      "phase": "",
+      "description": "发现非标准产物文件: CURRENT_TASK.md",
+      "expected": "标准产物 (PAGE_CONTEXT, RISK_MODEL, TEST_DESIGN, TEST_CASES, TECH_ANALYSIS, AUTO_STRATEGY)",
+      "actual": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system\\CURRENT_TASK.md",
+      "suggestion": "确认文件用途后归档到 governance/artifacts/archive/ 或删除"
+    },
+    {
+      "check_type": "c_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "SOP_STATUS JSON 存在但 SQLite checkpoint 无数据 — 可能是 dry-run 或 checkpoint 写入失败",
+      "expected": "checkpoint 中包含 completed_phases",
+      "actual": "checkpoint 为空",
+      "suggestion": "运行一次完整的 SOP Graph (确保 checkpointer 正确编译) 以生成 checkpoint"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "TEST_DESIGN.md 内容质量不足: 关键标记匹配 1/4 < 最低 2 (缺失: ['用例', '覆盖', '策略'])",
+      "expected": "行数≥15, 标记匹配≥2/['用例', '场景', '覆盖', '策略']",
+      "actual": "行数=70, 标记匹配=1/4",
+      "suggestion": "建议重新运行相关 Agent 生成 TEST_DESIGN.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "TECH_ANALYSIS.md 内容质量不足: 关键标记匹配 1/4 < 最低 2 (缺失: ['定位器', '优先级', '元素'])",
+      "expected": "行数≥10, 标记匹配≥2/['定位器', '优先级', '等待', '元素']",
+      "actual": "行数=25, 标记匹配=1/4",
+      "suggestion": "建议重新运行相关 Agent 生成 TECH_ANALYSIS.md"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 13,
+      "errors": 1,
+      "warnings": 12,
+      "ok": false
+    },
+    "r_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "o_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "orphan_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 0,
+      "ok": false
+    },
+    "c_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "q_check": {
+      "total": 2,
+      "errors": 0,
+      "warnings": 2,
+      "ok": false
+    },
+    "t_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    }
+  }
+}

@@ -1,0 +1,274 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 13:00"
+
+meta:
+  module: equipment
+  page_name: CameraManage
+  page_slug: camera
+  page_url: /equipment/camera
+  vue_components:
+    - component: el-table
+      count: 0
+      risk_flags: []
+    - component: el-input
+      count: 1
+      risk_flags: []
+    - component: el-select
+      count: 1
+      risk_flags: [teleport]
+    - component: el-dialog
+      count: 1
+      risk_flags: [teleport, animation]
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: stat-card
+      count: 4
+      risk_flags: [custom]
+
+elements:
+  - name: 统计卡片-总数
+    selector: ".stat-card:first-child .stat-value"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "自定义 stat-card 组件，非 Element Plus 标准组件"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 统计卡片-在线
+    selector: ".stat-card:nth-child(2) .stat-value"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: 统计卡片-离线
+    selector: ".stat-card:nth-child(3) .stat-value"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: 统计卡片-故障
+    selector: ".stat-card:nth-child(4) .stat-value"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: 摄像头网格容器
+    selector: ".monitor-cell"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "自定义 monitor-cell 组件，每个单元格含标题/画面/IP"
+    risk_level: medium
+    risk_reason: "自定义组件，非标准 Element Plus"
+
+  - name: 搜索输入框
+    selector: "input[placeholder*='搜索']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: 搜索按钮
+    selector: "button:has(span:contains('搜索'))"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: "wait_loading_gone(timeout=10)"
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: 状态筛选下拉
+    selector: ".el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: "WebDriverWait 5s + wait_vue_stable"
+    locator_notes: "el-select 下拉选项 Teleport 到 body"
+    risk_level: high
+    risk_reason: "el-select Teleport 渲染，选项在 body 下"
+
+  - name: 分页组件
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: 摄像头详情弹窗
+    selector: ".el-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: "WebDriverWait 3s + wait_vue_stable"
+    locator_notes: "el-dialog Teleport 到 body 下，需等待动画完成"
+    risk_level: high
+    risk_reason: "el-dialog Teleport 渲染 + Vue transition 动画"
+
+  - name: 弹窗关闭按钮
+    selector: ".el-dialog__headerbtn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: null
+    interaction: click
+    wait_strategy: "wait_until_gone(.el-dialog)"
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+test_scenarios:
+  - id: TC-CM-001
+    title: 页面正常加载
+    priority: P0
+    type: smoke
+    preconditions:
+      - "admin 账号已登录"
+    steps_summary: "navigate_to('设备管理','摄像头管理') → 等待 monitor-cell 出现"
+    expected: "统计卡片 + 摄像头网格 + 分页均可见，无 console 报错"
+    relates_to_elements:
+      - "统计卡片-总数"
+      - "摄像头网格容器"
+
+  - id: TC-CM-002
+    title: 统计卡片数据校验
+    priority: P0
+    type: positive
+    preconditions:
+      - "页面已加载"
+    steps_summary: "读取 4 张统计卡片数值 → 校验 总数=在线+离线+故障"
+    expected: "四卡片数值非空且逻辑一致"
+    relates_to_elements:
+      - "统计卡片-总数"
+      - "统计卡片-在线"
+      - "统计卡片-离线"
+      - "统计卡片-故障"
+
+  - id: TC-CM-003
+    title: 摄像头网格展示
+    priority: P0
+    type: positive
+    preconditions:
+      - "页面已加载"
+    steps_summary: "计数 monitor-cell → 校验 ≥1 个，每格含标题/画面/IP"
+    expected: "≥1 个摄像头卡片，每个包含基本信息"
+    relates_to_elements:
+      - "摄像头网格容器"
+
+  - id: TC-CM-004
+    title: 关键词搜索
+    priority: P1
+    type: positive
+    preconditions:
+      - "存在目标摄像头名称"
+    steps_summary: "搜索框输入关键词 → 点击搜索"
+    expected: "网格更新，仅显示匹配结果"
+    relates_to_elements:
+      - "搜索输入框"
+      - "搜索按钮"
+
+  - id: TC-CM-005
+    title: 在线状态筛选
+    priority: P1
+    type: positive
+    preconditions:
+      - "存在在线摄像头"
+    steps_summary: "状态筛选选择'在线' → 等待网格刷新"
+    expected: "结果均为在线状态"
+    relates_to_elements:
+      - "状态筛选下拉"
+
+  - id: TC-CM-006
+    title: 故障状态筛选
+    priority: P1
+    type: positive
+    preconditions:
+      - "存在故障摄像头"
+    steps_summary: "状态筛选选择'故障' → 等待网格刷新"
+    expected: "结果均为故障状态"
+    relates_to_elements:
+      - "状态筛选下拉"
+
+  - id: TC-CM-007
+    title: 分页翻页
+    priority: P1
+    type: positive
+    preconditions:
+      - "摄像头数量 > 单页容量"
+    steps_summary: "点击下一页 → 校验 monitor-cell 变化"
+    expected: "monitor-cell 内容变化，页码更新"
+    relates_to_elements:
+      - "分页组件"
+
+  - id: TC-CM-008
+    title: 详情弹窗
+    priority: P2
+    type: positive
+    preconditions:
+      - "页面已加载"
+    steps_summary: "点击摄像头 → 等待详情弹窗出现 → 关闭弹窗"
+    expected: "弹窗出现含摄像头详细信息，关闭后消失"
+    relates_to_elements:
+      - "摄像头详情弹窗"
+      - "弹窗关闭按钮"
+
+page_behaviors:
+  - behavior: "摄像头网格异步加载"
+    triggers:
+      - "页面加载"
+      - "搜索后"
+      - "筛选后"
+    wait_required: true
+    wait_suggestion: "等待 monitor-cell 出现后 wait_vue_stable"
+
+  - behavior: "el-select 下拉筛选 Teleport 渲染"
+    triggers:
+      - "点击状态筛选下拉"
+    wait_required: true
+    wait_suggestion: "WebDriverWait 等待 body 下 .el-select-dropdown 可见"
+
+  - behavior: "详情弹窗 Teleport 动画"
+    triggers:
+      - "点击摄像头卡片"
+    wait_required: true
+    wait_suggestion: "WebDriverWait 等待 .el-dialog 可见后 wait_vue_stable"
+
+  - behavior: "搜索后网格刷新"
+    triggers:
+      - "点击搜索按钮"
+    wait_required: true
+    wait_suggestion: "wait_loading_gone + monitor-cell 数量变化检测"

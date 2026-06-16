@@ -1,0 +1,240 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 15:10"
+
+meta:
+  module: "warehouse"
+  page_name: "HazardInOrderPage"
+  page_slug: "hazard-in-order"
+  page_url: "/warehouse/hazard/in-order"
+  vue_components:
+    - component: wh-filter-toolbar
+      count: 1
+      risk_flags: ["自定义UI框架(Tailwind CSS)，非标准el-form，输入框无label标签"]
+    - component: el-select
+      count: 2
+      risk_flags: ["流程状态下拉，筛选区+弹窗内"]
+    - component: el-input
+      count: 2
+      risk_flags: ["经办人输入框(placeholder定位)"]
+    - component: el-date-picker
+      count: 2
+      risk_flags: ["搜索区日期+弹窗入库时间"]
+    - component: el-table
+      count: 1
+      risk_flags: ["8列表格，异步加载"]
+    - component: el-tag
+      count: 1
+      risk_flags: ["流程状态颜色：审核完成=绿色"]
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 3
+      risk_flags: ["弹窗A(新增入库920px)/弹窗B(选择危废品)/弹窗C(查看详情)"]
+    - component: el-button
+      count: 8
+      risk_flags: ["查询/重置/新增入库/选择危废品/提交申请/取消/查看/编辑"]
+
+elements:
+  - name: "filterStatus"
+    selector: "(//div[contains(@class,'wh-filter-toolbar')]//div[contains(@class,'el-select__wrapper')])[1]"
+    selector_type: XPATH
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "流程状态下拉(待提交/待审核/审核完成/已退回)"
+    risk_level: low
+    risk_reason: "标准下拉"
+
+  - name: "filterHandler"
+    selector: "//input[@placeholder='请输入经办人']"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "经办人搜索输入框"
+    risk_level: low
+    risk_reason: "placeholder定位"
+
+  - name: "filterDate"
+    selector: "//input[@placeholder='选择日期']"
+    selector_type: XPATH
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "日期选择器"
+    risk_level: medium
+    risk_reason: "日期面板异步渲染"
+
+  - name: "btnQuery"
+    selector: "//button[contains(.,'查询')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "查询按钮"
+    risk_level: low
+    risk_reason: "标准按钮"
+
+  - name: "btnReset"
+    selector: "//button[contains(.,'重置')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "重置按钮"
+    risk_level: low
+    risk_reason: "标准按钮"
+
+  - name: "btnAdd"
+    selector: "//button[contains(.,'新增入库')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    locator_notes: "打开弹窗A(新增入库)"
+    risk_level: medium
+    risk_reason: "需等待弹窗渲染"
+
+  - name: "hazardTable"
+    selector: ".el-table__body-wrapper"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: WebDriverWait
+    locator_notes: "入库单表格，8列，数据异步加载"
+    risk_level: medium
+    risk_reason: "异步loading遮罩"
+
+  - name: "btnView"
+    selector: "//button[contains(.,'查看')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    locator_notes: "行内查看按钮(所有状态可见)，打开弹窗C"
+    risk_level: low
+    risk_reason: "标准操作"
+
+  - name: "btnEdit"
+    selector: "//button[contains(.,'编辑')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    locator_notes: "行内编辑按钮(仅待提交/已退回状态可见)"
+    risk_level: medium
+    risk_reason: "按状态动态显隐"
+
+  - name: "dialogFieldInTime"
+    selector: "//div[contains(@class,'el-dialog') and not(contains(@style,'display: none'))]//input[@placeholder='选择日期']"
+    selector_type: XPATH
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗A内入库时间选择器"
+    risk_level: medium
+    risk_reason: "需在弹窗可见后定位"
+
+  - name: "dialogFieldHandler"
+    selector: "//div[contains(@class,'el-dialog') and not(contains(@style,'display: none'))]//input[@placeholder='请输入经办人']"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗A内经手人输入框"
+    risk_level: low
+    risk_reason: "标准输入"
+
+  - name: "btnSelectWaste"
+    selector: "//button[contains(.,'选择危废品')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗A内打开弹窗B(选择危废品)"
+    risk_level: high
+    risk_reason: "嵌套弹窗，弹窗B异步加载数据"
+
+  - name: "btnSubmit"
+    selector: "//button[contains(.,'提交申请')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_for_toast_text
+    locator_notes: "弹窗A内提交按钮，提交后触发审批流"
+    risk_level: high
+    risk_reason: "提交后弹窗关闭+表格刷新+toast提示"
+
+  - name: "pagination"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "分页器(10/20/50/100条)"
+    risk_level: low
+    risk_reason: "标准分页"
+
+test_scenarios:
+  - id: TC-HI-001
+    title: "页面正常加载"
+    priority: P0
+    type: smoke
+    preconditions: ["admin登录"]
+    steps_summary: "导航到 #/warehouse/hazard/in-order"
+    expected: "表格+搜索区+工具栏可见"
+    relates_to_elements: ["hazardTable", "filterStatus", "btnAdd", "pagination"]
+
+  - id: TC-HI-002
+    title: "按经办人搜索"
+    priority: P0
+    type: functional
+    preconditions: ["已有测试数据"]
+    steps_summary: "输入经办人→点击查询"
+    expected: "表格过滤"
+    relates_to_elements: ["filterHandler", "btnQuery", "hazardTable"]
+
+  - id: TC-HI-003
+    title: "新增入库弹窗打开"
+    priority: P0
+    type: functional
+    preconditions: ["admin登录"]
+    steps_summary: "点击'新增入库'"
+    expected: "弹窗A展开，入库时间+经办人+选择危废品+提交"
+    relates_to_elements: ["btnAdd", "dialogFieldInTime", "dialogFieldHandler", "btnSelectWaste"]
+
+  - id: TC-HI-004
+    title: "查看单据详情"
+    priority: P0
+    type: functional
+    preconditions: ["有入库单"]
+    steps_summary: "点击行内'查看'"
+    expected: "弹窗C展开：流程状态+基本信息+危废品明细+流程跟踪"
+    relates_to_elements: ["btnView"]
+
+  - id: TC-HI-005
+    title: "审批中单据不可编辑"
+    priority: P1
+    type: negative
+    preconditions: ["有待审核单据"]
+    steps_summary: "检查行内按钮"
+    expected: "仅'查看'可见，无'编辑'"
+    relates_to_elements: ["btnView", "btnEdit"]

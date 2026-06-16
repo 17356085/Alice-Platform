@@ -1,0 +1,86 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 15:15"
+
+meta:
+  module: "warehouse"
+  page_name: "ReagentItemPage"
+  page_slug: "reagent-item"
+  page_url: "/warehouse/reagent/item"
+  page_type: "CRUD + 导入导出 + 批量选择"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: ["CRUD + checkbox批量"]
+    - component: el-dialog
+      count: 1
+      risk_flags: []
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+
+elements:
+  - name: "filterItemName"
+    selector: "//input[contains(@placeholder,'物品名称')]"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    risk_level: low
+
+  - name: "btnAdd"
+    selector: "//button[contains(.,'新增')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    risk_level: medium
+
+  - name: "btnImport"
+    selector: "//button[contains(.,'导入')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: medium
+
+  - name: "btnExport"
+    selector: "//button[contains(.,'导出')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: medium
+
+  - name: "itemTable"
+    selector: ".el-table__body-wrapper"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: WebDriverWait
+    risk_level: medium
+
+  - name: "pagination"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: low
+
+test_scenarios:
+  - id: TC-RI-001
+    title: "页面正常加载"
+    priority: P0
+    type: smoke
+    steps_summary: "导航到 #/warehouse/reagent/item"
+    expected: "表格+搜索区+新增+导入导出"
+    relates_to_elements: ["itemTable", "btnAdd"]

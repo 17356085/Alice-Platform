@@ -1,0 +1,365 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:17"
+
+meta:
+  module: personnel
+  page_name: PostManage
+  page_slug: post
+  page_url: "/personnel/post"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 2
+      risk_flags: ["新增/编辑弹窗"]
+    - component: el-select
+      count: 2
+      risk_flags: []
+    - component: el-input
+      count: 3
+      risk_flags: []
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 4
+      risk_flags: []
+    - component: el-cascader
+      count: 1
+      risk_flags: ["部门筛选"]
+
+elements:
+  - name: 岗位名称搜索框
+    selector: ".search-area .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区第一个输入框，通常绑定岗位名称"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 岗位编码搜索框
+    selector: ".search-area .el-input__inner:nth-child(2)"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区第二个输入框，绑定岗位编码"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 部门筛选下拉
+    selector: ".search-area .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "部门筛选下拉框，异步加载部门选项"
+    risk_level: medium
+    risk_reason: "异步加载，选项需等待完成"
+
+  - name: 搜索按钮
+    selector: ".search-area .el-button--primary"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "搜索按钮，触发表格刷新"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 重置按钮
+    selector: ".search-area .el-button:not(.el-button--primary)"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "重置按钮，清空搜索条件并重新加载列表"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 新增岗位按钮
+    selector: ".page-header .el-button--primary"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "页面上方的新增按钮，点击打开新增弹窗"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 岗位表格
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "岗位列表表格，包含编码、名称、部门、编制人数、状态列"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 行内编辑按钮
+    selector: ".el-table__body .el-button--text:contains('编辑')"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格每行的编辑按钮，点击后进入行内编辑模式"
+    risk_level: medium
+    risk_reason: "需定位具体行，避免点击错误按钮"
+
+  - name: 行内删除按钮
+    selector: ".el-table__body .el-button--text:contains('删除')"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格每行的删除按钮，点击后弹出确认框"
+    risk_level: high
+    risk_reason: "删除操作不可逆，需谨慎确认"
+
+  - name: 新增/编辑表单-岗位名称
+    selector: ".el-dialog .el-form-item:nth-child(1) .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中的岗位名称输入框"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 新增/编辑表单-岗位编码
+    selector: ".el-dialog .el-form-item:nth-child(2) .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中的岗位编码输入框"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 新增/编辑表单-部门选择
+    selector: ".el-dialog .el-form-item:nth-child(3) .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中的部门下拉选择框"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 新增/编辑表单-编制人数
+    selector: ".el-dialog .el-form-item:nth-child(4) .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中的编制人数输入框，需校验≥0"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 新增/编辑表单-描述
+    selector: ".el-dialog .el-form-item:nth-child(5) .el-textarea__inner"
+    selector_type: CSS_SELECTOR
+    element_type: textarea
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中的描述文本域"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 弹窗提交按钮
+    selector: ".el-dialog .el-dialog__footer .el-button--primary"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "弹窗底部的确认/提交按钮"
+    risk_level: medium
+    risk_reason: "提交操作触发接口调用和表格刷新"
+
+  - name: 弹窗取消按钮
+    selector: ".el-dialog .el-dialog__footer .el-button:not(.el-button--primary)"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗底部的取消按钮"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 删除确认弹窗确认按钮
+    selector: ".el-message-box .el-button--primary"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-message-box
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "删除确认弹窗的确定按钮"
+    risk_level: high
+    risk_reason: "确认删除后数据不可恢复"
+
+  - name: 删除确认弹窗取消按钮
+    selector: ".el-message-box .el-button:not(.el-button--primary)"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-message-box
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "删除确认弹窗的取消按钮"
+    risk_level: low
+    risk_reason: ""
+
+  - name: 分页器
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "表格底部的分页组件"
+    risk_level: low
+    risk_reason: ""
+
+test_scenarios:
+  - id: TC-PST-001
+    title: 页面正常加载
+    priority: P0
+    type: smoke
+    preconditions: ["用户已登录且有权限"]
+    steps_summary: "访问岗位管理页面"
+    expected: "表格区域显示岗位列表，搜索区、分页器均正常渲染"
+    relates_to_elements: ["岗位表格", "搜索按钮", "重置按钮", "分页器"]
+
+  - id: TC-PST-002
+    title: 删除关联岗位
+    priority: P0
+    type: negative
+    preconditions: ["存在一个岗位已被员工关联"]
+    steps_summary: "点击该岗位的删除按钮，确认删除"
+    expected: "后端返回错误提示，删除失败，页面显示Toast错误信息"
+    relates_to_elements: ["行内删除按钮", "删除确认弹窗确认按钮"]
+
+  - id: TC-PST-003
+    title: 敏感字段权限
+    priority: P0
+    type: boundary
+    preconditions: ["以无权限角色（如非admin）登录"]
+    steps_summary: "查看岗位编辑弹窗"
+    expected: "薪资等敏感字段不可见或禁用"
+    relates_to_elements: ["新增/编辑表单-编制人数"]
+
+  - id: TC-PST-004
+    title: 编码搜索
+    priority: P1
+    type: positive
+    preconditions: ["存在多个岗位"]
+    steps_summary: "在搜索框输入岗位编码关键字，点击搜索"
+    expected: "表格仅显示编码匹配的岗位"
+    relates_to_elements: ["岗位编码搜索框", "搜索按钮"]
+
+  - id: TC-PST-005
+    title: 部门筛选
+    priority: P1
+    type: positive
+    preconditions: ["存在多个部门的岗位"]
+    steps_summary: "选择部门，点击搜索"
+    expected: "表格仅显示该部门的岗位"
+    relates_to_elements: ["部门筛选下拉", "搜索按钮"]
+
+  - id: TC-PST-006
+    title: 分类筛选（根据上下文可能是状态筛选）
+    priority: P1
+    type: positive
+    preconditions: ["存在不同状态的岗位"]
+    steps_summary: "选择状态分类（如启用/禁用），点击搜索"
+    expected: "表格仅显示对应状态的岗位"
+    relates_to_elements: ["搜索按钮"]
+
+  - id: TC-PST-007
+    title: 状态筛选（与006类似，但明确）
+    priority: P1
+    type: positive
+    preconditions: ["存在不同状态的岗位"]
+    steps_summary: "选择状态（启用/禁用），点击搜索"
+    expected: "表格根据状态过滤"
+    relates_to_elements: ["搜索按钮"]
+
+  - id: TC-PST-008
+    title: 重置+分页
+    priority: P1
+    type: positive
+    preconditions: ["已执行搜索条件并进入非第一页"]
+    steps_summary: "点击重置按钮，然后翻页"
+    expected: "表格恢复全量数据，分页器显示总条数，可正常翻页"
+    relates_to_elements: ["重置按钮", "分页器"]
+
+  - id: TC-PST-009
+    title: 新增岗位
+    priority: P1
+    type: positive
+    preconditions: ["用户有新增权限"]
+    steps_summary: "点击新增按钮，填写表单（名称、编码、部门、编制人数、描述），提交"
+    expected: "Toast提示新增成功，表格刷新显示新岗位"
+    relates_to_elements: ["新增岗位按钮", "新增/编辑表单-岗位名称", "新增/编辑表单-岗位编码", "新增/编辑表单-部门选择", "新增/编辑表单-编制人数", "弹窗提交按钮"]
+
+  - id: TC-PST-010
+    title: 编辑岗位
+    priority: P1
+    type: positive
+    preconditions: ["存在一个岗位"]
+    steps_summary: "点击编辑按钮，修改岗位名称或部门，保存"
+    expected: "Toast提示编辑成功，表格刷新显示更新后的数据"
+    relates_to_elements: ["行内编辑按钮", "新增/编辑表单-岗位名称", "弹窗提交按钮"]
+
+page_behaviors:
+  - behavior: 表格异步加载
+    triggers: ["页面加载", "搜索后", "新增/编辑/删除后"]
+    wait_required: true
+    wait_suggestion: "wait_loading_gone 或 wait_vue_stable"
+
+  - behavior: 部门下拉异步加载
+    triggers: ["打开弹窗", "点击部门筛选下拉"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable + 等待选项渲染"
+
+  - behavior: 行内编辑切换为编辑模式
+    triggers: ["点击行内编辑按钮"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable（等待表单激活）"
+
+  - behavior: 删除确认弹窗
+    triggers: ["点击行内删除按钮"]
+    wait_required: true
+    wait_suggestion: "等待弹窗出现"
+
+  - behavior: 分页切换
+    triggers: ["点击分页器页码或前进后退"]
+    wait_required: true
+    wait_suggestion: "wait_loading_gone"
+
+  - behavior: 表格刷新
+    triggers: ["搜索、重置、新增、编辑、删除成功后"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable 或 wait_loading_gone"

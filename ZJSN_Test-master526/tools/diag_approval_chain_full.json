@@ -1,0 +1,70 @@
+{
+  "diagnosed_at": "2026-06-15 16:05:27",
+  "chains": [
+    {
+      "index": 1,
+      "name": "承包商入场审批",
+      "code": "contractor_entry",
+      "step_details": [
+        {
+          "审批人": "(空)",
+          "审批模式": "AND",
+          "步骤名称": "安全部门审批"
+        },
+        {
+          "审批人": "(空)",
+          "审批模式": "AND",
+          "步骤名称": "入场确认"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "name": "危废入库审批链",
+      "code": "wh_hazard_in",
+      "step_details": {
+        "error": "table_empty"
+      }
+    },
+    {
+      "index": 3,
+      "name": "危废出库审批链",
+      "code": "wh_hazard_out",
+      "step_details": {
+        "error": "editor_not_found"
+      }
+    },
+    {
+      "index": 4,
+      "name": "备件盘点审批链",
+      "code": "wh_stocktake",
+      "step_details": {
+        "error": "editor_not_found"
+      }
+    },
+    {
+      "index": 5,
+      "name": "备件入库审批链",
+      "code": "wh_in",
+      "step_details": {
+        "error": "editor_not_found"
+      }
+    },
+    {
+      "index": 6,
+      "name": "备件出库审批链",
+      "code": "wh_out",
+      "step_details": {
+        "error": "editor_not_found"
+      }
+    },
+    {
+      "index": 7,
+      "name": "备件领用申请审批链",
+      "code": "wh_requisition",
+      "step_details": {
+        "error": "editor_not_found"
+      }
+    }
+  ]
+}

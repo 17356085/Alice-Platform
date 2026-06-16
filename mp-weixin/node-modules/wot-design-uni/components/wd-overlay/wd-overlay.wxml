@@ -1,0 +1,1 @@
+<wd-transition wx:if="{{b}}" u-s="{{['d']}}" bindclick="{{a}}" u-i="3aad5a01-0" bind:__l="__l" u-p="{{b}}"><slot></slot></wd-transition>

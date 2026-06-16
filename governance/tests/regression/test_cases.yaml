@@ -1,0 +1,220 @@
+# Regression Test Cases — P1-4: Golden Test 基线
+# 修改 Skill Prompt 后，运行 `aitest regression run` 验证不退化。
+#
+# 评分策略:
+#   - 主要依赖确定性 criteria（contains/not_contains/min_length）——稳定可靠
+#   - baseline 相似度仅作辅助信号（阈值 0.2，LLM 输出天然非确定性）
+#   - 不使用 structure（section headers 随模型而异）
+#
+# 支持的 expected 键:
+#   min_length:   最少输出字符数
+#   contains:     必须包含的关键词列表（不区分大小写）
+#   not_contains: 禁止出现的关键词列表
+
+version: "0.3"  # P2 expansion 2026-06-15: 5 → 15 cases
+test_cases:
+  # ════════════════════════════════════════════════════════════════════
+  #  test-design/ skills
+  # ════════════════════════════════════════════════════════════════════
+  - id: "page-analysis-basic"
+    skill_id: "test-design/page-analysis"
+    description: "页面分析——应输出元素清单和定位器建议"
+    input: "分析 equipment/alarm-config 页面，提取所有可见元素和定位器"
+    context:
+      module: "equipment"
+      page: "alarm-config"
+    expected:
+      min_length: 200
+      contains: ["元素", "定位"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "test-design"]
+
+  - id: "risk-modeling-basic"
+    skill_id: "test-design/risk-modeling"
+    description: "风险建模——应输出六维度风险分析"
+    input: "对 equipment/alarm-config 页面进行风险建模"
+    context:
+      module: "equipment"
+      page: "alarm-config"
+    expected:
+      min_length: 200
+      contains: ["风险", "P0"]
+    tags: ["smoke", "test-design"]
+
+  # ════════════════════════════════════════════════════════════════════
+  #  automation/ skills
+  # ════════════════════════════════════════════════════════════════════
+  - id: "tech-analysis-basic"
+    skill_id: "automation/tech-analysis"
+    description: "技术分析——应识别 Element Plus 组件并设计定位器"
+    input: "分析 equipment/alarm-config 页面HTML，识别Element Plus组件，设计稳定定位器"
+    context:
+      module: "equipment"
+      page: "alarm-config"
+    expected:
+      min_length: 200
+      contains: ["定位", "el-"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "automation"]
+
+  - id: "auto-strategy-basic"
+    skill_id: "automation/auto-strategy"
+    description: "自动化策略——应包含覆盖矩阵和ROI分析"
+    input: "基于 equipment/alarm-config 的测试用例制定自动化策略"
+    context:
+      module: "equipment"
+      page: "alarm-config"
+    expected:
+      min_length: 150
+      contains: ["自动化", "覆盖"]
+    tags: ["critical", "automation"]
+
+  # ════════════════════════════════════════════════════════════════════
+  #  knowledge/ skills
+  # ════════════════════════════════════════════════════════════════════
+  - id: "completeness-check-basic"
+    skill_id: "knowledge/completeness-check"
+    description: "文档完整性检查——应标注缺失文档的优先级"
+    input: "检查 equipment 模块的文档完整性"
+    context:
+      module: "equipment"
+    expected:
+      min_length: 100
+      contains: ["P0", "缺失"]
+    tags: ["smoke", "knowledge"]
+
+  # ════════════════════════════════════════════════════════════════════
+  #  requirements/ skills (P2 expansion 2026-06-15)
+  # ════════════════════════════════════════════════════════════════════
+  - id: "module-modeling-basic"
+    skill_id: "requirements/module-modeling"
+    description: "模块建模——应输出模块结构、页面清单和路由信息"
+    input: "对 equipment 模块进行模块级建模分析"
+    context:
+      module: "equipment"
+    expected:
+      min_length: 150
+      contains: ["模块", "页面", "路由"]
+    tags: ["smoke", "requirements"]
+
+  - id: "requirement-analysis-basic"
+    skill_id: "requirements/requirement-analysis"
+    description: "需求分析——应输出功能点和测试范围"
+    input: "分析 equipment 模块的需求，确定测试范围"
+    context:
+      module: "equipment"
+    expected:
+      min_length: 150
+      contains: ["需求", "测试"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "requirements"]
+
+  # ════════════════════════════════════════════════════════════════════
+  #  test-design/ skills (expansion)
+  # ════════════════════════════════════════════════════════════════════
+  - id: "testcase-design-basic"
+    skill_id: "test-design/testcase-design"
+    description: "测试用例设计——应输出具体测试用例含前置条件和步骤"
+    input: "为 equipment/alarm-config 页面设计测试用例"
+    context:
+      module: "equipment"
+      page: "alarm-config"
+    expected:
+      min_length: 200
+      contains: ["用例", "步骤", "预期"]
+    tags: ["smoke", "test-design"]
+
+  # ════════════════════════════════════════════════════════════════════
+  #  automation/ skills (expansion)
+  # ════════════════════════════════════════════════════════════════════
+  - id: "page-object-generator-basic"
+    skill_id: "automation/page-object-generator"
+    description: "PO生成——应输出Page Object类含定位器和操作方法"
+    input: "基于 equipment/alarm-config 的 TECH_ANALYSIS.md 生成 Page Object"
+    context:
+      module: "equipment"
+      page: "alarm-config"
+    expected:
+      min_length: 200
+      contains: ["class", "定位", "def"]
+    tags: ["smoke", "automation"]
+
+  - id: "test-script-generator-basic"
+    skill_id: "automation/test-script-generator"
+    description: "测试脚本生成——应输出pytest测试脚本"
+    input: "基于 equipment/alarm-config 的 TEST_CASES.md 生成测试脚本"
+    context:
+      module: "equipment"
+      page: "alarm-config"
+    expected:
+      min_length: 200
+      contains: ["def test_", "import", "pytest"]
+    tags: ["smoke", "automation"]
+
+  - id: "code-consistency-basic"
+    skill_id: "automation/code-consistency-checker"
+    description: "代码一致性检查——应检测PO与页面元素的同步状态"
+    input: "检查 equipment/alarm-config 的 PO 与 PAGE_CONTEXT.md 一致性"
+    context:
+      module: "equipment"
+      page: "alarm-config"
+    expected:
+      min_length: 100
+      contains: ["一致", "定位"]
+    tags: ["critical", "automation"]
+
+  # ════════════════════════════════════════════════════════════════════
+  #  execution/ skills (expansion)
+  # ════════════════════════════════════════════════════════════════════
+  - id: "allure-report-basic"
+    skill_id: "execution/allure-report-analyzer"
+    description: "Allure报告分析——应输出失败用例统计和根因分析"
+    input: "分析 equipment 模块的 allure-results 测试报告"
+    context:
+      module: "equipment"
+    expected:
+      min_length: 100
+      contains: ["失败", "通过"]
+    tags: ["smoke", "execution"]
+
+  # ════════════════════════════════════════════════════════════════════
+  #  diagnosis/ skills (expansion)
+  # ════════════════════════════════════════════════════════════════════
+  - id: "bug-analysis-basic"
+    skill_id: "diagnosis/bug-analysis"
+    description: "Bug分析——应输出根因、修复建议和关联已知问题"
+    input: "分析 equipment 模块测试失败用例的根因，基于 allure-results"
+    context:
+      module: "equipment"
+    expected:
+      min_length: 150
+      contains: ["根因", "修复"]
+    tags: ["smoke", "diagnosis"]
+
+  # ════════════════════════════════════════════════════════════════════
+  #  reporting/ skills (expansion)
+  # ════════════════════════════════════════════════════════════════════
+  - id: "report-generator-basic"
+    skill_id: "reporting/report-generator"
+    description: "测试报告生成——应输出测试总结含覆盖率统计"
+    input: "基于 equipment 模块的测试结果生成测试总结报告"
+    context:
+      module: "equipment"
+    expected:
+      min_length: 200
+      contains: ["测试", "覆盖", "通过率"]
+    tags: ["smoke", "reporting"]
+
+  # ════════════════════════════════════════════════════════════════════
+  #  knowledge/ skills (expansion)
+  # ════════════════════════════════════════════════════════════════════
+  - id: "knowledge-manager-basic"
+    skill_id: "knowledge/knowledge-manager"
+    description: "知识管理——应识别可沉淀的模式和已知问题"
+    input: "从 equipment 模块的 bug-analysis 和测试报告中提取可沉淀知识"
+    context:
+      module: "equipment"
+    expected:
+      min_length: 100
+      contains: ["知识", "沉淀"]
+    tags: ["smoke", "knowledge"]

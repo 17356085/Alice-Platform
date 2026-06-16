@@ -1,0 +1,229 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:26"
+
+meta:
+  module: "system-management"
+  page_name: "ApprovalHistory"
+  page_slug: "approval-history"
+  page_url: "/system/workflow/history"
+  vue_components:
+    - component: el-select
+      count: 2
+      risk_flags: []
+    - component: el-date-range-picker
+      count: 1
+      risk_flags: []
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 1
+      risk_flags: []
+    - component: el-tag
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 3
+      risk_flags: []
+
+elements:
+  - name: "审批状态下拉框"
+    selector: ".el-form-item .el-select:has(.el-form-item__label:contains('审批状态'))"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "通过包含标签文本'审批状态'的form-item定位select，选项值为'已通过'/'已驳回'"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "报表日期范围选择器"
+    selector: ".el-form-item .el-date-range-picker:has(.el-form-item__label:contains('报表日期'))"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-range-picker
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "日期范围选择器，使用BasePage通用方法"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "工厂代码输入框"
+    selector: ".el-form-item__label:contains('工厂') ~ .el-form-item__content .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-select
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "注意：标签文本是'工厂'而非'标题'，输入框位于el-select内，定位用JS遍历标签"
+    risk_level: medium
+    risk_reason: "工厂代码并非标准标题字段，定位方式依赖JS，可能因DOM结构变化而失效"
+
+  - name: "搜索按钮"
+    selector: "button:contains('搜索')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "使用JS点击绕过拦截，调用 _js_click_search_or_reset('搜索')"
+    risk_level: low
+    risk_reason: "按钮可能被el-select的拦截机制阻挡，需用JS点击"
+
+  - name: "重置按钮"
+    selector: "button:contains('重置')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "使用JS点击绕过拦截，调用 _js_click_search_or_reset('重置')"
+    risk_level: low
+    risk_reason: "同搜索按钮"
+
+  - name: "审批历史表格"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格包含列：报表日期、工厂代码、申请人、审批状态、审批时间、审批意见、操作"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "第一行查看详情按钮"
+    selector: ".el-table__body-wrapper tbody tr:nth-child(1) .el-button:contains('查看详情')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格操作列中点击第一行的查看详情按钮"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "详情弹窗"
+    selector: ".el-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "只读表单显示申请和审批完整信息"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "详情弹窗关闭按钮"
+    selector: ".el-dialog__headerbtn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "关闭弹窗"
+    risk_level: low
+    risk_reason: ""
+
+test_scenarios:
+  - id: TC-001
+    title: "根据审批状态搜索已通过记录"
+    priority: P0
+    type: positive
+    preconditions: ["存在已审批通过的记录"]
+    steps_summary: "选择审批状态为'已通过'，点击搜索按钮，等待表格刷新"
+    expected: "表格仅显示审批状态为'已通过'的记录"
+    relates_to_elements: ["审批状态下拉框", "搜索按钮"]
+
+  - id: TC-002
+    title: "根据报表日期范围搜索"
+    priority: P0
+    type: positive
+    preconditions: ["存在指定日期范围内的记录"]
+    steps_summary: "设置报表日期起始和结束，点击搜索按钮"
+    expected: "表格显示该日期范围内的记录"
+    relates_to_elements: ["报表日期范围选择器", "搜索按钮"]
+
+  - id: TC-003
+    title: "根据工厂代码搜索(支持模糊匹配)"
+    priority: P0
+    type: positive
+    preconditions: ["存在对应工厂记录"]
+    steps_summary: "输入工厂代码文本，点击搜索按钮"
+    expected: "表格显示匹配工厂代码的记录"
+    relates_to_elements: ["工厂代码输入框", "搜索按钮"]
+
+  - id: TC-004
+    title: "重置搜索条件"
+    priority: P1
+    type: positive
+    preconditions: ["已输入搜索条件"]
+    steps_summary: "设置任意搜索条件后点击重置按钮"
+    expected: "所有搜索条件清空，表格恢复默认加载全部记录"
+    relates_to_elements: ["审批状态下拉框", "报表日期范围选择器", "工厂代码输入框", "重置按钮"]
+
+  - id: TC-005
+    title: "查看第一条审批记录详情"
+    priority: P0
+    type: positive
+    preconditions: ["表格至少有一条记录"]
+    steps_summary: "点击第一行的'查看详情'按钮，等待弹窗出现"
+    expected: "弹窗正确显示该记录的审批详情（包含申请信息、审批意见等）"
+    relates_to_elements: ["第一行查看详情按钮", "详情弹窗"]
+
+  - id: TC-006
+    title: "关闭详情弹窗"
+    priority: P1
+    type: positive
+    preconditions: ["详情弹窗已打开"]
+    steps_summary: "点击弹窗右上角关闭按钮，或弹窗外空白区域"
+    expected: "弹窗关闭，页面恢复到表格视图"
+    relates_to_elements: ["详情弹窗关闭按钮"]
+
+  - id: TC-007
+    title: "空状态显示（无已审批项）"
+    priority: P1
+    type: negative
+    preconditions: ["当前用户无任何审批历史"]
+    steps_summary: "直接进入页面，不进行任何搜索"
+    expected: "表格显示空状态提示，文案包含'暂无已审批项'或'暂无'"
+    relates_to_elements: ["审批历史表格"]
+
+  - id: TC-008
+    title: "仅按工厂代码搜索（组合条件之一）"
+    priority: P2
+    type: positive
+    preconditions: ["存在对应工厂记录"]
+    steps_summary: "输入工厂代码，不设置其他条件，点击搜索"
+    expected: "表格过滤出该工厂的所有审批记录（不限制状态和日期）"
+    relates_to_elements: ["工厂代码输入框", "搜索按钮"]
+
+page_behaviors:
+  - behavior: "表格加载后渲染"
+    triggers: ["页面加载", "搜索后", "重置后"]
+    wait_required: true
+    wait_suggestion: "wait_loading_gone 或 wait_vue_stable"
+
+  - behavior: "搜索条件重置后重新加载全量数据"
+    triggers: ["点击重置按钮"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "弹窗打开与关闭"
+    triggers: ["点击查看详情按钮", "点击关闭按钮或点击遮罩层"]
+    wait_required: true
+    wait_suggestion: "WebDriverWait 等待弹窗可见/消失"
+
+  - behavior: "工厂代码输入框通过JS遍历标签定位"
+    triggers: ["输入工厂代码时"]
+    wait_required: false
+    wait_suggestion: "无需额外等待"
+
+  - behavior: "搜索/重置按钮使用JS点击规避拦截"
+    triggers: ["点击搜索/重置按钮时"]
+    wait_required: false
+    wait_suggestion: "直接调用JavaScript执行点击，之后等待表格稳定"

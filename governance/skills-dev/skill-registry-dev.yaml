@@ -1,0 +1,561 @@
+# Dev Skill Registry — 完整版
+# Phase 1→2: 从 11 Skill 扩展到 32 Skill
+# P0-1 (2026-06-15): 增加 Prompt Versioning — current_version + versions[] per skill
+
+version: "2.1"
+last_updated: "2026-06-15"
+
+skills:
+  # ── plan (4) ──
+  plan/create-project-plan:
+    id: plan/create-project-plan
+    category: plan
+    status: active
+    file: governance/skills-dev/plan/create-project-plan.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/plan/create-project-plan.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [architecture/project-scanner]
+    description: 任务分解、里程碑规划、依赖关系图
+
+  plan/progress-tracker:
+    id: plan/progress-tracker
+    category: plan
+    status: active
+    file: governance/skills-dev/plan/progress-tracker.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/plan/progress-tracker.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [plan/create-project-plan]
+    description: 对比计划 vs 实际产物，输出进度报告
+
+  plan/risk-analyzer:
+    id: plan/risk-analyzer
+    category: plan
+    status: active
+    file: governance/skills-dev/plan/risk-analyzer.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/plan/risk-analyzer.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [plan/create-project-plan]
+    description: 风险矩阵分析，标注高等级风险缓解措施
+
+  plan/sprint-planner:
+    id: plan/sprint-planner
+    category: plan
+    status: active
+    file: governance/skills-dev/plan/sprint-planner.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/plan/sprint-planner.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [plan/create-project-plan]
+    description: Sprint 规划，任务优先级排序，工时估算
+
+  # ── requirements-dev (4) ──
+  requirements-dev/feature-spec:
+    id: requirements-dev/feature-spec
+    category: requirements-dev
+    status: active
+    file: governance/skills-dev/requirements-dev/feature-spec.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/requirements-dev/feature-spec.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: []
+    description: 结构化功能规格，优先级分类，MVP 边界
+
+  requirements-dev/user-story-writer:
+    id: requirements-dev/user-story-writer
+    category: requirements-dev
+    status: active
+    file: governance/skills-dev/requirements-dev/user-story-writer.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/requirements-dev/user-story-writer.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [requirements-dev/feature-spec]
+    description: As a/I want/So that 格式用户故事
+
+  requirements-dev/acceptance-criteria:
+    id: requirements-dev/acceptance-criteria
+    category: requirements-dev
+    status: active
+    file: governance/skills-dev/requirements-dev/acceptance-criteria.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/requirements-dev/acceptance-criteria.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [requirements-dev/user-story-writer]
+    description: Given/When/Then 验收标准，含边界和异常
+
+  requirements-dev/data-model-spec:
+    id: requirements-dev/data-model-spec
+    category: requirements-dev
+    status: active
+    file: governance/skills-dev/requirements-dev/data-model-spec.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/requirements-dev/data-model-spec.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [requirements-dev/feature-spec]
+    description: ERD 图 + 实体字段定义
+
+  # ── architecture (4) ──
+  architecture/project-scanner:
+    id: architecture/project-scanner
+    category: architecture
+    status: active
+    file: governance/skills-dev/architecture/project-scanner.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/architecture/project-scanner.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: []
+  architecture/tech-stack-decider:
+    id: architecture/tech-stack-decider
+    category: architecture
+    status: active
+    file: governance/skills-dev/architecture/tech-stack-decider.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/architecture/tech-stack-decider.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [architecture/project-scanner]
+  architecture/component-tree-designer:
+    id: architecture/component-tree-designer
+    category: architecture
+    status: active
+    file: governance/skills-dev/architecture/component-tree-designer.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/architecture/component-tree-designer.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [architecture/tech-stack-decider]
+  architecture/api-contract-designer:
+    id: architecture/api-contract-designer
+    category: architecture
+    status: active
+    file: governance/skills-dev/architecture/api-contract-designer.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/architecture/api-contract-designer.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [architecture/component-tree-designer]
+
+  # ── component-design (4) ──
+  component-design/component-spec:
+    id: component-design/component-spec
+    category: component-design
+    status: active
+    file: governance/skills-dev/component-design/component-spec.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/component-design/component-spec.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [architecture/component-tree-designer]
+  component-design/props-interface:
+    id: component-design/props-interface
+    category: component-design
+    status: active
+    file: governance/skills-dev/component-design/props-interface.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/component-design/props-interface.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [component-design/component-spec]
+  component-design/data-flow:
+    id: component-design/data-flow
+    category: component-design
+    status: active
+    file: governance/skills-dev/component-design/data-flow.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/component-design/data-flow.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [component-design/props-interface]
+  component-design/layout-mockup:
+    id: component-design/layout-mockup
+    category: component-design
+    status: active
+    file: governance/skills-dev/component-design/layout-mockup.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/component-design/layout-mockup.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+    dependencies: [component-design/component-spec]
+
+  # ── frontend (5) ──
+  frontend/vue-component-generator:
+    id: frontend/vue-component-generator
+    category: frontend
+    status: active
+    file: governance/skills-dev/frontend/vue-component-generator.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/frontend/vue-component-generator.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  frontend/page-implementer:
+    id: frontend/page-implementer
+    category: frontend
+    status: active
+    file: governance/skills-dev/frontend/page-implementer.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/frontend/page-implementer.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  frontend/vuex-pinia-store:
+    id: frontend/vuex-pinia-store
+    category: frontend
+    status: active
+    file: governance/skills-dev/frontend/vuex-pinia-store.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/frontend/vuex-pinia-store.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  frontend/router-config:
+    id: frontend/router-config
+    category: frontend
+    status: active
+    file: governance/skills-dev/frontend/router-config.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/frontend/router-config.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  frontend/frontend-lint-checker:
+    id: frontend/frontend-lint-checker
+    category: frontend
+    status: active
+    file: governance/skills-dev/frontend/frontend-lint-checker.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/frontend/frontend-lint-checker.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+
+  # ── backend (6) ──
+  backend/fastapi-router-generator:
+    id: backend/fastapi-router-generator
+    category: backend
+    status: active
+    file: governance/skills-dev/backend/fastapi-router-generator.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/backend/fastapi-router-generator.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  backend/pydantic-schema-generator:
+    id: backend/pydantic-schema-generator
+    category: backend
+    status: active
+    file: governance/skills-dev/backend/pydantic-schema-generator.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/backend/pydantic-schema-generator.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  backend/sqlalchemy-model-generator:
+    id: backend/sqlalchemy-model-generator
+    category: backend
+    status: active
+    file: governance/skills-dev/backend/sqlalchemy-model-generator.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/backend/sqlalchemy-model-generator.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  backend/crud-generator:
+    id: backend/crud-generator
+    category: backend
+    status: active
+    file: governance/skills-dev/backend/crud-generator.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/backend/crud-generator.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  backend/unit-test-generator:
+    id: backend/unit-test-generator
+    category: backend
+    status: active
+    file: governance/skills-dev/backend/unit-test-generator.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/backend/unit-test-generator.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  backend/backend-consistency-checker:
+    id: backend/backend-consistency-checker
+    category: backend
+    status: active
+    file: governance/skills-dev/backend/backend-consistency-checker.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/backend/backend-consistency-checker.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+
+  # ── code-review (4) ──
+  code-review/source-code-reviewer:
+    id: code-review/source-code-reviewer
+    category: code-review
+    status: active
+    file: governance/skills-dev/code-review/source-code-reviewer.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/code-review/source-code-reviewer.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  code-review/performance-analyzer:
+    id: code-review/performance-analyzer
+    category: code-review
+    status: active
+    file: governance/skills-dev/code-review/performance-analyzer.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/code-review/performance-analyzer.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  code-review/security-scanner:
+    id: code-review/security-scanner
+    category: code-review
+    status: active
+    file: governance/skills-dev/code-review/security-scanner.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/code-review/security-scanner.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  code-review/consistency-enforcer:
+    id: code-review/consistency-enforcer
+    category: code-review
+    status: active
+    file: governance/skills-dev/code-review/consistency-enforcer.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/code-review/consistency-enforcer.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+
+  # ── test-dev (3) ──
+  test-dev/unit-test-generator:
+    id: test-dev/unit-test-generator
+    category: test-dev
+    status: active
+    file: governance/skills-dev/test-dev/unit-test-generator.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/test-dev/unit-test-generator.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  test-dev/integration-test-generator:
+    id: test-dev/integration-test-generator
+    category: test-dev
+    status: active
+    file: governance/skills-dev/test-dev/integration-test-generator.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/test-dev/integration-test-generator.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  test-dev/coverage-checker:
+    id: test-dev/coverage-checker
+    category: test-dev
+    status: active
+    file: governance/skills-dev/test-dev/coverage-checker.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/test-dev/coverage-checker.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+
+  # ── debug (4) ──
+  debug/error-locator:
+    id: debug/error-locator
+    category: debug
+    status: active
+    file: governance/skills-dev/debug/error-locator.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/debug/error-locator.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  debug/stack-trace-analyzer:
+    id: debug/stack-trace-analyzer
+    category: debug
+    status: active
+    file: governance/skills-dev/debug/stack-trace-analyzer.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/debug/stack-trace-analyzer.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  debug/fix-suggester:
+    id: debug/fix-suggester
+    category: debug
+    status: active
+    file: governance/skills-dev/debug/fix-suggester.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/debug/fix-suggester.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  debug/regression-verifier:
+    id: debug/regression-verifier
+    category: debug
+    status: active
+    file: governance/skills-dev/debug/regression-verifier.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/debug/regression-verifier.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+
+  # ── build (4) ──
+  build/type-checker:
+    id: build/type-checker
+    category: build
+    status: active
+    file: governance/skills-dev/build/type-checker.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/build/type-checker.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  build/lint-executor:
+    id: build/lint-executor
+    category: build
+    status: active
+    file: governance/skills-dev/build/lint-executor.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/build/lint-executor.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  build/test-runner:
+    id: build/test-runner
+    category: build
+    status: active
+    file: governance/skills-dev/build/test-runner.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/build/test-runner.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active
+  build/package-bundler:
+    id: build/package-bundler
+    category: build
+    status: active
+    file: governance/skills-dev/build/package-bundler.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/build/package-bundler.md
+        released: "2026-06-14"
+        changelog: "初始版本"
+        status: active

@@ -1,0 +1,88 @@
+{
+  "module": "system",
+  "audit_time": "2026-06-16T09:10:14.378170",
+  "period": "7d",
+  "overall_compliance": 0.857,
+  "total_violations": 2,
+  "error_count": 0,
+  "warning_count": 2,
+  "violations": [
+    {
+      "check_type": "x_check",
+      "severity": "info",
+      "violation_type": "context_partial",
+      "detail": "Skill 'test-design/risk-modeling' 上下文注入不稳定: 67% 次为空 (4/6)",
+      "run_id": "",
+      "evidence": {
+        "skill_id": "test-design/risk-modeling",
+        "zero_rate": 0.6666666666666666
+      },
+      "suggestion": "检查 context_vars 是否正确传递 module/page 参数"
+    },
+    {
+      "check_type": "x_check",
+      "severity": "warning",
+      "violation_type": "context_missing",
+      "detail": "Skill 'automation/tech-analysis' 上下文注入缺失率 100% (4/4 次 context_chars=0)",
+      "run_id": "",
+      "evidence": {
+        "skill_id": "automation/tech-analysis",
+        "zero_rate": 1.0,
+        "total_runs": 4,
+        "zero_runs": 4
+      },
+      "suggestion": "检查 ContextInjector 配置: SKILL_CONTEXT_MAP 是否包含该 Skill，或 RAG collection 是否为空。"
+    }
+  ],
+  "checks": {
+    "p_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "s_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "g_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "h_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "b_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "l_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "x_check": {
+      "total": 2,
+      "errors": 0,
+      "warnings": 1,
+      "infos": 1,
+      "ok": false
+    }
+  }
+}

@@ -1,0 +1,67 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:13"
+
+meta:
+  module: "lab"
+  page_name: "GasIndicator"
+  page_slug: "gas-indicator"
+  page_url: "/lab/gas-indicator"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+
+elements:
+  - name: "指标表格"
+    selector: ".gas-indicator-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "自定义表格，包含指标名称、设计值、标准范围三列"
+    risk_level: low
+    risk_reason: "纯展示表格，无用户交互"
+
+test_scenarios:
+  - id: TC-001
+    title: "页面加载成功"
+    priority: P0
+    type: smoke
+    preconditions:
+      - "登录admin"
+    steps_summary: "导航到菜单：化验室取样→气体分析→气体分析设计指标"
+    expected: "表格渲染，显示23条气体设计指标"
+    relates_to_elements:
+      - "指标表格"
+
+  - id: TC-002
+    title: "行数验证"
+    priority: P0
+    type: positive
+    preconditions:
+      - "页面已加载"
+    steps_summary: "计数表格行数"
+    expected: "气体设计指标行数为23行"
+    relates_to_elements:
+      - "指标表格"
+
+  - id: TC-003
+    title: "只读性验证"
+    priority: P1
+    type: positive
+    preconditions:
+      - "页面已加载"
+    steps_summary: "检查页面上的按钮元素"
+    expected: "页面无新增、编辑、删除按钮，纯展示"
+    relates_to_elements: []
+
+page_behaviors:
+  - behavior: "表格加载后渲染所有数据"
+    triggers:
+      - "页面加载"
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"

@@ -1,0 +1,246 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 10:00"
+
+meta:
+  module: "production"
+  page_name: "BusinessTypeConfig"
+  page_slug: "business-type-config"
+  page_url: "/production/business-type-config"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 1
+      risk_flags: ["复杂表单（17字段）"]
+    - component: el-select
+      count: 1
+      risk_flags: ["需要模拟选择行为"]
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-checkbox
+      count: 1
+      risk_flags: ["表格列复选框+表头全选"]
+
+elements:
+  - name: "计划参数搜索框"
+    selector: "#input-plan-param"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "使用元素ID input-plan-param"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "业务类型搜索下拉"
+    selector: "#select-biz-type"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "使用元素ID select-biz-type"
+    risk_level: medium
+    risk_reason: "el-select需要点击触发选项面板，选项可能动态加载"
+
+  - name: "工厂搜索框"
+    selector: "#input-factory"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "使用元素ID input-factory"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "物料编码搜索框"
+    selector: "#input-material"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "使用元素ID input-material"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "搜索按钮"
+    selector: "#btn-search"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "使用元素ID btn-search"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "重置按钮"
+    selector: "#btn-reset"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "使用元素ID btn-reset"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "新增按钮"
+    selector: "#btn-add"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "使用元素ID btn-add"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "批量删除按钮"
+    selector: "#btn-delete"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "使用元素ID btn-delete，注意初始disabled状态"
+    risk_level: medium
+    risk_reason: "按钮禁用/启用状态随表格勾选变化"
+
+  - name: "主数据表格"
+    selector: "#table-main"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "表格加载完成后所有行可见"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "表格行复选框"
+    selector: "#table-main .el-checkbox"
+    selector_type: CSS_SELECTOR
+    element_type: checkbox
+    el_component: el-checkbox
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "首列表头全选，行内勾选项"
+    risk_level: medium
+    risk_reason: "复选框可能位于thead或tbody，需区分"
+
+  - name: "分页组件"
+    selector: "#pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "显示总条数及页码切换"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "新增/编辑弹窗"
+    selector: ".el-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗出现后操作表单"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "弹窗-计划参数输入框"
+    selector: ".//div[contains(@class,'el-dialog')]//label[normalize-space()='计划参数']/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "相对XPath定位，默认placeholder '如：10010001'"
+    risk_level: medium
+    risk_reason: "依赖label文本，可能因国际化或结构变化失效"
+
+  - name: "弹窗-业务类型输入框"
+    selector: ".//div[contains(@class,'el-dialog')]//label[normalize-space()='业务类型']/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "无placeholder，需通过label定位"
+    risk_level: medium
+    risk_reason: "同上"
+
+  - name: "弹窗-工厂输入框"
+    selector: ".//div[contains(@class,'el-dialog')]//label[normalize-space()='工厂']/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder '4位编码'"
+    risk_level: medium
+    risk_reason: "同上"
+
+  - name: "弹窗-物料编码输入框"
+    selector: ".//div[contains(@class,'el-dialog')]//label[normalize-space()='物料编码']/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder '请输入物料编码'"
+    risk_level: medium
+    risk_reason: "同上"
+
+  - name: "弹窗-库存地点输入框"
+    selector: ".//div[contains(@class,'el-dialog')]//label[normalize-space()='库存地点']/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder '4位编码'"
+    risk_level: medium
+    risk_reason: "同上"
+
+  - name: "弹窗-工序号输入框"
+    selector: ".//div[contains(@class,'el-dialog')]//label[normalize-space()='工序号']/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder '4位编码'"
+    risk_level: medium
+    risk_reason: "同上"
+
+  - name: "弹窗-工作中心输入框"
+    selector: ".//div[contains(@class,'el-dialog')]//label[normalize-space()='工作中心']/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder '请输入工作中心'"
+    risk_level: medium
+    risk_reason: "同上"
+
+  - name: "弹窗-调用接口输入框"
+    selector: ".//div[contains(@class,'el-dialog')]//label[normalize-space()='调用接口']/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "默认值 PPI

@@ -1,0 +1,264 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:10"
+
+meta:
+  module: "equipment"
+  page_name: "Maintenance"
+  page_slug: "maintenance"
+  page_url: "/equipment/maintenance"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: ["slow_loading"]
+    - component: el-dialog
+      count: 1
+      risk_flags: []
+    - component: el-select
+      count: 2
+      risk_flags: []
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 5
+      risk_flags: []
+
+elements:
+  - name: "maintenance_table"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: "wait_vue_stable(30)"
+    locator_notes: "设备维保数据表格，基于 element-plus 默认类名"
+    risk_level: medium
+    risk_reason: "页面加载慢，30s 超时风险"
+
+  - name: "search_keyword_input"
+    selector: "input[data-testid='search-keyword']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: "wait_vue_stable"
+    locator_notes: "关键词搜索输入框，建议添加 data-testid 属性"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "maintenance_type_select"
+    selector: ".el-select[data-testid='type-filter'] .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: "wait_vue_stable"
+    locator_notes: "维保类型下拉筛选，建议添加 data-testid"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "status_select"
+    selector: ".el-select[data-testid='status-filter'] .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: "wait_vue_stable"
+    locator_notes: "状态下拉筛选，建议添加 data-testid"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "search_button"
+    selector: "button[data-testid='search-btn']"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: "wait_vue_stable"
+    locator_notes: "执行搜索按钮，建议添加 data-testid"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "reset_button"
+    selector: "button[data-testid='reset-btn']"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: "wait_vue_stable"
+    locator_notes: "重置搜索按钮，建议添加 data-testid"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "pagination"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: "wait_vue_stable"
+    locator_notes: "底部分页组件，基于 element-plus 默认类名"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "add_plan_button"
+    selector: "button[data-testid='add-plan']"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: "wait_vue_stable"
+    locator_notes: "新增维保计划按钮，建议添加 data-testid"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "add_dialog"
+    selector: ".el-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: "WebDriverWait(visible)"
+    locator_notes: "新增/编辑弹窗，基于 element-plus 默认类名"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "dialog_plan_name_input"
+    selector: ".el-dialog .el-form-item [data-testid='plan-name'] .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: "wait_vue_stable"
+    locator_notes: "弹窗内计划名称输入框，建议添加 data-testid"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "dialog_confirm_button"
+    selector: ".el-dialog__footer .el-button--primary"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: "wait_vue_stable"
+    locator_notes: "弹窗确定按钮，基于 element-plus 默认类名"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "dialog_cancel_button"
+    selector: ".el-dialog__footer .el-button--default"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: "wait_vue_stable"
+    locator_notes: "弹窗取消按钮，基于 element-plus 默认类名"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "edit_button"
+    selector: ".el-table__body-wrapper .el-button--text:first-child"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: "wait_vue_stable"
+    locator_notes: "行内编辑按钮，可能使用 el-button 类型 text，需根据实际结构调整"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "generate_task_button"
+    selector: ".el-table__body-wrapper .el-button:not(.el-button--text):last-child"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: "wait_vue_stable"
+    locator_notes: "行内生成任务按钮，需确认具体选择器"
+    risk_level: low
+    risk_reason: ""
+
+test_scenarios:
+  - id: TC-MT-001
+    title: "正常加载设备维保页面"
+    priority: P0
+    type: smoke
+    preconditions: ["登录系统", "有设备维保权限"]
+    steps_summary: "导航至设备维保页面，等待表格加载完成（30s超时）"
+    expected: "表格、搜索区、分页组件均可见"
+    relates_to_elements: ["maintenance_table", "search_keyword_input", "pagination"]
+
+  - id: TC-MT-002
+    title: "表头完整性"
+    priority: P0
+    type: positive
+    preconditions: ["页面已加载"]
+    steps_summary: "获取表头列标题，与预期列表对比"
+    expected: "列标题全部正确，包含序号、计划名称、维保类型、状态、操作等"
+    relates_to_elements: ["maintenance_table"]
+
+  - id: TC-MT-003
+    title: "维保类型筛选"
+    priority: P1
+    type: positive
+    preconditions: ["页面已加载", "存在至少一条数据"]
+    steps_summary: "选择维保类型后点击搜索"
+    expected: "表格数据过滤为所选类型，其他类型不显示"
+    relates_to_elements: ["maintenance_type_select", "search_button"]
+
+  - id: TC-MT-004
+    title: "状态筛选"
+    priority: P1
+    type: positive
+    preconditions: ["页面已加载", "存在不同状态的数据"]
+    steps_summary: "选择状态后点击搜索"
+    expected: "表格数据过滤为所选状态，其他状态不显示"
+    relates_to_elements: ["status_select", "search_button"]
+
+  - id: TC-MT-005
+    title: "关键词搜索"
+    priority: P1
+    type: positive
+    preconditions: ["页面已加载", "存在匹配和不匹配的关键词"]
+    steps_summary: "输入关键词后点击搜索"
+    expected: "表格显示名称或编号包含关键词的记录"
+    relates_to_elements: ["search_keyword_input", "search_button"]
+
+  - id: TC-MT-006
+    title: "重置搜索"
+    priority: P1
+    type: positive
+    preconditions: ["页面已加载", "已应用筛选条件"]
+    steps_summary: "点击重置按钮"
+    expected: "所有筛选条件清空，表格恢复全量数据"
+    relates_to_elements: ["reset_button"]
+
+  - id: TC-MT-007
+    title: "分页翻页"
+    priority: P1
+    type: positive
+    preconditions: ["数据量大于一页"]
+    steps_summary: "点击分页的下一页按钮"
+    expected: "表格显示下一页数据，页码更新"
+    relates_to_elements: ["pagination"]
+
+  - id: TC-MT-008
+    title: "新增计划-打开弹窗"
+    priority: P1
+    type: positive
+    preconditions: ["页面已加载"]
+    steps_summary: "点击新增计划按钮"
+    expected: "弹窗可见，标题为'新增维保计划'"
+    relates_to_elements: ["add_plan_button", "add_dialog"]
+
+  - id: TC-MT-009
+    title: "新增计划-提交"
+    priority: P1
+    type: positive
+    preconditions: ["弹窗已打开"]
+    steps_summary: "填写必填字段（如计划名称），点击确定"
+    expected: "弹出成功 Toast，弹窗关闭，表格刷新显示新建记录"
+    relates_to_elements: ["dialog_plan_name_input", "dialog

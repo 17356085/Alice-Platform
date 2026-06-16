@@ -1,0 +1,393 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:21"
+
+meta:
+  module: "production"
+  page_name: "DailyReport"
+  page_slug: "daily-report"
+  page_url: "/production/daily-report"
+  vue_components:
+    - component: el-table
+      count: 4
+      risk_flags: ["四条表格数据需分别验证", "表格为空时需检测empty-block"]
+    - component: el-dialog
+      count: 4
+      risk_flags: ["录入、补录、趋势、导出弹窗", "弹窗内元素需单独定位"]
+    - component: el-date-picker
+      count: 1
+      risk_flags: ["日期选择需配合默认placeholder"]
+    - component: el-button
+      count: 8
+      risk_flags: ["调整按钮初始disabled"]
+    - component: el-select
+      count: 3
+      risk_flags: ["装置下拉选项需从接口获取或mock"]
+
+elements:
+  # 搜索区
+  - name: "date-picker"
+    selector: ".el-date-editor .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "日期输入框，placeholder='请选择日期'"
+    risk_level: low
+    risk_reason: ""
+  - name: "btn-search"
+    selector: "button.el-button--primary:has-text('查询')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+  - name: "btn-enter-data"
+    selector: "button.el-button:has-text('录入数据')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+  - name: "btn-supplement"
+    selector: "button.el-button:has-text('补录数据')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+  - name: "btn-adjust"
+    selector: "button.el-button--warning:has-text('调整数据')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "默认有is-disabled class，需先选中数据行"
+    risk_level: medium
+    risk_reason: "disabled状态需先选择行后可用"
+  - name: "btn-trend"
+    selector: "button.el-button:has-text('趋势')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+  - name: "btn-export"
+    selector: "button.el-button:has-text('导出')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+  - name: "btn-print"
+    selector: "button.el-button:has-text('打印')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  # 产品区表格及列 (仅表格本身作为元素，列无需单独定义)
+  - name: "table-product"
+    selector: ".section-product .el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "产品数据表格"
+    risk_level: medium
+    risk_reason: "表格可能动态加载，需等待el-table__body渲染"
+  - name: "table-material"
+    selector: ".section-material .el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: ""
+  - name: "table-utilities"
+    selector: ".section-utilities .el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: ""
+  - name: "table-refrigerant"
+    selector: ".section-refrigerant .el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: ""
+
+  # 录入数据弹窗
+  - name: "dialog-enter"
+    selector: "div.el-dialog:has(.el-dialog__title:has-text('录入数据'))"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗容器"
+    risk_level: low
+    risk_reason: ""
+  - name: "enter-device-select"
+    selector: ".el-dialog:has-text('录入数据') .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "装置下拉"
+    risk_level: medium
+    risk_reason: "选项可能动态加载，需触发下拉并选择"
+  - name: "enter-btn-cancel"
+    selector: ".el-dialog:has-text('录入数据') button.el-button:has-text('取消')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+  - name: "enter-btn-confirm"
+    selector: ".el-dialog:has-text('录入数据') button.el-button--primary:has-text('确定')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "点击后触发toast"
+    risk_level: low
+    risk_reason: ""
+
+  # 补录数据弹窗
+  - name: "dialog-supplement"
+    selector: "div.el-dialog:has(.el-dialog__title:has-text('补录数据'))"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+  - name: "supplement-device-select"
+    selector: ".el-dialog:has-text('补录数据') .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder='请选择需要补录的装置'"
+    risk_level: medium
+    risk_reason: ""
+  - name: "supplement-btn-cancel"
+    selector: ".el-dialog:has-text('补录数据') button.el-button:has-text('取消')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+  - name: "supplement-btn-confirm"
+    selector: ".el-dialog:has-text('补录数据') button.el-button--primary:has-text('确定')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  # 趋势分析弹窗（部分信息缺失，根据TEST_CASES补充）
+  - name: "dialog-trend"
+    selector: "div.el-dialog:has(.el-dialog__title:has-text('趋势分析'))"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+  - name: "trend-start-date"
+    selector: ".el-dialog:has-text('趋势分析') .el-date-editor:first-of-type"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "开始日期"
+    risk_level: medium
+    risk_reason: ""
+  - name: "trend-end-date"
+    selector: ".el-dialog:has-text('趋势分析') .el-date-editor:last-of-type"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "结束日期"
+    risk_level: medium
+    risk_reason: ""
+  - name: "trend-btn-query"
+    selector: ".el-dialog:has-text('趋势分析') button.el-button--primary:has-text('查询')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+  - name: "trend-btn-cancel"
+    selector: ".el-dialog:has-text('趋势分析') button.el-button:has-text('取消')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "假设有取消按钮（测试用例未提及但常见）"
+    risk_level: low
+    risk_reason: ""
+
+  # 导出弹窗
+  - name: "dialog-export"
+    selector: "div.el-dialog:has(.el-dialog__title:has-text('生产日报表'))"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+  - name: "export-device-select"
+    selector: ".el-dialog:has-text('生产日报表') .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "装置下拉"
+    risk_level: medium
+    risk_reason: ""
+  - name: "export-btn-confirm"
+    selector: ".el-dialog:has-text('生产日报表') button.el-button--primary:has-text('确认导出')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+  - name: "export-btn-cancel"
+    selector: ".el-dialog:has-text('生产日报表') button.el-button:has-text('取消')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+test_scenarios:
+  - id: TC-PROD-DR-001
+    title: "页面基本元素加载"
+    priority: P0
+    type: positive
+    preconditions: ["admin登录"]
+    steps_summary: "导航到页面，等待加载后检查搜索区、按钮、4个分区卡片可见"
+    expected: "日期选择器、查询/录入/补录/趋势/导出/打印按钮、4个分区卡片均可见"
+    relates_to_elements: ["date-picker", "btn-search", "btn-enter-data", "btn-supplement", "btn-adjust", "btn-trend", "btn-export", "btn-print", "table-product", "table-material", "table-utilities", "table-refrigerant"]
+  - id: TC-PROD-DR-002
+    title: "四个分区表头验证"
+    priority: P0
+    type: positive
+    preconditions: ["admin登录", "有数据日期已查询"]
+    steps_summary: "选择有数据日期并查询，验证每个分区表格表头列名正确"
+    expected: "产品8列、原料8列、公辅工程8列、冷剂消耗6列，列名正确"
+    relates_to_elements: ["table-product", "table-material", "table-utilities", "table-refrigerant"]
+  - id: TC-PROD-DR-003
+    title: "查询当天数据"
+    priority: P0
+    type: positive
+    preconditions: ["admin登录"]
+    steps_summary: "选择当天日期，点击查询，等待loading消失"
+    expected: "四区表格数据刷新，loading过程正常，无报错"
+    relates_to_elements: ["date-picker", "btn-search"]
+  - id: TC-PROD-DR-004
+    title: "打开录入数据弹窗"
+    priority: P0
+    type: positive
+    preconditions: ["admin登录"]
+    steps_summary: "点击'录入数据'按钮，等待弹窗出现"
+    expected: "弹窗标题'录入数据'，装置下拉可见，确定/取消按钮可见"
+    relates_to_elements: ["btn-enter-data", "dialog-enter", "enter-device-select", "enter-btn-confirm", "enter-btn-cancel"]
+  - id: TC-PROD-DR-005
+    title: "录入数据成功"
+    priority: P0
+    type: positive
+    preconditions: ["admin登录", "弹窗已打开"]
+    steps_summary: "选择装置（如1#装置），点击确定，等待toast"
+    expected: "toast显示'录入成功'，弹窗关闭"
+    relates_to_elements: ["enter-device-select", "enter-btn-confirm"]
+  - id: TC-PROD-DR-006
+    title: "调整按钮默认disabled"
+    priority: P1
+    type: negative
+    preconditions: ["admin登录"]
+    steps_summary: "导航到页面，检查调整按钮状态"
+    expected: "按钮含有is-disabled class，不可点击"
+    relates_to_elements: ["btn-adjust"]
+  - id: TC-PROD-DR-007
+    title: "四区数据行非空"
+    priority: P1
+    type: positive
+    preconditions: ["有数据日期已查询"]
+    steps_summary: "查询后有数据日期，逐区获取表格行数"
+    expected: "每区至少1行数据"
+    relates_to_elements: ["table-product", "table-material", "table-utilities", "table-refrigerant"]
+  - id: TC-PROD-DR-008
+    title: "无数据日期查询"
+    priority: P1
+    type: negative
+    preconditions

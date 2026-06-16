@@ -1,0 +1,363 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:28"
+
+meta:
+  module: "system-role"
+  page_name: "RoleManagePage"
+  page_slug: "role-list"
+  page_url: "/system-role/role-list"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 3
+      risk_flags: ["多Tab弹窗", "双栏穿梭框"]
+    - component: el-input
+      count: 2
+      risk_flags: []
+    - component: el-select
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 10
+      risk_flags: []
+    - component: el-tabs
+      count: 1
+      risk_flags: []
+    - component: el-transfer
+      count: 1
+      risk_flags: ["数据量大可能卡顿"]
+    - component: el-tree
+      count: 1
+      risk_flags: ["500+checkbox"]
+
+elements:
+  - name: "角色名称搜索框"
+    selector: "input[placeholder='请输入角色名称']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区唯一 placeholder"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "角色编码搜索框"
+    selector: "input[placeholder='请输入角色编码']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "状态下拉框"
+    selector: "//label[text()='状态']/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_loading_gone
+    locator_notes: "label 关联，需展开下拉选值"
+    risk_level: medium
+    risk_reason: "下拉选项动态加载"
+
+  - name: "搜索按钮"
+    selector: "//button[.//span[normalize-space(.)='搜索']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "触发查询"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "重置按钮"
+    selector: "//button[.//span[normalize-space(.)='重置']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "清空筛选条件"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "新增按钮"
+    selector: "//button[.//span[normalize-space(.)='新增']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "工具栏第一个按钮"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "修改按钮"
+    selector: "//button[.//span[normalize-space(.)='修改']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "需先选中表格行"
+    risk_level: medium
+    risk_reason: "需要行选中前置"
+
+  - name: "删除按钮"
+    selector: "//button[.//span[normalize-space(.)='删除']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "需先选中表格行"
+    risk_level: medium
+    risk_reason: "需要行选中；可能确认弹窗"
+
+  - name: "角色表格"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: click
+    wait_strategy: wait_table_ready
+    locator_notes: "搜索和CRUD后的表格容器"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "操作列-权限分配"
+    selector: "//div[contains(@class,'el-table__body')]//button[.//span[normalize-space(.)='权限分配']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格行内操作按钮"
+    risk_level: medium
+    risk_reason: "动态加载，索引易变"
+
+  - name: "操作列-分配用户"
+    selector: "//div[contains(@class,'el-table__body')]//button[.//span[normalize-space(.)='分配用户']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: ""
+
+  - name: "操作列-编辑"
+    selector: "//div[contains(@class,'el-table__body')]//button[.//span[normalize-space(.)='编辑']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: ""
+
+  - name: "操作列-删除"
+    selector: "//div[contains(@class,'el-table__body')]//button[.//span[normalize-space(.)='删除']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: "可能触发确认弹窗"
+
+  # 新增/编辑角色弹窗
+  - name: "角色表单弹窗"
+    selector: "//div[contains(@class,'el-dialog')][.//span[text()='新增' or text()='修改']]"
+    selector_type: XPATH
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_dialog_open
+    locator_notes: "依据标题区分新增/修改"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "角色名称输入（弹窗）"
+    selector: "//div[contains(@class,'el-dialog')]//label[text()='角色名称']/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "新增/编辑弹窗内"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "角色编码输入（弹窗）"
+    selector: "//div[contains(@class,'el-dialog')]//label[text()='角色编码']/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "显示顺序输入（弹窗）"
+    selector: "//div[contains(@class,'el-dialog')]//label[text()='显示顺序']/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "状态下拉（弹窗）"
+    selector: "//div[contains(@class,'el-dialog')]//label[text()='状态']/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_loading_gone
+    locator_notes: "启用/停用"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "备注输入（弹窗）"
+    selector: "//div[contains(@class,'el-dialog')]//label[text()='备注']/following-sibling::div//textarea"
+    selector_type: XPATH
+    element_type: textarea
+    el_component: el-input (type="textarea")
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "弹窗确认按钮"
+    selector: "//div[contains(@class,'el-dialog')]//button[.//span[text()='确 定' or text()='确定']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "多数弹窗共用"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "弹窗取消按钮"
+    selector: "//div[contains(@class,'el-dialog')]//button[.//span[text()='取 消' or text()='取消']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  # 权限分配弹窗
+  - name: "权限分配弹窗"
+    selector: "//div[contains(@class,'el-dialog')][.//span[text()='权限分配']]"
+    selector_type: XPATH
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_dialog_open
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "PC端权限Tab"
+    selector: "//div[contains(@class,'el-dialog')]//div[contains(@class,'el-tabs__item')][text()='PC端']"
+    selector_type: XPATH
+    element_type: tab
+    el_component: el-tab-pane
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "权限分配弹窗内"
+    risk_level: medium
+    risk_reason: "Tab切换可能触发数据加载"
+
+  - name: "小程序权限Tab"
+    selector: "//div[contains(@class,'el-dialog')]//div[contains(@class,'el-tabs__item')][text()='小程序']"
+    selector_type: XPATH
+    element_type: tab
+    el_component: el-tab-pane
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: ""
+
+  - name: "数据权限Tab"
+    selector: "//div[contains(@class,'el-dialog')]//div[contains(@class,'el-tabs__item')][text()='数据权限']"
+    selector_type: XPATH
+    element_type: tab
+    el_component: el-tab-pane
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: ""
+
+  - name: "权限树（PC端）"
+    selector: "//div[contains(@class,'el-dialog')]//div[contains(@class,'el-tabs__content')]//div[contains(@class,'el-tree')]"
+    selector_type: XPATH
+    element_type: tree
+    el_component: el-tree
+    interaction: click
+    wait_strategy: wait_tree_loaded
+    locator_notes: "checkbox 多选"
+    risk_level: high
+    risk_reason: "500+节点，展开/勾选可能卡顿"
+
+  # 分配用户弹窗
+  - name: "分配用户弹窗"
+    selector: "//div[contains(@class,'el-dialog')][.//span[text()='分配用户']]"
+    selector_type: XPATH
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_dialog_open
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "用户穿梭框"
+    selector: "//div[contains(@class,'el-dialog')]//div[contains(@class,'el-transfer')]"
+    selector_type: XPATH
+    element_type: transfer
+    el_component: el-transfer
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "双栏选择"
+    risk_level: high
+    risk_reason: "数据量大使渲染变慢"
+
+  - name: "穿梭框-右移按钮"
+    selector: "//div[contains(@class,'el-transfer')]//button[contains(@class,'el-transfer__button')][2]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "将选中用户移入已分配"
+    risk_level: medium
+    risk_reason: "依赖列表选中"
+
+  - name: "穿梭框-左移按钮"
+    selector: "//div[contains(@class,'el-transfer')]//button[contains(@class,'el-transfer__button')][1]"
+   

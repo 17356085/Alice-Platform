@@ -1,0 +1,57 @@
+# AITest Platform
+
+> 被测: 鞍集涂源管理系统 (Vue 3 + Element Plus) | 自建测试工作台 v0.5
+
+## 新 AI 启动
+
+1. **Memory 文件**（自动注入上下文，不需要你读）:
+   - `self-hosted-chat-agent-status` — 测试工作台状态
+   - `dev-agent-ecosystem-phase1` — 9 开发 Agent 体系
+2. 需要深入时再读具体文件
+
+## 两条工作线
+
+| 工作线 | 入口 | 详情 |
+|--------|------|------|
+| **测试自动化** | ZJSN_Test-master526/ | 8 Agent SOP → `governance/` 治理文档 |
+| **平台开发** | aitest/ | 测试工作台 + 9 开发 Agent + Dev SOP |
+
+## 启动
+
+```bash
+aitest server start          # 测试工作台 → http://localhost:8000/chat
+aitest graph run --module=<m> --pages=<p1>  # 运行测试 SOP
+```
+
+## 目录速查
+
+```
+ZJSN_Test-master526/   ← 测试自动化 (base/page/script/config)
+aitest/server/          ← FastAPI + chat.html 工作台 + session_store
+aitest/graphs/          ← 测试 SOP 图 (sop_graph.py, sop_runner.py)
+aitest/graphs_dev/      ← 开发 SOP 图 (9 Agent, 10 Phase)
+aitest/agent_runner.py  ← AgentLoop 执行引擎 (测试+开发共用)
+governance/agents/      ← Agent 定义 YAML (测试+开发)
+governance/skills/      ← 测试 Skill 提示 (24 个)
+governance/skills-dev/  ← 开发 Skill 提示 (32 个)
+```
+
+## 常用命令
+
+```bash
+# 测试
+cd ZJSN_Test-master526 && pytest script/<m>/test_*.py -v --alluredir=allure-results
+
+# 平台
+aitest server start
+python -c "from aitest.agent_runner import AgentLoop; AgentLoop('arch-agent', module='x').run()"
+
+# 门禁
+python ZJSN_Test-master526/tools/check_sop_gate.py --module <m> --agent <a> --json
+```
+
+## 环境
+
+- 测试地址: `https://aiwechatminidemo.cimc-digital.com/`
+- API Key: 项目根目录 `.env` (ANTHROPIC_API_KEY)
+- 详细文档: `governance/README.md` → `governance/context/source-of-truth.md`

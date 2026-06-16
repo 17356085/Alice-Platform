@@ -1,0 +1,48 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:13"
+
+meta:
+  module: "lab"
+  page_name: "WaterIndicator"
+  page_slug: "water-indicator"
+  page_url: "/lab/water/indicator"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+
+elements:
+  - name: "设计指标表格"
+    selector: ".water-indicator-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "自定义class：water-indicator-table，包含22行数据"
+    risk_level: low
+    risk_reason: "只读表格，无输入交互"
+
+test_scenarios:
+  - id: TC-001
+    title: "页面加载并显示22行设计指标"
+    priority: P0
+    type: smoke
+    preconditions: ["用户已登录且具有放行权限"]
+    steps_summary: "1. 导航至水质分析设计指标页面\n2. 等待表格数据加载完成"
+    expected: "页面正确显示22行数据，包含指标名称、设计值、标准范围三列"
+    relates_to_elements:
+      - "设计指标表格"
+
+page_behaviors:
+  - behavior: "表格数据异步加载"
+    triggers: ["页面加载"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+  - behavior: "表格行数固定"
+    triggers: ["数据请求返回"]
+    wait_required: false
+    wait_suggestion: ""

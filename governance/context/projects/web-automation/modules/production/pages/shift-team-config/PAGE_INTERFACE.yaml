@@ -1,0 +1,279 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:22"
+
+meta:
+  module: "production"
+  page_name: "ShiftTeamConfig"
+  page_slug: "shift-team-config"
+  page_url: "/production/shift-team-config"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 7        # 搜索、重置、新增、确定、取消、编辑、删除
+      risk_flags: []
+    - component: el-input
+      count: 5        # 搜索区3个+弹窗4个（搜索区工厂/班组/班次，弹窗5个排除排班类型？弹窗排班类型也是input，共6？实际上搜索区3+弹窗6=9，但排班类型在搜索区是el-select，所以搜索区input为3，弹窗input为6，共9个）
+      risk_flags: []
+    - component: el-select
+      count: 1        # 搜索区排班类型
+      risk_flags: []
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-checkbox
+      count: 1        # 表格首列复选框
+      risk_flags: []
+
+elements:
+  # 搜索区元素
+  - name: "input-factory"
+    selector: "#input-factory"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder='请输入工厂编码'"
+    risk_level: low
+    risk_reason: ""
+  - name: "select-schedule-type"
+    selector: "#select-schedule-type"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "点击后展开选项列表"
+    risk_level: low
+    risk_reason: ""
+  - name: "input-team"
+    selector: "#input-team"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder='请输入班组'"
+    risk_level: low
+    risk_reason: ""
+  - name: "input-shift"
+    selector: "#input-shift"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder='请输入班次'"
+    risk_level: low
+    risk_reason: ""
+  - name: "btn-search"
+    selector: "#btn-search"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "文字='搜索'，primary类型"
+    risk_level: low
+    risk_reason: ""
+  - name: "btn-reset"
+    selector: "#btn-reset"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "文字='重置'"
+    risk_level: low
+    risk_reason: ""
+  - name: "btn-add"
+    selector: "#btn-add"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "文字='新增'，primary类型"
+    risk_level: low
+    risk_reason: ""
+  # 表格元素
+  - name: "table-main"
+    selector: "#table-main"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: scroll
+    wait_strategy: wait_loading_gone
+    locator_notes: "包含8列"
+    risk_level: low
+    risk_reason: ""
+  - name: "col-checkbox"
+    selector: "#table-main .el-table__header-wrapper .el-checkbox"
+    selector_type: CSS_SELECTOR
+    element_type: checkbox
+    el_component: el-checkbox
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格首列复选框"
+    risk_level: low
+    risk_reason: ""
+  - name: "btn-edit"
+    selector: ".el-table .btn-edit"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "行内编辑按钮，link类型"
+    risk_level: low
+    risk_reason: ""
+  - name: "btn-delete"
+    selector: ".el-table .btn-delete"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "行内删除按钮，link类型"
+    risk_level: low
+    risk_reason: ""
+  - name: "pagination"
+    selector: "#pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "底部分页组件"
+    risk_level: low
+    risk_reason: ""
+  # 新增/编辑弹窗元素
+  - name: "dialog-main"
+    selector: "#dialog-main"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗容器"
+    risk_level: low
+    risk_reason: ""
+  - name: "field-factory"
+    selector: "#field-factory"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder='4位编码'，必填"
+    risk_level: low
+    risk_reason: ""
+  - name: "field-schedule-type"
+    selector: "#field-schedule-type"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "文本输入"
+    risk_level: low
+    risk_reason: ""
+  - name: "field-time-slot"
+    selector: "#field-time-slot"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder='如：12:00-0:00'"
+    risk_level: low
+    risk_reason: ""
+  - name: "field-date"
+    selector: "#field-date"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder='yyyyMMdd'"
+    risk_level: low
+    risk_reason: ""
+  - name: "field-team"
+    selector: "#field-team"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder='如：白班'"
+    risk_level: low
+    risk_reason: ""
+  - name: "field-shift"
+    selector: "#field-shift"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "placeholder='如：运行一部'"
+    risk_level: low
+    risk_reason: ""
+  - name: "btn-confirm"
+    selector: "#btn-confirm"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "文字='确 定'，primary类型"
+    risk_level: medium
+    risk_reason: "触发保存/更新请求，可能涉及数据库写入"
+  - name: "btn-cancel"
+    selector: "#btn-cancel"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "文字='取 消'"
+    risk_level: low
+    risk_reason: ""
+
+test_scenarios:
+  - id: TC-PROD-STC-001
+    title: "页面基本元素加载验证"
+    priority: P0
+    type: smoke
+    preconditions: []
+    steps_summary: "导航至页面，等待加载完成后检查搜索区、按钮、表格可见"
+    expected: "工厂输入框、部门输入框（班次/班组）、搜索/重置/新增按钮、表格（含列头）均可见"
+    relates_to_elements:
+      - input-factory
+      - select-schedule-type
+      - input-team
+      - input-shift
+      - btn-search
+      - btn-reset
+      - btn-add
+      - table-main
+  - id: TC-PROD-STC-002
+    title: "打开新增弹窗"
+    priority: P1
+    type: positive
+    preconditions: []
+    steps_summary: "点击'新增'按钮"
+    expected: "弹窗打开，标题包含'新增'或'班次班组'"
+    relates_to_elements:
+      - btn-add
+      - dialog-main
+  - id: TC-PROD-STC-003
+    title: "填写新增表单后取消"
+    priority:

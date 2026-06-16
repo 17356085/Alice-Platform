@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "usingComponents": {
+    "wd-icon": "../node-modules/wot-design-uni/components/wd-icon/wd-icon",
+    "wd-input": "../node-modules/wot-design-uni/components/wd-input/wd-input"
+  }
+}

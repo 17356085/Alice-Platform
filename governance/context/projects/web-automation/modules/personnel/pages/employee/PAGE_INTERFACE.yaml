@@ -1,0 +1,229 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:15"
+
+meta:
+  module: "personnel"
+  page_name: "EmployeeManage"
+  page_slug: "employee"
+  page_url: "/personnel/employee"
+  vue_components:
+    - component: el-input
+      count: 2
+      risk_flags: []
+    - component: el-select
+      count: 1
+      risk_flags: ["dynamic_options"]
+    - component: el-button
+      count: 4
+      risk_flags: []
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 1
+      risk_flags: ["可能动态加载"]
+
+elements:
+  - name: "员工姓名搜索框"
+    selector: "input[placeholder*='员工姓名']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区第一个输入框"
+    risk_level: low
+    risk_reason: "基础交互，无特殊依赖"
+  - name: "工号搜索框"
+    selector: "input[placeholder*='工号']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区第二个输入框"
+    risk_level: low
+    risk_reason: ""
+  - name: "部门下拉框"
+    selector: ".el-select--search-department"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "通过类名定位，具体实现可能不同"
+    risk_level: medium
+    risk_reason: "选项根据用户权限动态过滤，可能影响定位"
+  - name: "搜索按钮"
+    selector: "button.el-button:has-text('搜索')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "文本精确匹配"
+    risk_level: low
+    risk_reason: ""
+  - name: "重置按钮"
+    selector: "button.el-button:has-text('重置')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+  - name: "员工表格"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "表格主体区域"
+    risk_level: low
+    risk_reason: ""
+  - name: "查看详情按钮"
+    selector: ".el-table .el-button--detail"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "行内操作按钮，可能通过文本'查看详情'定位"
+    risk_level: low
+    risk_reason: ""
+  - name: "编辑按钮"
+    selector: ".el-table .el-button--edit"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "需有编辑权限时可见"
+    risk_level: medium
+    risk_reason: "依赖权限动态显示"
+  - name: "分页器"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "支持点击页码或下一页"
+    risk_level: low
+    risk_reason: ""
+
+test_scenarios:
+  - id: TC-EMP-001
+    title: "页面正常加载"
+    priority: P0
+    type: smoke
+    preconditions: []
+    steps_summary: "navigate → wait_table_loaded"
+    expected: "表格+搜索区+分页可见"
+    relates_to_elements:
+      - "员工表格"
+      - "员工姓名搜索框"
+      - "部门下拉框"
+      - "搜索按钮"
+      - "分页器"
+  - id: TC-EMP-002
+    title: "表头完整性"
+    priority: P0
+    type: positive
+    preconditions: []
+    steps_summary: "get_table_headers() 对比预期列标题"
+    expected: "列标题正确（工号、姓名、部门、岗位、联系方式）"
+    relates_to_elements:
+      - "员工表格"
+  - id: TC-EMP-003
+    title: "姓名搜索"
+    priority: P1
+    type: positive
+    preconditions: ["已知存在某员工姓名"]
+    steps_summary: "输入姓名 → 点击搜索 → 等待表格刷新"
+    expected: "表格仅显示匹配该姓名的结果"
+    relates_to_elements:
+      - "员工姓名搜索框"
+      - "搜索按钮"
+      - "员工表格"
+  - id: TC-EMP-004
+    title: "部门筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在多个部门数据"]
+    steps_summary: "选择部门 → 点击搜索 → 等待表格刷新"
+    expected: "表格仅显示所选部门的员工"
+    relates_to_elements:
+      - "部门下拉框"
+      - "搜索按钮"
+      - "员工表格"
+  - id: TC-EMP-005
+    title: "分页翻页"
+    priority: P1
+    type: positive
+    preconditions: ["数据超过一页"]
+    steps_summary: "点击分页器下一页 → 确认表格数据变化"
+    expected: "表格显示下一页数据"
+    relates_to_elements:
+      - "分页器"
+      - "员工表格"
+  - id: TC-EMP-006
+    title: "查看详情"
+    priority: P1
+    type: positive
+    preconditions: []
+    steps_summary: "点击行内『查看详情』按钮 → 等待弹窗/跳转"
+    expected: "弹出详情弹窗或跳转到详情页"
+    relates_to_elements:
+      - "查看详情按钮"
+  - id: TC-EMP-007
+    title: "部门主管权限"
+    priority: P1
+    type: boundary
+    preconditions: ["以部门主管身份登录"]
+    steps_summary: "进入员工管理页面 → 查看表格数据"
+    expected: "仅显示本部门员工，无越权数据"
+    relates_to_elements:
+      - "员工表格"
+  - id: TC-EMP-008
+    title: "URL直接访问（无权限）"
+    priority: P1
+    type: negative
+    preconditions: ["用无权限角色登录"]
+    steps_summary: "直接访问 #/personnel/employee 路由"
+    expected: "页面拦截或无数据显示"
+    relates_to_elements:
+      - "员工表格"
+
+page_behaviors:
+  - behavior: "表格数据异步加载+loading"
+    triggers:
+      - "页面首次加载"
+      - "点击搜索/重置后"
+      - "切换分页"
+    wait_required: true
+    wait_suggestion: "wait_loading_gone 或 wait_vue_stable"
+  - behavior: "部门下拉选项动态过滤"
+    triggers:
+      - "页面加载后"
+    wait_required: true
+    wait_suggestion: "wait_vue_stable，等待选项渲染完毕"
+  - behavior: "详情弹窗/跳转"
+    triggers:
+      - "点击『查看详情』按钮"
+    wait_required: true
+    wait_suggestion: "等待弹窗出现（el-dialog）或路由变化"
+  - behavior: "编辑按钮权限控制"
+    triggers:
+      - "用户角色为admin或本部门主管"
+    wait_required: false
+    wait_suggestion: "无需额外等待，注意按钮可见性"

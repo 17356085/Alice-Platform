@@ -1,0 +1,62 @@
+{
+  "admin": {
+    "allowedPages": [
+      "/pages/index/index",
+      "/pages/approval/index",
+      "/pages/alarm/index",
+      "/pages/mine/index",
+      "/pages-sub/study/index",
+      "/pages-sub/report/index",
+      "/pages-sub/tank/index",
+      "/pages-sub/equipment/index",
+      "/pages-sub/sensor/index",
+      "/pages-sub/camera/index",
+      "/pages-sub/lab/index",
+      "/pages-sub/sale/index",
+      "/pages-sub/visitor/index",
+      "/pages-sub/my-application/index",
+      "/pages-sub/person/index"
+    ],
+    "deniedPages": []
+  },
+  "yuangong": {
+    "allowedPages": [
+      "/pages/index/index",
+      "/pages/mine/index",
+      "/pages-sub/study/index",
+      "/pages-sub/study/study",
+      "/pages-sub/study/exam",
+      "/pages-sub/study/practice",
+      "/pages-sub/study/wrong"
+    ],
+    "deniedPages": [
+      "/pages/approval/index",
+      "/pages/alarm/index",
+      "/pages-sub/report/index",
+      "/pages-sub/tank/index",
+      "/pages-sub/equipment/index",
+      "/pages-sub/sensor/index",
+      "/pages-sub/camera/index",
+      "/pages-sub/lab/index",
+      "/pages-sub/sale/index",
+      "/pages-sub/visitor/index",
+      "/pages-sub/my-application/index"
+    ]
+  },
+  "chengbaoshang_miniapp": {
+    "allowedPages": [
+      "/pages/index/index",
+      "/pages/mine/index",
+      "/pages-sub/study/index",
+      "/pages-sub/study/study",
+      "/pages-sub/study/exam",
+      "/pages-sub/study/practice",
+      "/pages-sub/study/wrong"
+    ],
+    "deniedPages": [
+      "/pages/approval/index",
+      "/pages/alarm/index",
+      "/pages-sub/report/index"
+    ]
+  }
+}

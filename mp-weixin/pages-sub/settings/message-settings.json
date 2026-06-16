@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "消息设置",
+  "usingComponents": {
+    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon"
+  }
+}

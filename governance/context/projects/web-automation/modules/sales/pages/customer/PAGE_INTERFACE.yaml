@@ -1,0 +1,330 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:23"
+
+meta:
+  module: sales
+  page_name: CustomerPage
+  page_slug: customer
+  page_url: "/sales/customer"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 3      # 新增/编辑、删除确认、详情弹窗
+      risk_flags: []
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-select
+      count: 2
+      risk_flags: []
+    - component: el-input
+      count: 2
+      risk_flags: []
+    - component: el-button
+      count: 4      # 搜索、重置、新增、行内编辑/删除/查看
+      risk_flags: []
+
+elements:
+  - name: "客户编码搜索输入框"
+    selector: ".search-form .el-input--prefix"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区域第一个输入框，通常有 placeholder 为 '客户编码'"
+    risk_level: low
+    risk_reason: "基本搜索功能"
+  - name: "客户名称搜索输入框"
+    selector: ".search-form .el-input:nth-child(2)"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区域第二个输入框，placeholder 为 '客户名称'"
+    risk_level: low
+    risk_reason: ""
+  - name: "客户等级下拉选择"
+    selector: ".search-form .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_loading_gone
+    locator_notes: "搜索区等级下拉，通常通过 .el-select 查找，通过 label 区分"
+    risk_level: low
+    risk_reason: ""
+  - name: "合作状态下拉选择"
+    selector: ".search-form .el-select:nth-child(2)"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_loading_gone
+    locator_notes: "搜索区状态下拉，第二个 el-select"
+    risk_level: low
+    risk_reason: ""
+  - name: "搜索按钮"
+    selector: ".search-form .el-button--primary"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区域第一个按钮，类型 primary"
+    risk_level: low
+    risk_reason: ""
+  - name: "重置按钮"
+    selector: ".search-form .el-button:not(.el-button--primary)"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区域第二个按钮，通常是 plain 样式"
+    risk_level: low
+    risk_reason: ""
+  - name: "新增客户按钮"
+    selector: ".page-header .el-button--primary"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "页面头部或按钮区域的新增按钮"
+    risk_level: high
+    risk_reason: "P0 用例依赖，CRUD 入口"
+  - name: "表格"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "主数据表格"
+    risk_level: high
+    risk_reason: "P0 用例依赖，展示数据"
+  - name: "表格行操作删除按钮"
+    selector: ".el-table__body-wrapper .el-button--danger"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "每行操作列的删除按钮，根据类型 danger 定位"
+    risk_level: medium
+    risk_reason: "删除操作属于破坏性"
+  - name: "表格行操作编辑按钮"
+    selector: ".el-table__body-wrapper .el-button--primary:not(.el-button--text)"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "行内编辑按钮"
+    risk_level: medium
+    risk_reason: ""
+  - name: "表格行操作查看详情按钮"
+    selector: ".el-table__body-wrapper .el-button--text"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "行内查看按钮，通常为 text 类型"
+    risk_level: low
+    risk_reason: ""
+  - name: "新增/编辑弹窗"
+    selector: ".el-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "新增或编辑客户时出现的弹窗"
+    risk_level: high
+    risk_reason: "P1 用例依赖，CRUD 核心交互"
+  - name: "删除确认弹窗"
+    selector: ".el-message-box"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-message-box
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "点击删除后弹出的确认弹窗"
+    risk_level: medium
+    risk_reason: "P0 用例依赖"
+  - name: "分页组件"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "表格下方的分页器"
+    risk_level: medium
+    risk_reason: "P1 用例依赖，分页功能"
+  - name: "弹窗确定按钮"
+    selector: ".el-dialog__footer .el-button--primary"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗底部的确定按钮"
+    risk_level: high
+    risk_reason: "提交操作关键"
+  - name: "弹窗取消按钮"
+    selector: ".el-dialog__footer .el-button:not(.el-button--primary)"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗底部的取消按钮"
+    risk_level: low
+    risk_reason: ""
+  - name: "表单必填校验提示"
+    selector: ".el-form-item__error"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-form-item
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "必填项未填写时显示的错误提示"
+    risk_level: low
+    risk_reason: "仅校验场景"
+  - name: "表格列头"
+    selector: ".el-table__header-wrapper th"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-table-column
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "用于校验列完整性"
+    risk_level: low
+    risk_reason: "P0 用例依赖，但最终可以复用表格元素"
+  - name: "Toast 提示"
+    selector: ".el-message"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-message
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "操作成功或失败的提示消息"
+    risk_level: medium
+    risk_reason: "用于验证增删改结果"
+  - name: "暂无数据占位"
+    selector: ".el-table__empty-block"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "无数据时表格显示的文字"
+    risk_level: low
+    risk_reason: "P1 用例依赖"
+
+test_scenarios:
+  - id: TC-CUST-001
+    title: "页面正常加载"
+    priority: P0
+    type: positive
+    preconditions: ["admin登录"]
+    steps_summary: "导航到 /sales/customer，等待表格加载"
+    expected: "搜索区、表格(7列)、分页、新增按钮均可见"
+    relates_to_elements: ["表格", "新增客户按钮", "分页组件", "表格列头"]
+  - id: TC-CUST-002
+    title: "表格列完整性"
+    priority: P0
+    type: positive
+    preconditions: ["页面已加载"]
+    steps_summary: "获取表头，对比预期列集合"
+    expected: "7列全部匹配：客户编码/客户名称/联系人/联系电话/客户等级/合作状态/操作"
+    relates_to_elements: ["表格列头"]
+  - id: TC-CUST-003
+    title: "删除-确认弹窗出现"
+    priority: P0
+    type: positive
+    preconditions: ["表格有数据"]
+    steps_summary: "点击第一行删除按钮，检查弹窗"
+    expected: "弹窗可见，含客户名称及确定/取消按钮"
+    relates_to_elements: ["表格行操作删除按钮", "删除确认弹窗", "弹窗确定按钮", "弹窗取消按钮"]
+  - id: TC-CUST-004
+    title: "无权限用户URL拦截"
+    priority: P0
+    type: negative
+    preconditions: ["销售员角色登录"]
+    steps_summary: "直接访问 /sales/customer，检查操作按钮"
+    expected: "页面加载但编辑/删除按钮不可见"
+    relates_to_elements: ["表格行操作编辑按钮", "表格行操作删除按钮", "新增客户按钮"]
+  - id: TC-CUST-005
+    title: "客户名称精确搜索"
+    priority: P1
+    type: positive
+    preconditions: ["存在客户'测试客户_A'"]
+    steps_summary: "输入'测试客户_A'，点击搜索"
+    expected: "返回≥1条且名称匹配"
+    relates_to_elements: ["客户名称搜索输入框", "搜索按钮"]
+  - id: TC-CUST-006
+    title: "客户编码模糊搜索"
+    priority: P1
+    type: positive
+    preconditions: ["存在编码含'C06'的记录"]
+    steps_summary: "输入'C06'，点击搜索"
+    expected: "返回结果编码均含'C06'"
+    relates_to_elements: ["客户编码搜索输入框", "搜索按钮"]
+  - id: TC-CUST-007
+    title: "客户等级筛选"
+    priority: P1
+    type: positive
+    preconditions: ["多等级数据"]
+    steps_summary: "选择等级'A级'，点击搜索"
+    expected: "返回结果均为A级客户"
+    relates_to_elements: ["客户等级下拉选择", "搜索按钮"]
+  - id: TC-CUST-008
+    title: "合作状态筛选"
+    priority: P1
+    type: positive
+    preconditions: ["多状态数据"]
+    steps_summary: "选择状态'合作中'，点击搜索"
+    expected: "返回结果均为合作中"
+    relates_to_elements: ["合作状态下拉选择", "搜索按钮"]
+  - id: TC-CUST-009
+    title: "组合搜索"
+    priority: P1
+    type: positive
+    preconditions: ["存在匹配数据"]
+    steps_summary: "名称+等级+状态同时筛选后搜索"
+    expected: "同时满足三条件"
+    relates_to_elements: ["客户名称搜索输入框", "客户等级下拉选择", "合作状态下拉选择", "搜索按钮"]
+  - id: TC-CUST-010
+    title: "重置搜索"
+    priority: P1
+    type: positive
+    preconditions: ["已有筛选条件"]
+    steps_summary: "输入关键词+等级搜索，再点击重置"
+    expected: "恢复默认全量数据"
+    relates_to_elements: ["重置按钮", "客户名称搜索输入框", "客户等级下拉选择"]
+  - id: TC-CUST-011
+    title: "无结果搜索"
+    priority: P2
+    type: negative
+    preconditions: []
+    steps_summary: "搜索'ZZZZ_NOT_EXIST'"
+    expected: "表格显示'暂无数据'或空列表"
+    relates_to_elements: ["客户名称搜索输入框", "搜索按钮", "暂无数据占位"]
+  - id: TC-CUST-012
+    title: "空数据页面加载"
+    priority: P1
+    type: negative
+    preconditions: ["清空所有客户"]
+    steps_summary: "导航到页面，检查空状态"
+    expected: "表格显示'暂无数据'"
+   

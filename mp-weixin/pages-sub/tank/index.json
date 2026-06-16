@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "储罐监控",
+  "usingComponents": {
+    "empty": "../../components/Empty"
+  }
+}

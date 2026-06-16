@@ -1,0 +1,151 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:25"
+
+meta:
+  module: "system-management"
+  page_name: "ApiManagement"
+  page_slug: "api-management"
+  page_url: "/system-management/api-management"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: ["iframe同源限制可能影响表格数据获取"]
+
+elements:
+  - name: "Swagger UI 容器"
+    selector: ".swagger-ui"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: wait
+    wait_strategy: WebDriverWait
+    locator_notes: "页面主框架为 Swagger 内嵌 iframe，此元素位于 iframe 内部，可能受同源策略影响"
+    risk_level: high
+    risk_reason: "跨域限制导致无法直接定位 iframe 内元素，需切换上下文或降级检测"
+
+  - name: "Swagger 顶部栏"
+    selector: ".topbar"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: wait
+    wait_strategy: WebDriverWait
+    locator_notes: "用于判断 Swagger 是否加载完成"
+    risk_level: high
+    risk_reason: "同源策略 + 渲染时机不稳定"
+
+  - name: "API 分组列表（Swagger tag）"
+    selector: ".opblock-tag-section"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: click
+    wait_strategy: WebDriverWait
+    locator_notes: "每个分组对应一个后端 Controller，点击可展开接口列表"
+    risk_level: high
+    risk_reason: "iframe 内元素，跨域限制"
+
+  - name: "搜索框（Swagger 内置）"
+    selector: "input[placeholder='Search']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: null
+    interaction: input
+    wait_strategy: WebDriverWait
+    locator_notes: "Swagger UI 自带搜索过滤接口"
+    risk_level: medium
+    risk_reason: "可能因版本差异选择器失效"
+
+  - name: "Element Plus 表格（备用检测）"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "当 Swagger iframe 未加载时，页面可能退化为表格显示"
+    risk_level: low
+    risk_reason: "作为降级检测，Vue 组件稳定"
+
+  - name: "表格行（降级检测）"
+    selector: ".el-table__body-wrapper .el-table__row"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "用于判断是否有数据行"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "容器文本（最终降级）"
+    selector: ".page-container"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: wait
+    wait_strategy: WebDriverWait
+    locator_notes: "检测页面容器是否存在且文本超过20字符"
+    risk_level: low
+    risk_reason: "兜底方案"
+
+test_scenarios:
+  - id: TC-001
+    title: "页面正常加载（Swagger 渲染）"
+    priority: P0
+    type: smoke
+    preconditions: ["用户已登录系统"]
+    steps_summary: "进入接口管理页面，等待 Swagger 标志元素 .swagger-ui 出现"
+    expected: "页面显示 Swagger UI 界面，包含 API 分组和接口列表"
+    relates_to_elements: ["Swagger UI 容器", "Swagger 顶部栏"]
+
+  - id: TC-002
+    title: "页面降级加载（表格模式）"
+    priority: P1
+    type: positive
+    preconditions: ["Swagger iframe 因网络超时未加载"]
+    steps_summary: "等待 el-table 出现且包含行数据"
+    expected: "页面以 Element Plus 表格展示 API 信息，无 Swagger UI"
+    relates_to_elements: ["Element Plus 表格", "表格行"]
+
+  - id: TC-003
+    title: "搜索 API 接口"
+    priority: P1
+    type: positive
+    preconditions: ["Swagger UI 已加载"]
+    steps_summary: "在搜索框输入关键词，观察接口列表过滤"
+    expected: "显示的接口仅包含匹配关键词的条目"
+    relates_to_elements: ["搜索框（Swagger 内置）"]
+
+  - id: TC-004
+    title: "展开/收起 API 分组"
+    priority: P2
+    type: positive
+    preconditions: ["Swagger UI 已加载"]
+    steps_summary: "点击第一个 API 分组标题，观察接口列表展开和收起"
+    expected: "分组可正常展开显示 HTTP 方法列表，再次点击收起"
+    relates_to_elements: ["API 分组列表（Swagger tag）"]
+
+page_behaviors:
+  - behavior: "页面加载后优先渲染 Swagger UI iframe"
+    triggers: ["页面路由跳转完成"]
+    wait_required: true
+    wait_suggestion: "先使用 WebDriverWait 等待 .swagger-ui 出现，超时后降级检测 el-table"
+
+  - behavior: "Swagger iframe 渲染时机不稳定（全量回归时常见）"
+    triggers: ["页面初始化", "刷新"]
+    wait_required: true
+    wait_suggestion: "使用显式等待至少 10 秒，并配合重试机制"
+
+  - behavior: "搜索过滤后接口列表实时更新"
+    triggers: ["搜索框输入"]
+    wait_required: false
+    wait_suggestion: "输入后短暂停顿即可，无需额外等待"
+
+  - behavior: "API 分组展开/收起时动画效果"
+    triggers: ["点击分组标题"]
+    wait_required: true
+    wait_suggestion: "使用 WebDriverWait 等待展开后接口元素可见性"

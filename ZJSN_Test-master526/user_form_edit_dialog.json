@@ -1,0 +1,109 @@
+{
+  "bodyHTML": "<form data-v-e3d33060=\"\" class=\"el-form el-form--default el-form--label-right\"><div data-v-e3d33060=\"\" class=\"el-row\" style=\"margin-left: -10px; margin-right: -10px;\"><div data-v-e3d33060=\"\" class=\"el-col el-col-12 is-guttered\" style=\"padding-right: 10px; padding-left: 10px;\"><div data-v-e3d33060=\"\" class=\"el-form-item is-required asterisk-left el-form-item--label-right\"><label id=\"el-id-4280-246\" for=\"el-id-4280-314\" class=\"el-form-item__label\" style=\"width: 100px;\">用户名</label><div class=\"el-form-item__content\"><div data-v-e3d33060=\"\" class=\"el-input\"><!-- input --><!-- prepend slot --><!--v-if--><div class=\"el-input__wrapper\" tabindex=\"-1\"><!-- prefix slot --><!--v-if--><input class=\"el-input__inner\" type=\"text\" autocomplete=\"off\" tabindex=\"0\" placeholder=\"请输入用户名\" id=\"el-id-4280-314\"><!-- suffix slot --><!--v-if--></div><!-- append slot --><!--v-if--></div></div></div></div><div data-v-e3d33060=\"\" class=\"el-col el-col-12 is-guttered\" style=\"padding-right: 10px; padding-left: 10px;\"><div data-v-e3d33060=\"\" class=\"el-form-item is-required asterisk-left el-form-item--label-right\"><label id=\"el-id-4280-247\" for=\"el-id-4280-315\" class=\"el-form-item__label\" style=\"width: 100px;\">姓名</label><div class=\"el-form-item__content\"><div data-v-e3d33060=\"\" class=\"el-input\"><!-- input --><!-- prepend slot --><!--v-if--><div class=\"el-input__wrapper\" tabindex=\"-1\"><!-- prefix slot --><!--v-if--><input class=\"el-input__inner\" type=\"text\" autocomplete=\"off\" tabindex=\"0\" placeholder=\"请输入姓名\" id=\"el-id-4280-315\"><!-- suffix slot --><!--v-if--></div><!-- append slot --><!--v-if--></div></div></div></div></div><!----><div data-v-e3d33060=\"\" class=\"el-row\" style=\"margin-left: -10px; margin-right: -10px;\"><div data-v-e3d33060=\"\" class=\"el-col el-col-12 is-guttered\" style=\"padding-right: 10px; padding-left: 10px;\"><div data-v-e3d33060=\"\" class=\"el-form-item is-required asterisk-left el-form-item--label-right\"><label id=\"el-id-4280-248\" for=\"el-id-4280-316\" class=\"el-form-item__label\" style=\"width: 100px;\">部门</label><div class=\"el-form-item__content\"><div data-v-e3d33060=\"\" class=\"el-select\"><div class=\"el-select__wrapper el-tooltip__trigger el-tooltip__trigger\" tabindex=\"-1\"><!--v-if--><div class=\"el-select__selection\"><!--v-if--><div class=\"el-select__selected-item el-select__input-wrapper is-hidden\"><input type=\"text\" class=\"el-select__input\" autocomplete=\"off\" tabindex=\"0\" role=\"combobox\" readonly=\"\" spellcheck=\"false\" aria-activedescendant=\"\" aria-controls=\"el-id-4280-249\" aria-expanded=\"false\" aria-autocomplete=\"none\" aria-haspopup=\"listbox\" id=\"el-id-4280-316\" style=\"min-width: 11px;\"><!--v-if--></div><div class=\"el-select__selected-item el-select__placeholder is-transparent\"><span>请选择部门（可多选）</span></div></div><div class=\"el-select__suffix\"><i class=\"el-icon el-select__caret el-select__icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\"><path fill=\"currentColor\" d=\"M831.872 340.864 512 652.672 192.128 340.864a30.59 30.59 0 0 0-42.752 0 29.12 29.12 0 0 0 0 41.6L489.664 714.24a32 32 0 0 0 44.672 0l340.288-331.712a29.12 29.12 0 0 0 0-41.728 30.59 30.59 0 0 0-42.752 0z\"></path></svg></i><!--v-if--><!--v-if--></div></div></div></div></div></div><div data-v-e3d33060=\"\" class=\"el-col el-col-12 is-guttered\" style=\"padding-right: 10px; padding-left: 10px;\"><div data-v-e3d33060=\"\" class=\"el-form-item is-required asterisk-left el-form-item--label-right\"><label id=\"el-id-4280-280\" for=\"el-id-4280-317\" class=\"el-form-item__label\" style=\"width: 100px;\">用户类型</label><div class=\"el-form-item__content\"><div data-v-e3d33060=\"\" class=\"el-select\"><div class=\"el-select__wrapper el-tooltip__trigger el-tooltip__trigger\" tabindex=\"-1\"><!--v-if--><div class=\"el-select__selection\"><!--v-if--><div class=\"el-select__selected-item el-select__input-wrapper is-hidden\"><input type=\"text\" class=\"el-select__input\" autocomplete=\"off\" tabindex=\"0\" role=\"combobox\" readonly=\"\" spellcheck=\"false\" aria-activedescendant=\"\" aria-controls=\"el-id-4280-281\" aria-expanded=\"false\" aria-autocomplete=\"none\" aria-haspopup=\"listbox\" id=\"el-id-4280-317\" style=\"min-width: 11px;\"><!--v-if--></div><div class=\"el-select__selected-item el-select__placeholder\"><span>员工</span></div></div><div class=\"el-select__suffix\"><i class=\"el-icon el-select__caret el-select__icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\"><path fill=\"currentColor\" d=\"M831.872 340.864 512 652.672 192.128 340.864a30.59 30.59 0 0 0-42.752 0 29.12 29.12 0 0 0 0 41.6L489.664 714.24a32 32 0 0 0 44.672 0l340.288-331.712a29.12 29.12 0 0 0 0-41.728 30.59 30.59 0 0 0-42.752 0z\"></path></svg></i><!--v-if--><!--v-if--></div></div></div></div></div></div></div><div data-v-e3d33060=\"\" class=\"el-row\" style=\"margin-left: -10px; margin-right: -10px;\"><div data-v-e3d33060=\"\" class=\"el-col el-col-12 is-guttered\" style=\"padding-right: 10px; padding-left: 10px;\"><div data-v-e3d33060=\"\" class=\"el-form-item is-required asterisk-left el-form-item--label-right\"><label id=\"el-id-4280-289\" for=\"el-id-",
+  "checkboxes": [],
+  "footerButtons": [
+    {
+      "primary": true,
+      "text": "确定"
+    },
+    {
+      "primary": false,
+      "text": "取消"
+    }
+  ],
+  "formItems": [
+    {
+      "currentValue": "szj",
+      "disabled": false,
+      "label": "用户名",
+      "placeholder": "请输入用户名",
+      "type": "input"
+    },
+    {
+      "currentValue": "史战军",
+      "disabled": false,
+      "label": "姓名",
+      "placeholder": "请输入姓名",
+      "type": "input"
+    },
+    {
+      "currentValue": "",
+      "disabled": true,
+      "label": "部门",
+      "placeholder": "",
+      "type": "select"
+    },
+    {
+      "currentValue": "",
+      "disabled": true,
+      "label": "用户类型",
+      "placeholder": "",
+      "type": "select"
+    },
+    {
+      "currentValue": "1",
+      "disabled": false,
+      "label": "状态",
+      "placeholder": "",
+      "type": "input"
+    },
+    {
+      "currentValue": "",
+      "disabled": true,
+      "label": "性别",
+      "placeholder": "",
+      "type": "select"
+    },
+    {
+      "currentValue": "",
+      "disabled": false,
+      "label": "身份证号",
+      "placeholder": "请输入身份证号",
+      "type": "input"
+    },
+    {
+      "currentValue": "",
+      "disabled": false,
+      "label": "入职日期",
+      "placeholder": "选择入职日期",
+      "type": "input"
+    },
+    {
+      "currentValue": "",
+      "disabled": true,
+      "label": "岗位",
+      "placeholder": "",
+      "type": "select"
+    },
+    {
+      "currentValue": "18369096382",
+      "disabled": false,
+      "label": "手机号",
+      "placeholder": "请输入手机号",
+      "type": "input"
+    },
+    {
+      "currentValue": "",
+      "disabled": false,
+      "label": "邮箱",
+      "placeholder": "请输入邮箱",
+      "type": "input"
+    },
+    {
+      "currentValue": "普通员工, 普通员工(小程序), 日报表审核员, 化验室取样审核员, 人员培训管理员, 日报表填报员, 化验室取样填报员, ",
+      "disabled": true,
+      "label": "角色",
+      "placeholder": "",
+      "type": "select(multi)"
+    },
+    {
+      "currentValue": "",
+      "disabled": false,
+      "label": "备注",
+      "placeholder": "请输入备注",
+      "type": "textarea"
+    }
+  ],
+  "title": "修改用户",
+  "width": "600px"
+}

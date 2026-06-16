@@ -1,0 +1,220 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 15:30"
+
+meta:
+  module: "system-management"
+  page_name: "ApprovalChain"
+  page_slug: "approval-chain"
+  page_url: "/system-management/approval-chain"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags:
+        - "操作列按钮 XPath 嵌套不可靠，已改用 JS 文本搜索"
+    - component: el-dialog
+      count: 1
+      risk_flags:
+        - "弹窗表单字段 placeholder 不含 label 文字，必须通过 label 定位"
+        - "弹窗标题随新增/编辑变化"
+    - component: el-input
+      count: 3
+      risk_flags: []
+    - component: el-select
+      count: 1
+      risk_flags: []
+    - component: el-switch
+      count: 2
+      risk_flags:
+        - "表格行内 switch 无独立标识，需通过行索引定位"
+    - component: el-textarea
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 5
+      risk_flags:
+        - "按钮文字可能在 <button> 内部直接出现，不在 <span> 中"
+        - "弹窗确认按钮使用 primary 样式，非文字匹配"
+
+elements:
+  - name: "搜索-名称输入框"
+    selector: "//label[text()='名称']/following::div[contains(@class,'el-input')]//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "通过 label 文本关联，需要注意 placeholder 不含'名称'，但 label 含"
+    risk_level: low
+    risk_reason: "静态 label 稳定，无已知坑位"
+
+  - name: "搜索按钮"
+    selector: "//button[contains(text(),'搜索')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "使用 contains(text()) 避免 span 嵌套问题"
+    risk_level: low
+    risk_reason: "文字直接放在 button 内"
+
+  - name: "重置按钮"
+    selector: "//button[contains(text(),'重置')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "新增按钮"
+    selector: "//button[contains(text(),'新增') or contains(text(),'添加') or contains(text(),'新建')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "兼容三种文字，JS 文本搜索策略"
+    risk_level: low
+    risk_reason: "虽然使用 XPath 但已用 contains 避免简单 text() 失败"
+
+  - name: "表格-第一行编辑按钮"
+    selector: "(//div[contains(@class,'el-table__row')])[1]//button[contains(text(),'编辑')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "确保表格行已加载，使用第一行"
+    risk_level: medium
+    risk_reason: "依赖行顺序，可能需要等待表格渲染稳定"
+
+  - name: "表格-第一行删除按钮"
+    selector: "(//div[contains(@class,'el-table__row')])[1]//button[contains(text(),'删除')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: "同编辑按钮"
+
+  - name: "表格-第一行状态开关"
+    selector: "(//div[contains(@class,'el-table__row')])[1]//span[contains(@class,'el-switch')]"
+    selector_type: XPATH
+    element_type: switch
+    el_component: el-switch
+    interaction: toggle
+    wait_strategy: wait_vue_stable
+    locator_notes: "点击切换启用/停用"
+    risk_level: medium
+    risk_reason: "需判断当前状态后再点击，建议先读取 aria-checked"
+
+  - name: "弹窗-审批链名称输入框"
+    selector: "//div[contains(@class,'el-dialog') and not(@style='display: none')]//label[text()='审批链名称']/following::div[contains(@class,'el-input')]//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_loading_gone
+    locator_notes: "注意 placeholder='如：日报审批流程'，依赖 label 定位"
+    risk_level: medium
+    risk_reason: "placeholder 不含'名称'，曾导致定位失败"
+
+  - name: "弹窗-审批链编码输入框"
+    selector: "//div[contains(@class,'el-dialog') and not(@style='display: none')]//label[text()='审批链编码']/following::div[contains(@class,'el-input')]//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_loading_gone
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: "同理 placeholder 不含'编码'"
+
+  - name: "弹窗-配置参数选择框"
+    selector: "//div[contains(@class,'el-dialog') and not(@style='display: none')]//label[text()='配置参数']/following::div[contains(@class,'el-select')]"
+    selector_type: XPATH
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_loading_gone
+    locator_notes: "需展开下拉列表后选择具体选项"
+    risk_level: medium
+    risk_reason: "下拉选项不在 DOM 中，展开后才能定位"
+
+  - name: "弹窗-状态开关"
+    selector: "//div[contains(@class,'el-dialog') and not(@style='display: none')]//label[text()='状态']/following::span[contains(@class,'el-switch')]"
+    selector_type: XPATH
+    element_type: switch
+    el_component: el-switch
+    interaction: toggle
+    wait_strategy: wait_loading_gone
+    locator_notes: ""
+    risk_level: low
+    risk_reason: "label 稳定"
+
+  - name: "弹窗-备注文本域"
+    selector: "//div[contains(@class,'el-dialog') and not(@style='display: none')]//label[text()='备注']/following::textarea"
+    selector_type: XPATH
+    element_type: textarea
+    el_component: el-textarea
+    interaction: input
+    wait_strategy: wait_loading_gone
+    locator_notes: "placeholder='选填备注'"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "弹窗-确认按钮"
+    selector: "//div[contains(@class,'el-dialog') and not(@style='display: none')]//button[contains(@class,'el-button--primary')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "使用 primary 样式，不依赖文本"
+    risk_level: low
+    risk_reason: "样式唯一，风险低"
+
+  - name: "弹窗-取消按钮"
+    selector: "//div[contains(@class,'el-dialog') and not(@style='display: none')]//button[contains(text(),'取消')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "使用 contains(text())"
+    risk_level: low
+    risk_reason: ""
+
+test_scenarios:
+  - id: TC-001
+    title: "成功新增审批链配置"
+    priority: P0
+    type: positive
+    preconditions:
+      - "用户已登录，且进入审批链配置页面"
+    steps_summary: "点击新增→填写必填字段（链名称、编码、状态）→配置参数选一个→点击确认"
+    expected: "弹窗关闭，页面显示新增的审批链记录，数据与输入一致"
+    relates_to_elements:
+      - "新增按钮"
+      - "弹窗-审批链名称输入框"
+      - "弹窗-审批链编码输入框"
+      - "弹窗-配置参数选择框"
+      - "弹窗-状态开关"
+      - "弹窗-备注文本域"
+      - "弹窗-确认按钮"
+
+  - id: TC-002
+    title: "新增时必填字段为空校验"
+    priority: P1
+    type: negative
+    preconditions:
+      - "进入新增弹窗"
+    steps_summary: "不填写审批链

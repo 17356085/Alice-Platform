@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "错题详情",
+  "usingComponents": {
+    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
+    "wd-button": "../../node-modules/wot-design-uni/components/wd-button/wd-button",
+    "empty": "../../components/Empty"
+  }
+}

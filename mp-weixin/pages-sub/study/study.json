@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "课程学习",
+  "usingComponents": {
+    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon"
+  }
+}

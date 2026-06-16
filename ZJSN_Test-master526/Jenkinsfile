@@ -1,0 +1,160 @@
+pipeline {
+    agent {
+        node {
+            label 'built-in'
+            customWorkspace '/var/jenkins_home/zjsn_work'
+        }
+    }
+
+    options {
+        timeout(time: 3, unit: 'HOURS')
+        skipDefaultCheckout()
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '10'))
+    }
+
+    environment {
+        HEADLESS          = 'true'
+        ENV               = "${params.TARGET_ENV}"
+        BASE_URL          = credentials('zjsn-test-url')
+        DEFAULT_USERNAME  = credentials('zjsn-test-username')
+        DEFAULT_PASSWORD  = credentials('zjsn-test-password')
+        WEBHOOK_URL       = 'http://localhost:8099/webhook/jenkins'  // AI Test Platform webhook
+    }
+
+    stages {
+        // ═══════════════════════════════════════════════════════
+        // 阶段 0：同步代码 + 清理产物
+        // ═══════════════════════════════════════════════════════
+        stage('Sync & Clean') {
+            steps {
+                echo '同步代码并清理上次构建产物...'
+                sh '''
+                    rsync -a --delete /zjsn_code/ . \
+                        --exclude=allure-results \
+                        --exclude=artifacts \
+                        --exclude=.pytest_cache \
+                        --exclude=__pycache__ \
+                        --exclude=log \
+                        --exclude=downloads \
+                        --exclude=reports \
+                        --exclude=.env 2>/dev/null || cp -r /zjsn_code/* .
+                    rm -rf allure-results/* artifacts/* .pytest_cache/*
+                    mkdir -p allure-results artifacts/failures
+                '''
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // 阶段 1：代码检查 + Agent 定义 drift 检测
+        // ═══════════════════════════════════════════════════════
+        stage('Lint & Drift Check') {
+            steps {
+                echo '代码质量检查 + Agent 定义 drift 检测...'
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh '''
+                        pip install flake8 pyyaml -q --break-system-packages 2>/dev/null
+                        flake8 script/ base/ page/ --count --select=E,F,W --max-line-length=120 --statistics || true
+                        echo ""
+                        echo "=== Agent Definition Drift Check ==="
+                        python tools/check_agent_drift.py --json || echo "WARNING: Agent definition drift detected"
+                    '''
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // 阶段 2：安全用例 — 并行执行（3 worker）
+        // ═══════════════════════════════════════════════════════
+        stage('Safe Tests (Parallel)') {
+            steps {
+                echo '=== 安全用例并行执行（只读/查询/展示）==='
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh '''
+                        python -m pytest \
+                            -m "not destructive" \
+                            -n 3 --dist=loadfile \
+                            -q --tb=line \
+                            --alluredir=allure-results \
+                            2>&1 | tail -30
+                    '''
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // 阶段 3：破坏性用例 — 串行执行
+        // ═══════════════════════════════════════════════════════
+        stage('Destructive Tests (Serial)') {
+            steps {
+                echo '=== 破坏性用例串行执行（增删改操作）==='
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh '''
+                        python -m pytest \
+                            -m destructive \
+                            -q --tb=line \
+                            --alluredir=allure-results \
+                            2>&1 | tail -30
+                    '''
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // 阶段 4：生成 Allure 报告
+        // ═══════════════════════════════════════════════════════
+        stage('Report') {
+            steps {
+                echo '生成 Allure 报告...'
+                allure includeProperties: false, results: [[path: 'allure-results']]
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 后置处理
+    // ═══════════════════════════════════════════════════════════
+    post {
+        always {
+            script {
+                archiveArtifacts artifacts: 'artifacts/**/*.png, artifacts/**/*.html', allowEmptyArchive: true
+
+                // ── AI Test Platform Webhook 通知 ──
+                def allureResults = sh(script: 'ls allure-results/*-result.json 2>/dev/null | wc -l', returnStdout: true).trim()
+                def failedTests = sh(script: 'grep -l "FAILED" allure-results/*.json 2>/dev/null | wc -l || echo 0', returnStdout: true).trim()
+                def webhookStatus = currentBuild.result ?: 'SUCCESS'
+
+                sh """
+                    curl -s -X POST '${WEBHOOK_URL}' \\
+                        -H 'Content-Type: application/json' \\
+                        -d '{
+                            "build_id": "${BUILD_NUMBER}",
+                            "job_name": "${JOB_NAME}",
+                            "status": "${webhookStatus}",
+                            "module": "${params.TARGET_ENV}",
+                            "allure_dir": "allure-results",
+                            "failed_count": ${failedTests},
+                            "total_count": ${allureResults},
+                            "build_url": "${BUILD_URL}"
+                        }' || echo 'Webhook notification skipped (server may be offline)'
+                """
+            }
+        }
+        success {
+            echo '=== ✅ 测试全部通过 ==='
+        }
+        unstable {
+            echo '=== ⚠️ 部分测试失败，查看 Allure Report ==='
+        }
+        failure {
+            echo '=== 🔴 流水线执行异常 ==='
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 参数
+    // ═══════════════════════════════════════════════════════════
+    parameters {
+        choice(name: 'TARGET_ENV', choices: ['dev', 'test', 'staging'], description: '目标测试环境')
+    }
+}

@@ -1,0 +1,64 @@
+{
+  "module": "lab",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation",
+    "Bug Analysis",
+    "Report"
+  ],
+  "failed_phases": [],
+  "pages_processed": [],
+  "run_id": "",
+  "updated_at": "2026-06-12 18:15",
+  "engine": "langgraph",
+  "sub_pages": {
+    "gas-analysis-report": {
+      "status": "completed",
+      "route": "#/lab/gas/report",
+      "cases": 10,
+      "po": "GasAnalysisReportPage"
+    },
+    "gas-compare": {
+      "status": "completed",
+      "route": "#/lab/gas/compare",
+      "cases": 2,
+      "po": "LabComparePage(sub='gas')"
+    },
+    "gas-indicator": {
+      "status": "completed",
+      "route": "#/lab/gas/indicator",
+      "cases": 2,
+      "po": "LabIndicatorPage(sub='gas')"
+    },
+    "water-report": {
+      "status": "completed",
+      "route": "#/lab/water/report",
+      "cases": 1,
+      "po": "WaterAnalysisReportPage"
+    },
+    "water-compare": {
+      "status": "completed",
+      "route": "#/lab/water/compare",
+      "cases": 2,
+      "po": "LabComparePage(sub='water')"
+    },
+    "water-indicator": {
+      "status": "completed",
+      "route": "#/lab/water/indicator",
+      "cases": 2,
+      "po": "LabIndicatorPage(sub='water')"
+    }
+  },
+  "next_steps": [
+    "Phase 9: 知识提取到 known-issues.yaml",
+    "P1: water-report 深度测试",
+    "P1: 补充异常/权限场景"
+  ],
+  "known_issues": [
+    "R6: 全量回归session竞态",
+    "R3: MODULE_CONTEXT曾遗漏5页面(已修复)"
+  ]
+}

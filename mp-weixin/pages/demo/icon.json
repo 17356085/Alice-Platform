@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "图标测试",
+  "usingComponents": {
+    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon"
+  }
+}

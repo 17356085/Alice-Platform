@@ -1,0 +1,252 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:11"
+
+meta:
+  module: "lab"
+  page_name: "GasAnalysisReport"
+  page_slug: "gas-analysis-report"
+  page_url: "/lab/gas-analysis-report"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-tabs
+      count: 2
+      risk_flags: ["非标准Tab组件，需验证定位稳定性"]
+    - component: el-dialog
+      count: 1
+      risk_flags: []
+    - component: el-date-picker
+      count: 3
+      risk_flags: []
+    - component: el-time-picker
+      count: 1
+      risk_flags: []
+    - component: el-select
+      count: 3
+      risk_flags: []
+    - component: el-input
+      count: 2
+      risk_flags: ["必填项，定位依赖placeholder"]
+    - component: el-textarea
+      count: 1
+      risk_flags: []
+    - component: el-input-number
+      count: 13
+      risk_flags: ["大量同类组件，使用通用定位"]
+    - component: el-button
+      count: 4
+      risk_flags: []
+
+elements:
+  - name: "location-tab"
+    selector: ".el-tabs__item"
+    selector_type: CSS_SELECTOR
+    element_type: tag
+    el_component: el-tabs
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "通过文本匹配定位具体标签，如'界区原料气'、'LNG冷箱'"
+    risk_level: low
+    risk_reason: "标准el-tabs样式，但上下文注明非标准，需确认class一致性"
+
+  - name: "start-date"
+    selector: "input[placeholder*='开始日期']"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "范围起始，日期格式 yyyy-MM-dd"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "end-date"
+    selector: "input[placeholder*='结束日期']"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "范围结束"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "search-button"
+    selector: "//button[contains(text(), '查询')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "触发筛选"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "reset-button"
+    selector: "//button[contains(text(), '重置')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "清空筛选条件"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "add-button"
+    selector: "//button[contains(text(), '新增')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "打开新增报告单弹窗"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "export-button"
+    selector: "//button[contains(text(), '导出')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "触发浏览器下载"
+    risk_level: medium
+    risk_reason: "导出无确认弹窗，需额外处理下载文件"
+
+  - name: "basic-info-tab"
+    selector: "//*[contains(@class, 'el-tabs__item') and contains(text(), '基本信息')]"
+    selector_type: XPATH
+    element_type: tag
+    el_component: el-tabs
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格所在Tab，默认可能已选中"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "data-table"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "气体分析数据表格，含thead和tbody"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "statistics-row"
+    selector: ".el-table__footer-wrapper tr"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "统计行显示各列平均值"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "empty-text"
+    selector: ".el-table__empty-text"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "无数据时提示文字"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "add-dialog"
+    selector: ".el-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "新增报告单弹窗，需确认标题含'新增报告单'"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "inspector-input"
+    selector: "input[placeholder='检验员']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "必填字段，推测placeholder为'检验员'"
+    risk_level: medium
+    risk_reason: "实际placeholder可能不同，需确认"
+
+  - name: "reviewer-input"
+    selector: "input[placeholder='复核员']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "必填字段"
+    risk_level: medium
+    risk_reason: "同检验员"
+
+  - name: "date-picker-dialog"
+    selector: "input[placeholder*='日期']"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗内日期，选填"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "sample-time-picker"
+    selector: "input[placeholder*='取样时间']"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-time-picker
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "选填时间"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "location-select"
+    selector: ".el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "取样位置下拉，默认界区原料气"
+    risk_level: medium
+    risk_reason: "多次select需处理弹出层"
+
+  - name: "team-select"
+    selector: "input[placeholder='班组']" # 假设
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "选填"
+    risk_level: medium
+    risk_reason: "定位方式待确认"
+
+  - name: "remark-textarea"
+    selector: "textarea"
+    selector_type: CSS_SELECTOR
+    element_type: textarea
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "备注输入框"
+    risk_level: low
+    risk_re

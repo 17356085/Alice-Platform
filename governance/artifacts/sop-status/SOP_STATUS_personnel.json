@@ -1,0 +1,88 @@
+{
+  "module": "personnel",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation",
+    "Execute & Debug",
+    "Bug Analysis",
+    "Data Sanitization",
+    "Report",
+    "Knowledge"
+  ],
+  "failed_phases": [],
+  "pages_processed": [
+    "employee",
+    "post",
+    "course",
+    "plan",
+    "question",
+    "paper",
+    "exam",
+    "certificate",
+    "practice",
+    "study-record",
+    "wrong-question",
+    "contractor-unit",
+    "contractor-personnel",
+    "entry-approval",
+    "entry-record",
+    "entry-confirm"
+  ],
+  "run_id": "sop-personnel-1781519561",
+  "updated_at": "2026-06-15",
+  "engine": "langgraph",
+  "phase_details": {
+    "Project Init": {"status": "completed", "agent": "project-agent"},
+    "Requirement": {"status": "completed", "agent": "requirement-agent"},
+    "Test Design": {"status": "completed", "agent": "test-design-agent"},
+    "Automation": {"status": "completed", "agent": "automation-agent"},
+    "Execute & Debug": {"status": "completed", "agent": "execution-agent"},
+    "Bug Analysis": {"status": "skipped", "reason": "no test failures, gate passed"},
+    "Data Sanitization": {"status": "skipped", "reason": "scan_and_clean.py not found"},
+    "Report": {"status": "completed", "agent": "report-agent", "tokens": "~15K", "skills": ["reporting/report-generator", "execution/excel-exporter"], "note": "LLM responded with clarification requests — TEST_SUMMARY.md and Excel not auto-generated. Needs directed context injection."},
+    "Knowledge": {"status": "completed", "agent": "knowledge-agent", "tokens": "~3.3K", "skills": ["knowledge/knowledge-manager"], "note": "LLM responded with mode selection prompt — known-issues.yaml not auto-updated. Needs directed context injection."}
+  },
+  "sub_pages": {
+    "training": {
+      "status": "partial",
+      "covered": ["course", "plan", "question", "paper", "exam", "practice", "study-record", "wrong-question"],
+      "uncovered": ["exam-record", "my-exam", "online-study", "my-archive"],
+      "hidden": ["certificate"]
+    },
+    "contractor": {
+      "status": "completed",
+      "covered": ["contractor-unit", "contractor-personnel", "entry-approval", "entry-record", "entry-confirm"],
+      "entry-confirm": {
+        "status": "completed",
+        "route": "#/personnel/contractor/confirm",
+        "code": {
+          "page_object": "page/personnel_page/EntryConfirmPage.py",
+          "test_script": "script/personnel/test_entry_confirm.py (9 cases)"
+        },
+        "test_results": "6P/0F/3S (2026-06-15 verified ✅)",
+        "skip_reasons": {
+          "single_confirm": "不可逆操作，跳过自动化执行",
+          "batch_confirm": "不可逆操作，需≥2条未读记录",
+          "no_selection_confirm": "边界场景，手工验证"
+        }
+      }
+    },
+    "visitor": {
+      "status": "uncovered",
+      "route": "#/personnel/visitor",
+      "note": "visible:0，菜单隐藏，待确认是否需要测试"
+    }
+  },
+  "next_steps": [
+    "1. 补 visitor 访客管理页面（Phase 1-5，用户确认后再做）",
+    "2. 补 exam-record/my-exam 测试（培训管理组4缺口）",
+    "3. Report 产出物需手动触发：编辑 report-agent Skill 注入具体数据后重跑",
+    "4. Knowledge 沉淀需手动触发：提供 Bug 分析产物或测试统计后重跑 knowledge-agent"
+  ],
+  "fix_log": {
+    "2026-06-15": "ANTHROPIC_API_KEY 缺失修复（.env 仅含 DEEPSEEK_API_KEY） → 添加 ANTHROPIC_API_KEY=sk-... → LLM 调用恢复"
+  }
+}

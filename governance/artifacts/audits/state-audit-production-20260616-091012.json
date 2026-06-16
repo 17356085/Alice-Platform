@@ -1,0 +1,163 @@
+{
+  "module": "production",
+  "audit_time": "2026-06-16T09:10:12.282848",
+  "overall_status": "error",
+  "drift_count": 12,
+  "error_count": 1,
+  "warning_count": 10,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Project Init",
+      "description": "Phase 'Project Init' 已完成，但模块级产物缺失: PROJECT_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\production\\PROJECT_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Project Init 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'business-type-config' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\production\\pages\\business-type-config\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'monthly-report' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\production\\pages\\monthly-report\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'monthly-report' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\production\\pages\\monthly-report\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'shift-team-config' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\production\\pages\\shift-team-config\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Report",
+      "description": "产物 'TEST_SUMMARY.md' 存在但 Phase 'Report' 未在 completed_phases 中",
+      "expected": "Phase 'Report' 在 completed_phases 中",
+      "actual": "Phase 'Report' 不在 completed_phases 中，但 TEST_SUMMARY.md 已存在",
+      "suggestion": "更新 SOP_STATUS 将 'Report' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=85, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=139, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=78, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=27, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "c_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "SOP_STATUS JSON 存在但 SQLite checkpoint 无数据 — 可能是 dry-run 或 checkpoint 写入失败",
+      "expected": "checkpoint 中包含 completed_phases",
+      "actual": "checkpoint 为空",
+      "suggestion": "运行一次完整的 SOP Graph (确保 checkpointer 正确编译) 以生成 checkpoint"
+    },
+    {
+      "check_type": "t_check",
+      "severity": "info",
+      "phase": "",
+      "description": "SOP_STATUS updated_at 无法解析: 2026-06-12 (evening, round 3 - governance docs complete)",
+      "expected": "",
+      "actual": "",
+      "suggestion": "检查 ISO 8601 格式"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 5,
+      "errors": 1,
+      "warnings": 4,
+      "ok": false
+    },
+    "r_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "o_check": {
+      "total": 4,
+      "errors": 0,
+      "warnings": 4,
+      "ok": false
+    },
+    "orphan_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "c_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "q_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "t_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 0,
+      "ok": false
+    }
+  }
+}

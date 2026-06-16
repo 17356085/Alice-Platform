@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "aitest-tools": {
+      "command": "python",
+      "args": ["-m", "aitest.mcp_server"],
+      "env": {},
+      "description": "AI 测试平台工具集 (P3 模块化): 13 Tools + 6 Prompts + 审计日志 + 取消 + Sampling + 限流 + 门禁检查"
+    },
+    "aitest-knowledge": {
+      "command": "python",
+      "args": ["-m", "aitest.knowledge_server"],
+      "env": {},
+      "description": "AI 测试平台知识库：PROJECT_CONTEXT(分层加载)、known-issues、模块/页面上下文按需检索"
+    }
+  }
+}

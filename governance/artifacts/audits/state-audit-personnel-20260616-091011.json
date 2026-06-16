@@ -1,0 +1,658 @@
+{
+  "module": "personnel",
+  "audit_time": "2026-06-16T09:10:11.659572",
+  "overall_status": "error",
+  "drift_count": 67,
+  "error_count": 3,
+  "warning_count": 64,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Project Init",
+      "description": "Phase 'Project Init' 已完成，但模块级产物缺失: PROJECT_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\PROJECT_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Project Init 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'contractor-personnel' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\contractor-personnel\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'contractor-unit' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\contractor-unit\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'entry-approval' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-approval\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'entry-confirm' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-confirm\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'entry-record' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-record\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'contractor-personnel' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\contractor-personnel\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'contractor-personnel' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\contractor-personnel\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'contractor-personnel' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\contractor-personnel\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'contractor-unit' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\contractor-unit\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'contractor-unit' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\contractor-unit\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'contractor-unit' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\contractor-unit\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'entry-approval' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-approval\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'entry-approval' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-approval\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'entry-approval' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-approval\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'entry-confirm' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-confirm\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'entry-confirm' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-confirm\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'entry-record' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-record\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'entry-record' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-record\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'entry-record' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-record\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'certificate' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\certificate\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'contractor-personnel' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\contractor-personnel\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'contractor-unit' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\contractor-unit\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'course' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\course\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'employee' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\employee\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'entry-approval' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-approval\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'entry-confirm' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-confirm\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'entry-record' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\entry-record\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'exam' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\exam\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'paper' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\paper\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'plan' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\plan\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'post' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\post\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'practice' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\practice\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'question' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\question\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'study-record' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\study-record\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'wrong-question' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\pages\\wrong-question\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Data Sanitization",
+      "description": "Phase 'Data Sanitization' 已完成，但模块级产物缺失: DATA_QUALITY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\DATA_QUALITY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Data Sanitization 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Report",
+      "description": "Phase 'Report' 已完成，但模块级产物缺失: TEST_SUMMARY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\personnel\\TEST_SUMMARY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Report 相关 Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=12, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=47, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=53, pl_ratio=2%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=29, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=10, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=26, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=13, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=53, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=55, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=53, pl_ratio=2%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=30, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=9, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=32, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=9, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=29, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=8, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=56, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=29, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=9, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=10, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "c_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "SOP_STATUS JSON 存在但 SQLite checkpoint 无数据 — 可能是 dry-run 或 checkpoint 写入失败",
+      "expected": "checkpoint 中包含 completed_phases",
+      "actual": "checkpoint 为空",
+      "suggestion": "运行一次完整的 SOP Graph (确保 checkpointer 正确编译) 以生成 checkpoint"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "RISK_MODEL.md 内容质量不足: 行数 13 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['风险', '等级', '缓解', '概率']",
+      "actual": "行数=13, 标记匹配=3/4",
+      "suggestion": "建议重新运行相关 Agent 生成 RISK_MODEL.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "RISK_MODEL.md 内容质量不足: 行数 12 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['风险', '等级', '缓解', '概率']",
+      "actual": "行数=12, 标记匹配=3/4",
+      "suggestion": "建议重新运行相关 Agent 生成 RISK_MODEL.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "RISK_MODEL.md 内容质量不足: 行数 12 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['风险', '等级', '缓解', '概率']",
+      "actual": "行数=12, 标记匹配=3/4",
+      "suggestion": "建议重新运行相关 Agent 生成 RISK_MODEL.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "RISK_MODEL.md 内容质量不足: 行数 12 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['风险', '等级', '缓解', '概率']",
+      "actual": "行数=12, 标记匹配=3/4",
+      "suggestion": "建议重新运行相关 Agent 生成 RISK_MODEL.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "RISK_MODEL.md 内容质量不足: 行数 11 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['风险', '等级', '缓解', '概率']",
+      "actual": "行数=11, 标记匹配=3/4",
+      "suggestion": "建议重新运行相关 Agent 生成 RISK_MODEL.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "RISK_MODEL.md 内容质量不足: 行数 13 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['风险', '等级', '缓解', '概率']",
+      "actual": "行数=13, 标记匹配=3/4",
+      "suggestion": "建议重新运行相关 Agent 生成 RISK_MODEL.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "RISK_MODEL.md 内容质量不足: 行数 12 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['风险', '等级', '缓解', '概率']",
+      "actual": "行数=12, 标记匹配=3/4",
+      "suggestion": "建议重新运行相关 Agent 生成 RISK_MODEL.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "RISK_MODEL.md 内容质量不足: 行数 13 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['风险', '等级', '缓解', '概率']",
+      "actual": "行数=13, 标记匹配=3/4",
+      "suggestion": "建议重新运行相关 Agent 生成 RISK_MODEL.md"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 38,
+      "errors": 3,
+      "warnings": 35,
+      "ok": false
+    },
+    "r_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "o_check": {
+      "total": 20,
+      "errors": 0,
+      "warnings": 20,
+      "ok": false
+    },
+    "orphan_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "c_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "q_check": {
+      "total": 8,
+      "errors": 0,
+      "warnings": 8,
+      "ok": false
+    },
+    "t_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    }
+  }
+}

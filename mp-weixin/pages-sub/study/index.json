@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "在线学习",
+  "usingComponents": {
+    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
+    "empty": "../../components/Empty"
+  }
+}

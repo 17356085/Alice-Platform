@@ -1,0 +1,335 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:16"
+
+meta:
+  module: "personnel"
+  page_name: "PaperManage"
+  page_slug: "paper"
+  page_url: "/personnel/paper"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags:
+        - "已发布试卷题目不可修改，操作按钮需动态禁用"
+    - component: el-dialog
+      count: 2
+      risk_flags:
+        - "新增/编辑弹窗与自动组卷弹窗结构不同"
+    - component: el-input
+      count: 2
+      risk_flags: []
+    - component: el-select
+      count: 2
+      risk_flags: []
+    - component: el-button
+      count: 6
+      risk_flags: []
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-form
+      count: 2
+      risk_flags: []
+
+elements:
+  - name: "搜索-试卷名称输入"
+    selector: ".search-name-input .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区域内第一个输入框，通常有 placeholder '试卷名称'"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "搜索-试卷编号输入"
+    selector: ".search-code-input .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区域内第二个输入框，placeholder 为'试卷编号'"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "搜索-状态下拉"
+    selector: ".search-status-select .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "搜索-搜索按钮"
+    selector: ".search-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区域内的主要搜索按钮，通常有 icon el-icon-search"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "搜索-重置按钮"
+    selector: ".reset-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区域内的重置按钮，通常有 icon el-icon-refresh"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "表格-试卷列表"
+    selector: ".paper-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "主表格区域，包含编号、名称、总分、题数、状态、创建时间、操作列"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "表格-操作-编辑按钮"
+    selector: ".el-table .edit-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "每行操作列中的编辑按钮，对于已发布状态应被禁用或隐藏"
+    risk_level: medium
+    risk_reason: "已发布试卷编辑操作需注意权限和禁用状态"
+
+  - name: "表格-操作-删除按钮"
+    selector: ".el-table .delete-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "每行操作列中的删除按钮"
+    risk_level: medium
+    risk_reason: "删除操作需要确认弹窗，且已发布试卷可能不允许删除"
+
+  - name: "表格-操作-发布按钮"
+    selector: ".el-table .publish-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "每行操作列中的发布按钮，仅当试卷状态为 '未发布' 时可用"
+    risk_level: medium
+    risk_reason: "发布操作影响试卷状态，需权限校验"
+
+  - name: "表格-操作-预览按钮"
+    selector: ".el-table .preview-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "每行操作列中的预览按钮，点击打开预览弹窗"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "新增试卷按钮"
+    selector: ".add-paper-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格上方的全局新增按钮，通常为 el-button type=primary"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "组卷弹窗-基本信息表单"
+    selector: ".paper-dialog .el-form"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "新增/编辑试卷时弹出的对话框，内部包含 el-form 用于填写试卷名称、组卷方式等"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "分页器"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格底部页码区域"
+    risk_level: low
+    risk_reason: ""
+
+test_scenarios:
+  - id: TC-PPR-001
+    title: "页面正常加载"
+    priority: P0
+    type: positive
+    preconditions:
+      - "用户已登录并具有查看权限"
+    steps_summary: "进入 personnel/training/paper 页面"
+    expected: "页面显示试卷表格、搜索区域、分页组件，表格数据正常加载"
+    relates_to_elements:
+      - "表格-试卷列表"
+      - "搜索-试卷名称输入"
+      - "搜索-试卷编号输入"
+      - "搜索-状态下拉"
+      - "搜索-搜索按钮"
+      - "搜索-重置按钮"
+
+  - id: TC-PPR-002
+    title: "已发布试卷锁定（不可编辑）"
+    priority: P0
+    type: negative
+    preconditions:
+      - "存在一条已发布的试卷"
+    steps_summary: "进入页面，找到已发布试卷行，点击编辑操作"
+    expected: "编辑按钮应为禁用状态，或者点击后弹出提示'已发布的试卷不能修改'"
+    relates_to_elements:
+      - "表格-操作-编辑按钮"
+
+  - id: TC-PPR-003
+    title: "发布权限校验"
+    priority: P0
+    type: negative
+    preconditions:
+      - "用户角色无发布权限（如普通教师）"
+      - "存在一条未发布试卷"
+    steps_summary: "点击未发布试卷行的发布按钮"
+    expected: "系统拒绝操作并提示'无权限执行该操作'，或按钮不可点击"
+    relates_to_elements:
+      - "表格-操作-发布按钮"
+
+  - id: TC-PPR-004
+    title: "按试卷名称搜索"
+    priority: P1
+    type: positive
+    preconditions:
+      - "至少存在两个不同名称的试卷"
+    steps_summary: "在搜索区输入试卷名称关键字，点击搜索按钮"
+    expected: "表格仅显示名称包含关键字的试卷"
+    relates_to_elements:
+      - "搜索-试卷名称输入"
+      - "搜索-搜索按钮"
+
+  - id: TC-PPR-005
+    title: "按分类筛选"
+    priority: P1
+    type: positive
+    preconditions:
+      - "至少两个分类"
+    steps_summary: "选择分类条件（若有分类下拉），点击搜索"
+    expected: "表格显示对应分类的试卷"
+    relates_to_elements:
+      - "搜索-状态下拉"
+
+  - id: TC-PPR-006
+    title: "按组卷方式筛选"
+    priority: P1
+    type: positive
+    preconditions:
+      - "至少包含手工选题和自动组卷两种方式"
+    steps_summary: "选择组卷方式筛选项（可能存在于下拉或标签），点击搜索"
+    expected: "表格显示对应组卷方式的试卷"
+    relates_to_elements:
+      - "搜索-状态下拉"  # 实际可能另有组卷方式字段，此处借用状态下拉占位
+
+  - id: TC-PPR-007
+    title: "按状态筛选"
+    priority: P1
+    type: positive
+    preconditions:
+      - "存在至少两种状态（未发布/已发布）"
+    steps_summary: "从状态下拉选择'未发布'或'已发布'，点击搜索"
+    expected: "表格仅显示对应状态的试卷"
+    relates_to_elements:
+      - "搜索-状态下拉"
+      - "搜索-搜索按钮"
+
+  - id: TC-PPR-008
+    title: "重置搜索条件并验证分页"
+    priority: P1
+    type: positive
+    preconditions:
+      - "已应用搜索条件且表格数据被过滤"
+    steps_summary: "点击重置按钮"
+    expected: "搜索输入框清空，状态下拉恢复默认，表格显示全量数据，分页重新计算"
+    relates_to_elements:
+      - "搜索-重置按钮"
+      - "搜索-试卷名称输入"
+      - "搜索-状态下拉"
+      - "分页器"
+
+  - id: TC-PPR-009
+    title: "手工选题 - 左栏选题更新右栏"
+    priority: P1
+    type: positive
+    preconditions:
+      - "进入新增试卷弹窗，选择组卷方式为'手工选题'"
+    steps_summary: "在左侧题库列表中勾选若干题目，观察右侧已选题目区域变化"
+    expected: "右侧已选题目数量增加，显示所选题目信息"
+    relates_to_elements:
+      - "组卷弹窗-基本信息表单"
+      - "表格-试卷列表"  # 非直接关联，但涉及弹窗中的表格操作
+
+page_behaviors:
+  - behavior: "表格加载后渲染"
+    triggers:
+      - "页面加载"
+      - "搜索后"
+      - "新增/删除/发布成功后刷新"
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "搜索或筛选后表格刷新"
+    triggers:
+      - "点击搜索按钮"
+      - "点击重置按钮"
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "新增/编辑弹窗打开和关闭"
+    triggers:
+      - "点击新增按钮"
+      - "点击编辑按钮"
+      - "点击弹窗取消/关闭按钮"
+      - "确认保存后自动关闭"
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "发布操作后表格更新"
+    triggers:
+      - "点击发布按钮并确认"
+    wait_required: true
+    wait_suggestion: "wait_loading_gone"
+
+  - behavior: "删除操作弹出确认框"
+    triggers:
+      - "点击删除按钮"
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "表格行操作按钮根据试卷状态动态禁用"
+    triggers:
+      - "页面加载时根据行数据的 status 字段"
+      - "发布操作后行状态变更"
+    wait_required: false
+    wait_suggestion: ""

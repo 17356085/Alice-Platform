@@ -1,0 +1,189 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 15:10"
+
+meta:
+  module: "warehouse"
+  page_name: "SpareRequisitionPage"
+  page_slug: "spare-requisition"
+  page_url: "/warehouse/spare/requisition"
+  vue_components:
+    - component: wh-filter-toolbar
+      count: 1
+      risk_flags: ["自定义UI框架，搜索字段是'申请人'非'经办人'"]
+    - component: el-select
+      count: 2
+      risk_flags: ["流程状态+第二下拉"]
+    - component: el-input
+      count: 1
+      risk_flags: ["申请人输入框"]
+    - component: el-date-picker
+      count: 1
+      risk_flags: []
+    - component: el-table
+      count: 1
+      risk_flags: ["9列表格"]
+    - component: el-dialog
+      count: 2
+      risk_flags: ["新增/编辑弹窗，查看弹窗"]
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 7
+      risk_flags: ["★ 4个行内按钮：查看(蓝)/编辑(蓝)/提交(绿)/删除(红)"]
+    - component: el-message-box
+      count: 1
+      risk_flags: ["删除确认弹窗"]
+
+elements:
+  - name: "filterStatus"
+    selector: "(//div[contains(@class,'wh-filter-toolbar')]//div[contains(@class,'el-select__wrapper')])[1]"
+    selector_type: XPATH
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    risk_level: low
+
+  - name: "filterApplicant"
+    selector: "//input[@placeholder='请输入申请人']"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "★ 搜索字段是'申请人'非'经办人'"
+    risk_level: low
+
+  - name: "filterDate"
+    selector: "//input[@placeholder='选择日期']"
+    selector_type: XPATH
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: medium
+
+  - name: "btnQuery"
+    selector: "//button[contains(.,'查询')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: low
+
+  - name: "btnReset"
+    selector: "//button[contains(.,'重置')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: low
+
+  - name: "btnAdd"
+    selector: "//button[contains(.,'新增')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    risk_level: medium
+
+  - name: "btnView"
+    selector: "//button[contains(.,'查看')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    locator_notes: "所有状态可见"
+    risk_level: low
+
+  - name: "btnEdit"
+    selector: "//button[contains(.,'编辑')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "草稿/已退回状态可见"
+    risk_level: medium
+
+  - name: "btnSubmit"
+    selector: "//button[contains(.,'提交')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_for_toast_text
+    locator_notes: "★ 绿色提交按钮，仅草稿状态可见"
+    risk_level: high
+
+  - name: "btnDelete"
+    selector: "//button[contains(.,'删除')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "★ 红色删除按钮，草稿/已退回状态可见，需二次确认"
+    risk_level: high
+
+  - name: "spareTable"
+    selector: ".el-table__body-wrapper"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: WebDriverWait
+    locator_notes: "9列表格(申请单号/申请人/部门/时间/审批人/审批时间/状态/操作)"
+    risk_level: medium
+
+  - name: "pagination"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: low
+
+test_scenarios:
+  - id: TC-SR-001
+    title: "页面正常加载"
+    priority: P0
+    type: smoke
+    steps_summary: "导航到 #/warehouse/spare/requisition"
+    expected: "9列表格+搜索区+新增按钮"
+    relates_to_elements: ["spareTable", "btnAdd", "pagination"]
+
+  - id: TC-SR-002
+    title: "按申请人搜索"
+    priority: P0
+    type: functional
+    steps_summary: "输入申请人→查询"
+    expected: "表格过滤"
+    relates_to_elements: ["filterApplicant", "btnQuery"]
+
+  - id: TC-SR-003
+    title: "草稿状态4按钮全可见"
+    priority: P0
+    type: functional
+    preconditions: ["存在草稿状态申请"]
+    steps_summary: "检查草稿行操作按钮"
+    expected: "查看+编辑+提交(绿)+删除(红) 均可见"
+    relates_to_elements: ["btnView", "btnEdit", "btnSubmit", "btnDelete"]
+
+  - id: TC-SR-004
+    title: "待审核状态仅查看"
+    priority: P0
+    type: negative
+    preconditions: ["存在待审核申请"]
+    steps_summary: "检查待审核行"
+    expected: "仅'查看'可见"
+    relates_to_elements: ["btnView"]

@@ -1,0 +1,362 @@
+version: 0.3
+skills:
+- id: project-context-manager
+  category: project
+  status: active
+  file: skills/project/project-context-manager.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/project/project-context-manager.md
+    released: '2026-05-01'
+    changelog: 初始版本
+    status: active
+  workflows:
+  - project-takeover
+- id: context-sync
+  category: project
+  status: active
+  file: skills/project/context-sync.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/project/context-sync.md
+    released: '2026-05-01'
+    changelog: 初始版本
+    status: active
+  workflows:
+  - session-sync
+- id: hygiene-check
+  category: project
+  status: active
+  file: skills/project/hygiene-check.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/project/hygiene-check.md
+    released: '2026-06-11'
+    changelog: 初始版本 — 目录/文件级卫生检查
+    status: active
+  note: 目录/文件级卫生检查 — 重复检测/废弃标记/大文件告警/孤儿引用/格式漂移/Token预算
+  workflows:
+  - project-takeover
+- id: module-modeling
+  category: requirements
+  status: active
+  file: skills/requirements/module-modeling.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/requirements/module-modeling.md
+    released: '2026-05-01'
+    changelog: 初始版本
+    status: active
+  workflows:
+  - module-onboarding
+- id: requirement-analysis
+  category: requirements
+  status: active
+  file: skills/requirements/requirement-analysis.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/requirements/requirement-analysis.md
+    released: '2026-05-01'
+    changelog: 初始版本
+    status: active
+  workflows:
+  - module-onboarding
+- id: page-analysis
+  category: test-design
+  status: active
+  file: skills/test-design/page-analysis.md
+  current_version: '1.1'
+  versions:
+  - version: '1.1'
+    file: skills/test-design/page-analysis-v1.1.md
+    released: '2026-06-15'
+    changelog: 激活测试 — L3 Governance 验证
+    status: active
+  - version: '1.0'
+    file: skills/test-design/page-analysis.md
+    released: '2026-05-01'
+    changelog: 初始版本 — 含 page-interface-generator 后处理
+    status: active
+  workflows:
+  - module-onboarding
+- id: risk-modeling
+  category: test-design
+  status: active
+  file: skills/test-design/risk-modeling.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/test-design/risk-modeling.md
+    released: '2026-05-01'
+    changelog: 初始版本
+    status: active
+  depends_on:
+  - page-analysis
+  workflows:
+  - module-onboarding
+- id: testcase-design
+  category: test-design
+  status: active
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/test-design/testcase-design.md
+    released: '2026-05-01'
+    changelog: 初始版本
+    status: active
+  depends_on:
+  - page-analysis
+  - risk-modeling
+  file: skills/test-design/testcase-design.md
+  workflows:
+  - module-test-design
+- id: page-interface-generator
+  category: test-design
+  status: deprecated
+  file: skills/test-design/page-interface-generator.md
+  note: P1-2 (2026-06-13) 合并到 page-analysis 的后处理步骤。不再作为独立 Skill。
+  merged_into: test-design/page-analysis
+- id: test-data-generation
+  category: test-design
+  status: active
+  file: skills/test-design/test-data-generation.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/test-design/test-data-generation.md
+    released: '2026-05-01'
+    changelog: 初始版本
+    status: active
+- id: api-testing
+  category: test-design
+  status: experimental
+  file: skills/test-design/api-testing.md
+  current_version: 0.1-exp
+  versions:
+  - version: 0.1-exp
+    file: skills/test-design/api-testing.md
+    released: '2026-05-15'
+    changelog: 实验版本
+    status: experimental
+  note: 无 SOP 图调用路径（Phase 6 接口测试未实现）。保留供未来扩展。
+  workflows:
+  - api-test-design
+- id: miniapp-testing
+  category: test-design
+  status: experimental
+  file: skills/test-design/miniapp-testing.md
+  current_version: 0.1-exp
+  versions:
+  - version: 0.1-exp
+    file: skills/test-design/miniapp-testing.md
+    released: '2026-05-15'
+    changelog: 实验版本
+    status: experimental
+  note: 无 SOP 图调用路径。小程序测试为独立项目。
+- id: tech-analysis
+  category: automation
+  status: active
+  file: skills/automation/tech-analysis.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/automation/tech-analysis.md
+    released: '2026-05-01'
+    changelog: 初始版本 — 已合并 element-plus-locator 深度定位能力
+    status: active
+  note: 已合并 element-plus-locator 的深度定位能力
+  workflows:
+  - automation-implementation
+- id: auto-strategy
+  category: automation
+  status: active
+  file: skills/automation/auto-strategy.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/automation/auto-strategy.md
+    released: '2026-05-01'
+    changelog: 初始版本
+    status: active
+  depends_on:
+  - tech-analysis
+  workflows:
+  - automation-implementation
+- id: page-object-generator
+  category: automation
+  status: active
+  file: skills/automation/page-object-generator.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/automation/page-object-generator.md
+    released: '2026-05-01'
+    changelog: 初始版本
+    status: active
+  depends_on:
+  - tech-analysis
+  - auto-strategy
+  workflows:
+  - automation-implementation
+- id: test-script-generator
+  category: automation
+  status: active
+  file: skills/automation/test-script-generator.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/automation/test-script-generator.md
+    released: '2026-05-01'
+    changelog: 初始版本 — conftest-generator 已合并
+    status: active
+  depends_on:
+  - page-object-generator
+  note: 'P1-2: conftest-generator merged into this skill'
+  workflows:
+  - automation-implementation
+- id: conftest-generator
+  category: automation
+  status: deprecated
+  file: skills/automation/conftest-generator.md
+  note: P1-2 (2026-06-13) 合并到 test-script-generator。conftest.py 作为测试脚本基础设施的一部分统一生成。
+  merged_into: automation/test-script-generator
+- id: code-consistency-checker
+  category: automation
+  status: active
+  file: skills/automation/code-consistency-checker.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/automation/code-consistency-checker.md
+    released: '2026-05-01'
+    changelog: 初始版本 — 机械化检查，不调用 LLM
+    status: active
+  depends_on:
+  - page-object-generator
+  - test-script-generator
+  workflows:
+  - automation-implementation
+  - code-health-check
+- id: allure-report-analyzer
+  category: execution
+  status: active
+  file: skills/execution/allure-report-analyzer.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/execution/allure-report-analyzer.md
+    released: '2026-05-01'
+    changelog: 初始版本
+    status: active
+  workflows:
+  - test-cycle-closure
+- id: excel-exporter
+  category: execution
+  status: active
+  file: skills/execution/excel-exporter.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/execution/excel-exporter.md
+    released: '2026-05-01'
+    changelog: 初始版本
+    status: active
+  workflows:
+  - module-test-design
+  - test-cycle-closure
+- id: bug-analysis
+  category: diagnosis
+  status: active
+  file: skills/diagnosis/bug-analysis.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/diagnosis/bug-analysis.md
+    released: '2026-05-01'
+    changelog: 初始版本
+    status: active
+  workflows:
+  - automation-failure-closure
+- id: ci-pipeline-analysis
+  category: diagnosis
+  status: active
+  file: skills/diagnosis/ci-pipeline-analysis.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/diagnosis/ci-pipeline-analysis.md
+    released: '2026-05-01'
+    changelog: 初始版本
+    status: active
+  workflows:
+  - automation-failure-closure
+- id: jenkinsfile-generator
+  category: diagnosis
+  status: experimental
+  file: skills/diagnosis/jenkinsfile-generator.md
+  current_version: 0.1-exp
+  versions:
+  - version: 0.1-exp
+    file: skills/diagnosis/jenkinsfile-generator.md
+    released: '2026-05-15'
+    changelog: 实验版本
+    status: experimental
+  note: 无 SOP 图调用路径。CI pipeline 编排为独立工作流。
+  workflows:
+  - ci-pipeline-orchestration
+- id: knowledge-manager
+  category: knowledge
+  status: active
+  file: skills/knowledge/knowledge-manager.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/knowledge/knowledge-manager.md
+    released: '2026-05-01'
+    changelog: 初始版本 — extract + precipitate 双模式
+    status: active
+  note: '合并 knowledge-extractor (Bug→坑位) + knowledge-precipitation (周期→沉淀) 为双模式 Skill
+    (mode: extract | precipitate)'
+  replaced:
+  - knowledge-extractor
+  - knowledge-precipitation
+  workflows:
+  - automation-failure-closure
+  - test-cycle-closure
+  - session-sync
+- id: completeness-check
+  category: knowledge
+  status: active
+  file: skills/knowledge/completeness-check.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/knowledge/completeness-check.md
+    released: '2026-06-11'
+    changelog: 初始版本
+    status: active
+  note: Primary Owner = Project Agent；Knowledge Agent 为 Secondary
+- id: report-generator
+  category: reporting
+  status: active
+  file: skills/reporting/report-generator.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/reporting/report-generator.md
+    released: '2026-05-01'
+    changelog: 初始版本 — test-summary + progress + excel 三模式
+    status: active
+  note: '合并 test-summary + progress-report 为三模式 Skill (mode: test-summary | progress
+    | excel)。excel-exporter 仍为独立 Skill'
+  replaced:
+  - test-summary
+  - progress-report
+  workflows:
+  - test-cycle-closure
+variants: null

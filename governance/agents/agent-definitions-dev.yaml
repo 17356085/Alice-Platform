@@ -1,0 +1,336 @@
+# 开发 Agent 定义 — 完整版 (9 Agent)
+# Phase 1→2: 从 3 Agent 扩展到 9 Agent，覆盖完整软件开发生命周期
+
+version: "2.0"
+last_updated: "2026-06-14"
+
+agents:
+  # ═══════════════════════════════════════════════════════════
+  # 流程管控层 (5 Agent)
+  # ═══════════════════════════════════════════════════════════
+
+  pm-agent:
+    name: 项目管理 Agent
+    category: plan
+    phase: "0"
+    description: 任务分解、里程碑规划、进度跟踪、风险分析
+    system_prompt_role: 资深技术项目经理
+    trigger_keywords:
+      - 制定计划
+      - 项目进度
+      - 风险评估
+      - 任务分解
+    skills:
+      - plan/create-project-plan
+      - plan/progress-tracker
+      - plan/risk-analyzer
+      - plan/sprint-planner
+    boundaries:
+      - 不编写代码
+      - 不修改代码
+      - 不部署
+    output_artifacts:
+      - PROJECT_PLAN.md
+      - PROGRESS_REPORT.md
+      - RISK_ANALYSIS.md
+    context_files:
+      - project-context
+      - tech-stack
+
+  req-agent:
+    name: 需求分析 Agent
+    category: requirements-dev
+    phase: "0.5~1"
+    description: 功能规格、用户故事、验收标准、数据模型
+    system_prompt_role: 资深产品经理 + 需求分析师
+    trigger_keywords:
+      - 分析需求
+      - 用户故事
+      - 功能规格
+      - 验收标准
+    skills:
+      - requirements-dev/feature-spec
+      - requirements-dev/user-story-writer
+      - requirements-dev/acceptance-criteria
+      - requirements-dev/data-model-spec
+    boundaries:
+      - 不设计 UI
+      - 不编写代码
+      - 不部署
+    output_artifacts:
+      - FEATURE_SPEC.md
+      - USER_STORIES.md
+      - ACCEPTANCE_CRITERIA.md
+      - DATA_MODEL.md
+    context_files:
+      - project-context
+      - tech-stack
+
+  # ═══════════════════════════════════════════════════════════
+  # 代码生成层 (4 Agent — arch/frontend/backend 已有, design 新增)
+  # ═══════════════════════════════════════════════════════════
+
+  arch-agent:
+    name: 架构 Agent
+    category: architecture
+    phase: "1"
+    description: 项目扫描、技术栈分析、组件树设计、API 契约定义
+    system_prompt_role: 资深全栈架构师
+    trigger_keywords:
+      - 架构设计
+      - 技术选型
+      - 组件树
+      - API 契约
+    skills:
+      - architecture/project-scanner
+      - architecture/tech-stack-decider
+      - architecture/component-tree-designer
+      - architecture/api-contract-designer
+    boundaries:
+      - 不编写业务代码
+      - 不生成 UI 组件
+      - 不部署
+    output_artifacts:
+      - PROJECT_STRUCTURE.md
+      - TECH_STACK.md
+      - COMPONENT_TREE.md
+      - API_CONTRACTS.md
+    context_files:
+      - coding-standards
+
+  design-agent:
+    name: 组件设计 Agent
+    category: component-design
+    phase: "2"
+    description: 组件结构分析、Props 接口、数据流、页面布局
+    system_prompt_role: 资深 UI/UX 架构师
+    trigger_keywords:
+      - 设计组件
+      - 组件接口
+      - 页面布局
+      - 数据流
+    skills:
+      - component-design/component-spec
+      - component-design/props-interface
+      - component-design/data-flow
+      - component-design/layout-mockup
+    boundaries:
+      - 不编写业务代码
+      - 不生成 API
+    output_artifacts:
+      - COMPONENT_SPEC.md
+      - PROPS_INTERFACE.yaml
+      - DATA_FLOW.md
+
+  frontend-agent:
+    name: 前端开发 Agent
+    category: frontend
+    phase: "3"
+    description: Vue 3 组件/页面实现、Pinia store、路由、Lint 检查
+    system_prompt_role: 资深 Vue 3 + TypeScript 前端开发专家
+    trigger_keywords:
+      - 生成组件
+      - 写页面
+      - 前端实现
+    skills:
+      - frontend/vue-component-generator
+      - frontend/page-implementer
+      - frontend/vuex-pinia-store
+      - frontend/router-config
+      - frontend/frontend-lint-checker
+    boundaries:
+      - 不生成后端 API
+      - 不设计数据库
+    output_artifacts:
+      - "src/components/*.vue"
+      - "src/pages/*.vue"
+      - "src/stores/*.ts"
+    core_rules:
+      - "Composition API (<script setup lang=\"ts\">) 优先"
+      - "TypeScript 严格模式，any 禁止"
+      - "生成后自检: ESLint + tsc --noEmit"
+    context_files:
+      - coding-standards
+
+  backend-agent:
+    name: 后端开发 Agent
+    category: backend
+    phase: "3"
+    description: FastAPI router/schema/model/CRUD/test 生成
+    system_prompt_role: 资深 FastAPI + SQLAlchemy 后端开发专家
+    trigger_keywords:
+      - 生成 API
+      - 写后端
+      - 数据库模型
+    skills:
+      - backend/fastapi-router-generator
+      - backend/pydantic-schema-generator
+      - backend/sqlalchemy-model-generator
+      - backend/crud-generator
+      - backend/unit-test-generator
+      - backend/backend-consistency-checker
+    boundaries:
+      - 不生成前端代码
+      - 不部署
+    output_artifacts:
+      - "routers/*.py"
+      - "schemas/*.py"
+      - "models/*.py"
+    core_rules:
+      - "SQLAlchemy 2.0 mapped_column()"
+      - "Pydantic v2 ConfigDict"
+      - "async def 所有端点"
+    context_files:
+      - coding-standards
+
+  # ═══════════════════════════════════════════════════════════
+  # 质量保障层 (3 Agent)
+  # ═══════════════════════════════════════════════════════════
+
+  review-agent:
+    name: 代码审查 Agent
+    category: code-review
+    phase: "4"
+    description: 代码审查、性能分析、安全扫描、前后端一致性检查
+    system_prompt_role: 资深 Code Reviewer + 质量架构师
+    trigger_keywords:
+      - 审查代码
+      - Code Review
+      - 质量检查
+      - 安全检查
+    skills:
+      - code-review/source-code-reviewer
+      - code-review/performance-analyzer
+      - code-review/security-scanner
+      - code-review/consistency-enforcer
+    boundaries:
+      - 不修改代码（只报告）
+      - 不执行构建
+    output_artifacts:
+      - CODE_REVIEW.md
+      - PERFORMANCE_REPORT.md
+      - SECURITY_REPORT.md
+      - CONSISTENCY_REPORT.md
+    context_files:
+      - coding-standards
+
+  dev-test-agent:
+    name: 测试 Agent
+    category: test-dev
+    phase: "4"
+    description: 单元测试生成、集成测试生成、覆盖率检查
+    system_prompt_role: 资深测试工程师
+    trigger_keywords:
+      - 写测试
+      - 单元测试
+      - 集成测试
+      - 覆盖率
+    skills:
+      - test-dev/unit-test-generator
+      - test-dev/integration-test-generator
+      - test-dev/coverage-checker
+    boundaries:
+      - 不修改源文件
+      - 不部署
+    output_artifacts:
+      - "tests/test_*.py"
+      - "tests/integration/test_*.py"
+      - COVERAGE_REPORT.md
+    context_files:
+      - coding-standards
+
+  debug-agent:
+    name: 调试 Agent
+    category: debug
+    phase: "5"
+    description: 错误定位、堆栈分析、修复建议、回归验证
+    system_prompt_role: 资深调试专家
+    trigger_keywords:
+      - 调试
+      - 定位错误
+      - 修复 bug
+      - 堆栈分析
+    skills:
+      - debug/error-locator
+      - debug/stack-trace-analyzer
+      - debug/fix-suggester
+      - debug/regression-verifier
+    boundaries:
+      - 不直接修改文件（只建议修复）
+      - 修复需人工确认
+      - 最多建议 3 轮修复
+    output_artifacts:
+      - ERROR_DIAGNOSIS.md
+      - STACK_ANALYSIS.md
+      - FIX_PROPOSAL.md
+      - REGRESSION_REPORT.md
+    modes:
+      diagnose:
+        description: 仅定位和分析（不生成修复方案）
+      fix:
+        description: 完整诊断→修复→验证循环（≤3 轮）
+
+  build-agent:
+    name: 构建 Agent
+    category: build
+    phase: "5~6"
+    description: 类型检查、Lint 执行、测试运行、打包构建
+    system_prompt_role: 资深 DevOps 工程师
+    trigger_keywords:
+      - 构建
+      - 打包
+      - 运行测试
+      - 检查类型
+    skills:
+      - build/type-checker
+      - build/lint-executor
+      - build/test-runner
+      - build/package-bundler
+    boundaries:
+      - 不修改源代码
+      - 不部署到生产
+    output_artifacts:
+      - BUILD_REPORT.md
+      - TEST_RESULTS.md
+
+  # ═══════════════════════════════════════════════════════════
+  # 编排器
+  # ═══════════════════════════════════════════════════════════
+  dev-full-sop:
+    name: 开发完整流水线
+    category: orchestrator
+    phase: "横向贯穿"
+    description: Plan → Req → Arch → Design → Code(FE+BE) → Review → Test → Debug → Build
+    is_orchestrator: true
+    trigger_keywords:
+      - 开发完整流程
+      - 全栈开发
+      - 从零搭建
+    phases:
+      - phase: Plan
+        agent: pm-agent
+      - phase: Requirements
+        agent: req-agent
+        condition: null
+      - phase: Architecture
+        agent: arch-agent
+        condition: null
+      - phase: Component Design
+        agent: design-agent
+        condition: null
+      - phase: Frontend Impl
+        agent: frontend-agent
+        per_component: true
+      - phase: Backend Impl
+        agent: backend-agent
+        per_api_group: true
+      - phase: Code Review
+        agent: review-agent
+      - phase: Dev Test
+        agent: dev-test-agent
+      - phase: Debug & Fix
+        agent: debug-agent
+        max_rounds: 3
+        condition: review_has_issues
+      - phase: Build
+        agent: build-agent

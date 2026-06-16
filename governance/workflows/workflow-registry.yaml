@@ -1,0 +1,178 @@
+version: 0.2
+validators:
+  sop:
+    module: governance.validators.sop_validator
+    checks:
+      - id: sop-state
+        function: validate_sop_state
+        description: SOP_STATUS 文件存在性 + JSON 完整性 + 必要字段校验
+        gate_level: blocker
+      - id: module-context
+        function: validate_module_context
+        description: MODULE_CONTEXT.md 存在性 + 结构完整性（含页面/路由/边界标记）
+        gate_level: blocker
+      - id: page-bundle
+        function: validate_page_bundle
+        description: pages/* 下的 PAGE_CONTEXT + TEST_CASES 全量通过检查
+        gate_level: blocker
+      - id: page-bundle-tech
+        function: validate_page_bundle (require_tech=true)
+        description: pages/* 下追加 TECH_ANALYSIS + AUTO_STRATEGY 全量检查
+        gate_level: blocker
+      - id: file-set
+        function: validate_file_set
+        description: 通配文件集完整性检查（require_non_empty 模式）
+        gate_level: blocker
+  gate_rules:
+    wildcard_all_or_nothing:
+      description: 'pages/*/PAGE_CONTEXT.md 等处使用 all_non_empty 检查：所有匹配页面必须全部通过，不允许命中一个就算过'
+      applies_to: [page-bundle, page-bundle-tech]
+    deprecated_entry_blocked:
+      description: 'deprecated agent 默认拒绝独立调用，仅允许 /full-sop 编排或 force=true'
+      applies_to: [all workflows using deprecated agents]
+    sop_status_mandatory:
+      description: 'SOP_STATUS_<module>.json 缺失或字段不完整 → blocked'
+      applies_to: [all phase-gated workflows]
+workflows:
+  # === Existing ===
+  - id: project-takeover
+    name: 项目接管
+    status: active
+    gates:
+      - sop-state
+      - module-context
+    inputs:
+      - repo_structure
+      - project_context
+      - legacy_contexts
+      - sop
+    outputs:
+      - project_index
+      - module_index
+      - migration_gaps
+    artifacts:
+      - docs/integration/MIGRATION_MAP.md
+
+  - id: module-test-design
+    name: 模块测试设计
+    status: active
+    gates:
+      - page-bundle
+    inputs:
+      - module_context
+      - page_context
+      - risk_info
+      - requirement_info
+    outputs:
+      - test_design
+      - test_cases
+      - automation_scope
+    artifacts:
+      - context/projects/*/modules/*/pages/*/TEST_DESIGN.md
+      - context/projects/*/modules/*/pages/*/TEST_CASES.md
+
+  - id: automation-failure-closure
+    name: 自动化失败闭环
+    status: active
+    gates: []
+    inputs:
+      - error_log
+      - screenshot
+      - code_context
+      - ci_log
+    outputs:
+      - bug_analysis
+      - root_cause
+      - regression_scope
+    artifacts:
+      - artifacts/
+      - templates/bug-analysis.template.md
+
+  - id: session-sync
+    name: 会话同步
+    status: active
+    gates: []
+    inputs:
+      - session_notes
+      - new_facts
+      - new_artifacts
+    outputs:
+      - context_update_suggestion
+      - todo_list
+
+  # === New ===
+  - id: module-onboarding
+    name: 模块入场
+    status: active
+    gates:
+      - sop-state
+      - module-context
+      - page-bundle
+      - file-set
+    inputs:
+      - project_context
+      - module_name
+      - page_screenshots
+      - prd_or_prototype
+    outputs:
+      - module_context
+      - page_contexts
+      - risk_models
+      - element_positions
+    artifacts:
+      - context/projects/*/modules/*/MODULE_CONTEXT.md
+      - context/projects/*/modules/*/pages/*/PAGE_CONTEXT.md
+      - context/projects/*/modules/*/pages/*/PAGE_ELEMENT_POSITION.md
+      - context/projects/*/modules/*/pages/*/RISK_MODEL.md
+
+  - id: automation-implementation
+    name: 自动化实现
+    status: active
+    gates:
+      - page-bundle-tech
+      - file-set
+    inputs:
+      - page_html
+      - page_context
+      - test_cases
+      - basepage_code
+    outputs:
+      - tech_analysis
+      - auto_strategy
+      - page_objects
+      - test_scripts
+    artifacts:
+      - context/projects/*/modules/*/pages/*/TECH_ANALYSIS.md
+      - context/projects/*/modules/*/pages/*/AUTO_STRATEGY.md
+      - （自动化工程代码）
+
+  - id: test-cycle-closure
+    name: 测试周期闭环
+    status: active
+    gates:
+      - sop-state
+    inputs:
+      - execution_reports
+      - bug_stats
+      - progress_tracking
+    outputs:
+      - test_summary
+      - knowledge_update
+      - next_cycle_tasks
+    artifacts:
+      - context/projects/*/summaries/TEST_SUMMARY.md
+      - PROJECT_CONTEXT.md（更新）
+      - 测试进度追踪（更新）
+
+  - id: api-test-design
+    name: 接口测试设计
+    status: active
+    gates: []
+    inputs:
+      - api_docs
+      - network_captures
+      - page_context
+    outputs:
+      - api_test_design
+    artifacts:
+      - context/projects/*/modules/*/API_TEST_DESIGN.md

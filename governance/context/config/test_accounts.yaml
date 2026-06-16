@@ -1,0 +1,114 @@
+# 测试账号清单
+# 维护日期: 2026-06-12
+# 规则:
+#   - Web 端: 使用"用户名"登录
+#   - 小程序端: 使用"手机号"登录
+#   - 所有账号统一密码: Ajyl@2026
+#   - 敏感凭证不在此文件，统一在 .env 中维护
+
+version: 0.1
+description: 库管管理模块可用测试账号
+
+accounts:
+  - username: admin
+    phone: null
+    name: 系统管理员
+    role: 系统管理员
+    note: 默认账号，拥有全部权限
+
+  - username: rbactest1781155271
+    phone: "13881155271"
+    name: null
+    role: null
+    note: RBA 测试账号
+
+  - username: Test004
+    phone: "15928104327"
+    name: null
+    role: null
+    note: null
+
+  - username: Test003
+    phone: "13567842120"
+    name: null
+    role: null
+    note: null
+
+  - username: Test002
+    phone: "18129104567"
+    name: 千层
+    role: null
+    note: 审批链 HUANBAO 中配置的审批人
+
+  - username: Test001
+    phone: "17189202123"
+    name: null
+    role: null
+    note: null
+
+  - username: tjw
+    phone: "15521061110"
+    name: null
+    role: null
+    note: null
+
+# ── 审批链配置（系统预配，全部确认） ──────────────────
+approval_chains:
+  - name: 危废出库审批链
+    code: wh_hazard_out
+    steps: 2
+    remark: 危废出库：主管审批 → 仓管审批
+    step1:
+      name: 主管审批
+      approvers: [chenqian]  # 陈骞
+      mode: 会签
+    step2:
+      name: 仓管审批
+      approvers: [admin]  # 系统管理员
+      mode: 会签
+
+  - name: 备件入库审批链
+    code: wh_in
+    steps: 1
+    remark: 入库申请：主管审批 → 仓管审批
+    step1:
+      name: 主管审批
+      approvers: [admin]  # 系统管理员
+      mode: 会签
+
+  - name: 备件出库审批链
+    code: wh_out
+    steps: 1
+    remark: 出库申请：主管审批 → 仓管审批
+    step1:
+      name: 主管审批
+      approvers: [admin, chenqian]  # 系统管理员 + 陈骞
+      mode: 会签
+
+  - name: 备件盘点审批链
+    code: wh_stocktake
+    steps: 2
+    remark: 盘点申请：主管审批 → 仓管审批
+    step1:
+      name: 主管审批
+      approvers: [chenqian]  # 陈骞
+      mode: 会签
+    step2:
+      name: 仓管审批
+      approvers: [tjw]  # 田茜雯? (username=tjw, phone=15521061110)
+
+  - name: 备件领用申请审批链
+    code: wh_requisition
+    steps: 2
+    remark: 领用申请：主管审批 → 库管确认
+    step1:
+      name: 主管审批
+      approvers: [admin, chenqian]  # 系统管理员 + 陈骞
+      mode: 会签
+    step2:
+      name: 库管确认
+      approvers: [tjw]
+      mode: 会签
+
+# ⚠️ 环保入库审批链 — 待验证（开发猜测复用危废出库审批链）
+# ⚠️ HUANBAO（手工创建）— 未绑定业务模块，不生效

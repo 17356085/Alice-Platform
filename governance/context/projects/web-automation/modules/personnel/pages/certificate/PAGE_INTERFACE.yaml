@@ -1,0 +1,268 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:14"
+
+meta:
+  module: "personnel"
+  page_name: "Certificate"
+  page_slug: "certificate"
+  page_url: "/personnel/training/certificate"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 2
+      risk_flags: ["dynamic-title"]
+    - component: el-select
+      count: 2
+      risk_flags: []
+    - component: el-input
+      count: 5
+      risk_flags: []
+    - component: el-date-picker
+      count: 2
+      risk_flags: []
+    - component: el-switch
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 8
+      risk_flags: []
+    - component: el-tag
+      count: 1
+      risk_flags: ["dynamic-color"]
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-empty
+      count: 1
+      risk_flags: []
+
+elements:
+  - name: "search-cert-name"
+    selector: "input[placeholder='请输入证书名称']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区，证书名称搜索框"
+    risk_level: low
+    risk_reason: ""
+  - name: "search-status"
+    selector: ".el-select:has(> .el-select__placeholder:contains('状态'))"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "状态下拉筛选；placeholder 包含「状态」文本"
+    risk_level: low
+    risk_reason: ""
+  - name: "search-btn"
+    selector: "//button[.//span[normalize-space(.)='查询']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "查询按钮，位于搜索区"
+    risk_level: low
+    risk_reason: ""
+  - name: "reset-btn"
+    selector: "//button[.//span[normalize-space(.)='重置']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "重置按钮，位于搜索区"
+    risk_level: low
+    risk_reason: ""
+  - name: "add-btn"
+    selector: "//button[.//span[normalize-space(.)='新增证书']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格上方新增证书按钮"
+    risk_level: medium
+    risk_reason: "触发新增弹窗，关键交互"
+  - name: "issue-btn"
+    selector: "//button[.//span[normalize-space(.)='证书核发']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格上方证书核发按钮（批量/入口）"
+    risk_level: medium
+    risk_reason: "核发流程复杂，待确认具体行为"
+  - name: "edit-btn"
+    selector: "//button[.//span[normalize-space(.)='编辑']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格行内编辑按钮（任意行）"
+    risk_level: medium
+    risk_reason: "编辑数据，可能触发弹窗"
+  - name: "delete-btn"
+    selector: "//button[.//span[normalize-space(.)='删除']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格行内删除按钮（任意行）"
+    risk_level: high
+    risk_reason: "删除操作不可逆，需二次确认"
+  - name: "dialog"
+    selector: ".el-dialog:has(.el-dialog__title:contains('新增证书'))"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: WebDriverWait
+    locator_notes: "新增/编辑弹窗，标题包含“新增证书”或“编辑证书”"
+    risk_level: medium
+    risk_reason: "弹窗内容动态，需正确识别"
+  - name: "form-cert-name"
+    selector: ".el-dialog input[placeholder='请输入证书名称']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中证书名称输入框"
+    risk_level: low
+    risk_reason: ""
+  - name: "form-user"
+    selector: ".el-dialog input[placeholder='请输入用户名称']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中用户输入框"
+    risk_level: low
+    risk_reason: ""
+  - name: "form-cert-type"
+    selector: ".el-dialog .el-select:has(> .el-select__placeholder:contains('证书类型'))"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中证书类型下拉"
+    risk_level: low
+    risk_reason: ""
+  - name: "form-issue-org"
+    selector: ".el-dialog input[placeholder='请输入颁发机构']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中颁发机构输入框"
+    risk_level: low
+    risk_reason: ""
+  - name: "form-issue-date"
+    selector: ".el-dialog .el-date-editor--date:has(input[placeholder='请选择颁发日期'])"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中颁发日期选择器"
+    risk_level: low
+    risk_reason: ""
+  - name: "form-valid-start"
+    selector: ".el-dialog .el-date-editor--date:has(input[placeholder='开始日期'])"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中有效期开始日期"
+    risk_level: low
+    risk_reason: ""
+  - name: "form-permanent"
+    selector: ".el-dialog .el-checkbox:has(> .el-checkbox__label:contains('永久有效'))"
+    selector_type: CSS_SELECTOR
+    element_type: checkbox
+    el_component: el-checkbox
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中永久有效复选框"
+    risk_level: low
+    risk_reason: ""
+  - name: "form-remark"
+    selector: ".el-dialog textarea[placeholder='请输入备注']"
+    selector_type: CSS_SELECTOR
+    element_type: textarea
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中备注文本域"
+    risk_level: low
+    risk_reason: ""
+  - name: "dialog-cancel"
+    selector: ".el-dialog .el-button:has(span:contains('取消'))"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗取消按钮"
+    risk_level: low
+    risk_reason: ""
+  - name: "dialog-confirm"
+    selector: ".el-dialog .el-button--primary:has(span:contains('确定'))"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗确定按钮"
+    risk_level: medium
+    risk_reason: "提交表单，触发后端请求"
+  - name: "pagination"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "分页器组件"
+    risk_level: low
+    risk_reason: ""
+  - name: "delete-confirm-dialog"
+    selector: "//div[contains(@class,'el-message-box') and contains(.//div[@class='el-message-box__message'],'确定删除')]"
+    selector_type: XPATH
+    element_type: dialog
+    el_component: el-message-box
+    interaction: click
+    wait_strategy: WebDriverWait
+    locator_notes: "删除确认弹窗（非el-dialog）"
+    risk_level: high
+    risk_reason: "确认删除，不可逆"
+
+test_scenarios:
+  - id: TC-CERT-001
+    title: "页面正常加载"
+    priority: P0
+    type: smoke
+    preconditions: ["用户已登录且有权限访问证书管理"]
+    steps_summary: "导航至证书管理页面"
+    expected: "表格 + 搜索区（证书名称/状态） + 新增证书按钮 + 证书核发按钮 + 分页器均可见"
+    relates_to_elements:
+      - search-cert-name
+      - search-status
+      - search-btn
+      - reset

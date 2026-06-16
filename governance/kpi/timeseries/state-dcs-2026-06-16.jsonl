@@ -1,0 +1,1 @@
+{"timestamp": "2026-06-16T09:10:09.062967", "audit_type": "state", "module": "dcs", "drift_count": 12, "error_count": 1, "warning_count": 11, "overall_status": "error", "compliance_score": 1.0, "violation_count": 0, "total_cost": 0.0, "alert_count": 0, "event_count": 0}

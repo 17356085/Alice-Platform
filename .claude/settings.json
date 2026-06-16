@@ -1,0 +1,84 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "command": "echo 'TOKEN_SAVER: ①Grep>Read(省~1800tok) ②25轮收尾+交接状态 ③一件一事 ④大文件offset+limit分段 ⑤PAGE_INTERFACE.yaml优先(~200tok)而非PAGE_CONTEXT(~2000tok) ⑥避免重复Read同一文件'"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "command": "echo 'TIP: 非必要不Read全文件→优先Grep关键词 -C 2，省约1800 tokens。大文件Read时加offset+limit。'"
+      }
+    ],
+    "Stop": [
+      {
+        "command": "echo '收尾: 写一句当前状态让下个会话能接上。格式: >> 状态: <module>/<page>, <完成项>, <待办项>'"
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest *)",
+      "Bash(python -c ' *)",
+      "Bash(python tools/*.py)",
+      "Bash(tasklist *)",
+      "Bash(find * -type d -name __pycache__ *)",
+      "Bash(find * -name *.py *)",
+      "Bash(rm \"d:/Desktop/WorkStudy/.claude/commands/analysis-agent.md\" \"d:/Desktop/WorkStudy/.claude/commands/design-agent.md\" \"d:/Desktop/WorkStudy/.claude/commands/code-agent.md\" \"d:/Desktop/WorkStudy/.claude/commands/diagnosis-agent.md\")",
+      "Bash(rmdir \"d:/Desktop/WorkStudy/.claude/commands\")",
+      "Bash(mkdir -p project requirements test-design automation execution diagnosis knowledge reporting _deprecated)",
+      "Read(//d/d/Desktop/WorkStudy/governance/**)",
+      "Bash(\"D:/myprogram/微信web开发者工具/cli.bat\" quit *)",
+      "Bash(cd /d/Desktop/WorkStudy/mp-weixin-automator && cat package.json | grep -A5 '\"scripts\"' 2>/dev/null; echo \"---\"; head -5 run-tests.mjs 2>/dev/null; echo \"---\"; ls tests/p0-core/ 2>/dev/null)",
+      "Read(//d/d/Desktop/WorkStudy/mp-weixin-automator/**)",
+      "Bash(node --test --test-concurrency 1 tests/p0-core/test_login.test.mjs)",
+      "Bash(python -c \"import mcp; print\\(mcp.__version__\\)\")",
+      "Bash(python d:/Desktop/WorkStudy/aitest/test_knowledge.py)",
+      "Bash(python -m aitest.rag_engine index)",
+      "Bash(python -m aitest.cli status --module=equipment)",
+      "Bash(python -m aitest.cli rag search NoSuchElementException el-cascader -c known_issues -n 3)",
+      "Bash(python -m aitest.cli agent next --module=equipment)",
+      "Bash(python -m aitest.cli bug add --module=equipment --page=alarm-config --error-type=NoSuchElementException --root-cause=\"el-cascader Teleport timing issue\" --severity=high)",
+      "Bash(python -m aitest.cli agent check --module=lab)",
+      "Bash(mkdir -p /d/Desktop/WorkStudy/governance/context/projects/web-automation/modules/lab/pages/gas-analysis-report && echo \"dir created\")",
+      "Bash(grep -n '//\\\\*\\\\[@id=.app.\\\\]' page/lab_page/GasAnalysisReportPage.py)",
+      "Bash(python d:/Desktop/WorkStudy/ZJSN_Test-master526/tools/check_code_quality.py page/lab_page/GasAnalysisReportPage.py)",
+      "Read(//d/d/Desktop/WorkStudy/ZJSN_Test-master526/page/system_page/**)",
+      "Bash(grep -n '//\\\\*\\\\[@id=.app.\\\\]' page/system_page/RoleManagePage.py)",
+      "Bash(grep -v \"^$\")",
+      "Read(//d/d/Desktop/WorkStudy/ZJSN_Test-master526/**)",
+      "Bash(python -c \"from selenium import webdriver; print\\('Selenium OK'\\)\")",
+      "Bash(python -c \"import chromedriver_autoinstaller; print\\('ChromeDriver autoinstaller OK'\\)\")",
+      "Bash(python -c \"from selenium.webdriver.chrome.service import Service; from selenium import webdriver; print\\('Chrome service import OK'\\)\")",
+      "Bash(rm -rf d:/Desktop/WorkStudy/ZJSN_Test-master526/allure-results/*)",
+      "Bash(python -m pytest script/equipment/test_unit_management.py::TestUnitPageDisplay::test_un_01_page_load_success script/personnel/test_exam_management.py::TestExamManage::test_001_display_list_and_fields -v --tb=line --reruns 0 -o \"addopts=-v --tb=line --alluredir=allure-results\" --no-header -q)",
+      "Bash(rm -rf allure-results/*)",
+      "Bash(python -m pytest script/equipment/test_unit_management.py script/personnel/test_exam_management.py -v --tb=line --reruns 0 -o \"addopts=-v --tb=line --alluredir=allure-results\" --no-header -q)",
+      "Bash(python -m pytest script/equipment/test_unit_management.py::TestUnitSearch::test_un_09_search_by_type script/equipment/test_unit_management.py::TestUnitAdd::test_un_10_add_required_fields script/equipment/test_unit_management.py::TestUnitDetail::test_un_15_view_detail_dialog -v --tb=short --reruns 0 -o \"addopts=-v --tb=short --alluredir=allure-results\" --no-header -q)",
+      "Bash(python -m pytest script/personnel/test_exam_management.py::TestExamManage::test_005_search_by_name script/personnel/test_exam_management.py::TestExamManage::test_012_delete_exam -v --tb=short --reruns 0 -o \"addopts=-v --tb=short --alluredir=allure-results\" --no-header -q)",
+      "Bash(python -m pytest script/equipment/test_unit_management.py::TestUnitSearch::test_un_09_search_by_type script/equipment/test_unit_management.py::TestUnitAdd::test_un_10_add_required_fields script/personnel/test_exam_management.py::TestExamManage::test_005_search_by_name -v --tb=long --reruns 0 -o \"addopts=-v --tb=long --alluredir=allure-results\" --no-header)",
+      "Bash(python -m pytest script/equipment/test_unit_management.py::TestUnitAdd::test_un_10_add_required_fields script/personnel/test_exam_management.py::TestExamManage::test_005_search_by_name -v --tb=short --reruns 0 -o \"addopts=-v --tb=short --alluredir=allure-results\" --no-header -q)",
+      "Bash(python -m pytest script/equipment/test_unit_management.py::TestUnitSearch::test_un_09_search_by_type script/equipment/test_unit_management.py::TestUnitAdd::test_un_10_add_required_fields -v --tb=short --reruns 0 -o \"addopts=-v --tb=short --alluredir=allure-results\" --no-header -q)",
+      "Bash(python -m pytest script/equipment/test_unit_management.py::TestUnitAdd::test_un_10_add_required_fields -v --tb=short --reruns 0 -o \"addopts=-v --tb=short --alluredir=allure-results\" --no-header -q)",
+      "Bash(python -m pytest script/equipment/test_unit_management.py::TestUnitAdd::test_un_10_add_required_fields -v --tb=long --reruns 0 -o \"addopts=-v --tb=long --alluredir=allure-results\" --no-header)",
+      "Bash(rm d:/Desktop/WorkStudy/.claude/sop_status.json)",
+      "Bash(sort -t- -k1)"
+    ],
+    "additionalDirectories": [
+      "d:\\Desktop\\WorkStudy\\.claude"
+    ]
+  },
+  "mcpServers": {
+    "vision": {
+      "command": "C:\\Program Files\\nodejs\\npx.cmd",
+      "args": [
+        "-y",
+        "@z_ai/mcp-server@latest"
+      ],
+      "env": {
+        "Z_AI_API_KEY": "f5840c83ed2842dea9327d92b06c22a5.5kmBflIvEDNyiw09"
+      }
+    }
+  }
+}

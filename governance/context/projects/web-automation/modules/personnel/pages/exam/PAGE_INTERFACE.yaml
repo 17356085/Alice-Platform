@@ -1,0 +1,296 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:16"
+
+meta:
+  module: "personnel"
+  page_name: "ExamManage"
+  page_slug: "exam"
+  page_url: "/personnel/training/examArrange"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: ["表格数据异步加载"]
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 1
+      risk_flags: ["弹窗内多步骤表单"]
+    - component: el-input
+      count: 3
+      risk_flags: []
+    - component: el-select
+      count: 2
+      risk_flags: ["状态下拉/发布状态下拉"]
+    - component: el-date-picker
+      count: 1
+      risk_flags: ["日期范围类型"]
+    - component: el-button
+      count: 6
+      risk_flags: ["操作按钮依赖权限"]
+    - component: el-cascader
+      count: 1
+      risk_flags: ["部门/岗位批量选择"]
+
+elements:
+  - name: "searchInput_nameOrId"
+    selector: ".exam-search .el-input__inner[placeholder*='考试名称' i]"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "匹配 placeholder 含'考试名称'或'考试编号'的输入框"
+    risk_level: low
+    risk_reason: "标准输入框，无动态变化"
+
+  - name: "searchSelect_status"
+    selector: ".exam-search .el-select:first-child .el-select__wrapper"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "状态下拉，需先点击展开再选择"
+    risk_level: low
+    risk_reason: "普通下拉，但可能联动其他组件"
+
+  - name: "searchSelect_publishStatus"
+    selector: ".exam-search .el-select:nth-child(2) .el-select__wrapper"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "发布状态下拉"
+    risk_level: low
+    risk_reason: "同上"
+
+  - name: "searchDateRange"
+    selector: ".exam-search .el-date-editor--daterange"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "日期范围选择器，需点击后选择起止日期"
+    risk_level: medium
+    risk_reason: "日期控件可能需要额外等待日历面板渲染"
+
+  - name: "searchButton"
+    selector: ".exam-search .el-button:has(.el-icon-search)"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索按钮，带搜索图标"
+    risk_level: low
+    risk_reason: "标准按钮"
+
+  - name: "resetButton"
+    selector: ".exam-search .el-button:has(.el-icon-refresh)"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "重置按钮，带刷新图标"
+    risk_level: low
+    risk_reason: "标准按钮"
+
+  - name: "examTable"
+    selector: ".exam-table .el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: WebDriverWait
+    locator_notes: "考试表格主体，需等待数据加载完成"
+    risk_level: medium
+    risk_reason: "表格数据异步加载，需确保完整渲染"
+
+  - name: "addButton"
+    selector: ".exam-toolbar .el-button:has(.el-icon-plus)"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "新增考试按钮，带加号图标"
+    risk_level: low
+    risk_reason: "按钮触发弹窗，需关注弹窗打开状态"
+
+  - name: "editButton"
+    selector: ".exam-table .el-table__body .el-button--primary:first-child"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格行内编辑按钮，存在多行时需指定行索引"
+    risk_level: medium
+    risk_reason: "需要确认该行考试状态允许编辑"
+
+  - name: "deleteButton"
+    selector: ".exam-table .el-table__body .el-button--danger"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格行内删除按钮，点击后可能出现确认框"
+    risk_level: medium
+    risk_reason: "删除操作属于破坏性行为，需二次确认"
+
+  - name: "markButton"
+    selector: ".exam-table .el-table__body button:has(span:contains('阅卷'))"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "阅卷按钮，文本包含'阅卷'"
+    risk_level: high
+    risk_reason: "阅卷流程复杂，涉及弹窗内评分提交，依赖后续页面"
+
+  - name: "viewScoreButton"
+    selector: ".exam-table .el-table__body button:has(span:contains('查看成绩'))"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "查看成绩按钮"
+    risk_level: medium
+    risk_reason: "可能跳转到新页面或弹窗"
+
+  - name: "pagination"
+    selector: ".exam-table .el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "分页器，可点击页码或直接输入跳页"
+    risk_level: low
+    risk_reason: "标准分页组件"
+
+  - name: "dialog_examForm"
+    selector: ".exam-dialog .el-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: WebDriverWait
+    locator_notes: "新增/编辑考试弹窗，需等待打开"
+    risk_level: medium
+    risk_reason: "弹窗内表单包含多个复杂组件"
+
+  - name: "dialog_input_name"
+    selector: ".exam-dialog .el-form-item:nth-child(1) .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗内考试名称输入框"
+    risk_level: low
+    risk_reason: "标准输入框"
+
+  - name: "dialog_select_paper"
+    selector: ".exam-dialog .el-form-item:nth-child(2) .el-select .el-select__wrapper"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "关联试卷下拉选择"
+    risk_level: medium
+    risk_reason: "可能远程搜索或层级数据"
+
+  - name: "dialog_dateTimePicker_startEnd"
+    selector: ".exam-dialog .el-form-item:nth-child(3) .el-date-editor--datetimerange"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "考试时间范围选择（日期+时间）"
+    risk_level: medium
+    risk_reason: "日期时间控件交互复杂"
+
+  - name: "dialog_cascader_student"
+    selector: ".exam-dialog .el-form-item:nth-child(4) .el-cascader"
+    selector_type: CSS_SELECTOR
+    element_type: cascader
+    el_component: el-cascader
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "考生列表选择，支持部门/岗位批量选择"
+    risk_level: high
+    risk_reason: "级联选择器层级多，需展开并选中节点"
+
+  - name: "dialog_input_passScore"
+    selector: ".exam-dialog .el-form-item:nth-child(5) .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "及格分数输入框"
+    risk_level: low
+    risk_reason: "标准数字输入"
+
+  - name: "dialog_input_duration"
+    selector: ".exam-dialog .el-form-item:nth-child(6) .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "考试时长（分钟）输入框"
+    risk_level: low
+    risk_reason: "标准数字输入"
+
+  - name: "dialog_submitButton"
+    selector: ".el-dialog .el-button--primary:contains('确 认')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗确认提交按钮"
+    risk_level: medium
+    risk_reason: "提交后表格刷新，需等待接口响应"
+
+  - name: "dialog_cancelButton"
+    selector: ".el-dialog .el-button:contains('取 消')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗取消按钮"
+    risk_level: low
+    risk_reason: "取消动作简单"
+
+test_scenarios:
+  - id: TC-EXM-001
+    title: "页面正常加载"
+    priority: P0
+    type: smoke
+    preconditions: ["用户已登录且具有培训管理员权限"]
+    steps_summary: "导航至考试管理页面，验证表格、搜索区、分页器均可见"
+    expected: "考试表格展示考试数据，搜索区各控件正常，分页器存在"
+    relates_to_elements: ["examTable", "searchInput_nameOrId", "searchSelect_status", "searchDateRange", "searchButton", "resetButton", "pagination"]
+
+  - id: TC-EXM-002
+    title: "考试中禁止修改"
+    priority: P0
+    type: negative
+    preconditions: ["存在一条状态为‘进行中’的考试"]
+    steps_summary: "点击该考试的

@@ -1,0 +1,50 @@
+[
+  {
+    "page_id": "entry-confirm",
+    "href": "#/personnel/contractor/confirm",
+    "page_title": "",
+    "placeholders": [
+      "承包商名称",
+      "人员姓名"
+    ],
+    "buttons": [
+      "搜索",
+      "重置",
+      "批量确认入场",
+      "确认入场",
+      "清空缓存"
+    ],
+    "columns": 9,
+    "headers": [
+      "",
+      "申请编号",
+      "承包商",
+      "人员",
+      "工种",
+      "作业区域",
+      "计划入场",
+      "入场事由",
+      "操作"
+    ],
+    "rows": 7,
+    "selects": [
+      {
+        "label": "",
+        "placeholder": ""
+      }
+    ],
+    "dialogs": [],
+    "pagination": {
+      "sizes": true,
+      "total": "共 7 条"
+    },
+    "form_labels": [
+      "承包商",
+      "人员姓名"
+    ],
+    "tags": [
+      "未读",
+      "已读"
+    ]
+  }
+]

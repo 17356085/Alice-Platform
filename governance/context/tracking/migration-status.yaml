@@ -1,0 +1,81 @@
+version: 0.2
+description: 旧资产→治理层迁移状态结构化追踪。AI 可据此判断模块是否可安全写入。
+
+# ── 迁移完成度阈值 ──────────────────────────────────────────────────
+thresholds:
+  safe_to_write: 70    # ≥70%：AI 可自主写入治理层
+  safe_to_migrate: 85  # ≥85%：可废弃旧资产指针
+  skeleton: 30         # ≤30%：仅有骨架，需人工补充
+
+# ── Web 自动化项目 ───────────────────────────────────────────────────
+web-automation:
+  overall_percentage: 42  # 4个已映射 + 1个骨架 + 6个未开始
+  modules:
+    equipment:
+      percentage: 60
+      status: active
+      pages:
+        alarm-config: {status: mapped, note: PAGE_CONTEXT + PAGE_ELEMENT_POSITION}
+        camera: {status: mapped, note: PAGE_CONTEXT + PAGE_ELEMENT_POSITION}
+        key-param: {status: skeleton, note: PAGE_CONTEXT为治理层补位, 缺RISK_MODEL/TEST_CASES}
+        maintenance: {status: mapped, note: PAGE_CONTEXT + PAGE_ELEMENT_POSITION}
+        sensor-manage: {status: not_started, note: 旧资产无, 代码有SensorManagePage.py}
+        unit-manage: {status: not_started, note: 旧资产无, 代码有UnitManagePage.py}
+
+    system-user:
+      percentage: 75
+      status: active
+      pages:
+        user-list: {status: mapped, note: 完整7文档(PAGE/RISK/TEST_DESIGN/TEST_CASES/TECH/AUTO_STRATEGY/ANALYSIS)}
+        user-form: {status: mapped, note: PAGE_CONTEXT已映射}
+
+    system-role:
+      percentage: 50
+      status: active
+      pages:
+        role-list: {status: mapped, note: PAGE_CONTEXT+ANALYSIS+TEST_DESIGN+TEST_CASES+RISK_MODEL+TECH_ANALYSIS+AUTO_STRATEGY}
+      module_docs: [RBAC_TEST_PLAN, TEST_ANALYSIS]
+
+    system-management:
+      percentage: 30
+      status: active
+      pages:
+        menu-management: {status: mapped, note: PAGE_CONTEXT+RISK_MODEL, 从汇总层拆出独立建模}
+      note: 其余子模块(user/role已迁出)暂留汇总层
+
+    tank:
+      percentage: 15
+      status: active
+      pages:
+        monitor: {status: skeleton, note: PAGE_CONTEXT为推理骨架(2026-06-11), 待浏览器确认}
+        report: {status: skeleton, note: PAGE_CONTEXT为推理骨架(2026-06-11), 待浏览器确认}
+
+    储罐管理: {percentage: 0, status: not_started, alias: tank, note: 旧contexts目录为空}
+    DCS数据: {percentage: 0, status: not_started}
+    化验室取样: {percentage: 0, status: not_started}
+    人员管理: {percentage: 0, status: not_started, note: 代码有personnel_page(7个PageObject)}
+    生产管理: {percentage: 0, status: not_started, note: 代码有production_page/script/production}
+    销仓管理: {percentage: 0, status: not_started, note: 代码有sales_page(5个PageObject, 20+测试脚本)}
+
+# ── 小程序自动化项目 ─────────────────────────────────────────────────
+miniapp-automation:
+  overall_percentage: 5
+  modules: []
+  note: 项目骨架已建立但模块清单为空, 代码在mp-weixin-automator/
+
+# ── 旧资产废弃标记 ───────────────────────────────────────────────────
+deprecated:
+  - path: TestIntern_library/02-项目文档/_templates/
+    status: deprecated
+    pointer: governance/templates/
+    note: 4个旧模板已映射, 见_templates/DEPRECATED.md
+
+  - path: TestIntern_library/02-项目文档/contexts/
+    status: read_only
+    pointer: governance/context/projects/web-automation/modules/
+    note: 旧体系设为只读, 新模块上下文写入governance
+
+  - path: TestIntern_library/05-资源与参考/AI提示词库.md
+    status: read_only
+    pointer: governance/skills/*.md (各Skill的Prompt模板节)
+    note: 10个核心Skill已内联Prompt, 其余逐步拆解

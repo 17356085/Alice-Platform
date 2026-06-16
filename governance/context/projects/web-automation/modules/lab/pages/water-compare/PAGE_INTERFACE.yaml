@@ -1,0 +1,152 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:13"
+
+meta:
+  module: "lab"
+  page_name: "WaterCompare"
+  page_slug: "water-compare"
+  page_url: "/lab/water-compare"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-date-picker
+      count: 2
+      risk_flags: []
+    - component: el-select
+      count: 2
+      risk_flags: []
+    - component: el-button
+      count: 2
+      risk_flags: []
+
+elements:
+  - name: "开始日期"
+    selector: ".el-date-picker.start-date"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "默认显示最近7天的起始日期"
+    risk_level: low
+    risk_reason: ""
+  - name: "结束日期"
+    selector: ".el-date-picker.end-date"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "默认显示最近7天的结束日期"
+    risk_level: low
+    risk_reason: ""
+  - name: "取样位置选择"
+    selector: ".el-select.sample-location"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "下拉选择取样位置，与气体分析对比的取样位置不同"
+    risk_level: medium
+    risk_reason: "依赖后端数据，下拉选项可能动态加载"
+  - name: "水质指标选择"
+    selector: ".el-select.water-index"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "下拉选择具体水质指标（如pH、浊度等），可能为多选"
+    risk_level: medium
+    risk_reason: "选项较多，且可能影响表格列显示"
+  - name: "查询按钮"
+    selector: ".el-button.query-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "点击后触发搜索，表格重新加载"
+    risk_level: low
+    risk_reason: ""
+  - name: "重置按钮"
+    selector: ".el-button.reset-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "点击后重置所有筛选条件为默认值"
+    risk_level: low
+    risk_reason: ""
+  - name: "对比表格"
+    selector: ".el-table.compare-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "展示水质指标对比数据，结构和 gas-compare 类似"
+    risk_level: medium
+    risk_reason: "表格数据量和列数可能影响渲染性能"
+
+test_scenarios:
+  - id: TC-001
+    title: "默认加载页面显示最近7天数据"
+    priority: P0
+    type: positive
+    preconditions: []
+    steps_summary: "进入页面，不修改任何筛选条件，直接查看表格"
+    expected: "表格默认显示最近7天的水质对比数据，无报错"
+    relates_to_elements: ["开始日期", "结束日期", "对比表格"]
+  - id: TC-002
+    title: "修改日期范围并查询"
+    priority: P0
+    type: positive
+    preconditions: []
+    steps_summary: "选择开始日期和结束日期，点击查询按钮"
+    expected: "表格刷新，显示对应日期范围内的水质对比数据"
+    relates_to_elements: ["开始日期", "结束日期", "查询按钮", "对比表格"]
+  - id: TC-003
+    title: "选择取样位置和指标后查询"
+    priority: P1
+    type: positive
+    preconditions: []
+    steps_summary: "分别选择取样位置和水质指标，点击查询"
+    expected: "表格根据筛选条件显示相应的水质数据"
+    relates_to_elements: ["取样位置选择", "水质指标选择", "查询按钮", "对比表格"]
+  - id: TC-004
+    title: "点击重置按钮恢复默认"
+    priority: P1
+    type: positive
+    preconditions: []
+    steps_summary: "修改筛选条件后，点击重置按钮"
+    expected: "所有筛选条件恢复为默认值（日期为最近7天，下拉框清空或默认选项），表格重新加载默认数据"
+    relates_to_elements: ["开始日期", "结束日期", "取样位置选择", "水质指标选择", "重置按钮", "对比表格"]
+
+page_behaviors:
+  - behavior: "表格加载后渲染"
+    triggers: ["页面加载", "搜索后"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+  - behavior: "下拉选择框弹出选项列表"
+    triggers: ["点击下拉选择框"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+  - behavior: "日期选择器展开日历"
+    triggers: ["点击日期输入框"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+  - behavior: "查询后表格数据刷新"
+    triggers: ["点击查询按钮"]
+    wait_required: true
+    wait_suggestion: "wait_loading_gone"
+  - behavior: "重置后表单恢复默认"
+    triggers: ["点击重置按钮"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"

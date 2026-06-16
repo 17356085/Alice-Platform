@@ -1,0 +1,352 @@
+{
+  "module": "workflow",
+  "audit_time": "2026-06-16T09:10:13.772643",
+  "overall_status": "error",
+  "drift_count": 33,
+  "error_count": 2,
+  "warning_count": 31,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Project Init",
+      "description": "Phase 'Project Init' 已完成，但模块级产物缺失: PROJECT_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\PROJECT_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Project Init 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'approval-chain' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-chain\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'approval-chain' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-chain\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'approval-history' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-history\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'approval-history' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-history\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'approval-todo' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-todo\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'approval-todo' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-todo\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'my-application' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\my-application\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'my-application' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\my-application\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'sap-push-log' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\sap-push-log\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'sap-push-log' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\sap-push-log\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'approval-chain' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-chain\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'approval-chain' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-chain\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'approval-chain' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-chain\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'approval-history' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-history\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'approval-history' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-history\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'approval-history' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-history\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'approval-todo' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-todo\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'approval-todo' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-todo\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'approval-todo' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-todo\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'my-application' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\my-application\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'my-application' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\my-application\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'my-application' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\my-application\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'sap-push-log' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\sap-push-log\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'sap-push-log' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\sap-push-log\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'sap-push-log' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\sap-push-log\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'approval-chain' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-chain\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'approval-history' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-history\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'approval-todo' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\approval-todo\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'my-application' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\my-application\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'sap-push-log' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\pages\\sap-push-log\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Report",
+      "description": "Phase 'Report' 已完成，但模块级产物缺失: TEST_SUMMARY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\workflow\\TEST_SUMMARY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Report 相关 Agent"
+    },
+    {
+      "check_type": "c_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "SOP_STATUS JSON 存在但 SQLite checkpoint 无数据 — 可能是 dry-run 或 checkpoint 写入失败",
+      "expected": "checkpoint 中包含 completed_phases",
+      "actual": "checkpoint 为空",
+      "suggestion": "运行一次完整的 SOP Graph (确保 checkpointer 正确编译) 以生成 checkpoint"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 32,
+      "errors": 2,
+      "warnings": 30,
+      "ok": false
+    },
+    "r_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "o_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "orphan_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "c_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "q_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "t_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    }
+  }
+}

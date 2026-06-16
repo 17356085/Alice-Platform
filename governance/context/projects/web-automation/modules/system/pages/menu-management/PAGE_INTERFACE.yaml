@@ -1,0 +1,352 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:26"
+
+meta:
+  module: "system-management"
+  page_name: "MenuManagement"
+  page_slug: "menu-management"
+  page_url: "/system-management/menu-management"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: ["tree-table", "expandable"]
+    - component: el-input
+      count: 1
+      risk_flags: ["search"]
+    - component: el-button
+      count: 5
+      risk_flags: ["add", "search", "expand", "collapse", "delete"]
+    - component: el-dialog
+      count: 2
+      risk_flags: ["add", "edit"]
+    - component: el-tag
+      count: 1
+      risk_flags: ["status"]
+
+elements:
+  - name: "菜单名称搜索输入框"
+    selector: ".menu-search .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区唯一的文本输入框"
+    risk_level: low
+    risk_reason: "标准输入框，风险较低"
+
+  - name: "展开全部按钮"
+    selector: "button:has-text('展开全部')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "工具栏按钮，文字匹配"
+    risk_level: low
+    risk_reason: "文字匹配，稳定"
+
+  - name: "收起全部按钮"
+    selector: "button:has-text('收起全部')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "工具栏按钮，文字匹配"
+    risk_level: low
+    risk_reason: "文字匹配，稳定"
+
+  - name: "新增按钮"
+    selector: "button:has-text('新增')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "工具栏 primary 按钮"
+    risk_level: low
+    risk_reason: "文字匹配，稳定"
+
+  - name: "搜索按钮"
+    selector: "button:has-text('搜索')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "工具栏 default 按钮"
+    risk_level: low
+    risk_reason: "文字匹配，稳定"
+
+  - name: "菜单树形表格"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "页面主体树形表格"
+    risk_level: low
+    risk_reason: "标准表格，稳定"
+
+  - name: "新增/编辑弹窗"
+    selector: ".el-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "新增或编辑时弹出的对话框"
+    risk_level: medium
+    risk_reason: "弹窗可能因加载缓慢而延迟出现"
+
+  - name: "菜单类型下拉框"
+    selector: ".el-dialog .el-select .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中的类型选择器"
+    risk_level: low
+    risk_reason: "标准下拉框"
+
+  - name: "权限标识输入框"
+    selector: ".el-dialog .el-input--medium .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗中的权限标识字段"
+    risk_level: low
+    risk_reason: "标准输入框"
+
+  - name: "操作列-修改按钮"
+    selector: ".el-table .el-button--text:has-text('修改')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "表格每行操作列中的修改按钮"
+    risk_level: medium
+    risk_reason: "可能因行数不同而定位不稳定，建议使用相对定位"
+
+  - name: "操作列-删除按钮"
+    selector: ".el-table .el-button--text:has-text('删除')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "表格每行操作列中的删除按钮"
+    risk_level: medium
+    risk_reason: "可能因行数不同而定位不稳定，建议使用相对定位"
+
+test_scenarios:
+  - id: TC-MENU-001
+    title: "页面正常加载"
+    priority: P0
+    type: smoke
+    preconditions: ["admin 登录"]
+    steps_summary: "导航至 #/system/menu，等待页面加载"
+    expected: "树形表格、搜索框、展开全部、收起全部、新增按钮均可见"
+    relates_to_elements: ["菜单名称搜索输入框", "展开全部按钮", "收起全部按钮", "新增按钮", "菜单树形表格"]
+
+  - id: TC-MENU-002
+    title: "新增菜单后权限标识生效"
+    priority: P0
+    type: positive
+    preconditions: ["admin 登录"]
+    steps_summary: "新增菜单（类型=菜单），填入权限标识 `test:menu:verify`，保存；前往角色管理验证"
+    expected: "角色权限弹窗中出现该权限标识"
+    relates_to_elements: ["新增按钮", "新增/编辑弹窗", "菜单类型下拉框", "权限标识输入框"]
+
+  - id: TC-MENU-003
+    title: "表头完整性"
+    priority: P1
+    type: positive
+    preconditions: ["页面有菜单数据"]
+    steps_summary: "获取表头列文本列表"
+    expected: "包含8列：菜单名称、图标、排序、权限标识、组件路径、状态、创建时间、操作"
+    relates_to_elements: ["菜单树形表格"]
+
+  - id: TC-MENU-004
+    title: "PC端/小程序Tab切换"
+    priority: P1
+    type: positive
+    preconditions: ["页面加载"]
+    steps_summary: "默认PC端；切换到小程序Tab"
+    expected: "小程序菜单树显示"
+    relates_to_elements: []
+
+  - id: TC-MENU-005
+    title: "树节点默认展开"
+    priority: P1
+    type: positive
+    preconditions: ["页面加载"]
+    steps_summary: "检查一级目录节点"
+    expected: "一级目录默认展开"
+    relates_to_elements: ["菜单树形表格"]
+
+  - id: TC-MENU-006
+    title: "菜单名称搜索"
+    priority: P1
+    type: positive
+    preconditions: ["存在名为'用户管理'的菜单"]
+    steps_summary: "在搜索框输入'用户管理'，点击搜索按钮"
+    expected: "树过滤，只显示匹配节点及父路径"
+    relates_to_elements: ["菜单名称搜索输入框", "搜索按钮"]
+
+  - id: TC-MENU-007
+    title: "展开全部"
+    priority: P1
+    type: positive
+    preconditions: ["有折叠的树节点"]
+    steps_summary: "点击'展开全部'按钮"
+    expected: "所有树节点展开"
+    relates_to_elements: ["展开全部按钮"]
+
+  - id: TC-MENU-008
+    title: "收起全部"
+    priority: P1
+    type: positive
+    preconditions: ["有展开的树节点"]
+    steps_summary: "点击'收起全部'按钮"
+    expected: "仅显示一级目录节点"
+    relates_to_elements: ["收起全部按钮"]
+
+  - id: TC-MENU-009
+    title: "新增弹窗打开"
+    priority: P1
+    type: positive
+    preconditions: ["点击新增按钮"]
+    steps_summary: "点击新增按钮，等待弹窗出现"
+    expected: "弹窗包含字段：名称、类型、上级菜单、权限标识、组件路径、排序、状态等"
+    relates_to_elements: ["新增按钮", "新增/编辑弹窗"]
+
+  - id: TC-MENU-010
+    title: "新增-必填项校验"
+    priority: P1
+    type: negative
+    preconditions: ["新增弹窗已打开"]
+    steps_summary: "留空必填项（如名称），点击确定"
+    expected: "必填项显示红色错误提示"
+    relates_to_elements: ["新增/编辑弹窗"]
+
+  - id: TC-MENU-011
+    title: "新增目录(M)"
+    priority: P1
+    type: positive
+    preconditions: ["新增弹窗已打开"]
+    steps_summary: "类型选择'目录'，填写名称（如'测试目录'），点击确定"
+    expected: "树表格新增一级目录节点"
+    relates_to_elements: ["新增按钮", "新增/编辑弹窗", "菜单类型下拉框"]
+
+  - id: TC-MENU-012
+    title: "新增菜单(C)"
+    priority: P1
+    type: positive
+    preconditions: ["新增弹窗已打开，存在上级目录"]
+    steps_summary: "类型选择'菜单'，选择上级目录，填写名称和权限标识（`test:menu`），点击确定"
+    expected: "树表格新增子菜单节点"
+    relates_to_elements: ["新增按钮", "新增/编辑弹窗", "菜单类型下拉框", "权限标识输入框"]
+
+  - id: TC-MENU-013
+    title: "新增按钮(F)"
+    priority: P1
+    type: positive
+    preconditions: ["新增弹窗已打开，存在上级菜单"]
+    steps_summary: "类型选择'按钮'，填写权限标识（`test:menu:add`），点击确定"
+    expected: "保存成功，树新增按钮节点"
+    relates_to_elements: ["新增按钮", "新增/编辑弹窗", "菜单类型下拉框", "权限标识输入框"]
+
+  - id: TC-MENU-014
+    title: "取消新增"
+    priority: P1
+    type: negative
+    preconditions: ["新增弹窗已打开，已填写一些数据"]
+    steps_summary: "填写数据后点击取消按钮或关闭弹窗"
+    expected: "弹窗关闭，树表格无变化"
+    relates_to_elements: ["新增/编辑弹窗"]
+
+  - id: TC-MENU-015
+    title: "编辑数据回显"
+    priority: P1
+    type: positive
+    preconditions: ["存在可编辑的行"]
+    steps_summary: "点击某行的修改按钮，打开编辑弹窗"
+    expected: "弹窗中的名称字段与行原值一致"
+    relates_to_elements: ["操作列-修改按钮", "新增/编辑弹窗"]
+
+  - id: TC-MENU-016
+    title: "编辑修改保存"
+    priority: P1
+    type: positive
+    preconditions: ["编辑弹窗已打开"]
+    steps_summary: "修改名称为'TC-修改菜单'，点击保存"
+    expected: "Toast显示成功，树表格更新"
+    relates_to_elements: ["新增/编辑弹窗"]
+
+  - id: TC-MENU-017
+    title: "编辑取消"
+    priority: P1
+    type: negative
+    preconditions: ["编辑弹窗已打开，已修改数据"]
+    steps_summary: "修改数据后点击取消"
+    expected: "弹窗关闭，树表格数据不变"
+    relates_to_elements: ["新增/编辑弹窗"]
+
+  - id: TC-MENU-018
+    title: "删除有子节点目录"
+    priority: P2
+    type: destructive
+    preconditions: ["存在有子菜单的父目录"]
+    steps_summary: "点击该父目录的删除按钮，确认删除"
+    expected: "后端拒绝删除（或级联删除所有子节点）"
+    relates_to_elements: ["操作列-删除按钮"]
+
+  - id: TC-MENU-019
+    title: "取消删除"
+    priority: P2
+    type: negative
+    preconditions: ["删除确认弹窗已打开"]
+    steps_summary: "点击删除弹窗的取消按钮"
+    expected: "弹窗关闭，节点不变"
+    relates_to_elements: ["操作列-删除按钮"]
+
+page_behaviors:
+  - behavior: "树形表格加载后渲染"
+    triggers: ["页面加载", "搜索后", "新增/编辑保存后", "删除后"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "搜索过滤树节点"
+    triggers: ["点击搜索按钮"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "展开/折叠全部节点"
+    triggers: ["点击展开全部按钮", "点击收起全部按钮"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "弹窗打开（新增/编辑）"
+    triggers: ["点击新增按钮", "点击修改按钮"]
+    wait_required: true
+    wait_suggestion: "wait_loading_gone"
+
+  - behavior: "弹窗关闭"
+    triggers: ["弹窗确定/取消/关闭"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "节点状态切换"
+    triggers: ["编辑保存后", "删除后"]
+    wait_required: true
+    wait_suggestion: "wait_loading_gone"

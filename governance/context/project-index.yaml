@@ -1,0 +1,93 @@
+version: 0.3
+# Project Index — 2026-06-15 更新：9模块（system 结构纠正，system-user/system-management 回归 system 模块）
+projects:
+  - id: web-automation
+    name: Web 自动化测试项目
+    root_path: d:\Desktop\WorkStudy\ZJSN_Test-master526
+    legacy_context_path: d:\Desktop\WorkStudy\TestIntern_library\02-项目文档\contexts
+    status: active
+    module_strategy: by-test-module
+    current_modules:
+      - equipment
+      - dcs
+      - lab
+      - personnel
+      - production
+      - sales
+      - system
+      - system-role
+      - tank
+      - warehouse
+    context:
+      project_context: governance/context/projects/web-automation/PROJECT_CONTEXT.md
+      module_index: governance/context/projects/web-automation/MODULE_INDEX.md
+      known_issues: governance/context/known-issues.yaml
+      knowledge_base: governance/knowledge/
+
+  - id: miniapp-automation
+    name: 小程序自动化测试项目
+    root_path: d:\Desktop\WorkStudy\mp-weixin-automator
+    legacy_context_path: ""
+    status: active
+    module_strategy: by-test-module
+    current_modules: []
+
+# Agent 体系 (v2.0)
+agents:
+  version: "2.0"
+  deprecated:
+    - id: analysis-agent
+      replaced_by: [project-agent, requirement-agent, test-design-agent]
+    - id: design-agent
+      replaced_by: [test-design-agent, automation-agent]
+    - id: code-agent
+      replaced_by: [automation-agent]
+    - id: diagnosis-agent
+      replaced_by: [bug-analysis-agent, report-agent, knowledge-agent]
+  active:
+    - id: project-agent
+      phase: "Phase 0"
+      skills: [project-context-manager, context-sync, completeness-check]
+    - id: requirement-agent
+      phase: "Phase 0.5~0.8"
+      skills: [module-modeling, requirement-analysis]
+    - id: test-design-agent
+      phase: "Phase 1~2.5"
+      skills: [page-analysis, risk-modeling, testcase-design, test-data-generation, api-testing, miniapp-testing]
+    - id: automation-agent
+      phase: "Phase 3~4"
+      skills: [tech-analysis, auto-strategy, page-object-generator, test-script-generator, conftest-generator, code-consistency-checker]
+    - id: execution-agent
+      phase: "Phase 4.5~7"
+      skills: [allure-report-analyzer, excel-exporter]
+    - id: bug-analysis-agent
+      phase: "Phase 4.5~7"
+      skills: [bug-analysis, ci-pipeline-analysis, jenkinsfile-generator]
+    - id: report-agent
+      phase: "Phase 8~9"
+      skills: [report-generator, excel-exporter]
+    - id: knowledge-agent
+      phase: "Phase 9 (横向贯穿)"
+      skills: [knowledge-manager, completeness-check]
+
+# Skill 体系 (v0.2 — 7分类)
+skills:
+  version: "0.2"
+  categories:
+    project: 2
+    requirements: 2
+    test-design: 6
+    automation: 6
+    execution: 2
+    diagnosis: 3
+    knowledge: 3
+    reporting: 2
+    deprecated: 2
+  total_active: 26
+  total_deprecated: 2
+
+# 知识库
+knowledge:
+  known_issues: governance/context/known-issues.yaml
+  pitfalls: governance/knowledge/pitfalls/
+  test_patterns: governance/knowledge/test-patterns/

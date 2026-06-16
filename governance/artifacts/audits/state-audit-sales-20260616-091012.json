@@ -1,0 +1,361 @@
+{
+  "module": "sales",
+  "audit_time": "2026-06-16T09:10:12.409102",
+  "overall_status": "error",
+  "drift_count": 34,
+  "error_count": 1,
+  "warning_count": 33,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "",
+      "description": "SOP_STATUS_sales.json 不存在或无法解析",
+      "expected": "",
+      "actual": "",
+      "suggestion": "运行一次完整的 SOP 以生成 SOP_STATUS"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Requirement",
+      "description": "产物 'MODULE_CONTEXT.md' 存在但 Phase 'Requirement' 未在 completed_phases 中",
+      "expected": "Phase 'Requirement' 在 completed_phases 中",
+      "actual": "Phase 'Requirement' 不在 completed_phases 中，但 MODULE_CONTEXT.md 已存在",
+      "suggestion": "更新 SOP_STATUS 将 'Requirement' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'PAGE_CONTEXT.md' 在页面 'contract' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'RISK_MODEL.md' 在页面 'contract' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'TEST_DESIGN.md' 在页面 'contract' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'TEST_CASES.md' 在页面 'contract' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'PAGE_CONTEXT.md' 在页面 'customer' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'RISK_MODEL.md' 在页面 'customer' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'TEST_DESIGN.md' 在页面 'customer' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'TEST_CASES.md' 在页面 'customer' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'PAGE_CONTEXT.md' 在页面 'daily-report' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'RISK_MODEL.md' 在页面 'daily-report' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'TEST_DESIGN.md' 在页面 'daily-report' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'TEST_CASES.md' 在页面 'daily-report' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'PAGE_CONTEXT.md' 在页面 'sales-order' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'RISK_MODEL.md' 在页面 'sales-order' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'TEST_DESIGN.md' 在页面 'sales-order' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "产物 'TEST_CASES.md' 在页面 'sales-order' 存在但 Phase 'Test Design' 未完成",
+      "expected": "Phase 'Test Design' 在 completed_phases 中",
+      "actual": "Phase 'Test Design' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Test Design' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'TECH_ANALYSIS.md' 在页面 'contract' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'AUTO_STRATEGY.md' 在页面 'contract' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'PAGE_ELEMENT_POSITION.md' 在页面 'contract' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'PAGE_INTERFACE.yaml' 在页面 'contract' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'TECH_ANALYSIS.md' 在页面 'customer' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'AUTO_STRATEGY.md' 在页面 'customer' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'PAGE_ELEMENT_POSITION.md' 在页面 'customer' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'PAGE_INTERFACE.yaml' 在页面 'customer' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'TECH_ANALYSIS.md' 在页面 'daily-report' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'AUTO_STRATEGY.md' 在页面 'daily-report' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'PAGE_ELEMENT_POSITION.md' 在页面 'daily-report' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'PAGE_INTERFACE.yaml' 在页面 'daily-report' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'TECH_ANALYSIS.md' 在页面 'sales-order' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'AUTO_STRATEGY.md' 在页面 'sales-order' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'PAGE_ELEMENT_POSITION.md' 在页面 'sales-order' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'PAGE_INTERFACE.yaml' 在页面 'sales-order' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 1,
+      "errors": 1,
+      "warnings": 0,
+      "ok": false
+    },
+    "r_check": {
+      "total": 33,
+      "errors": 0,
+      "warnings": 33,
+      "ok": false
+    },
+    "o_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "orphan_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "c_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "q_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "t_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    }
+  }
+}

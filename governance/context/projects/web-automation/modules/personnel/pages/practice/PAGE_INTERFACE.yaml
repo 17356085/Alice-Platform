@@ -1,0 +1,172 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 13:00"
+
+meta:
+  module: "personnel"
+  page_name: "PracticePage"
+  page_slug: "practice"
+  page_url: "/personnel/training/practice"
+  vue_components:
+    - component: el-select
+      count: 1
+      risk_flags: ["唯一筛选条件：状态下拉"]
+    - component: el-table
+      count: 1
+      risk_flags: ["9列表格，行操作按钮按状态动态显隐"]
+    - component: el-tag
+      count: 1
+      risk_flags: ["状态列：已完成=绿色，未完成=橙色"]
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 3
+      risk_flags: ["行内按钮文本按状态切换：开始练习/继续练习"]
+    - component: el-empty
+      count: 0
+      risk_flags: ["无练习记录时空状态"]
+
+elements:
+  - name: "statusSelect"
+    selector: "//div[contains(@class,'el-select')]"
+    selector_type: XPATH
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "筛选状态下拉，placeholder='筛选状态'，选项：完成/未完成"
+    risk_level: low
+    risk_reason: "单一下拉，标准定位"
+
+  - name: "practiceTable"
+    selector: ".el-table__body-wrapper"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: WebDriverWait
+    locator_notes: "练习记录表格，数据异步加载"
+    risk_level: medium
+    risk_reason: "个人端数据，表格需等待异步渲染"
+
+  - name: "startPracticeBtn"
+    selector: "//button[contains(.,'开始练习')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "已完成状态的行显示'开始练习'（新建一次练习）"
+    risk_level: medium
+    risk_reason: "按钮文本按状态变化，需按名称+状态联合定位"
+
+  - name: "continuePracticeBtn"
+    selector: "//button[contains(.,'继续练习')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "未完成状态的行显示'继续练习'（恢复进度）"
+    risk_level: medium
+    risk_reason: "按钮文本按状态切换"
+
+  - name: "viewResultBtn"
+    selector: "//button[contains(.,'查看成绩')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    locator_notes: "打开成绩弹窗，显示正确/错误题目详情"
+    risk_level: low
+    risk_reason: "查看操作，无副作用"
+
+  - name: "deleteBtn"
+    selector: "//button[contains(.,'删除')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "行内删除按钮，点击后弹出确认框"
+    risk_level: medium
+    risk_reason: "破坏性操作，需二次确认"
+
+  - name: "pagination"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "分页器，当前数据20条，10条/页"
+    risk_level: low
+    risk_reason: "标准分页组件"
+
+test_scenarios:
+  - id: TC-PRAC-001
+    title: "页面正常加载"
+    priority: P0
+    type: smoke
+    preconditions: ["用户已登录"]
+    steps_summary: "导航至自主练习页面，验证表格、状态下拉、分页器均可见"
+    expected: "练习记录表格展示，状态下拉可见，分页器存在"
+    relates_to_elements: ["practiceTable", "statusSelect", "pagination"]
+
+  - id: TC-PRAC-002
+    title: "按状态筛选"
+    priority: P0
+    type: functional
+    preconditions: ["存在不同状态的练习记录"]
+    steps_summary: "选择'已完成'→查询，再选择'未完成'→查询"
+    expected: "表格分别显示对应状态的记录"
+    relates_to_elements: ["statusSelect", "practiceTable"]
+
+  - id: TC-PRAC-003
+    title: "已完成记录显示'开始练习'按钮"
+    priority: P1
+    type: functional
+    preconditions: ["存在已完成状态的练习记录"]
+    steps_summary: "检查已完成行的操作按钮"
+    expected: "显示'开始练习'+'查看成绩'+'删除'三个按钮"
+    relates_to_elements: ["startPracticeBtn", "viewResultBtn", "deleteBtn"]
+
+  - id: TC-PRAC-004
+    title: "未完成记录显示'继续练习'按钮"
+    priority: P1
+    type: functional
+    preconditions: ["存在未完成状态的练习记录"]
+    steps_summary: "检查未完成行的操作按钮"
+    expected: "显示'继续练习'+'查看成绩'+'删除'三个按钮"
+    relates_to_elements: ["continuePracticeBtn", "viewResultBtn", "deleteBtn"]
+
+  - id: TC-PRAC-005
+    title: "查看成绩弹窗"
+    priority: P1
+    type: functional
+    preconditions: ["存在练习记录"]
+    steps_summary: "点击'查看成绩'→验证弹窗内容"
+    expected: "弹窗展示成绩详情（正确率/得分/题目列表）"
+    relates_to_elements: ["viewResultBtn"]
+
+  - id: TC-PRAC-006
+    title: "删除练习记录"
+    priority: P1
+    type: functional
+    preconditions: ["存在练习记录"]
+    steps_summary: "点击'删除'→确认→验证记录消失"
+    expected: "确认后记录从表格消失，toast提示删除成功"
+    relates_to_elements: ["deleteBtn"]
+
+  - id: TC-PRAC-007
+    title: "数据隔离：仅显示当前用户记录"
+    priority: P1
+    type: security
+    preconditions: ["2个不同用户分别有练习记录"]
+    steps_summary: "用户A登录→检查记录列表"
+    expected: "仅显示用户A的练习记录"
+    relates_to_elements: ["practiceTable"]

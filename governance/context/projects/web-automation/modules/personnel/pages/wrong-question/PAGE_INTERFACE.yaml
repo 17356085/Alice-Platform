@@ -1,0 +1,315 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:20"
+
+meta:
+  module: "personnel"
+  page_name: "WrongQuestion"
+  page_slug: "wrong-question"
+  page_url: "/personnel/training/wrongQuestion"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: ["inferred columns"]
+    - component: el-form-item
+      count: 8
+      risk_flags: ["inferred layout"]
+    - component: el-select
+      count: 8
+      risk_flags: ["inferred options"]
+    - component: el-date-picker
+      count: 1
+      risk_flags: ["inferred type"]
+    - component: el-input
+      count: 1
+      risk_flags: ["inferred id"]
+    - component: el-button
+      count: 5
+      risk_flags: ["inferred positions"]
+    - component: el-pagination
+      count: 1
+      risk_flags: ["inferred count"]
+    - component: el-dialog
+      count: 2
+      risk_flags: ["inferred for redo/analysis"]
+    - component: el-tag
+      count: 2
+      risk_flags: ["dynamic colors"]
+    - component: el-empty
+      count: 1
+      risk_flags: ["no data state"]
+    - component: el-checkbox
+      count: 1
+      risk_flags: ["batch selection"]
+
+elements:
+  - name: "课程筛选"
+    selector: "#search-course"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "按关联课程筛选"
+    risk_level: medium
+    risk_reason: "ID 为推断，可能实际不同"
+
+  - name: "题型筛选"
+    selector: "#search-question-type"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "多选/单选/判断等"
+    risk_level: medium
+    risk_reason: "ID 为推断"
+
+  - name: "来源考试筛选"
+    selector: "#search-exam"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "按考试场次筛选"
+    risk_level: medium
+    risk_reason: "ID 为推断"
+
+  - name: "时间范围筛选"
+    selector: "#search-date"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "错题产生时间范围"
+    risk_level: high
+    risk_reason: "控件类型及ID均为推断"
+
+  - name: "知识点筛选"
+    selector: "#search-knowledge"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "按知识点分类"
+    risk_level: medium
+    risk_reason: "ID 为推断"
+
+  - name: "难度筛选"
+    selector: "#search-difficulty"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "按题目难度"
+    risk_level: medium
+    risk_reason: "ID 为推断"
+
+  - name: "订正状态筛选"
+    selector: "#search-corrected"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "已订正/未订正"
+    risk_level: medium
+    risk_reason: "ID 为推断"
+
+  - name: "关键词搜索"
+    selector: "#search-keyword"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "题目内容搜索"
+    risk_level: medium
+    risk_reason: "ID 为推断"
+
+  - name: "查询按钮"
+    selector: "#search-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "文字='查询'"
+    risk_level: low
+    risk_reason: "ID 明确"
+
+  - name: "重置按钮"
+    selector: "#reset-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "文字='重置'"
+    risk_level: low
+    risk_reason: "ID 明确"
+
+  - name: "重新作答按钮（行内）"
+    selector: "#redo-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "行内操作，可能每行一个"
+    risk_level: high
+    risk_reason: "ID 为推断，且需定位到具体行"
+
+  - name: "查看解析按钮（行内）"
+    selector: "#analysis-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "行内操作"
+    risk_level: high
+    risk_reason: "ID 为推断"
+
+  - name: "移出错题本按钮（行内）"
+    selector: "#remove-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "行内操作，点击后有确认弹窗"
+    risk_level: high
+    risk_reason: "ID 为推断"
+
+  - name: "批量练习按钮"
+    selector: "#batch-redo"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格上方，需先选中行"
+    risk_level: high
+    risk_reason: "ID 及位置推断"
+
+  - name: "错题表格"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "未明确ID，使用class"
+    risk_level: high
+    risk_reason: "选择器非唯一，可能有多个table"
+
+  - name: "分页器"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "检测到3个，需确认哪个是主分页"
+    risk_level: high
+    risk_reason: "数量不确定"
+
+  - name: "重新作答弹窗"
+    selector: ".el-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "弹窗内含题目与答案组件"
+    risk_level: medium
+    risk_reason: "需确认是否唯一弹窗"
+
+test_scenarios:
+  - id: TC-WQ-001
+    title: "页面正常加载"
+    priority: P0
+    type: positive
+    preconditions: []
+    steps_summary: "导航到错题集页面"
+    expected: "表格+8个筛选条件+分页均正常渲染，无报错"
+    relates_to_elements: ["错题表格", "课程筛选", "查询按钮", "分页器"]
+
+  - id: TC-WQ-002
+    title: "重新作答答对后处理"
+    priority: P0
+    type: positive
+    preconditions: ["存在未订正错题"]
+    steps_summary: "点击重新作答→在弹窗中全部答对→提交"
+    expected: "该错题标记为'已订正'保留，不移除"
+    relates_to_elements: ["重新作答按钮（行内）", "重新作答弹窗"]
+
+  - id: TC-WQ-003
+    title: "课程筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在不同课程的错题"]
+    steps_summary: "选择某个课程→表格刷新"
+    expected: "仅显示该课程的错题"
+    relates_to_elements: ["课程筛选", "查询按钮"]
+
+  - id: TC-WQ-004
+    title: "题型筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在多种题型的错题"]
+    steps_summary: "选择'单选'→表格刷新"
+    expected: "仅显示单选题错题"
+    relates_to_elements: ["题型筛选", "查询按钮"]
+
+  - id: TC-WQ-005
+    title: "来源考试筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在不同考试来源的错题"]
+    steps_summary: "选择考试→表格刷新"
+    expected: "仅显示该场考试的错题"
+    relates_to_elements: ["来源考试筛选", "查询按钮"]
+
+  - id: TC-WQ-006
+    title: "组合筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在满足多个条件的错题"]
+    steps_summary: "同时选择课程+题型+时间→点击查询"
+    expected: "表格显示交集过滤后的数据"
+    relates_to_elements: ["课程筛选", "题型筛选", "时间范围筛选", "查询按钮"]
+
+  - id: TC-WQ-007
+    title: "重置搜索"
+    priority: P1
+    type: positive
+    preconditions: ["已输入筛选条件"]
+    steps_summary: "输入若干筛选条件→点击重置"
+    expected: "所有筛选条件清空，表格恢复全量数据"
+    relates_to_elements: ["课程筛选", "关键词搜索", "重置按钮"]
+
+  - id: TC-WQ-008
+    title: "分页切换"
+    priority: P1
+    type: positive
+    preconditions: ["错题数量超过一页"]
+    steps_summary: "点击下一页"
+    expected: "分页正常，表格显示下一页数据"
+    relates_to_elements: ["分页器"]
+
+  - id: TC-WQ-009
+    title: "重新作答-完整流程"
+    priority: P1
+    type: positive
+    preconditions: ["存在未订正错题"]
+    steps_summary: "点击重新作答→弹窗展示题目→作答→提交"
+    expected: "即时判分，显示解析（对/错和解析）"
+    relates_to_elements

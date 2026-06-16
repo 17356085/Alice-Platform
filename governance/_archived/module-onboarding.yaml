@@ -1,0 +1,96 @@
+# Workflow: module-onboarding — 新模块入场
+# Engine: aitest.workflow_engine
+id: module-onboarding
+name: 模块入场（SOP Phase 0.5~2.5）
+description: 从零开始将一个新模块纳入 AI 测试体系
+on_failure: pause
+
+steps:
+  - id: check-prerequisites
+    name: 前置条件检查
+    agent: project-agent
+    skill: project-context-manager
+    phase: "0"
+    description: 验证 PROJECT_CONTEXT + MODULE_INDEX 存在，检查模块是否已注册
+    outputs:
+      - MODULE_INDEX 更新
+    auto_trigger: true
+
+  - id: module-modeling
+    name: 模块边界建模
+    agent: requirement-agent
+    skill: module-modeling
+    phase: "0.5"
+    depends_on:
+      - check-prerequisites
+    description: 确定模块边界、子页面清单、业务流程、用户角色
+    inputs:
+      module_name: "{{params.module}}"
+    outputs:
+      - MODULE_CONTEXT.md
+    artifact_pattern: "governance/context/projects/web-automation/modules/{{params.module}}/MODULE_CONTEXT.md"
+
+  - id: requirement-analysis
+    name: 需求分析
+    agent: requirement-agent
+    skill: requirement-analysis
+    phase: "0.8"
+    depends_on:
+      - module-modeling
+    description: 分析需求文档/原型，提取测试需求
+    condition: "params.get('has_prd', False)"
+    outputs:
+      - REQUIREMENT_ANALYSIS.md
+    artifact_pattern: "governance/context/projects/web-automation/modules/{{params.module}}/REQUIREMENT_ANALYSIS.md"
+
+  - id: page-analysis
+    name: 页面元素分析
+    agent: test-design-agent
+    skill: page-analysis
+    phase: "1"
+    depends_on:
+      - module-modeling
+    description: 分析每个子页面的元素、组件、交互
+    inputs:
+      module_name: "{{params.module}}"
+    outputs:
+      - PAGE_CONTEXT.md
+      - PAGE_ELEMENT_POSITION.md
+    artifact_pattern: "governance/context/projects/web-automation/modules/{{params.module}}/pages/*/PAGE_CONTEXT.md"
+
+  - id: risk-modeling
+    name: 风险建模
+    agent: test-design-agent
+    skill: risk-modeling
+    phase: "1.5"
+    depends_on:
+      - page-analysis
+    description: 6维度风险识别，P0风险标注缓解措施
+    outputs:
+      - RISK_MODEL.md
+    artifact_pattern: "governance/context/projects/web-automation/modules/{{params.module}}/pages/*/RISK_MODEL.md"
+
+  - id: testcase-design
+    name: 测试用例设计
+    agent: test-design-agent
+    skill: testcase-design
+    phase: "2"
+    depends_on:
+      - risk-modeling
+    description: 基于风险驱动的8维度测试设计
+    outputs:
+      - TEST_DESIGN.md
+      - TEST_CASES.md
+    artifact_pattern: "governance/context/projects/web-automation/modules/{{params.module}}/pages/*/TEST_CASES.md"
+
+  - id: knowledge-sync
+    name: 知识同步
+    agent: knowledge-agent
+    skill: knowledge-manager
+    phase: "—"
+    depends_on:
+      - testcase-design
+    description: 沉淀模块级知识，更新 known-issues 和 PROJECT_CONTEXT
+    auto_trigger: true
+    condition: "params.get('auto_knowledge', True)"
+    artifact_pattern: "governance/context/projects/web-automation/modules/{{params.module}}/MODULE_CONTEXT.md"

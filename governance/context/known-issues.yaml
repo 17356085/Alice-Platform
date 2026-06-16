@@ -1,0 +1,414 @@
+# 已知问题库 — AI 和人类共同维护
+#
+# 用途：
+#   1. Bug 分析时自动匹配：新失败是否与已知问题匹配？
+#   2. 自动化代码生成时预判风险：如页面用了 el-select，自动应用 EP-001 应对策略
+#   3. 知识沉淀闭环：每个测试周期结束时，高频 Bug 沉淀到此文件
+#
+# 维护规则：
+#   - 新增条目时 first_seen 为首次发现日期
+#   - 每次再次遇到时更新 last_seen 和 occurrence_count
+#   - 状态流转: active → mitigated → resolved
+
+version: 0.4
+last_updated: 2026-06-14
+
+# ============================================================
+# Element Plus 组件坑位 (EP-001 ~ EP-011)
+# 来源: PROJECT_CONTEXT.md § Element Plus 已知坑位清单 → 结构化迁移
+# ============================================================
+
+issues:
+  - id: EP-001
+    title: "Teleport 渲染 — el-select/el-date-picker/el-dialog 选项挂载在 body 下"
+    category: element-plus
+    component: el-select, el-date-picker, el-dialog
+    severity: high
+    reproduce_rate: 95
+    symptoms:
+      - "ElementClickInterceptedException"
+      - "NoSuchElementException（元素在 body 下而非组件内部）"
+      - "is_displayed() 对 Teleport 元素返回 False"
+    root_cause: "Element Plus 将下拉选项/日期面板/弹窗 Teleport 到 <body> 末尾"
+    solution: |
+      1. 使用 body 级定位器 `.el-popper`
+      2. 避免依赖 `is_displayed()` 判断 Teleport 元素
+      3. 优先使用 BasePage 已封装的组件操作方法（如 select_option）
+    affected_modules: [equipment, system-user, system-role, personnel, sales, system-management]
+    first_seen: 2026-01-15
+    last_seen: 2026-06-10
+    occurrence_count: 50
+    status: active
+
+  - id: EP-002
+    title: "filterable el-select Teleport 渲染导致 Selenium 交互时序不一致"
+    category: element-plus
+    component: el-select (filterable)
+    severity: high
+    reproduce_rate: 80
+    symptoms:
+      - "点击下拉框后选项未出现"
+      - "ElementNotInteractableException"
+    root_cause: "Element Plus 2.x filterable select 选项通过 Teleport 渲染，交互时序不一致"
+    solution: "优先 JS click: driver.execute_script('arguments[0].click()', element)"
+    affected_modules: [equipment, system-user, personnel]
+    first_seen: 2026-02-20
+    last_seen: 2026-06-05
+    occurrence_count: 20
+    status: active
+
+  - id: EP-003
+    title: "后端返回空数组时 loading 遮罩可能未清除"
+    category: element-plus
+    component: el-table, 搜索区
+    severity: medium
+    reproduce_rate: 40
+    symptoms:
+      - "表格区域持续显示 loading 遮罩"
+      - "等待超时：元素被遮罩遮挡无法点击"
+    root_cause: "后端返回空数组（[]）时，前端 v-loading 状态可能未正确清除"
+    solution: "等待逻辑同时监听 loading 消失 OR 空数据提示出现"
+    affected_modules: [all]
+    first_seen: 2026-03-10
+    last_seen: 2026-05-28
+    occurrence_count: 12
+    status: active
+
+  - id: EP-004
+    title: "Vue scoped style 导致 class 名包含哈希值，不可用于定位器"
+    category: element-plus
+    component: all el-* 组件
+    severity: medium
+    reproduce_rate: 100
+    symptoms:
+      - "CSS Selector 在版本更新后失效"
+      - "data-v-xxxx 哈希值变化"
+    root_cause: "Vue scoped style 生成哈希 class，在不同构建间不稳定"
+    solution: "禁止使用 data-v-* 定位；使用 placeholder/文本/role 等语义属性"
+    affected_modules: [all]
+    first_seen: 2026-01-10
+    last_seen: 2026-06-11
+    occurrence_count: 30
+    automated_detection: true   # code-consistency-checker 已检查
+    status: active
+
+  - id: EP-005
+    title: "v-if 控制元素在条件为 false 时不在 DOM 中"
+    category: element-plus
+    component: 按钮, 表格列
+    severity: medium
+    reproduce_rate: 80
+    symptoms:
+      - "NoSuchElementException"
+      - "权限受限时操作按钮完全消失"
+    root_cause: "v-if=false 时元素完全从 DOM 移除（与 v-show display:none 不同）"
+    solution: "操作前使用 is_present() 检查；权限元素用 try/except 包裹"
+    affected_modules: [all]
+    first_seen: 2026-02-01
+    last_seen: 2026-06-08
+    occurrence_count: 18
+    status: active
+
+  - id: EP-006
+    title: "el-table fixed='right' 列 DOM 克隆导致定位器误匹配"
+    category: element-plus
+    component: el-table (fixed columns)
+    severity: medium
+    reproduce_rate: 70
+    symptoms:
+      - "定位器匹配到多个元素但其中一个不可见"
+      - "ElementNotInteractableException"
+    root_cause: "fixed 列生成两份 DOM（原始+克隆），display:none 的副本仍可被匹配"
+    solution: "定位器加 :not([style*='display: none']) 排除克隆"
+    affected_modules: [equipment, personnel, sales]
+    first_seen: 2026-03-25
+    last_seen: 2026-05-15
+    occurrence_count: 8
+    status: active
+
+  - id: EP-007
+    title: "el-tag 颜色由 JS 动态计算，不可用于定位"
+    category: element-plus
+    component: el-tag
+    severity: low
+    reproduce_rate: 90
+    symptoms: ["按颜色 class 定位 tag 在不同状态下失效"]
+    root_cause: "el-tag 颜色 class (success/danger/warning) 动态计算"
+    solution: "用文本内容匹配：//span[contains(@class,'el-tag') and contains(text(),'启用')]"
+    affected_modules: [system-user, system-role]
+    first_seen: 2026-04-05
+    last_seen: 2026-05-20
+    occurrence_count: 5
+    status: active
+
+  - id: EP-008
+    title: "el-select 远程搜索选项延迟渲染"
+    category: element-plus
+    component: el-select (remote-search)
+    severity: medium
+    reproduce_rate: 85
+    symptoms: ["下拉选项列表为空", "点击选项时该选项尚未渲染"]
+    root_cause: "远程搜索需等待 API 返回后才渲染选项"
+    solution: "触发下拉 → 输入关键词 → WebDriverWait 等待选项出现 → 选择"
+    affected_modules: [equipment, system-user]
+    first_seen: 2026-04-15
+    last_seen: 2026-06-02
+    occurrence_count: 10
+    status: active
+
+  - id: EP-009
+    title: "el-dropdown 菜单挂载在 body 下独立容器"
+    category: element-plus
+    component: el-dropdown
+    severity: medium
+    reproduce_rate: 80
+    symptoms: ["菜单选项不在触发按钮的 DOM 树内"]
+    root_cause: "el-dropdown 菜单挂载在 body 下的独立容器"
+    solution: "定位器包含 not(ancestor::div[contains(@style,'display: none')])；使用 body 级 .el-popper"
+    affected_modules: [system-management]
+    first_seen: 2026-05-01
+    last_seen: 2026-05-30
+    occurrence_count: 4
+    status: active
+
+  - id: EP-010
+    title: "Vue 动画期间元素在 DOM 但不可交互"
+    category: element-plus
+    component: 弹窗, 表格
+    severity: medium
+    reproduce_rate: 70
+    symptoms:
+      - "ElementNotInteractableException"
+      - "ClickInterceptedException"
+    root_cause: "el-fade-in/el-zoom-in 过渡动画 ~300ms，元素在 DOM 但未达可交互状态"
+    solution: "操作前 BasePage.wait_vue_stable()；关键操作加 element_to_be_clickable 等待"
+    affected_modules: [all]
+    first_seen: 2026-02-10
+    last_seen: 2026-06-09
+    occurrence_count: 25
+    status: active
+
+  - id: EP-011
+    title: "Element Plus 2.x dialog 结构变化（el-overlay vs el-dialog__wrapper）"
+    category: element-plus
+    component: el-dialog
+    severity: high
+    reproduce_rate: 100
+    symptoms: ["弹窗定位器在 EP 2.x 升级后完全失效"]
+    root_cause: "2.x 使用 el-overlay+el-dialog 结构，与 1.x 的 el-dialog__wrapper 不兼容"
+    solution: "同时兼容两结构: .el-overlay:not([style*='display:none']) .el-dialog 或 .el-dialog__wrapper .el-dialog"
+    affected_modules: [all]
+    first_seen: 2026-01-05
+    last_seen: 2026-06-10
+    occurrence_count: 35
+    status: active
+
+  # ============================================================
+  # 常见失败模式（从已有记录合并）
+  # ============================================================
+
+  - id: FP-001
+    title: "Vue 异步渲染导致 is_page_loaded() 误判"
+    category: failure-pattern
+    component: page-load
+    severity: high
+    reproduce_rate: 60
+    symptoms:
+      - "表格容器先于内容出现"
+      - "is_page_loaded() 过早返回 True"
+    root_cause: "Vue 3 异步渲染时序：DOM 容器 → loading → 数据渲染"
+    solution: "is_page_loaded() 增加'至少1行数据或空数据提示'检测"
+    affected_pages: [user, customer, notice, login_log, operation_log, org, system_log, timed_task]
+    first_seen: 2026-06-09
+    last_seen: 2026-06-11
+    occurrence_count: 8
+    status: in_progress
+
+  - id: FP-002
+    title: "get_table_header_texts() 在 Vue v-for 完成前调用返回空列表"
+    category: failure-pattern
+    component: table-header
+    severity: high
+    reproduce_rate: 40
+    symptoms: ["表头断言失败", "返回空列表或缺少列"]
+    root_cause: "Vue v-for 渲染表头是异步的，提前读取返回空"
+    solution: "BasePage.get_table_headers() JS提取 + 6次重试 + 稳定检测"
+    affected_pages: [alarm_config, sensor, unit, maintenance, employee, post, question_bank, paper, exam, sales_order]
+    first_seen: 2026-06-09
+    last_seen: 2026-06-11
+    occurrence_count: 30
+    status: partially_fixed
+
+  - id: FP-003
+    title: "Element Plus 关闭弹窗不从 DOM 移除，多弹窗共存导致定位器选错"
+    category: failure-pattern
+    component: dialog
+    severity: medium
+    reproduce_rate: 60
+    symptoms: ["dialog 定位器选中已关闭的弹窗", "操作了隐藏弹窗中的元素"]
+    root_cause: "Element Plus 关闭弹窗后 display:none 保留在 DOM 中，多弹窗叠加"
+    solution: "定位器加 not(contains(@style,'display: none')) 排除隐藏弹窗"
+    affected_pages: [大部分含弹窗页面]
+    first_seen: 2026-06-04
+    last_seen: 2026-06-10
+    occurrence_count: 15
+    status: partially_fixed
+
+  - id: FP-004
+    title: "非 Element Plus 自定义组件渲染时序晚于 document.readyState"
+    category: failure-pattern
+    component: stat-card, custom-components
+    severity: medium
+    reproduce_rate: 40
+    symptoms:
+      - "统计卡片数量不足(预期>=4,实际0-3)"
+      - "get_text() 返回空字符串导致 isdigit() 断言失败"
+      - "find_all 返回空列表"
+    root_cause: "自定义组件(.stat-card等非el-前缀组件)的Vue渲染晚于document.readyState complete。_wait_page_ready()在DOM就绪后立即返回，但Vue的mount+data fetch+template render尚未完成自定义组件的渲染。"
+    solution: |
+      1. navigate方法末尾增加显式等待: WebDriverWait(driver,10).until(EC.presence_of_all_elements_located(STAT_CARD))
+      2. tech-analysis阶段识别所有非el-前缀组件→强制标注显式等待策略
+      3. get_stat_*()方法在取值前检查元素可见性
+    affected_modules: [equipment, tank]
+    affected_pages: [unit_management, key-param(同模式), camera(同模式), tank-monitor(同模式), tank-report(同模式)]
+    first_seen: 2026-06-11
+    last_seen: 2026-06-14
+    occurrence_count: 3
+    automated_detection: false
+    status: active
+
+  # ============================================================
+  # 环境/数据问题
+  # ============================================================
+
+  - id: FP-005
+    title: "多表格页面（如producion/daily-report）native click 被叠加层拦截，需 JS click"
+    category: failure-pattern
+    component: button-click
+    severity: high
+    reproduce_rate: 70
+    symptoms:
+      - "ElementClickInterceptedException on button click"
+      - "BasePage.click() retry + JS fallback 仍偶现失败"
+      - "按钮 visible 且 enabled，但被 el-card / el-overlay / welcome-card 遮挡"
+    root_cause: "多卡片/多表格布局页面（如 production 日报表），上方的 welcome-card / stat-card 区域产生的遮罩可能覆盖下方操作按钮的 z-index。BasePage.click() 的 JS fallback 不够可靠时需直接用 driver.execute_script('arguments[0].click()')"
+    solution: |
+      1. 对弹窗触发类按钮，封装 `_js_click_by_text()` 方法：document.querySelectorAll 遍历 → 检查 offsetParent + is-disabled → b.click()
+      2. 该方法已在 production/daily-report 页面验证稳定（录入/补录/趋势3按钮均通过）
+    affected_modules: [production]
+    affected_pages: [daily-report]
+    first_seen: 2026-06-12
+    last_seen: 2026-06-12
+    occurrence_count: 1
+    status: active
+
+  - id: FP-006
+    title: "Module-scoped driver 导致弹窗残留污染后续用例"
+    category: failure-pattern
+    component: test-isolation
+    severity: medium
+    reproduce_rate: 40
+    symptoms:
+      - "弹窗测试用例独立运行 PASS，全量串行时后序用例 FAIL"
+      - "JS click 找到的按钮实际是前一个用例残留弹窗中的按钮"
+      - "TimeoutException: 弹窗打开后找不到对应标题的 dialog"
+    root_cause: "module 级 driver_setup fixture 共享浏览器，前一个用例的弹窗未完全关闭（Vue transition 动画期间 display:none 但 DOM 仍保留），导致 _js_click_by_text() 匹配到残留弹窗中的同名按钮"
+    solution: |
+      1. fixture teardown 中 JS 批量关闭所有 el-dialog + el-overlay + Escape 键兜底
+      2. 每个用例末尾显式调用 page.click_dialog_cancel()
+      3. 或改用 function 级 driver fixture（代价：每个用例独立登录，总耗时增加 ~50%）
+    affected_modules: [production]
+    first_seen: 2026-06-12
+    last_seen: 2026-06-12
+    occurrence_count: 1
+    status: active
+
+  - id: FP-007
+    title: "同一页面中同名 class 元素分属不同 Vue 组件（span.section-title vs div.section-title）"
+    category: failure-pattern
+    component: locator-design
+    severity: medium
+    reproduce_rate: 100
+    symptoms:
+      - "XPath 使用 //span[contains(@class,'section-title')] 找不到 production 分区卡片"
+      - "定位器在 dashboard 组件中匹配到元素，但在生产内容组件中匹配失败"
+    root_cause: "同一页面由多个 Vue 组件组成，不同组件对同名 CSS class 使用了不同的 HTML 标签（dashboard 用 span，production 用 div），XPath 限定标签名会导致匹配失败"
+    solution: "使用 //*[contains(@class,'section-title')] 通配所有标签，而非 //span 或 //div"
+    affected_modules: [production]
+    affected_pages: [daily-report]
+    first_seen: 2026-06-12
+    last_seen: 2026-06-12
+    occurrence_count: 1
+    status: active
+
+  - id: FP-008
+    title: "自定义 UI 框架模块 — 全局 CSS class 体系与 Element Plus 完全不兼容"
+    category: failure-pattern
+    component: custom-framework
+    severity: high
+    reproduce_rate: 100
+    symptoms:
+      - "BasePage 通用定位器 (DIALOG/TOAST/TABLE_ROWS) 匹配不到任何元素"
+      - "el-table/el-button/el-dialog 等 EP class 选择器返回空"
+      - "定位器在 Element Plus 页面有效，在自定义框架页面完全失效"
+    root_cause: "模块使用自定义 UI 框架（class: btn btn-primary / data-table / stats-cards / filter-input），与 Element Plus 是完全不同的 CSS class 体系"
+    solution: |
+      1. 进入目标页面后 F12 检查按钮/表格/弹窗的 class 名 — 若 class 非 el-* 前缀 → 标记为自定义框架模块
+      2. 所有定位器需从零编写，禁止复用 BasePage 通用定位器
+      3. 表格: 定位 table.data-table（原生 HTML table）
+      4. 按钮: 通过 XPath text() 匹配更稳定
+      5. 输入框: input.filter-input（单层结构）
+      6. 弹窗: 需确认实际 class（非 el-dialog），支持 EP + 自定义双定位器兜底
+      7. 必须查阅 PROJECT_CONTEXT.md § 已确认的模块 UI 框架差异（UI-001~007）
+    affected_modules: [tank]
+    affected_pages: [tank-monitor, tank-report]
+    first_seen: 2026-06-11
+    last_seen: 2026-06-14
+    occurrence_count: 2
+    status: mitigated
+
+  - id: ENV-001
+    title: "RBAC 权限测试种子数据缺失"
+    category: environment
+    component: test-data
+    severity: medium
+    reproduce_rate: 100
+    symptoms: ["test_rbac_permission 特定角色/用户在 test 环境未创建（12例失败）"]
+    root_cause: "test 环境缺少权限测试所需的种子数据"
+    solution: "运行 script/system/rbac_seed_final.py 初始化种子数据"
+    affected_modules: [system-user, system-role]
+    first_seen: 2026-06-10
+    last_seen: 2026-06-10
+    occurrence_count: 1
+    status: fix_available
+
+  - id: FP-009
+    title: "fill_dialog_input 不支持 select/radio — 复杂对话框表单填充不完整"
+    category: base-page
+    component: BasePage.fill_dialog_input
+    severity: medium
+    reproduce_rate: 100
+    symptoms:
+      - "对话框点击保存后无 toast（静默校验失败）"
+      - "部分表单字段填充失败，跳过"
+      - "fill_dialog_input 对 el-select/el-radio 抛出异常"
+    root_cause: "_get_dialog_form_item + find_in_parent 仅查找 input/textarea，不处理 select/radio/checkbox"
+    solution: |
+      在 BasePage 增加 select_dialog_radio / select_dialog_select 方法；
+      或扩展 fill_dialog_input 支持 select/radio 自动识别
+    affected_modules: [personnel]
+    first_seen: 2026-06-15
+    last_seen: 2026-06-15
+    occurrence_count: 1
+    status: active
+
+# ============================================================
+# 统计
+# ============================================================
+# Total: 21 issues
+#   Element Plus:  11 (EP-001 ~ EP-011)
+#   Failure Pattern: 9 (FP-001 ~ FP-009)
+#   Environment:    1 (ENV-001)
+#
+# By severity: high=9, medium=11, low=1
+# By status:   active=16, in_progress=1, partially_fixed=2, fix_available=1, mitigated=1

@@ -1,0 +1,169 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-07-20 16:30"
+
+meta:
+  module: "equipment"
+  page_name: "AlarmConfig"
+  page_slug: "alarm-config"
+  page_url: "/equipment/alarm-config"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 2
+      risk_flags: ["新增弹窗", "删除确认弹窗"]
+    - component: el-switch
+      count: 10
+      risk_flags: ["每行可能一个开关"]
+    - component: el-select
+      count: 3
+      risk_flags: ["类型/级别/状态筛选"]
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 5
+      risk_flags: []
+
+elements:
+  - name: "statistic-total"
+    selector: ".statistic-total"
+    selector_type: CSS_SELECTOR
+    element_type: tag
+    el_component: el-statistic
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "总报警配置数卡片"
+    risk_level: low
+    risk_reason: "静态class，不易变动"
+  - name: "statistic-enabled"
+    selector: ".statistic-enabled"
+    selector_type: CSS_SELECTOR
+    element_type: tag
+    el_component: el-statistic
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "已启用数卡片"
+    risk_level: low
+    risk_reason: ""
+  - name: "statistic-disabled"
+    selector: ".statistic-disabled"
+    selector_type: CSS_SELECTOR
+    element_type: tag
+    el_component: el-statistic
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "已禁用数卡片"
+    risk_level: low
+    risk_reason: ""
+  - name: "statistic-today-alarm"
+    selector: ".statistic-today-alarm"
+    selector_type: CSS_SELECTOR
+    element_type: tag
+    el_component: el-statistic
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "今日报警数卡片"
+    risk_level: low
+    risk_reason: ""
+  - name: "search-input"
+    selector: "input[placeholder='报警名称/设备名称']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索框"
+    risk_level: low
+    risk_reason: "基于placeholder，稳定"
+  - name: "search-button"
+    selector: "button.search-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索按钮"
+    risk_level: low
+    risk_reason: ""
+  - name: "reset-button"
+    selector: "button.reset-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "重置按钮"
+    risk_level: low
+    risk_reason: ""
+  - name: "alarm-type-select"
+    selector: "select.alarm-type-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "报警类型下拉筛选"
+    risk_level: medium
+    risk_reason: "可能不是原生select，需检查el-select结构"
+  - name: "alarm-level-select"
+    selector: "select.alarm-level-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "报警级别下拉筛选"
+    risk_level: medium
+    risk_reason: ""
+  - name: "status-select"
+    selector: "select.status-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "状态筛选"
+    risk_level: medium
+    risk_reason: ""
+  - name: "add-config-button"
+    selector: "button.add-config-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "新增配置按钮"
+    risk_level: low
+    risk_reason: ""
+  - name: "table-first-row-edit-button"
+    selector: ".el-table__body-wrapper tbody tr:first-child .edit-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "第一行编辑按钮"
+    risk_level: medium
+    risk_reason: "依赖行索引，可能因排序变化"
+  - name: "table-first-row-delete-button"
+    selector: ".el-table__body-wrapper tbody tr:first-child .delete-btn"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "第一行删除按钮"
+    risk_level: medium
+    risk_reason: ""
+  - name: "alarm-table"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_v

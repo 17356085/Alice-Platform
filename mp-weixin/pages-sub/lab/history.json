@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "录入记录",
+  "usingComponents": {
+    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
+    "wd-loading": "../../node-modules/wot-design-uni/components/wd-loading/wd-loading",
+    "wd-cell": "../../node-modules/wot-design-uni/components/wd-cell/wd-cell",
+    "wd-cell-group": "../../node-modules/wot-design-uni/components/wd-cell-group/wd-cell-group",
+    "wd-popup": "../../node-modules/wot-design-uni/components/wd-popup/wd-popup",
+    "empty": "../../components/Empty"
+  }
+}

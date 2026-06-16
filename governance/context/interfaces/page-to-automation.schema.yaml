@@ -1,0 +1,138 @@
+# test-design-agent → automation-agent 结构化接口
+# 版本 1.0 — 2026-06-12
+#
+# 目的: 替代「下游 Agent 通读上游 Markdown 文档」模式,
+#       让 automation-agent 直接消费结构化数据,
+#       减少 Token 消耗 40%+, 提升信息传递准确性。
+#
+# 使用: test-design-agent 在生成 PAGE_CONTEXT.md + TEST_CASES.md 后,
+#       自动提取关键信息生成 PAGE_INTERFACE.yaml。
+#       automation-agent 优先消费此文件, 不存在时降级到 Markdown。
+#
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+
+# ── 顶层元数据 ──────────────────────────────────────────────
+fields:
+  meta:
+    module: string          # 模块名 (如 equipment, tank, personnel)
+    page_name: string       # 页面名 PascalCase (如 AlarmConfig)
+    page_slug: string       # URL slug (如 alarm-config)
+    page_url: string        # 完整 URL 路径 (如 /equipment/alarm-config)
+    vue_components:         # 页面使用的 Element Plus / 自定义组件
+      - component: string   # el-table, el-dialog, el-cascader, stat-card ...
+        count: integer      # 出现次数
+        risk_flags:         # 组件风险标记 (可多选)
+          - teleport        # Teleport 到 body 下
+          - dynamic         # 动态渲染 (v-if/v-for)
+          - animation       # Vue transition 动画
+          - conditional     # 条件显示
+          - custom          # 非 Element Plus 自定义组件
+
+  # ── 核心交互元素 (从 PAGE_CONTEXT 提取) ──────────────────
+  elements:
+    - name: string          # 业务名称 (如 "告警名称输入框")
+      selector: string      # 推荐定位器 (CSS 或 相对 XPath)
+      selector_type: enum   # CSS_SELECTOR | XPATH | ID | NAME | TEXT
+      element_type: enum    # input | button | select | table | dialog | cascader | switch | datepicker | upload | tag | dropdown | checkbox | radio | textarea | pagination | tree | other
+      el_component: string  # Element Plus 组件名 (如 el-input, el-cascader)，无则为 null
+      interaction: enum     # click | input | select | wait | scroll | hover | upload | clear | toggle
+      wait_strategy: string # 交互后需要的等待策略 (如 "wait_vue_stable" / "WebDriverWait 3s" / "wait_loading_gone")
+      locator_notes: string # 定位注意事项 (如 "级联选择器需等待子节点加载" / "Teleport 到 body")
+      risk_level: enum      # low | medium | high
+      risk_reason: string   # 风险原因 (如 "el-cascader Teleport 渲染" / "v-if 条件显示")
+
+  # ── 关键测试场景摘要 (从 TEST_CASES 提取) ────────────────
+  test_scenarios:
+    - id: string            # TC-001
+      title: string         # 场景名称 (如 "新增告警配置-正常流程")
+      priority: enum        # P0 | P1 | P2
+      type: enum            # positive | negative | boundary | destructive | smoke
+      preconditions:        # 前置条件列表
+        - string
+      steps_summary: string # 操作步骤简述 (1-2行)
+      expected: string      # 预期结果
+      relates_to_elements:  # 关联的 elements[].name
+        - string
+
+  # ── 页面行为特征 (从 RISK_MODEL 提取) ─────────────────────
+  page_behaviors:
+    - behavior: string      # 如 "表格行内编辑弹窗" / "批量操作后刷新" / "级联选择器联动加载"
+      triggers:             # 触发条件
+        - string
+      wait_required: boolean
+      wait_suggestion: string
+
+# ── 使用示例 ──────────────────────────────────────────────────
+# 以下是一个完整的使用示例 (实际文件不含此段):
+#
+# meta:
+#   module: equipment
+#   page_name: AlarmConfig
+#   page_slug: alarm-config
+#   page_url: /equipment/alarm-config
+#   vue_components:
+#     - component: el-table
+#       count: 1
+#       risk_flags: [animation]
+#     - component: el-dialog
+#       count: 2
+#       risk_flags: [teleport, animation]
+#     - component: el-cascader
+#       count: 1
+#       risk_flags: [teleport, dynamic]
+#     - component: el-select
+#       count: 3
+#       risk_flags: [teleport]
+#
+# elements:
+#   - name: 告警名称输入框
+#     selector: .el-form-item:has(.el-form-item__label:contains("告警名称")) .el-input__inner
+#     selector_type: CSS_SELECTOR
+#     element_type: input
+#     el_component: el-input
+#     interaction: input
+#     wait_strategy: wait_vue_stable
+#     locator_notes: ""
+#     risk_level: low
+#     risk_reason: ""
+#   - name: 设备类型级联选择器
+#     selector: .el-form-item:has(.el-form-item__label:contains("设备类型")) .el-cascader
+#     selector_type: CSS_SELECTOR
+#     element_type: cascader
+#     el_component: el-cascader
+#     interaction: select
+#     wait_strategy: WebDriverWait 5s + wait_vue_stable
+#     locator_notes: "级联选择器需等待子节点加载，Teleport 到 body"
+#     risk_level: high
+#     risk_reason: "el-cascader Teleport 渲染，子节点异步加载"
+#
+# test_scenarios:
+#   - id: TC-001
+#     title: 新增告警配置-正常流程
+#     priority: P0
+#     type: positive
+#     preconditions: ["已登录", "有新增权限"]
+#     steps_summary: 点击新增→填写表单→选择设备类型→保存
+#     expected: 提示"新增成功"，列表刷新
+#     relates_to_elements: ["告警名称输入框", "设备类型级联选择器"]
+#   - id: TC-002
+#     title: 新增告警配置-名称重复
+#     priority: P1
+#     type: negative
+#     preconditions: ["已存在同名告警"]
+#     steps_summary: 点击新增→填写重复名称→保存
+#     expected: 提示"名称已存在"
+#     relates_to_elements: ["告警名称输入框"]
+#
+# page_behaviors:
+#   - behavior: 表格行内编辑弹窗
+#     triggers: ["点击编辑按钮"]
+#     wait_required: true
+#     wait_suggestion: "等待 el-dialog 出现后 wait_vue_stable"
+#   - behavior: 批量删除后刷新
+#     triggers: ["点击批量删除→确认"]
+#     wait_required: true
+#     wait_suggestion: "等待 loading 遮罩消失 + 表格重新加载"

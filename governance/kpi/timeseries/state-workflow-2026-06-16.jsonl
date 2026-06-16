@@ -1,0 +1,1 @@
+{"timestamp": "2026-06-16T09:10:13.773803", "audit_type": "state", "module": "workflow", "drift_count": 33, "error_count": 2, "warning_count": 31, "overall_status": "error", "compliance_score": 1.0, "violation_count": 0, "total_cost": 0.0, "alert_count": 0, "event_count": 0}

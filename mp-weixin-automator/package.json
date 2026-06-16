@@ -1,0 +1,47 @@
+{
+  "name": "mp-weixin-automator",
+  "version": "1.0.0",
+  "description": "微信小程序自动化测试框架 — 鞍集（涂源）管理系统",
+  "private": true,
+  "scripts": {
+    "test": "node --test --test-concurrency 1 tests/smoke/**/*.mjs tests/p0-core/**/*.mjs tests/p1-high/**/*.mjs tests/p2-medium/**/*.mjs tests/p3-snapshot/**/*.mjs",
+    "test:smoke": "node --test tests/smoke/**/*.mjs",
+    "test:p0": "node --test tests/smoke/**/*.mjs tests/p0-core/**/*.mjs",
+    "test:p0-core": "node --test tests/p0-core/**/*.mjs",
+    "test:p1": "node --test tests/p1-high/**/*.mjs",
+    "test:p2": "node --test tests/p2-medium/**/*.mjs",
+    "test:p3": "node --test tests/p3-snapshot/**/*.mjs",
+    "test:all": "node --test tests/**/*.test.mjs",
+    "test:login": "node --test tests/p0-core/test_login.test.mjs",
+    "test:alarm": "node --test tests/p0-core/test_alarm.test.mjs",
+    "test:home": "node --test tests/p0-core/test_home.test.mjs",
+    "test:roles": "node --test tests/p1-high/test_role_permissions.test.mjs",
+    "test:lab": "node --test tests/p2-medium/test_lab_sampling.test.mjs",
+    "test:visitor": "node --test tests/p2-medium/test_visitor.test.mjs",
+    "test:practice": "node --test tests/p2-medium/test_practice_wrong.test.mjs",
+    "test:application": "node --test tests/p2-medium/test_my_application.test.mjs",
+    "test:personnel": "node --test tests/p2-medium/test_personnel.test.mjs",
+    "test:tank": "node --test tests/p3-snapshot/test_tank_equipment.test.mjs",
+    "test:sales": "node --test tests/p3-snapshot/test_sales_report.test.mjs",
+    "test:settings": "node --test tests/p3-snapshot/test_settings.test.mjs",
+    "test:about": "node --test tests/p3-snapshot/test_about_feedback.test.mjs",
+    "test:approval": "node --test tests/test_approval_flow.test.mjs",
+    "test:exam": "node --test tests/test_study_exam_flow.test.mjs",
+    "test:diagnostics": "node --test tests/test_diagnostics.test.mjs",
+    "test:all:report": "node run-tests.mjs",
+    "test:report": "node run-tests.mjs --report-only",
+    "devtools:restart": "D:/myprogram/微信web开发者工具/cli.bat quit && D:/myprogram/微信web开发者工具/cli.bat open --project D:/Desktop/WorkStudy/mp-weixin --port 44740",
+    "devtools:open": "D:/myprogram/微信web开发者工具/cli.bat open --project D:/Desktop/WorkStudy/mp-weixin --port 44740",
+    "devtools:auto": "D:/myprogram/微信web开发者工具/cli.bat auto --project D:/Desktop/WorkStudy/mp-weixin --auto-port 9420"
+  },
+  "dependencies": {
+    "@weapp-vite/miniprogram-automator": "^1.2.2",
+    "miniprogram-automator": "^0.12.1"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "dotenv": "^16.4.0",
+    "jest": "^29.7.0",
+    "jest-html-reporters": "^3.1.0"
+  }
+}

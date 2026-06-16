@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+.pytest_cache/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Test artifacts (generated at runtime)
+allure-results/
+allure-report/
+artifacts/
+reports/
+*.log
+log/
+
+# Environment
+.env
+.env.local
+
+# Downloads
+downloads/
+driver/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# CI
+ci/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug
+debug_output/
+_debug_inspect.py
+page_analysis.txt

@@ -1,0 +1,295 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:08"
+
+meta:
+  module: "tank"
+  page_name: "TankReport"
+  page_slug: "report"
+  page_url: "/tank/report"
+  vue_components:
+    - component: el-select
+      count: 1
+      risk_flags: []
+    - component: el-date-picker
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 1
+      risk_flags: []
+    - component: el-statistic
+      count: 3
+      risk_flags: []
+    - component: el-tabs
+      count: 1
+      risk_flags: ["动态图表重绘可能延迟"]
+
+elements:
+  - name: "选择储罐下拉框"
+    selector: "#select-tank"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "默认显示'全部储罐'，选项值需通过接口获取"
+    risk_level: low
+    risk_reason: "下拉框选项可穷举，无复杂联动"
+
+  - name: "选择日期"
+    selector: "#date-picker"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: input
+    wait_strategy: wait_loading_gone
+    locator_notes: "单日选择，需确保日期格式与接口一致"
+    risk_level: medium
+    risk_reason: "日期选择器弹出面板可能遮挡，需处理时间等待"
+
+  - name: "导出按钮"
+    selector: "#btn-export"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: WebDriverWait
+    locator_notes: "点击后触发文件下载，需监听下载事件"
+    risk_level: low
+    risk_reason: "下载行为依赖浏览器设置，需特殊处理文件校验"
+
+  - name: "今日进气量统计卡片"
+    selector: "#stat-intake"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: el-statistic
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "显示数值+单位 t，如 '0 t'"
+    risk_level: low
+    risk_reason: "纯展示文本，稳定"
+
+  - name: "今日出气量统计卡片"
+    selector: "#stat-outgas"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: el-statistic
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "显示数值+单位 t"
+    risk_level: low
+
+  - name: "当前库存量统计卡片"
+    selector: "#stat-inventory"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: el-statistic
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "显示数值+单位 t，如 '3,775 t'"
+    risk_level: low
+
+  - name: "近7天趋势图"
+    selector: "#trend-chart"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: other
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "ECharts / G2 渲染的 canvas，无法直接获取内部数据，需截图或 JS 执行"
+    risk_level: medium
+    risk_reason: "图表渲染依赖数据且为 canvas，验证困难"
+
+  - name: "近7天Tab"
+    selector: "#tab-7d"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-tabs
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "默认选中，切换后图表重新加载"
+    risk_level: low
+    risk_reason: "Tab 切换行为稳定"
+
+  - name: "近15天Tab"
+    selector: "#tab-15d"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-tabs
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "切换后触发图表刷新"
+    risk_level: low
+
+  - name: "近30天Tab"
+    selector: "#tab-30d"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-tabs
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: ""
+    risk_level: low
+
+test_scenarios:
+  - id: TC-TANK-REP-001
+    title: "页面正常加载"
+    priority: P0
+    type: positive
+    preconditions: ["admin登录"]
+    steps_summary: "导航到储罐日报表页面"
+    expected: "筛选区可见，3个统计卡片显示数值，趋势图渲染"
+    relates_to_elements:
+      - "选择储罐下拉框"
+      - "选择日期"
+      - "导出按钮"
+      - "今日进气量统计卡片"
+      - "今日出气量统计卡片"
+      - "当前库存量统计卡片"
+      - "近7天趋势图"
+      - "近7天Tab"
+      - "近15天Tab"
+      - "近30天Tab"
+
+  - id: TC-TANK-REP-002
+    title: "默认选中全部储罐"
+    priority: P0
+    type: positive
+    preconditions: []
+    steps_summary: "页面加载后检查下拉框默认值"
+    expected: "下拉框显示'全部储罐'"
+    relates_to_elements:
+      - "选择储罐下拉框"
+
+  - id: TC-TANK-REP-003
+    title: "默认显示近7天趋势图"
+    priority: P0
+    type: positive
+    preconditions: []
+    steps_summary: "页面加载后检查趋势图Tab"
+    expected: "'近7天'Tab高亮，图表渲染"
+    relates_to_elements:
+      - "近7天Tab"
+
+  - id: TC-TANK-REP-004
+    title: "选择单个储罐刷新数据"
+    priority: P1
+    type: positive
+    preconditions: ["存在储罐数据"]
+    steps_summary: "下拉框选择'TANK-LNG-001 - LNG储罐'"
+    expected: "统计卡片和趋势图更新为对应储罐数据"
+    relates_to_elements:
+      - "选择储罐下拉框"
+      - "今日进气量统计卡片"
+      - "今日出气量统计卡片"
+      - "当前库存量统计卡片"
+      - "近7天趋势图"
+
+  - id: TC-TANK-REP-005
+    title: "选择日期刷新数据"
+    priority: P1
+    type: positive
+    preconditions: []
+    steps_summary: "日期选择器选择一个具体日期"
+    expected: "数据按所选日期刷新"
+    relates_to_elements:
+      - "选择日期"
+      - "所有统计卡片"
+      - "近7天趋势图"
+
+  - id: TC-TANK-REP-006
+    title: "统计卡片数值格式"
+    priority: P1
+    type: positive
+    preconditions: ["页面加载"]
+    steps_summary: "读取三个统计卡片的文本内容"
+    expected: "数值末尾含单位't'，格式正确（如数字/千分位）"
+    relates_to_elements:
+      - "今日进气量统计卡片"
+      - "今日出气量统计卡片"
+      - "当前库存量统计卡片"
+
+  - id: TC-TANK-REP-007
+    title: "切换近15天趋势图"
+    priority: P1
+    type: positive
+    preconditions: ["页面加载"]
+    steps_summary: "点击'近15天'Tab"
+    expected: "Tab切换到'近15天'，图表更新为15天趋势"
+    relates_to_elements:
+      - "近15天Tab"
+      - "近7天趋势图"
+
+  - id: TC-TANK-REP-008
+    title: "切换近30天趋势图"
+    priority: P1
+    type: positive
+    preconditions: ["页面加载"]
+    steps_summary: "点击'近30天'Tab"
+    expected: "Tab切换到'近30天'，图表更新"
+    relates_to_elements:
+      - "近30天Tab"
+      - "近7天趋势图"
+
+  - id: TC-TANK-REP-009
+    title: "选择未来日期空数据"
+    priority: P2
+    type: boundary
+    preconditions: []
+    steps_summary: "选择当前日期+30天的未来日期"
+    expected: "统计卡片显示0或暂无数据提示"
+    relates_to_elements:
+      - "选择日期"
+      - "所有统计卡片"
+
+  - id: TC-TANK-REP-010
+    title: "导出日报表"
+    priority: P1
+    type: positive
+    preconditions: ["页面加载"]
+    steps_summary: "点击'导出'按钮"
+    expected: "触发文件下载（Excel/PDF）"
+    relates_to_elements:
+      - "导出按钮"
+
+  - id: TC-TANK-REP-011
+    title: "操作工不可访问"
+    priority: P0
+    type: negative
+    preconditions: ["登录操作工账号"]
+    steps_summary: "操作工登录后导航到储罐日报表"
+    expected: "页面提示无权限或菜单不可见"
+    relates_to_elements: []
+
+page_behaviors:
+  - behavior: "页面初始渲染"
+    triggers: ["页面加载"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "数据联动刷新（下拉框+日期→统计卡片+趋势图）"
+    triggers: ["选择储罐", "选择日期"]
+    wait_required: true
+    wait_suggestion: "wait_loading_gone 或 wait_vue_stable"
+
+  - behavior: "趋势图Tab切换"
+    triggers: ["点击近7天/近15天/近30天Tab"]
+    wait_required: true
+    wait_suggestion: "先 wait_loading_gone，再等待图表渲染（可配合 JS 执行检查 canvas 元素）"
+
+  - behavior: "导出文件下载"
+    triggers: ["点击导出按钮"]
+    wait_required: true
+    wait_suggestion: "WebDriverWait 等待下载完成或监听浏览器下载事件"
+
+  - behavior: "空数据展示"
+    triggers: ["选择无数据日期"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "权限不足提示"
+    triggers: ["操作工账号访问页面"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable 或等待弹窗出现"

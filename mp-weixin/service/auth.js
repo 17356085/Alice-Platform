@@ -1,0 +1,1 @@
+"use strict";const t=require("../utils/http.js");exports.changePassword=function(s,e){return t.http.put("/api/auth/change-password",{oldPassword:s,newPassword:e})},exports.getMiniappMenus=function(){return t.http.get("/api/system/menu/miniapp/menus")};

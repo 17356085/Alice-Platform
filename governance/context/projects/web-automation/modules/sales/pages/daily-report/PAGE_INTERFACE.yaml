@@ -1,0 +1,17 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:23"
+
+meta:
+  module: "sales"
+  page_name: "DailyReport"
+  page_slug: "daily-report"
+  page_url: "/sales/daily-report"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-date-picker
+      count:

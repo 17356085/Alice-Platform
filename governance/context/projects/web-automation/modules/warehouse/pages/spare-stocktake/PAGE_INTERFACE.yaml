@@ -1,0 +1,63 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 15:15"
+
+meta:
+  module: "warehouse"
+  page_name: "SpareStocktakePage"
+  page_slug: "spare-stocktake"
+  page_url: "/warehouse/spare/stocktake"
+  page_type: "CRUD + 审批流"
+
+elements:
+  - name: "filterHandler"
+    selector: "//input[@placeholder='请输入盘点人']"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    risk_level: low
+  - name: "btnQuery"
+    selector: "//button[contains(.,'查询')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: low
+  - name: "btnReset"
+    selector: "//button[contains(.,'重置')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: low
+  - name: "stocktakeTable"
+    selector: ".el-table__body-wrapper"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: WebDriverWait
+    risk_level: medium
+  - name: "pagination"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: low
+
+test_scenarios:
+  - id: TC-ST-001
+    title: "页面正常加载"
+    priority: P0
+    type: smoke
+    steps_summary: "导航到 #/warehouse/spare/stocktake"
+    expected: "盘点单表格+搜索区"
+    relates_to_elements: ["stocktakeTable"]

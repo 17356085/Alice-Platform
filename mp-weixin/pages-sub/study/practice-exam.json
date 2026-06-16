@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "练习答题",
+  "usingComponents": {
+    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
+    "wd-button": "../../node-modules/wot-design-uni/components/wd-button/wd-button",
+    "wd-popup": "../../node-modules/wot-design-uni/components/wd-popup/wd-popup",
+    "question-card": "../../components/QuestionCard",
+    "answer-sheet": "../../components/AnswerSheet"
+  }
+}

@@ -1,0 +1,303 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:19"
+
+meta:
+  module: "personnel"
+  page_name: "StudyRecord"  # PascalCase from page slug study-record
+  page_slug: "study-record"
+  page_url: "/#/personnel/training/studyRecord"  # 根据路由文档
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: [table-dynamic-data]
+    - component: el-input
+      count: 2
+      risk_flags: []
+    - component: el-select
+      count: 1
+      risk_flags: [async-options]
+    - component: el-button
+      count: 2
+      risk_flags: []
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-tag
+      count: 1
+      risk_flags: []
+    - component: el-progress
+      count: 1
+      risk_flags: []
+    - component: el-empty
+      count: 1
+      risk_flags: [empty-state]
+
+elements:
+  # 筛选区
+  - name: "search-student"
+    selector: "input[placeholder='请输入学员名称']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "学员名称搜索框，支持模糊查询"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "search-course"
+    selector: "input[placeholder='请输入课程名称']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "课程名称搜索框"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "filter-completed"
+    selector: ".el-select[placeholder='请选择']"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "完成状态下拉框，选项值：是/否"
+    risk_level: medium
+    risk_reason: "下拉选项需要等待异步加载完成"
+
+  - name: "search-btn"
+    selector: "button:has-text('查询')"
+    selector_type: CSS_SELECTOR  # Playwright 可用 :has-text，否则用 text=查询
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "查询按钮，点击后触发表格异步刷新"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "reset-btn"
+    selector: "button:has-text('重置')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "重置按钮，清空筛选条件并恢复全部数据"
+    risk_level: low
+    risk_reason: ""
+
+  # 表格区（主要列）
+  - name: "table"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "主体表格，包含9列：学员名称、课程名称、培训计划、学习时长、学习进度、状态、开始时间、结束时间、操作"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "column-student-name"
+    selector: ".el-table__header-wrapper th:nth-child(1)"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-table-column
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格列1-学员名称（确认列头定位，用于数据校验）"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "column-status"
+    selector: ".el-table__body-wrapper .cell .el-tag"
+    selector_type: CSS_SELECTOR
+    element_type: tag
+    el_component: el-tag
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "状态列，使用el-tag显示学习中/已完成"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "column-progress"
+    selector: ".el-table__body-wrapper .cell .el-progress"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-progress
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "学习进度列，百分比显示"
+    risk_level: low
+    risk_reason: ""
+
+  # 分页区
+  - name: "pagination"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "底部分页器，当前共9条，10条/页"
+    risk_level: low
+    risk_reason: ""
+
+  # 空状态（隐藏元素，仅特定条件出现）
+  - name: "empty-state"
+    selector: ".el-empty"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-empty
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "无匹配数据时显示的占位组件"
+    risk_level: low
+    risk_reason: ""
+
+test_scenarios:
+  - id: TC-SR-001
+    title: "页面正常加载"
+    priority: P0
+    type: positive
+    preconditions: [admin登录]
+    steps_summary: "导航到学习记录页面"
+    expected: "表格显示9条数据（9列），存在3个筛选条件，分页显示共9条/10条/1页"
+    relates_to_elements: [table, pagination, search-student, search-course, filter-completed, search-btn, reset-btn]
+
+  - id: TC-SR-002
+    title: "普通员工数据隔离"
+    priority: P0
+    type: negative
+    preconditions: [切换普通员工账号]
+    steps_summary: "普通员工登录后进入学习记录"
+    expected: "仅显示该员工自己的记录，没有学员名称列或不可筛选他人"
+    relates_to_elements: [table, column-student-name]
+
+  - id: TC-SR-003
+    title: "学员名称搜索"
+    priority: P1
+    type: positive
+    preconditions: [admin登录]
+    steps_summary: "在学员名称框输入'admin'，点击查询"
+    expected: "表格过滤仅显示学员名称为'admin'的记录"
+    relates_to_elements: [search-student, search-btn, table]
+
+  - id: TC-SR-004
+    title: "课程名称搜索"
+    priority: P1
+    type: positive
+    preconditions: [admin登录]
+    steps_summary: "在课程名称框输入已知课程名称，点击查询"
+    expected: "表格过滤仅显示匹配课程名称的记录"
+    relates_to_elements: [search-course, search-btn, table]
+
+  - id: TC-SR-005
+    title: "是否完成筛选"
+    priority: P1
+    type: positive
+    preconditions: [admin登录]
+    steps_summary: "选择完成状态为'是'，点击查询"
+    expected: "表格仅显示已完成（状态列=已完成）的记录"
+    relates_to_elements: [filter-completed, search-btn, table, column-status]
+
+  - id: TC-SR-006
+    title: "组合筛选"
+    priority: P1
+    type: positive
+    preconditions: [admin登录]
+    steps_summary: "输入学员名称+课程名称+完成状态，点击查询"
+    expected: "表格同时满足所有筛选条件的交集记录"
+    relates_to_elements: [search-student, search-course, filter-completed, search-btn, table]
+
+  - id: TC-SR-007
+    title: "重置搜索"
+    priority: P1
+    type: positive
+    preconditions: [admin登录, 已输入筛选条件]
+    steps_summary: "点击重置按钮"
+    expected: "筛选条件清空，表格恢复显示全部9条数据"
+    relates_to_elements: [reset-btn, table, search-student, search-course, filter-completed]
+
+  - id: TC-SR-008
+    title: "分页切换"
+    priority: P1
+    type: positive
+    preconditions: [admin登录, 数据超过10条（需要造数）]
+    steps_summary: "切换分页至第2页"
+    expected: "表格刷新显示第2页数据，分页信息正确"
+    relates_to_elements: [pagination, table]
+
+  - id: TC-SR-009
+    title: "学习进度显示"
+    priority: P1
+    type: positive
+    preconditions: [admin登录]
+    steps_summary: "查看各行学习进度列"
+    expected: "显示正确百分比（如9%/0%/25%），且与接口数据一致"
+    relates_to_elements: [table, column-progress]
+
+  - id: TC-SR-010
+    title: "学习时长格式化"
+    priority: P2
+    type: positive
+    preconditions: [admin登录]
+    steps_summary: "查看各行学习时长列"
+    expected: "时长以'秒'或'分/秒'自适应单位显示，如'22秒'、'1分17秒'"
+    relates_to_elements: [table]
+
+  - id: TC-SR-011
+    title: "空数据状态"
+    priority: P2
+    type: negative
+    preconditions: [admin登录]
+    steps_summary: "输入一个不可能匹配的筛选条件，点击查询"
+    expected: "表格不显示数据，页面展示el-empty空状态组件"
+    relates_to_elements: [search-student, search-course, filter-completed, search-btn, empty-state]
+
+page_behaviors:
+  - behavior: "筛选后表格异步刷新"
+    triggers: [点击查询按钮, 点击重置按钮, 分页切换]
+    wait_required: true
+    wait_suggestion: "wait_loading_gone（等待加载动画消失）或 wait_vue_stable"
+
+  - behavior: "完成状态下拉框异步加载选项"
+    triggers: [点击下拉框展开]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable（确保选项渲染）"
+
+  - behavior: "学习进度动态渲染（el-progress）"
+    triggers: [表格数据加载完成]
+    wait_required: false
+    wait_suggestion: "直接等待表格稳定"
+
+  - behavior: "状态动态显示el-tag"
+    triggers: [表格数据加载完成]
+    wait_required: false
+    wait_suggestion: ""
+
+  - behavior: "空状态el-empty显示"
+    triggers: [筛选无结果]
+    wait_required: true
+    wait_suggestion: "wait_loading_gone后检查el-empty可见"
+
+  - behavior: "分页器更新"
+    triggers: [查询结果变化]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable 或等待总条数文本更新"
+
+  - behavior: "学习时长格式化（秒/分钟自适应）"
+    triggers: [表格渲染]
+    wait_required: false
+    wait_suggestion: ""
+
+  - behavior: "异步加载表格数据"
+    triggers: [页面加载, 查询, 重置, 分页]
+    wait_required: true
+    wait_suggestion: "wait_loading_gone（如有统一加载遮罩）或 wait_vue_stable"

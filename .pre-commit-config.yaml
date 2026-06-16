@@ -1,0 +1,23 @@
+# Pre-commit hooks for AITest Platform
+# 安装: pip install pre-commit && pre-commit install
+# 手动运行: pre-commit run --all-files
+
+repos:
+  - repo: local
+    hooks:
+      - id: check-agent-drift
+        name: Check Agent Definition Drift
+        description: 检测 agent-definitions.yaml 与 agent_runner.py / .claude/skills/ 的不一致
+        entry: python ZJSN_Test-master526/tools/check_agent_drift.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        verbose: true
+
+      - id: check-sop-gate
+        name: Check SOP Gate
+        description: 验证 SOP_STATUS 文件格式合规
+        entry: python governance/validators/sop_validator.py
+        language: system
+        pass_filenames: false
+        always_run: false

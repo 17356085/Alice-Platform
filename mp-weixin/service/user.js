@@ -1,0 +1,1 @@
+"use strict";const e=require("../utils/http.js");exports.getMyProfile=function(){return e.http.get("/api/personnel/employee/my-profile")},exports.submitFeedback=function(t){return e.http.post("/api/personnel/feedback/submit",t)};

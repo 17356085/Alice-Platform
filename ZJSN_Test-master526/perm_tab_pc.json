@@ -1,0 +1,6179 @@
+{
+  "checkboxCount": 500,
+  "checkboxes": [
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 0,
+      "text": "系统管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 1,
+      "text": "菜单管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 2,
+      "text": "菜单查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 3,
+      "text": "菜单新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 4,
+      "text": "菜单修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 5,
+      "text": "菜单删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 6,
+      "text": "参数设置"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 7,
+      "text": "参数查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 8,
+      "text": "参数新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 9,
+      "text": "参数修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 10,
+      "text": "参数删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 11,
+      "text": "参数导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 12,
+      "text": "操作日志"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 13,
+      "text": "日志查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 14,
+      "text": "日志删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 15,
+      "text": "日志导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 16,
+      "text": "待我审批"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 17,
+      "text": "审批通过"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 18,
+      "text": "查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 19,
+      "text": "审批驳回"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 20,
+      "text": "登录日志"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 21,
+      "text": "日志查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 22,
+      "text": "日志删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 23,
+      "text": "日志导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 24,
+      "text": "定时任务"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 25,
+      "text": "任务查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 26,
+      "text": "任务新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 27,
+      "text": "任务修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 28,
+      "text": "任务删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 29,
+      "text": "任务执行"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 30,
+      "text": "角色管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 31,
+      "text": "角色查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 32,
+      "text": "角色新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 33,
+      "text": "角色修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 34,
+      "text": "角色删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 35,
+      "text": "角色导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 36,
+      "text": "接口管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 37,
+      "text": "接口查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 38,
+      "text": "接口新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 39,
+      "text": "接口修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 40,
+      "text": "接口测试"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 41,
+      "text": "审批链配置"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 42,
+      "text": "新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 43,
+      "text": "编辑"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 44,
+      "text": "删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 45,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 46,
+      "text": "数据备份"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 47,
+      "text": "备份查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 48,
+      "text": "备份新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 49,
+      "text": "备份删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 50,
+      "text": "通知管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 51,
+      "text": "通知查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 52,
+      "text": "通知新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 53,
+      "text": "通知修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 54,
+      "text": "通知删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 55,
+      "text": "通知发布"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 56,
+      "text": "我发起的"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 57,
+      "text": "查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 58,
+      "text": "我已审批"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 59,
+      "text": "查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 60,
+      "text": "系统监控"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 61,
+      "text": "监控查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 62,
+      "text": "系统日志"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 63,
+      "text": "日志查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 64,
+      "text": "日志删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 65,
+      "text": "用户管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 66,
+      "text": "用户查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 67,
+      "text": "用户新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 68,
+      "text": "用户修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 69,
+      "text": "用户删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 70,
+      "text": "用户导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 71,
+      "text": "用户导入"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 72,
+      "text": "重置密码"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 73,
+      "text": "字典管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 74,
+      "text": "字典查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 75,
+      "text": "字典新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 76,
+      "text": "字典修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 77,
+      "text": "字典删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 78,
+      "text": "字典导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 79,
+      "text": "组织管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 80,
+      "text": "组织查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 81,
+      "text": "组织新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 82,
+      "text": "组织修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 83,
+      "text": "组织删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 84,
+      "text": "部门导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 85,
+      "text": "SAP推送日志"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 86,
+      "text": "sap推送"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 87,
+      "text": "重试推送"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 88,
+      "text": "推送日志查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 89,
+      "text": "设备管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 90,
+      "text": "传感器管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 91,
+      "text": "传感器查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 92,
+      "text": "传感器新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 93,
+      "text": "传感器修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 94,
+      "text": "传感器删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 95,
+      "text": "传感器导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 96,
+      "text": "传感器导入"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 97,
+      "text": "关键参数监控"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 98,
+      "text": "关键参数查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 99,
+      "text": "关键参数新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 100,
+      "text": "关键参数修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 101,
+      "text": "关键参数删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 102,
+      "text": "设备报警配置"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 103,
+      "text": "设备报警规则查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 104,
+      "text": "告警查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 105,
+      "text": "设备报警规则查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 106,
+      "text": "新增告警"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 107,
+      "text": "告警修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 108,
+      "text": "设备报警规则新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 109,
+      "text": "设备报警规则修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 110,
+      "text": "删除告警"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 111,
+      "text": "设备报警规则删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 112,
+      "text": "设备台账"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 113,
+      "text": "设备查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 114,
+      "text": "设备新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 115,
+      "text": "设备修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 116,
+      "text": "设备删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 117,
+      "text": "设备导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 118,
+      "text": "设备导入"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 119,
+      "text": "设备维保"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 120,
+      "text": "维保计划查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 121,
+      "text": "维保计划新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 122,
+      "text": "维保计划修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 123,
+      "text": "维保计划删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 124,
+      "text": "查询维保记录列表"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 125,
+      "text": "新增维保记录"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 126,
+      "text": "摄像头管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 127,
+      "text": "摄像头查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 128,
+      "text": "摄像头新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 129,
+      "text": "摄像头修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 130,
+      "text": "摄像头删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 131,
+      "text": "云台控制"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 132,
+      "text": "装置台账"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 133,
+      "text": "装置查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 134,
+      "text": "装置新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 135,
+      "text": "装置修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 136,
+      "text": "装置删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 137,
+      "text": "装置导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 138,
+      "text": "装置导入"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 139,
+      "text": "储罐管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 140,
+      "text": "出入库记录"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 141,
+      "text": "记录查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 142,
+      "text": "入库操作"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 143,
+      "text": "出库操作"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 144,
+      "text": "倒罐操作"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 145,
+      "text": "记录导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 146,
+      "text": "储罐监控管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 147,
+      "text": "监控查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 148,
+      "text": "监控导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 149,
+      "text": "监控导入"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 150,
+      "text": "储罐详情"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 151,
+      "text": "储罐新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 152,
+      "text": "储罐编辑"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 153,
+      "text": "储罐删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 154,
+      "text": "储罐日报表"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 155,
+      "text": "日报查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 156,
+      "text": "日报导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 157,
+      "text": "储罐信息"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 158,
+      "text": "储罐查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 159,
+      "text": "储罐新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 160,
+      "text": "储罐修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 161,
+      "text": "储罐删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 162,
+      "text": "储罐统计"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 163,
+      "text": "实时监控"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 164,
+      "text": "实时数据查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 165,
+      "text": "历史数据查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 166,
+      "text": "数据导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 167,
+      "text": "维保计划"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 168,
+      "text": "维保计划查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 169,
+      "text": "维保计划新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 170,
+      "text": "维保计划修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 171,
+      "text": "维保计划删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 172,
+      "text": "维保计划完成"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 173,
+      "text": "DCS数据"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 174,
+      "text": "常用点位"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 175,
+      "text": "常用点位查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 176,
+      "text": "常用点位导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 177,
+      "text": "趋势分析"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 178,
+      "text": "点位配置"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 179,
+      "text": "点位配置查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 180,
+      "text": "点位配置新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 181,
+      "text": "点位配置修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 182,
+      "text": "点位配置删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 183,
+      "text": "点位配置导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 184,
+      "text": "关键参数监控"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 185,
+      "text": "Outbox查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 186,
+      "text": "Outbox运维"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 187,
+      "text": "监控查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 188,
+      "text": "监控编辑"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 189,
+      "text": "监控删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 190,
+      "text": "趋势分析"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 191,
+      "text": "数据导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 192,
+      "text": "全部点位"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 193,
+      "text": "全部点位查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 194,
+      "text": "全部点位导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 195,
+      "text": "数据统计"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 196,
+      "text": "上传日志"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 197,
+      "text": "上传日志查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 198,
+      "text": "上传日志导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 199,
+      "text": "日志统计"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 200,
+      "text": "报警管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 201,
+      "text": "报警模板"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 202,
+      "text": "模板查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 203,
+      "text": "模板新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 204,
+      "text": "模板编辑"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 205,
+      "text": "模板删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 206,
+      "text": "报警权限"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 207,
+      "text": "权限查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 208,
+      "text": "权限编辑"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 209,
+      "text": "报警项"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 210,
+      "text": "报警项查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 211,
+      "text": "报警项新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 212,
+      "text": "报警项编辑"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 213,
+      "text": "报警项删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 214,
+      "text": "报警消息"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 215,
+      "text": "MQ死信查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 216,
+      "text": "MQ死信重放"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 217,
+      "text": "消息查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 218,
+      "text": "消息查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 219,
+      "text": "消息处理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 220,
+      "text": "化验室取样"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 221,
+      "text": "气体分析报告单"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 222,
+      "text": "气体报告查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 223,
+      "text": "气体报告新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 224,
+      "text": "气体报告删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 225,
+      "text": "气体报告导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 226,
+      "text": "气体分析对比"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 227,
+      "text": "气体对比查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 228,
+      "text": "气体分析设计指标"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 229,
+      "text": "指标字段查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 230,
+      "text": "指标字段新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 231,
+      "text": "指标字段修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 232,
+      "text": "指标字段删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 233,
+      "text": "水质分析报告单"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 234,
+      "text": "水质报告查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 235,
+      "text": "水质报告新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 236,
+      "text": "水质报告删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 237,
+      "text": "水质报告导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 238,
+      "text": "水质分析对比"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 239,
+      "text": "水质对比查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 240,
+      "text": "水质分析设计指标"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 241,
+      "text": "指标字段查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 242,
+      "text": "指标字段新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 243,
+      "text": "指标字段修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 244,
+      "text": "指标字段删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 245,
+      "text": "人员管理"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 246,
+      "text": "承包商管理"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 247,
+      "text": "承包商查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 248,
+      "text": "承包商新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 249,
+      "text": "承包商修改"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 250,
+      "text": "承包商删除"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 251,
+      "text": "承包商人员查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 252,
+      "text": "承包商人员新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 253,
+      "text": "承包商人员修改"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 254,
+      "text": "承包商人员删除"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 255,
+      "text": "错题本"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 256,
+      "text": "错题本查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 257,
+      "text": "错题本收藏"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 258,
+      "text": "访客管理"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 259,
+      "text": "访客查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 260,
+      "text": "访客新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 261,
+      "text": "访客修改"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 262,
+      "text": "访客删除"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 263,
+      "text": "访客进厂"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 264,
+      "text": "访客离厂"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 265,
+      "text": "访客导出"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 266,
+      "text": "岗位管理"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 267,
+      "text": "岗位查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 268,
+      "text": "岗位新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 269,
+      "text": "岗位修改"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 270,
+      "text": "岗位删除"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 271,
+      "text": "个人学习档案"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 272,
+      "text": "访问"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 273,
+      "text": "考试测评"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 274,
+      "text": "访问"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 275,
+      "text": "考试管理"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 276,
+      "text": "考试安排查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 277,
+      "text": "考试安排新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 278,
+      "text": "考试安排修改"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 279,
+      "text": "考试安排删除"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 280,
+      "text": "考试安排发布"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 281,
+      "text": "考试记录"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 282,
+      "text": "考试记录导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 283,
+      "text": "手动评分（简答题）"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 284,
+      "text": "考试记录查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 285,
+      "text": "考试记录详情"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 286,
+      "text": "课程管理"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 287,
+      "text": "课程管理查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 288,
+      "text": "课程管理新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 289,
+      "text": "课程管理修改"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 290,
+      "text": "课程管理删除"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 291,
+      "text": "培训计划"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 292,
+      "text": "培训计划查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 293,
+      "text": "培训计划新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 294,
+      "text": "培训计划修改"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 295,
+      "text": "培训计划删除"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 296,
+      "text": "查询计划课程列表"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 297,
+      "text": "培训课程新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 298,
+      "text": "培训课程修改"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 299,
+      "text": "培训课程删除"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 300,
+      "text": "培训进度新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 301,
+      "text": "培训进度修改"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 302,
+      "text": "试卷管理"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 303,
+      "text": "试卷管理查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 304,
+      "text": "试卷管理新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 305,
+      "text": "试卷管理修改"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 306,
+      "text": "试卷管理删除"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 307,
+      "text": "试卷自动生成"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 308,
+      "text": "题库管理"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 309,
+      "text": "题库管理查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 310,
+      "text": "题库管理新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 311,
+      "text": "题库管理修改"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 312,
+      "text": "题库管理删除"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 313,
+      "text": "题目导出"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 314,
+      "text": "题目导入"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 315,
+      "text": "学习记录"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 316,
+      "text": "学习记录查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 317,
+      "text": "学习记录详情"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 318,
+      "text": "查询进度详情"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 319,
+      "text": "课程学习"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 320,
+      "text": "我的学习记录"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 321,
+      "text": "员工管理"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 322,
+      "text": "员工查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 323,
+      "text": "员工新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 324,
+      "text": "员工修改"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 325,
+      "text": "员工删除"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 326,
+      "text": "员工导出"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 327,
+      "text": "在线学习"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 328,
+      "text": "访问"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 329,
+      "text": "证书管理"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 330,
+      "text": "证书管理查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 331,
+      "text": "证书管理新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 332,
+      "text": "证书管理删除"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 333,
+      "text": "证书管理吊销"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 334,
+      "text": "资质管理"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 335,
+      "text": "资质查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 336,
+      "text": "资质新增"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 337,
+      "text": "资质修改"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 338,
+      "text": "资质删除"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 339,
+      "text": "自主练习"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 340,
+      "text": "自主练习查询"
+    },
+    {
+      "checked": true,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 341,
+      "text": "自主练习删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 342,
+      "text": "生产管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 343,
+      "text": "班次班组配置"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 344,
+      "text": "删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 345,
+      "text": "班次班组配置新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 346,
+      "text": "修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 347,
+      "text": "列表"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 348,
+      "text": "报表模板管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 349,
+      "text": "查询报表模板列表"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 350,
+      "text": "新增报表模板"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 351,
+      "text": "编辑报表模板"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 352,
+      "text": "删除报表模板"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 353,
+      "text": "报表实例管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 354,
+      "text": "查询报表实例列表"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 355,
+      "text": "新增报表实例"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 356,
+      "text": "编辑报表实例"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 357,
+      "text": "删除报表实例"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 358,
+      "text": "报表指标管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 359,
+      "text": "查询报表指标列表"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 360,
+      "text": "报表指标新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 361,
+      "text": "报表指标修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 362,
+      "text": "报表指标删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 363,
+      "text": "交接班日报表"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 364,
+      "text": "交接班查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 365,
+      "text": "录入交接班数据"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 366,
+      "text": "交接班打印"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 367,
+      "text": "交接班导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 368,
+      "text": "交接班调整数据"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 369,
+      "text": "趋势按钮"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 370,
+      "text": "交接班能否编辑"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 371,
+      "text": "日报表管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 372,
+      "text": "趋势按钮"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 373,
+      "text": "数据补录"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 374,
+      "text": "日报表查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 375,
+      "text": "日报表数据录入"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 376,
+      "text": "日报表调整数据"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 377,
+      "text": "日报表导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 378,
+      "text": "日报表打印"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 379,
+      "text": "日报表能否编辑"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 380,
+      "text": "生产月报表"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 381,
+      "text": "月报数据查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 382,
+      "text": "月报查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 383,
+      "text": "月报新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 384,
+      "text": "月报修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 385,
+      "text": "月报导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 386,
+      "text": "月报打印"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 387,
+      "text": "趋势按钮"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 388,
+      "text": "生产重要指标日报表"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 389,
+      "text": "指标日报表查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 390,
+      "text": "指标日报表新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 391,
+      "text": "指标日报表导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 392,
+      "text": "日报表指标趋势数据"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 393,
+      "text": "生产重要指标月报表"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 394,
+      "text": "指标月报表查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 395,
+      "text": "指标月报表新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 396,
+      "text": "指标月报表导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 397,
+      "text": "月报表指标趋势数据"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 398,
+      "text": "业务类型配置"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 399,
+      "text": "业务类型配置编辑"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 400,
+      "text": "业务类型配置删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 401,
+      "text": "业务类型配置列表"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 402,
+      "text": "业务类型配置新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 403,
+      "text": "库管管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 404,
+      "text": "备品出库"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 405,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 406,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 407,
+      "text": "备品出入库记录"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 408,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 409,
+      "text": "备品库存查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 410,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 411,
+      "text": "备品库存盘点"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 412,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 413,
+      "text": "备品库存盘点调整"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 414,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 415,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 416,
+      "text": "备品领用申请"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 417,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 418,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 419,
+      "text": "新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 420,
+      "text": "备品入库"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 421,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 422,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 423,
+      "text": "备品物品管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 424,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 425,
+      "text": "新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 426,
+      "text": "环保出库"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 427,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 428,
+      "text": "新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 429,
+      "text": "新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 430,
+      "text": "提交"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 431,
+      "text": "审批"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 432,
+      "text": "审批"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 433,
+      "text": "环保库存查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 434,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 435,
+      "text": "环保入库"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 436,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 437,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 438,
+      "text": "新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 439,
+      "text": "新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 440,
+      "text": "审批"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 441,
+      "text": "提交"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 442,
+      "text": "审批"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 443,
+      "text": "环保物品管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 444,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 445,
+      "text": "新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 446,
+      "text": "编辑"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 447,
+      "text": "删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 448,
+      "text": "物品管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 449,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 450,
+      "text": "新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 451,
+      "text": "编辑"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 452,
+      "text": "删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 453,
+      "text": "导入"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 454,
+      "text": "导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 455,
+      "text": "装填管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 456,
+      "text": "查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 457,
+      "text": "新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 458,
+      "text": "编辑"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 459,
+      "text": "删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 460,
+      "text": "导入"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 461,
+      "text": "导出"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 462,
+      "text": "数字化大屏"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 463,
+      "text": "数字化大屏"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 464,
+      "text": "大屏查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 465,
+      "text": "设备数据查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 466,
+      "text": "传感器查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 467,
+      "text": "报警查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 468,
+      "text": "生产数据查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 469,
+      "text": "能源数据查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 470,
+      "text": "原料数据查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 471,
+      "text": "储罐数据查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 472,
+      "text": "安防数据查看"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 473,
+      "text": "销售管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 474,
+      "text": "合同管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 475,
+      "text": "合同查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 476,
+      "text": "合同新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 477,
+      "text": "合同修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 478,
+      "text": "合同删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 479,
+      "text": "合同启动"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 480,
+      "text": "合同终止"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 481,
+      "text": "客户管理"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 482,
+      "text": "客户查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 483,
+      "text": "客户新增"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 484,
+      "text": "资质查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 485,
+      "text": "客户删除"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 486,
+      "text": "客户修改"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 487,
+      "text": "资质维护"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 488,
+      "text": "销售订单"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 489,
+      "text": "订单查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 490,
+      "text": "新增销售"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 491,
+      "text": "销售日报表"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 492,
+      "text": "日报表查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 493,
+      "text": "数据选择"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 494,
+      "text": "数据选择"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 495,
+      "text": "选择试卷"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 496,
+      "text": "试卷详情查询"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 497,
+      "text": "选择用户"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 498,
+      "text": "选择部门"
+    },
+    {
+      "checked": false,
+      "depth": 0,
+      "indeterminate": false,
+      "index": 499,
+      "text": "选择角色"
+    }
+  ],
+  "elClassCounts": {
+    "el-checkbox": 500,
+    "el-checkbox-group": 95,
+    "el-checkbox__inner": 500,
+    "el-checkbox__input": 500,
+    "el-checkbox__label": 500,
+    "el-checkbox__original": 500,
+    "el-icon": 107
+  },
+  "expandableCount": 0,
+  "expandables": [],
+  "paneHTML_sample": "<div data-v-5d64151f=\"\" style=\"max-height: 400px; overflow-y: auto; padding: 10px;\"><div data-v-5d64151f=\"\" class=\"perm-dir\"><div data-v-5d64151f=\"\" class=\"perm-dir__header\"><label data-v-5d64151f=\"\" class=\"el-checkbox\"><span class=\"el-checkbox__input\"><input class=\"el-checkbox__original\" type=\"checkbox\"><span class=\"el-checkbox__inner\"></span></span><span class=\"el-checkbox__label\"><span data-v-5d64151f=\"\" class=\"perm-dir__name\">系统管理</span><!--v-if--></span></label><span data-v-5d64151f=\"\" class=\"perm-dir__count\">69 项权限 </span><i data-v-5d64151f=\"\" class=\"el-icon perm-dir__arrow perm-dir__arrow--expanded\"><svg data-v-5d64151f=\"\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\"><path fill=\"currentColor\" d=\"M340.864 149.312a30.59 30.59 0 0 0 0 42.752L652.736 512 340.864 831.872a30.59 30.59 0 0 0 0 42.752 29.12 29.12 0 0 0 41.728 0L714.24 534.336a32 32 0 0 0 0-44.672L382.592 149.376a29.12 29.12 0 0 0-41.728 0z\"></path></svg></i></div><div data-v-5d64151f=\"\" class=\"perm-dir__body\"><div data-v-5d64151f=\"\" class=\"perm-group\"><div data-v-5d64151f=\"\" class=\"perm-group__header\"><label data-v-5d64151f=\"\" class=\"el-checkbox\"><span class=\"el-checkbox__input\"><input class=\"el-checkbox__original\" type=\"checkbox\"><span class=\"el-checkbox__inner\"></span></span><span class=\"el-checkbox__label\"><span data-v-5d64151f=\"\" class=\"perm-group__name\">菜单管理</span><!--v-if--></span></label><span data-v-5d64151f=\"\" class=\"perm-group__count\">4 项 </span><i data-v-5d64151f=\"\" class=\"el-icon perm-group__arrow\"><svg data-v-5d64151f=\"\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\"><path fill=\"currentColor\" d=\"M340.864 149.312a30.59 30.59 0 0 0 0 42.752L652.736 512 340.864 831.872a30.59 30.59 0 0 0 0 42.752 29.12 29.12 0 0 0 41.728 0L714.24 534.336a32 32 0 0 0 0-44.672L382.592 149.376a29.12 29.12 0 0 0-41.728 0z\"></path></svg></i></div><div data-v-5d64151f=\"\" class=\"perm-group__body\" style=\"display: none;\"><div data-v-5d64151f=\"\" class=\"el-checkbox-group\" role=\"group\" aria-label=\"checkbox-group\" id=\"el-id-9450-189\"><label data-v-5d64151f=\"\" class=\"el-checkbox\"><span class=\"el-checkbox__input\"><input class=\"el-checkbox__original\" type=\"checkbox\" value=\"120\"><span class=\"el-checkbox__inner\"></span></span><span class=\"el-checkbox__label\">菜单查询<!--v-if--></span></label><label data-v-5d64151f=\"\" class=\"el-checkbox\"><span class=\"el-checkbox__input\"><input class=\"el-checkbox__original\" type=\"checkbox\" value=\"121\"><span class=\"el-checkbox__inner\"></span></span><span class=\"el-checkbox__label\">菜单新增<!--v-if--></span></label><label data-v-5d64151f=\"\" class=\"el-checkbox\"><span class=\"el-checkbox__input\"><input class=\"el-checkbox__original\" type=\"checkbox\" value=\"122\"><span class=\"el-checkbox__inner\"></span></span><span class=\"el-checkbox__label\">菜单修改<!--v-if--></span></label><label data-v-5d64151f=\"\" class=\"el-checkbox\"><span class=\"el-checkbox__input\"><input class=\"el-checkbox__original\" type=\"checkbox\" value=\"123\"><span class=\"el-checkbox__inner\"></span></span><span cl",
+  "sections": [
+    {
+      "class": "perm-group",
+      "text": "菜单管理\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "菜单管理\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "菜单管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "菜单查询菜单新增菜单修改菜单删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "菜单查询菜单新增菜单修改菜单删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "参数设置\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "参数设置\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "参数设置"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "参数查询参数新增参数修改参数删除参数导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "参数查询参数新增参数修改参数删除参数导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "操作日志\n3 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "操作日志\n3 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "操作日志"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "3 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "日志查询日志删除日志导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "日志查询日志删除日志导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "待我审批\n3 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "待我审批\n3 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "待我审批"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "3 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "审批通过查看审批驳回"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "审批通过查看审批驳回"
+    },
+    {
+      "class": "perm-group",
+      "text": "登录日志\n3 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "登录日志\n3 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "登录日志"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "3 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "日志查询日志删除日志导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "日志查询日志删除日志导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "定时任务\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "定时任务\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "定时任务"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "任务查询任务新增任务修改任务删除任务执行"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "任务查询任务新增任务修改任务删除任务执行"
+    },
+    {
+      "class": "perm-group",
+      "text": "角色管理\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "角色管理\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "角色管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "角色查询角色新增角色修改角色删除角色导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "角色查询角色新增角色修改角色删除角色导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "接口管理\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "接口管理\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "接口管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "接口查询接口新增接口修改接口测试"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "接口查询接口新增接口修改接口测试"
+    },
+    {
+      "class": "perm-group",
+      "text": "审批链配置\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "审批链配置\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "审批链配置"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "新增编辑删除查询"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "新增编辑删除查询"
+    },
+    {
+      "class": "perm-group",
+      "text": "数据备份\n3 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "数据备份\n3 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "数据备份"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "3 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "备份查询备份新增备份删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "备份查询备份新增备份删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "通知管理\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "通知管理\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "通知管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "通知查询通知新增通知修改通知删除通知发布"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "通知查询通知新增通知修改通知删除通知发布"
+    },
+    {
+      "class": "perm-group",
+      "text": "我发起的\n1 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "我发起的\n1 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "我发起的"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "1 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查看"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查看"
+    },
+    {
+      "class": "perm-group",
+      "text": "我已审批\n1 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "我已审批\n1 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "我已审批"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "1 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查看"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查看"
+    },
+    {
+      "class": "perm-group",
+      "text": "系统监控\n1 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "系统监控\n1 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "系统监控"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "1 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "监控查看"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "监控查看"
+    },
+    {
+      "class": "perm-group",
+      "text": "系统日志\n2 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "系统日志\n2 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "系统日志"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "2 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "日志查询日志删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "日志查询日志删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "用户管理\n7 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "用户管理\n7 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "用户管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "7 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "用户查询用户新增用户修改用户删除用户导出用户导入重置密码"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "用户查询用户新增用户修改用户删除用户导出用户导入重置密码"
+    },
+    {
+      "class": "perm-group",
+      "text": "字典管理\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "字典管理\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "字典管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "字典查询字典新增字典修改字典删除字典导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "字典查询字典新增字典修改字典删除字典导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "组织管理\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "组织管理\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "组织管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "组织查询组织新增组织修改组织删除部门导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "组织查询组织新增组织修改组织删除部门导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "SAP推送日志\n3 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "SAP推送日志\n3 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "SAP推送日志"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "3 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "sap推送重试推送推送日志查询"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "sap推送重试推送推送日志查询"
+    },
+    {
+      "class": "perm-group",
+      "text": "传感器管理\n6 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "传感器管理\n6 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "传感器管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "6 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "传感器查询传感器新增传感器修改传感器删除传感器导出传感器导入"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "传感器查询传感器新增传感器修改传感器删除传感器导出传感器导入"
+    },
+    {
+      "class": "perm-group",
+      "text": "关键参数监控\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "关键参数监控\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "关键参数监控"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "关键参数查询关键参数新增关键参数修改关键参数删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "关键参数查询关键参数新增关键参数修改关键参数删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "设备报警配置\n9 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "设备报警配置\n9 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "设备报警配置"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "9 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "设备报警规则查询告警查看设备报警规则查看新增告警告警修改设备报警规则新增设备报警规则修改删除告警设备报警规则删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "设备报警规则查询告警查看设备报警规则查看新增告警告警修改设备报警规则新增设备报警规则修改删除告警设备报警规则删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "设备台账\n6 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "设备台账\n6 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "设备台账"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "6 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "设备查询设备新增设备修改设备删除设备导出设备导入"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "设备查询设备新增设备修改设备删除设备导出设备导入"
+    },
+    {
+      "class": "perm-group",
+      "text": "设备维保\n6 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "设备维保\n6 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "设备维保"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "6 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "维保计划查询维保计划新增维保计划修改维保计划删除查询维保记录列表新增维保记录"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "维保计划查询维保计划新增维保计划修改维保计划删除查询维保记录列表新增维保记录"
+    },
+    {
+      "class": "perm-group",
+      "text": "摄像头管理\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "摄像头管理\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "摄像头管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "摄像头查询摄像头新增摄像头修改摄像头删除云台控制"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "摄像头查询摄像头新增摄像头修改摄像头删除云台控制"
+    },
+    {
+      "class": "perm-group",
+      "text": "装置台账\n6 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "装置台账\n6 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "装置台账"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "6 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "装置查询装置新增装置修改装置删除装置导出装置导入"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "装置查询装置新增装置修改装置删除装置导出装置导入"
+    },
+    {
+      "class": "perm-group",
+      "text": "出入库记录\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "出入库记录\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "出入库记录"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "记录查询入库操作出库操作倒罐操作记录导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "记录查询入库操作出库操作倒罐操作记录导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "储罐监控管理\n7 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "储罐监控管理\n7 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "储罐监控管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "7 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "监控查询监控导出监控导入储罐详情储罐新增储罐编辑储罐删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "监控查询监控导出监控导入储罐详情储罐新增储罐编辑储罐删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "储罐日报表\n2 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "储罐日报表\n2 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "储罐日报表"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "2 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "日报查询日报导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "日报查询日报导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "储罐信息\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "储罐信息\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "储罐信息"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "储罐查询储罐新增储罐修改储罐删除储罐统计"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "储罐查询储罐新增储罐修改储罐删除储罐统计"
+    },
+    {
+      "class": "perm-group",
+      "text": "实时监控\n3 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "实时监控\n3 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "实时监控"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "3 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "实时数据查询历史数据查询数据导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "实时数据查询历史数据查询数据导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "维保计划\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "维保计划\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "维保计划"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "维保计划查询维保计划新增维保计划修改维保计划删除维保计划完成"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "维保计划查询维保计划新增维保计划修改维保计划删除维保计划完成"
+    },
+    {
+      "class": "perm-group",
+      "text": "常用点位\n3 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "常用点位\n3 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "常用点位"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "3 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "常用点位查询常用点位导出趋势分析"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "常用点位查询常用点位导出趋势分析"
+    },
+    {
+      "class": "perm-group",
+      "text": "点位配置\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "点位配置\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "点位配置"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "点位配置查询点位配置新增点位配置修改点位配置删除点位配置导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "点位配置查询点位配置新增点位配置修改点位配置删除点位配置导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "关键参数监控\n7 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "关键参数监控\n7 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "关键参数监控"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "7 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "Outbox查询Outbox运维监控查询监控编辑监控删除趋势分析数据导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "Outbox查询Outbox运维监控查询监控编辑监控删除趋势分析数据导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "全部点位\n3 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "全部点位\n3 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "全部点位"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "3 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "全部点位查询全部点位导出数据统计"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "全部点位查询全部点位导出数据统计"
+    },
+    {
+      "class": "perm-group",
+      "text": "上传日志\n3 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "上传日志\n3 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "上传日志"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "3 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "上传日志查询上传日志导出日志统计"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "上传日志查询上传日志导出日志统计"
+    },
+    {
+      "class": "perm-group",
+      "text": "报警模板\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "报警模板\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "报警模板"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "模板查询模板新增模板编辑模板删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "模板查询模板新增模板编辑模板删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "报警权限\n2 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "报警权限\n2 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "报警权限"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "2 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "权限查询权限编辑"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "权限查询权限编辑"
+    },
+    {
+      "class": "perm-group",
+      "text": "报警项\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "报警项\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "报警项"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "报警项查询报警项新增报警项编辑报警项删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "报警项查询报警项新增报警项编辑报警项删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "报警消息\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "报警消息\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "报警消息"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "MQ死信查询MQ死信重放消息查询消息查看消息处理"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "MQ死信查询MQ死信重放消息查询消息查看消息处理"
+    },
+    {
+      "class": "perm-group",
+      "text": "气体分析报告单\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "气体分析报告单\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "气体分析报告单"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "气体报告查询气体报告新增气体报告删除气体报告导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "气体报告查询气体报告新增气体报告删除气体报告导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "气体分析对比\n1 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "气体分析对比\n1 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "气体分析对比"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "1 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "气体对比查询"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "气体对比查询"
+    },
+    {
+      "class": "perm-group",
+      "text": "气体分析设计指标\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "气体分析设计指标\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "气体分析设计指标"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "指标字段查询指标字段新增指标字段修改指标字段删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "指标字段查询指标字段新增指标字段修改指标字段删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "水质分析报告单\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "水质分析报告单\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "水质分析报告单"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "水质报告查询水质报告新增水质报告删除水质报告导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "水质报告查询水质报告新增水质报告删除水质报告导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "水质分析对比\n1 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "水质分析对比\n1 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "水质分析对比"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "1 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "水质对比查询"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "水质对比查询"
+    },
+    {
+      "class": "perm-group",
+      "text": "水质分析设计指标\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "水质分析设计指标\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "水质分析设计指标"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "指标字段查询指标字段新增指标字段修改指标字段删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "指标字段查询指标字段新增指标字段修改指标字段删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "承包商管理\n8 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "承包商管理\n8 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "承包商管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "8 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "承包商查询承包商新增承包商修改承包商删除承包商人员查询承包商人员新增承包商人员修改承包商人员删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "承包商查询承包商新增承包商修改承包商删除承包商人员查询承包商人员新增承包商人员修改承包商人员删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "错题本\n2 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "错题本\n2 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "错题本"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "2 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "错题本查询错题本收藏"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "错题本查询错题本收藏"
+    },
+    {
+      "class": "perm-group",
+      "text": "访客管理\n7 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "访客管理\n7 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "访客管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "7 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "访客查询访客新增访客修改访客删除访客进厂访客离厂访客导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "访客查询访客新增访客修改访客删除访客进厂访客离厂访客导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "岗位管理\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "岗位管理\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "岗位管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "岗位查询岗位新增岗位修改岗位删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "岗位查询岗位新增岗位修改岗位删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "个人学习档案\n1 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "个人学习档案\n1 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "个人学习档案"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "1 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "访问"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "访问"
+    },
+    {
+      "class": "perm-group",
+      "text": "考试测评\n1 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "考试测评\n1 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "考试测评"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "1 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "访问"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "访问"
+    },
+    {
+      "class": "perm-group",
+      "text": "考试管理\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "考试管理\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "考试管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "考试安排查询考试安排新增考试安排修改考试安排删除考试安排发布"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "考试安排查询考试安排新增考试安排修改考试安排删除考试安排发布"
+    },
+    {
+      "class": "perm-group",
+      "text": "考试记录\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "考试记录\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "考试记录"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "考试记录导出手动评分（简答题）考试记录查询考试记录详情"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "考试记录导出手动评分（简答题）考试记录查询考试记录详情"
+    },
+    {
+      "class": "perm-group",
+      "text": "课程管理\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "课程管理\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "课程管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "课程管理查询课程管理新增课程管理修改课程管理删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "课程管理查询课程管理新增课程管理修改课程管理删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "培训计划\n10 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "培训计划\n10 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "培训计划"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "10 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "培训计划查询培训计划新增培训计划修改培训计划删除查询计划课程列表培训课程新增培训课程修改培训课程删除培训进度新增培训进度修改"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "培训计划查询培训计划新增培训计划修改培训计划删除查询计划课程列表培训课程新增培训课程修改培训课程删除培训进度新增培训进度修改"
+    },
+    {
+      "class": "perm-group",
+      "text": "试卷管理\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "试卷管理\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "试卷管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "试卷管理查询试卷管理新增试卷管理修改试卷管理删除试卷自动生成"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "试卷管理查询试卷管理新增试卷管理修改试卷管理删除试卷自动生成"
+    },
+    {
+      "class": "perm-group",
+      "text": "题库管理\n6 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "题库管理\n6 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "题库管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "6 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "题库管理查询题库管理新增题库管理修改题库管理删除题目导出题目导入"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "题库管理查询题库管理新增题库管理修改题库管理删除题目导出题目导入"
+    },
+    {
+      "class": "perm-group",
+      "text": "学习记录\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "学习记录\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "学习记录"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "学习记录查询学习记录详情查询进度详情课程学习我的学习记录"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "学习记录查询学习记录详情查询进度详情课程学习我的学习记录"
+    },
+    {
+      "class": "perm-group",
+      "text": "员工管理\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "员工管理\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "员工管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "员工查询员工新增员工修改员工删除员工导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "员工查询员工新增员工修改员工删除员工导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "在线学习\n1 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "在线学习\n1 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "在线学习"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "1 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "访问"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "访问"
+    },
+    {
+      "class": "perm-group",
+      "text": "证书管理\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "证书管理\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "证书管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "证书管理查询证书管理新增证书管理删除证书管理吊销"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "证书管理查询证书管理新增证书管理删除证书管理吊销"
+    },
+    {
+      "class": "perm-group",
+      "text": "资质管理\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "资质管理\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "资质管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "资质查询资质新增资质修改资质删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "资质查询资质新增资质修改资质删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "自主练习\n2 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "自主练习\n2 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "自主练习"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "2 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "自主练习查询自主练习删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "自主练习查询自主练习删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "班次班组配置\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "班次班组配置\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "班次班组配置"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "删除班次班组配置新增修改列表"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "删除班次班组配置新增修改列表"
+    },
+    {
+      "class": "perm-group",
+      "text": "报表模板管理\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "报表模板管理\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "报表模板管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询报表模板列表新增报表模板编辑报表模板删除报表模板"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询报表模板列表新增报表模板编辑报表模板删除报表模板"
+    },
+    {
+      "class": "perm-group",
+      "text": "报表实例管理\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "报表实例管理\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "报表实例管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询报表实例列表新增报表实例编辑报表实例删除报表实例"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询报表实例列表新增报表实例编辑报表实例删除报表实例"
+    },
+    {
+      "class": "perm-group",
+      "text": "报表指标管理\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "报表指标管理\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "报表指标管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询报表指标列表报表指标新增 报表指标修改报表指标删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询报表指标列表报表指标新增 报表指标修改报表指标删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "交接班日报表\n7 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "交接班日报表\n7 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "交接班日报表"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "7 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "交接班查询录入交接班数据交接班打印交接班导出交接班调整数据趋势按钮交接班能否编辑"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "交接班查询录入交接班数据交接班打印交接班导出交接班调整数据趋势按钮交接班能否编辑"
+    },
+    {
+      "class": "perm-group",
+      "text": "日报表管理\n8 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "日报表管理\n8 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "日报表管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "8 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "趋势按钮数据补录日报表查询日报表数据录入日报表调整数据日报表导出日报表打印日报表能否编辑"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "趋势按钮数据补录日报表查询日报表数据录入日报表调整数据日报表导出日报表打印日报表能否编辑"
+    },
+    {
+      "class": "perm-group",
+      "text": "生产月报表\n7 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "生产月报表\n7 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "生产月报表"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "7 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "月报数据查询月报查询月报新增月报修改月报导出月报打印趋势按钮"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "月报数据查询月报查询月报新增月报修改月报导出月报打印趋势按钮"
+    },
+    {
+      "class": "perm-group",
+      "text": "生产重要指标日报表\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "生产重要指标日报表\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "生产重要指标日报表"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "指标日报表查询指标日报表新增指标日报表导出日报表指标趋势数据"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "指标日报表查询指标日报表新增指标日报表导出日报表指标趋势数据"
+    },
+    {
+      "class": "perm-group",
+      "text": "生产重要指标月报表\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "生产重要指标月报表\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "生产重要指标月报表"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "指标月报表查询指标月报表新增指标月报表导出月报表指标趋势数据"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "指标月报表查询指标月报表新增指标月报表导出月报表指标趋势数据"
+    },
+    {
+      "class": "perm-group",
+      "text": "业务类型配置\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "业务类型配置\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "业务类型配置"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "业务类型配置编辑业务类型配置删除业务类型配置列表业务类型配置新增"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "业务类型配置编辑业务类型配置删除业务类型配置列表业务类型配置新增"
+    },
+    {
+      "class": "perm-group",
+      "text": "备品出库\n2 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "备品出库\n2 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "备品出库"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "2 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询查询"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询查询"
+    },
+    {
+      "class": "perm-group",
+      "text": "备品出入库记录\n1 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "备品出入库记录\n1 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "备品出入库记录"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "1 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询"
+    },
+    {
+      "class": "perm-group",
+      "text": "备品库存查询\n1 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "备品库存查询\n1 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "备品库存查询"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "1 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询"
+    },
+    {
+      "class": "perm-group",
+      "text": "备品库存盘点\n1 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "备品库存盘点\n1 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "备品库存盘点"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "1 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询"
+    },
+    {
+      "class": "perm-group",
+      "text": "备品库存盘点调整\n2 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "备品库存盘点调整\n2 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "备品库存盘点调整"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "2 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询查询"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询查询"
+    },
+    {
+      "class": "perm-group",
+      "text": "备品领用申请\n3 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "备品领用申请\n3 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "备品领用申请"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "3 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询查询新增"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询查询新增"
+    },
+    {
+      "class": "perm-group",
+      "text": "备品入库\n2 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "备品入库\n2 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "备品入库"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "2 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询查询"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询查询"
+    },
+    {
+      "class": "perm-group",
+      "text": "备品物品管理\n2 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "备品物品管理\n2 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "备品物品管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "2 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询新增"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询新增"
+    },
+    {
+      "class": "perm-group",
+      "text": "环保出库\n6 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "环保出库\n6 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "环保出库"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "6 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询新增新增提交审批审批"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询新增新增提交审批审批"
+    },
+    {
+      "class": "perm-group",
+      "text": "环保库存查询\n1 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "环保库存查询\n1 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "环保库存查询"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "1 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询"
+    },
+    {
+      "class": "perm-group",
+      "text": "环保入库\n7 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "环保入库\n7 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "环保入库"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "7 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询查询新增新增审批提交审批"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询查询新增新增审批提交审批"
+    },
+    {
+      "class": "perm-group",
+      "text": "环保物品管理\n4 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "环保物品管理\n4 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "环保物品管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "4 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询新增编辑删除"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询新增编辑删除"
+    },
+    {
+      "class": "perm-group",
+      "text": "物品管理\n6 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "物品管理\n6 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "物品管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "6 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询新增编辑删除导入导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询新增编辑删除导入导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "装填管理\n6 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "装填管理\n6 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "装填管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "6 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "查询新增编辑删除导入导出"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "查询新增编辑删除导入导出"
+    },
+    {
+      "class": "perm-group",
+      "text": "数字化大屏\n9 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "数字化大屏\n9 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "数字化大屏"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "9 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "大屏查看设备数据查看传感器查看报警查看生产数据查看能源数据查看原料数据查看储罐数据查看安防数据查看"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "大屏查看设备数据查看传感器查看报警查看生产数据查看能源数据查看原料数据查看储罐数据查看安防数据查看"
+    },
+    {
+      "class": "perm-group",
+      "text": "合同管理\n6 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "合同管理\n6 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "合同管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "6 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "合同查询合同新增合同修改合同删除合同启动合同终止"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "合同查询合同新增合同修改合同删除合同启动合同终止"
+    },
+    {
+      "class": "perm-group",
+      "text": "客户管理\n6 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "客户管理\n6 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "客户管理"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "6 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "客户查询客户新增资质查询客户删除客户修改资质维护"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "客户查询客户新增资质查询客户删除客户修改资质维护"
+    },
+    {
+      "class": "perm-group",
+      "text": "销售订单\n2 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "销售订单\n2 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "销售订单"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "2 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "订单查询新增销售"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "订单查询新增销售"
+    },
+    {
+      "class": "perm-group",
+      "text": "销售日报表\n1 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "销售日报表\n1 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "销售日报表"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "1 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "日报表查询"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "日报表查询"
+    },
+    {
+      "class": "perm-group",
+      "text": "数据选择\n5 项"
+    },
+    {
+      "class": "perm-group__header",
+      "text": "数据选择\n5 项"
+    },
+    {
+      "class": "perm-group__name",
+      "text": "数据选择"
+    },
+    {
+      "class": "perm-group__count",
+      "text": "5 项"
+    },
+    {
+      "class": "el-icon perm-group__arrow",
+      "text": ""
+    },
+    {
+      "class": "perm-group__body",
+      "text": "选择试卷试卷详情查询选择用户选择部门选择角色"
+    },
+    {
+      "class": "el-checkbox-group",
+      "text": "选择试卷试卷详情查询选择用户选择部门选择角色"
+    }
+  ]
+}

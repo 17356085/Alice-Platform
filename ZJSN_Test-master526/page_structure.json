@@ -1,0 +1,597 @@
+{
+  "url": "https://aiwechatminidemo.cimc-digital.com/#/system/user",
+  "breadcrumb": "系统管理/\n用户管理",
+  "sidebarActive": "",
+  "searchFormItems": [
+    {
+      "currentValue": "",
+      "label": "搜索",
+      "placeholder": "搜索用户名/姓名/手机号",
+      "type": "input"
+    },
+    {
+      "currentValue": "全部角色",
+      "label": "角色",
+      "placeholder": "",
+      "type": "select"
+    },
+    {
+      "currentValue": "全部",
+      "label": "状态",
+      "placeholder": "",
+      "type": "select"
+    }
+  ],
+  "pageButtons": [
+    {
+      "class": "el-button el-button--primary",
+      "disabled": false,
+      "text": "查询"
+    },
+    {
+      "class": "el-button",
+      "disabled": false,
+      "text": "重置"
+    },
+    {
+      "class": "el-button el-button--primary",
+      "disabled": false,
+      "text": "新增"
+    },
+    {
+      "class": "el-button el-button--success",
+      "disabled": false,
+      "text": "导出"
+    },
+    {
+      "class": "el-button el-button--danger is-disabled",
+      "disabled": true,
+      "text": "删除"
+    }
+  ],
+  "tableHeaders": [
+    {
+      "hasCheckbox": false,
+      "index": 1,
+      "text": "用户名"
+    },
+    {
+      "hasCheckbox": false,
+      "index": 2,
+      "text": "姓名"
+    },
+    {
+      "hasCheckbox": false,
+      "index": 3,
+      "text": "手机号"
+    },
+    {
+      "hasCheckbox": false,
+      "index": 4,
+      "text": "角色"
+    },
+    {
+      "hasCheckbox": false,
+      "index": 5,
+      "text": "组织名称"
+    },
+    {
+      "hasCheckbox": false,
+      "index": 6,
+      "text": "状态"
+    },
+    {
+      "hasCheckbox": false,
+      "index": 7,
+      "text": "最后登录"
+    },
+    {
+      "hasCheckbox": false,
+      "index": 8,
+      "text": "操作"
+    }
+  ],
+  "sampleRows": [
+    [
+      {
+        "buttonTexts": [],
+        "colIndex": 0,
+        "hasButtons": false,
+        "hasCheckbox": true,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": ""
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 1,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "szj"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 2,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "史战军"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 3,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "18369096382"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 4,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": true,
+        "tagTexts": [
+          "人员培训管理员",
+          "普通员工",
+          "日报表填报员",
+          "日报表审核员",
+          "化验室取样填报员",
+          "化验室取样审核员",
+          "普通员工(小程序)"
+        ],
+        "textPreview": "人员培训管理员\n普通员工\n日报表填报员\n日报表审核员\n化验室取样填报员\n化验室取样审核员\n普通员工(小程序)"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 5,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "生产运行部"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 6,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": true,
+        "tagTexts": [
+          "启用"
+        ],
+        "textPreview": "启用"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 7,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "2026-06-05 14:55:09"
+      },
+      {
+        "buttonTexts": [
+          "查看",
+          "编辑",
+          "分配角色",
+          "更多"
+        ],
+        "colIndex": 8,
+        "hasButtons": true,
+        "hasCheckbox": false,
+        "hasDropdown": true,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "查看\n编辑\n分配角色\n更多"
+      }
+    ],
+    [
+      {
+        "buttonTexts": [],
+        "colIndex": 0,
+        "hasButtons": false,
+        "hasCheckbox": true,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": ""
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 1,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "txw"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 2,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "田茜雯"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 3,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "13610800888"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 4,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": true,
+        "tagTexts": [
+          "普通员工",
+          "日报表填报员",
+          "日报表审核员",
+          "普通员工(小程序)"
+        ],
+        "textPreview": "普通员工\n日报表填报员\n日报表审核员\n普通员工(小程序)"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 5,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "生产运行部"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 6,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": true,
+        "tagTexts": [
+          "启用"
+        ],
+        "textPreview": "启用"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 7,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "2026-06-10 08:39:47"
+      },
+      {
+        "buttonTexts": [
+          "查看",
+          "编辑",
+          "分配角色",
+          "更多"
+        ],
+        "colIndex": 8,
+        "hasButtons": true,
+        "hasCheckbox": false,
+        "hasDropdown": true,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "查看\n编辑\n分配角色\n更多"
+      }
+    ],
+    [
+      {
+        "buttonTexts": [],
+        "colIndex": 0,
+        "hasButtons": false,
+        "hasCheckbox": true,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": ""
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 1,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "fhq"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 2,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "范航绮"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 3,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "15942135796"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 4,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": true,
+        "tagTexts": [
+          "普通员工",
+          "普通员工(小程序)"
+        ],
+        "textPreview": "普通员工\n普通员工(小程序)"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 5,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "运行二部"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 6,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": true,
+        "tagTexts": [
+          "启用"
+        ],
+        "textPreview": "启用"
+      },
+      {
+        "buttonTexts": [],
+        "colIndex": 7,
+        "hasButtons": false,
+        "hasCheckbox": false,
+        "hasDropdown": false,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "-"
+      },
+      {
+        "buttonTexts": [
+          "查看",
+          "编辑",
+          "分配角色",
+          "更多"
+        ],
+        "colIndex": 8,
+        "hasButtons": true,
+        "hasCheckbox": false,
+        "hasDropdown": true,
+        "hasSwitch": false,
+        "hasTags": false,
+        "tagTexts": [],
+        "textPreview": "查看\n编辑\n分配角色\n更多"
+      }
+    ]
+  ],
+  "totalRows": 10,
+  "pagination": {
+    "nextDisabled": false,
+    "pageNumbers": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "",
+      "16"
+    ],
+    "prevDisabled": false,
+    "sizes": "10条/页",
+    "total": "共 151 条"
+  },
+  "dialog": {
+    "count": 1,
+    "dialogs": [
+      {
+        "footerButtons": [
+          {
+            "primary": true,
+            "text": "确定"
+          },
+          {
+            "primary": false,
+            "text": "取消"
+          }
+        ],
+        "formItems": [
+          {
+            "currentValue": "",
+            "label": "用户名",
+            "placeholder": "请输入用户名",
+            "required": false,
+            "type": "input"
+          },
+          {
+            "currentValue": "",
+            "label": "姓名",
+            "placeholder": "请输入姓名",
+            "required": false,
+            "type": "input"
+          },
+          {
+            "currentValue": "Ajyl@2026",
+            "label": "密码",
+            "placeholder": "请输入密码",
+            "required": false,
+            "type": "password"
+          },
+          {
+            "currentValue": "Ajyl@2026",
+            "label": "确认密码",
+            "placeholder": "请确认密码",
+            "required": false,
+            "type": "password"
+          },
+          {
+            "currentValue": "",
+            "label": "部门",
+            "placeholder": "",
+            "required": false,
+            "type": "select"
+          },
+          {
+            "currentValue": "",
+            "label": "用户类型",
+            "placeholder": "",
+            "required": false,
+            "type": "select"
+          },
+          {
+            "currentValue": "1",
+            "label": "状态",
+            "placeholder": "",
+            "required": false,
+            "type": "input"
+          },
+          {
+            "currentValue": "",
+            "label": "手机号",
+            "placeholder": "请输入手机号",
+            "required": false,
+            "type": "input"
+          },
+          {
+            "currentValue": "",
+            "label": "邮箱",
+            "placeholder": "请输入邮箱",
+            "required": false,
+            "type": "input"
+          },
+          {
+            "currentValue": "",
+            "label": "角色",
+            "placeholder": "",
+            "required": false,
+            "type": "select"
+          },
+          {
+            "currentValue": "",
+            "label": "备注",
+            "placeholder": "请输入备注",
+            "required": false,
+            "type": "textarea"
+          }
+        ],
+        "title": "添加用户",
+        "width": "600px"
+      }
+    ]
+  },
+  "dropdownMenu": [
+    "启用/重置密码",
+    "删除"
+  ],
+  "columnWidths": [
+    {
+      "col": 1,
+      "header": "用户名",
+      "widthPx": 110
+    },
+    {
+      "col": 2,
+      "header": "姓名",
+      "widthPx": 100
+    },
+    {
+      "col": 3,
+      "header": "手机号",
+      "widthPx": 118
+    },
+    {
+      "col": 4,
+      "header": "角色",
+      "widthPx": 200
+    },
+    {
+      "col": 5,
+      "header": "组织名称",
+      "widthPx": 200
+    },
+    {
+      "col": 6,
+      "header": "状态",
+      "widthPx": 88
+    },
+    {
+      "col": 7,
+      "header": "最后登录",
+      "widthPx": 168
+    },
+    {
+      "col": 8,
+      "header": "操作",
+      "widthPx": 260
+    }
+  ]
+}

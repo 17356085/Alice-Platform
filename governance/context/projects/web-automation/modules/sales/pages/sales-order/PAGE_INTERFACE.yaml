@@ -1,0 +1,269 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:24"
+
+meta:
+  module: "sales"
+  page_name: "SalesOrder"
+  page_slug: "sales-order"
+  page_url: "/sales/sales-order"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags:
+        - "动态列"
+    - component: el-dialog
+      count: 1
+      risk_flags:
+        - "弹出表单"
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-select
+      count: 3
+      risk_flags:
+        - "级联（客户→合同）"
+    - component: el-date-picker
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 4
+      risk_flags: []
+
+elements:
+  - name: "销售单号输入框"
+    selector: "input[placeholder*='销售单号']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区第一个输入框"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "客户名称输入框"
+    selector: "input[placeholder*='客户名称']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区第二个输入框"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "关联合同下拉（搜索）"
+    selector: ".search-area .el-select[placeholder*='关联合同']"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "日期范围选择器"
+    selector: ".search-area .el-date-editor--daterange"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "type='daterange'"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "搜索按钮"
+    selector: "button.el-button:has-text('搜索')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "重置按钮"
+    selector: "button.el-button:has-text('重置')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "新增销售按钮"
+    selector: "button.el-button:has-text('新增销售')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "表格行编辑按钮"
+    selector: ".el-table__body tr .el-button:has-text('编辑')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "操作列编辑按钮，需要结合行上下文使用"
+    risk_level: medium
+    risk_reason: "动态行，需要索引"
+
+  - name: "表格行删除按钮"
+    selector: ".el-table__body tr .el-button:has-text('删除')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "操作列删除按钮"
+    risk_level: medium
+    risk_reason: "需要确认弹窗"
+
+  - name: "表格行查看详情按钮"
+    selector: ".el-table__body tr .el-button:has-text('查看详情')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "销售单号链接（表格中）"
+    selector: ".el-table__body tr td:first-child .el-tag"
+    selector_type: CSS_SELECTOR
+    element_type: tag
+    el_component: el-tag
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "第一列可点击的单号"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "新增弹窗"
+    selector: ".el-dialog:has(.el-dialog__title:has-text('新增销售订单'))"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "弹窗客户选择"
+    selector: ".el-dialog .el-select:has(.el-select__placeholder:has-text('请选择客户'))"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: "级联影响合同下拉"
+
+  - name: "弹窗产品选择"
+    selector: ".el-dialog .el-select:has(.el-select__placeholder:has-text('请选择产品'))"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: ""
+
+  - name: "弹窗净重输入"
+    selector: ".el-dialog input[placeholder*='净重']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "type='number'?"
+    risk_level: high
+    risk_reason: "浮点精度关键"
+
+  - name: "弹窗车牌输入"
+    selector: ".el-dialog input[placeholder*='车牌号']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "弹窗关联合同选择"
+    selector: ".el-dialog .el-select:has(.el-select__placeholder:has-text('请选择合同'))"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "受客户选择影响"
+    risk_level: high
+    risk_reason: "级联，超卖校验关键"
+
+  - name: "弹窗确认按钮"
+    selector: ".el-dialog .el-button:has-text('确 定')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "弹窗取消按钮"
+    selector: ".el-dialog .el-button:has-text('取 消')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "表格（el-table）"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "主数据表格"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "分页器"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "Toast消息（成功/错误）"
+    selector: ".el-message"
+    selector_type: CSS_S

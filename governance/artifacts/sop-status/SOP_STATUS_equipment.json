@@ -1,0 +1,23 @@
+{
+  "module": "equipment",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation",
+    "Execute & Debug",
+    "Report",
+    "Knowledge"
+  ],
+  "failed_phases": [],
+  "pages_processed": [],
+  "run_id": "",
+  "updated_at": "2026-06-14",
+  "engine": "langgraph",
+  "next_steps": [
+    "运行测试: pytest script/equipment/ -v --alluredir=allure-results",
+    "分析测试结果",
+    "生成测试总结报告"
+  ]
+}

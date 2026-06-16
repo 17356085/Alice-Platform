@@ -1,0 +1,415 @@
+{
+  "module": "lab",
+  "audit_time": "2026-06-16T09:10:09.883219",
+  "overall_status": "error",
+  "drift_count": 40,
+  "error_count": 1,
+  "warning_count": 38,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Project Init",
+      "description": "Phase 'Project Init' 已完成，但模块级产物缺失: PROJECT_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\PROJECT_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Project Init 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'water-compare' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-compare\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'water-compare' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-compare\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'water-compare' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-compare\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'water-indicator' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-indicator\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'water-indicator' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-indicator\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'water-indicator' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-indicator\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'water-compare' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-compare\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'water-compare' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-compare\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'water-indicator' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-indicator\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'water-indicator' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-indicator\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'gas-analysis-report' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-analysis-report\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'gas-compare' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-compare\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'gas-indicator' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-indicator\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'water-compare' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-compare\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'water-indicator' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-indicator\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'water-report' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-report\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=55, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=10, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=22, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=16, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=7, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=12, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=13, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=23, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=10, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "AUTO_STRATEGY.md output suspect: automation artifact lacks tech terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=11, pl_ratio=0%",
+      "suggestion": "Re-run Automation Agent"
+    },
+    {
+      "check_type": "orphan",
+      "severity": "info",
+      "phase": "",
+      "description": "发现非标准产物文件: CURRENT_TASK.md",
+      "expected": "标准产物 (PAGE_CONTEXT, RISK_MODEL, TEST_DESIGN, TEST_CASES, TECH_ANALYSIS, AUTO_STRATEGY)",
+      "actual": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\CURRENT_TASK.md",
+      "suggestion": "确认文件用途后归档到 governance/artifacts/archive/ 或删除"
+    },
+    {
+      "check_type": "c_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "SOP_STATUS JSON 存在但 SQLite checkpoint 无数据 — 可能是 dry-run 或 checkpoint 写入失败",
+      "expected": "checkpoint 中包含 completed_phases",
+      "actual": "checkpoint 为空",
+      "suggestion": "运行一次完整的 SOP Graph (确保 checkpointer 正确编译) 以生成 checkpoint"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "RISK_MODEL.md 内容质量不足: 行数 13 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['风险', '等级', '缓解', '概率']",
+      "actual": "行数=13, 标记匹配=3/4",
+      "suggestion": "建议重新运行相关 Agent 生成 RISK_MODEL.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "RISK_MODEL.md 内容质量不足: 行数 10 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['风险', '等级', '缓解', '概率']",
+      "actual": "行数=10, 标记匹配=3/4",
+      "suggestion": "建议重新运行相关 Agent 生成 RISK_MODEL.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "TEST_DESIGN.md 内容质量不足: 行数 11 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['用例', '场景', '覆盖', '策略']",
+      "actual": "行数=11, 标记匹配=2/4",
+      "suggestion": "建议重新运行相关 Agent 生成 TEST_DESIGN.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "RISK_MODEL.md 内容质量不足: 行数 9 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['风险', '等级', '缓解', '概率']",
+      "actual": "行数=9, 标记匹配=3/4",
+      "suggestion": "建议重新运行相关 Agent 生成 RISK_MODEL.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "TEST_DESIGN.md 内容质量不足: 行数 10 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['用例', '场景', '覆盖', '策略']",
+      "actual": "行数=10, 标记匹配=2/4",
+      "suggestion": "建议重新运行相关 Agent 生成 TEST_DESIGN.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "PAGE_CONTEXT.md 内容质量不足: 行数 18 < 最低要求 20",
+      "expected": "行数≥20, 标记匹配≥2/['元素', '定位', '交互', '页面']",
+      "actual": "行数=18, 标记匹配=2/4",
+      "suggestion": "建议重新运行相关 Agent 生成 PAGE_CONTEXT.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "PAGE_CONTEXT.md 内容质量不足: 行数 19 < 最低要求 20",
+      "expected": "行数≥20, 标记匹配≥2/['元素', '定位', '交互', '页面']",
+      "actual": "行数=19, 标记匹配=2/4",
+      "suggestion": "建议重新运行相关 Agent 生成 PAGE_CONTEXT.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "RISK_MODEL.md 内容质量不足: 行数 12 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['风险', '等级', '缓解', '概率']",
+      "actual": "行数=12, 标记匹配=3/4",
+      "suggestion": "建议重新运行相关 Agent 生成 RISK_MODEL.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "TEST_DESIGN.md 内容质量不足: 行数 14 < 最低要求 15; 关键标记匹配 1/4 < 最低 2 (缺失: ['用例', '覆盖', '策略'])",
+      "expected": "行数≥15, 标记匹配≥2/['用例', '场景', '覆盖', '策略']",
+      "actual": "行数=14, 标记匹配=1/4",
+      "suggestion": "建议重新运行相关 Agent 生成 TEST_DESIGN.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "TECH_ANALYSIS.md 内容质量不足: 关键标记匹配 1/4 < 最低 2 (缺失: ['定位器', '优先级', '元素'])",
+      "expected": "行数≥10, 标记匹配≥2/['定位器', '优先级', '等待', '元素']",
+      "actual": "行数=15, 标记匹配=1/4",
+      "suggestion": "建议重新运行相关 Agent 生成 TECH_ANALYSIS.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "TECH_ANALYSIS.md 内容质量不足: 关键标记匹配 0/4 < 最低 2 (缺失: ['定位器', '优先级', '等待', '元素'])",
+      "expected": "行数≥10, 标记匹配≥2/['定位器', '优先级', '等待', '元素']",
+      "actual": "行数=11, 标记匹配=0/4",
+      "suggestion": "建议重新运行相关 Agent 生成 TECH_ANALYSIS.md"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 17,
+      "errors": 1,
+      "warnings": 16,
+      "ok": false
+    },
+    "r_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "o_check": {
+      "total": 10,
+      "errors": 0,
+      "warnings": 10,
+      "ok": false
+    },
+    "orphan_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 0,
+      "ok": false
+    },
+    "c_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "q_check": {
+      "total": 11,
+      "errors": 0,
+      "warnings": 11,
+      "ok": false
+    },
+    "t_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    }
+  }
+}

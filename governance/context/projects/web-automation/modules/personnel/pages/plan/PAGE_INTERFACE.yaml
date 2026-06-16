@@ -1,0 +1,85 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:17"
+
+meta:
+  module: "personnel"
+  page_name: "PlanPage"
+  page_slug: "plan"
+  page_url: "/personnel/plan"
+  vue_components:
+    - component: el-input
+      count: 4
+      risk_flags: []
+    - component: el-select
+      count: 2
+      risk_flags: []
+    - component: el-date-picker
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 6
+      risk_flags: []
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 1
+      risk_flags: []
+    - component: el-steps
+      count: 1
+      risk_flags: []
+
+elements:
+  - name: planNameInput
+    selector: ".plan-search-form .el-input__wrapper input[placeholder*='计划名称']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "搜索区的计划名称/编号输入框，支持模糊搜索"
+    risk_level: low
+    risk_reason: ""
+
+  - name: trainingTypeSelect
+    selector: ".plan-search-form .el-form-item:has(label:contains('培训类型')) .el-select__wrapper"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "培训类型下拉选择器"
+    risk_level: low
+    risk_reason: ""
+
+  - name: statusSelect
+    selector: ".plan-search-form .el-form-item:has(label:contains('状态')) .el-select__wrapper"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "状态下拉选择器（草稿/已发布/进行中/已完成）"
+    risk_level: low
+    risk_reason: ""
+
+  - name: dateRangePicker
+    selector: ".plan-search-form .el-date-editor--daterange"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "日期范围选择器，用于筛选开始日期到结束日期"
+    risk_level: low
+    risk_reason: ""
+
+  - name: searchButton
+    selector: ".plan-search-form .el-button:contains('搜索')"
+   

@@ -1,0 +1,87 @@
+version: 0.1
+description: 项目环境信息统一管理。敏感凭证不在此文件，统一在 .env 中维护。
+
+# ── Web 自动化项目 ────────────────────────────────────────────────────
+web-automation:
+  id: web-automation
+  name: Web 自动化测试项目
+  code_path: d:/Desktop/WorkStudy/ZJSN_Test-master526
+  env_file: d:/Desktop/WorkStudy/ZJSN_Test-master526/.env
+
+  environments:
+    dev:
+      base_url: https://aiwechatminidemo.cimc-digital.com/
+      note: 开发环境，前端代码与 test 相同
+    test:
+      base_url: https://aiwechatminidemo.cimc-digital.com/
+      note: 测试环境，用于自动化执行
+    staging:
+      base_url: https://aiwechatminidemo.cimc-digital.com/
+      note: 预发布环境（如有差异请更新）
+
+  ci:
+    tool: Jenkins
+    job_name: ZJSN_Test
+    pipeline_file: d:/Desktop/WorkStudy/ZJSN_Test-master526/Jenkinsfile
+    workspace: /var/jenkins_home/zjsn_work
+    parameters:
+      - name: TARGET_ENV
+        choices: [dev, test, staging]
+        description: 目标测试环境
+    stages:
+      - Sync & Clean
+      - Lint（非阻断）
+      - Safe Tests — 并行 3 worker，-m "not destructive"
+      - Destructive Tests — 串行，-m destructive
+      - Report — Allure 生成
+
+  tech_stack:
+    python: "3.x"
+    pytest: "7.4.4"
+    selenium: "4.15.2"
+    allure: "2.13.2"
+    frontend: "Vue 3 + Element Plus"
+    browser: Chrome
+
+# ── 小程序自动化项目 ──────────────────────────────────────────────────
+miniapp-automation:
+  id: miniapp-automation
+  name: 小程序自动化测试项目
+  code_path: d:/Desktop/WorkStudy/mp-weixin-automator
+  source_path: d:/Desktop/WorkStudy/mp-weixin
+  tech_stack:
+    runtime: Node.js
+    test_framework: 自研 mp-weixin-automator
+    miniapp_type: 微信小程序
+
+# ── 旧资产路径（历史存档）────────────────────────────────────────────
+legacy:
+  prompt_library: d:/Desktop/WorkStudy/TestIntern_library/05-资源与参考/AI提示词库.md
+  sop: d:/Desktop/WorkStudy/TestIntern_library/05-资源与参考/AI辅助测试开发_标准作业流程（SOP）.md
+  work_logs: d:/Desktop/WorkStudy/TestIntern_library/03-工作日志/
+  # contexts/ → governance/context/  ✅ 已迁移
+  # templates/ → governance/templates/  ✅ 已迁移
+  # test_reports/ → Allure  ✅ 已淘汰
+
+# ── HITL (Human-in-the-Loop) 配置 (P1-3) ────────────────────────────────
+hitl:
+  description: 人机协作审批点配置。仅在 use_subgraphs=True 时生效。
+  # P0 模块白名单 — 这些模块的测试用例需要人工审批后才进入自动化阶段
+  p0_modules:
+    - equipment
+    - production
+    # - quality        # 尚未完備，暂不加入
+  # 自动化策略审批（默认开启，在 mode=full 时生效）
+  automation_strategy_approval:
+    enabled: true
+  # 测试用例审批配置
+  testcase_approval:
+    enabled: true
+    min_p0_cases: 1    # P0 用例数 ≥ 此值才触发审批
+
+# ── 测试账号说明 ──────────────────────────────────────────────────────
+# 账号信息统一在 ZJSN_Test-master526/.env 中维护（DEFAULT_USERNAME / DEFAULT_PASSWORD）
+# CI 凭据通过 Jenkins credentials 管理：
+#   - zjsn-test-url
+#   - zjsn-test-username
+#   - zjsn-test-password

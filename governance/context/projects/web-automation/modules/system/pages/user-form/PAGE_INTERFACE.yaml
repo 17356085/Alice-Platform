@@ -1,0 +1,415 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:29"
+
+meta:
+  module: "system-user"
+  page_name: "UserForm"
+  page_slug: "user-form"
+  page_url: "/system-user/user-form"
+  vue_components:
+    - component: el-dialog
+      count: 4
+      risk_flags: ["弹窗互斥"]
+    - component: el-form
+      count: 3
+      risk_flags: []
+    - component: el-descriptions
+      count: 1
+      risk_flags: []
+    - component: el-checkbox-group
+      count: 1
+      risk_flags: []
+    - component: el-tag
+      count: 1
+      risk_flags: []
+    - component: el-select
+      count: 6
+      risk_flags: []
+    - component: el-dropdown-menu
+      count: 1
+      risk_flags: []
+
+elements:
+  - name: "新增弹窗"
+    selector: ".el-dialog:has(.el-dialog__title:contains('添加用户'))"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "新增弹窗唯一标题'添加用户'"
+    risk_level: low
+    risk_reason: "多弹窗时需确保唯一性"
+
+  - name: "查看弹窗"
+    selector: ".el-dialog:has(.el-dialog__title:contains('用户详情'))"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "编辑弹窗"
+    selector: ".el-dialog:has(.el-dialog__title:contains('修改用户'))"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "分配角色弹窗"
+    selector: ".el-dialog:has(.el-dialog__title:contains('分配角色'))"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "新增按钮"
+    selector: ".el-button:contains('新增')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "工具栏新增按钮"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "用户名输入框"
+    selector: ".el-form-item:has(.el-form-item__label:contains('用户名')) .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "新增/编辑弹窗内"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "姓名输入框"
+    selector: ".el-form-item:has(.el-form-item__label:contains('姓名')) .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "密码输入框"
+    selector: ".el-form-item:has(.el-form-item__label:contains('密码')) .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "type=password"
+    risk_level: medium
+    risk_reason: "密码输入需特殊处理显式"
+
+  - name: "确认密码输入框"
+    selector: ".el-form-item:has(.el-form-item__label:contains('确认密码')) .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: ""
+
+  - name: "部门选择器"
+    selector: ".el-form-item:has(.el-form-item__label:contains('部门')) .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "多选+可搜索"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "用户类型选择器"
+    selector: ".el-form-item:has(.el-form-item__label:contains('用户类型')) .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "角色选择器"
+    selector: ".el-form-item:has(.el-form-item__label:contains('角色')) .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "可能多选"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "状态输入框"
+    selector: ".el-form-item:has(.el-form-item__label:contains('状态')) .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "默认值为'1'"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "手机号输入框"
+    selector: ".el-form-item:has(.el-form-item__label:contains('手机号')) .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "邮箱输入框"
+    selector: ".el-form-item:has(.el-form-item__label:contains('邮箱')) .el-input__inner"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "备注文本域"
+    selector: ".el-form-item:has(.el-form-item__label:contains('备注')) .el-textarea__inner"
+    selector_type: CSS_SELECTOR
+    element_type: textarea
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "全宽"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "确定按钮（新增/编辑/分配角色）"
+    selector: ".el-dialog:visible .el-button--primary:contains('确定')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "仅可见弹窗内"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "取消按钮"
+    selector: ".el-dialog:visible .el-button--default:contains('取消')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "关闭按钮（查看弹窗）"
+    selector: ".el-dialog:visible .el-button--default:contains('关 闭')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "仅查看弹窗"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "详情描述表格"
+    selector: ".el-dialog:visible .el-descriptions"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-descriptions
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "只读展示"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "角色标签（查看弹窗内）"
+    selector: ".el-dialog:visible .el-descriptions .el-tag"
+    selector_type: CSS_SELECTOR
+    element_type: tag
+    el_component: el-tag
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "多个标签"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "分配角色复选框组"
+    selector: ".el-dialog:has(.el-dialog__title:contains('分配角色')) .el-checkbox-group"
+    selector_type: CSS_SELECTOR
+    element_type: checkbox
+    el_component: el-checkbox-group
+    interaction: toggle
+    wait_strategy: wait_vue_stable
+    locator_notes: "约17个复选框"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "更多菜单按钮（行内）"
+    selector: ".el-button:contains('更多')"
+    selector_type: CSS_SELECTOR
+    element_type: dropdown
+    el_component: el-dropdown-menu
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "每行一个"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "重置密码菜单项"
+    selector: ".el-dropdown-menu__item:contains('重置密码')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-dropdown-menu
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "点击更多后显示"
+    risk_level: medium
+    risk_reason: "二次确认框"
+
+  - name: "删除菜单项"
+    selector: ".el-dropdown-menu__item:contains('删除')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-dropdown-menu
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: "破坏性操作"
+
+test_scenarios:
+  - id: TC-UF-001
+    title: "打开新增弹窗"
+    priority: P1
+    type: positive
+    preconditions: ["工具栏显示新增按钮"]
+    steps_summary: "点击新增按钮，等待弹窗出现"
+    expected: "弹窗标题为'添加用户'，包含11个表单字段，底部有确定和取消按钮"
+    relates_to_elements: ["新增按钮", "新增弹窗"]
+
+  - id: TC-UF-002
+    title: "必填项校验"
+    priority: P1
+    type: negative
+    preconditions: ["新增弹窗已打开"]
+    steps_summary: "将必填项留空，点击确定"
+    expected: "6个必填项显示红色错误提示"
+    relates_to_elements: ["确定按钮（新增/编辑/分配角色）"]
+
+  - id: TC-UF-003
+    title: "密码不一致校验"
+    priority: P1
+    type: negative
+    preconditions: ["新增弹窗已打开"]
+    steps_summary: "输入密码'123'，确认密码'456'，点击确定"
+    expected: "提示'两次密码不一致'"
+    relates_to_elements: ["密码输入框", "确认密码输入框", "确定按钮（新增/编辑/分配角色）"]
+
+  - id: TC-UF-004
+    title: "提交成功"
+    priority: P1
+    type: positive
+    preconditions: ["新增弹窗已打开"]
+    steps_summary: "填写所有必填项（用户名、姓名、密码、确认密码、部门、用户类型），点击确定"
+    expected: "Toast提示'新增成功'，弹窗关闭，列表刷新"
+    relates_to_elements: ["用户名输入框", "姓名输入框", "密码输入框", "确认密码输入框", "部门选择器", "用户类型选择器", "确定按钮（新增/编辑/分配角色）"]
+
+  - id: TC-UF-005
+    title: "取消新增"
+    priority: P1
+    type: positive
+    preconditions: ["新增弹窗已打开并填写部分数据"]
+    steps_summary: "点击取消按钮"
+    expected: "弹窗关闭，数据未创建"
+    relates_to_elements: ["取消按钮"]
+
+  - id: TC-UF-006
+    title: "用户名重复"
+    priority: P1
+    type: negative
+    preconditions: ["存在用户'szj'", "新增弹窗已打开"]
+    steps_summary: "输入用户名'szj'，填写其他必填项，点击确定"
+    expected: "Toast提示'数据已存在'"
+    relates_to_elements: ["用户名输入框", "确定按钮（新增/编辑/分配角色）"]
+
+  - id: TC-UF-007
+    title: "编辑弹窗数据回显"
+    priority: P1
+    type: positive
+    preconditions: ["表格中有一行用户数据"]
+    steps_summary: "点击该行的编辑按钮，等待编辑弹窗打开"
+    expected: "弹窗中姓名与表格中一致，共13个字段"
+    relates_to_elements: ["编辑弹窗", "姓名输入框"]
+
+  - id: TC-UF-008
+    title: "disabled字段不可操作"
+    priority: P1
+    type: negative
+    preconditions: ["编辑弹窗已打开"]
+    steps_summary: "尝试修改部门、用户类型、岗位、角色、性别字段"
+    expected: "5个字段为禁用状态，无法修改"
+    relates_to_elements: ["部门选择器", "用户类型选择器", "角色选择器"]
+
+  - id: TC-UF-009
+    title: "修改可编辑字段"
+    priority: P1
+    type: positive
+    preconditions: ["编辑弹窗已打开"]
+    steps_summary: "修改姓名和手机号，点击确定"
+    expected: "Toast成功提示，列表更新"
+    relates_to_elements: ["姓名输入框", "手机号输入框", "确定按钮（新增/编辑/分配角色）"]
+
+  - id: TC-UF-010
+    title: "取消编辑"
+    priority: P1
+    type: positive
+    preconditions: ["编辑弹窗已修改数据"]
+    steps_summary: "点击取消"
+    expected: "弹窗关闭，数据不变"
+    relates_to_elements: ["取消按钮"]
+
+  - id: TC-UF-011
+    title: "查看弹窗数据展示"
+    priority: P1
+    type: positive
+    preconditions: ["表格中有一行用户"]
+    steps_summary: "点击该行的查看按钮，等待详情弹窗"
+    expected: "弹窗标题'用户详情'，使用el-descriptions只读展示9个字段，仅有关闭按钮"
+    relates_to_elements: ["查看弹窗", "详情描述表格", "关闭按钮（查看弹窗）"]
+
+  - id: TC-UF-012
+    title: "角色标签渲染"
+    priority: P1
+    type: positive
+   

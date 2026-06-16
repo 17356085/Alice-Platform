@@ -1,0 +1,144 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 15:10"
+
+meta:
+  module: "warehouse"
+  page_name: "SpareOutOrderPage"
+  page_slug: "spare-out-order"
+  page_url: "/warehouse/spare/out-order"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: ["10列表格(LY单号链接+关联申请单)"]
+    - component: el-dialog
+      count: 2
+      risk_flags: ["新增/查看弹窗"]
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 7
+      risk_flags: ["查询/重置/新增/备件查询/LY链接/查看"]
+
+elements:
+  - name: "filterHandler"
+    selector: "//input[@placeholder='请输入经办人']"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    risk_level: low
+
+  - name: "filterDate"
+    selector: "//input[@placeholder='选择日期']"
+    selector_type: XPATH
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: medium
+
+  - name: "btnQuery"
+    selector: "//button[contains(.,'查询')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: low
+
+  - name: "btnReset"
+    selector: "//button[contains(.,'重置')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: low
+
+  - name: "btnAdd"
+    selector: "//button[contains(.,'新增')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    risk_level: medium
+
+  - name: "btnSpareQuery"
+    selector: "//button[contains(.,'备件查询')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "★ spare-out-order特有"
+    risk_level: medium
+
+  - name: "btnLYLink"
+    selector: "//button[contains(@class,'el-button--primary') and contains(@class,'is-link')]"
+    selector_type: XPATH
+    element_type: link
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "★ LY单号链接，跳转领用申请"
+    risk_level: high
+
+  - name: "btnView"
+    selector: "//button[contains(.,'查看')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    risk_level: low
+
+  - name: "spareTable"
+    selector: ".el-table__body-wrapper"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: WebDriverWait
+    locator_notes: "10列表格(含出库类型/关联申请单/领用人/领用时间)"
+    risk_level: medium
+
+  - name: "pagination"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: low
+
+test_scenarios:
+  - id: TC-SO-001
+    title: "页面正常加载(10列)"
+    priority: P0
+    type: smoke
+    steps_summary: "导航到 #/warehouse/spare/out-order"
+    expected: "10列表格+备件查询+新增按钮"
+    relates_to_elements: ["spareTable", "btnAdd", "btnSpareQuery"]
+
+  - id: TC-SO-002
+    title: "LY单号链接可点击"
+    priority: P0
+    type: functional
+    preconditions: ["有领用关联的出库单"]
+    steps_summary: "点击LY单号链接"
+    expected: "跳转到对应领用申请"
+    relates_to_elements: ["btnLYLink"]
+
+  - id: TC-SO-003
+    title: "备件查询按钮"
+    priority: P1
+    type: functional
+    steps_summary: "点击'备件查询'"
+    expected: "导航到备件查询页"
+    relates_to_elements: ["btnSpareQuery"]

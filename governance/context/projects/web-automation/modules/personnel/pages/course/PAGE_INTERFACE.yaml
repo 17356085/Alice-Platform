@@ -1,0 +1,316 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:15"
+
+meta:
+  module: "personnel"
+  page_name: "CourseManage"
+  page_slug: "course"
+  page_url: "/personnel/course"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-form
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 1
+      risk_flags: []
+    - component: el-select
+      count: 1
+      risk_flags: []
+    - component: el-upload
+      count: 1
+      risk_flags: ["异步上传需等待响应"]
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+
+elements:
+  - name: "课程名称搜索输入框"
+    selector: "input[placeholder*='课程名称']"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "若placeholder无明确定义，可改用 .search-form .el-input--prefix input"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "课程分类下拉选择器"
+    selector: ".search-form .el-select__caret"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "可能需要先点击展开下拉，再选择选项；选项可定位为 .el-select-dropdown__item"
+    risk_level: medium
+    risk_reason: "异步加载选项，需等待选项渲染完毕"
+
+  - name: "搜索按钮"
+    selector: "button.el-button--primary:has-text('搜索')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "重置按钮"
+    selector: "button.el-button:has-text('重置')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "课程表格"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "表格加载时通常有 .el-loading-mask，需等待其消失"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "新增课程按钮"
+    selector: "button.el-button--primary:has-text('新增')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "编辑按钮（行内）"
+    selector: ".el-table .el-button:has-text('编辑')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "通常位于表格操作列，可能有多个，需结合行索引定位"
+    risk_level: medium
+    risk_reason: "需确认可唯一识别行内按钮"
+
+  - name: "删除按钮（行内）"
+    selector: ".el-table .el-button:has-text('删除')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "同上"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "新增/编辑弹窗"
+    selector: ".el-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗出现时需等待动画完成"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "弹窗-课程名称输入框"
+    selector: ".el-dialog .el-form-item:has(.el-input) >> nth=0"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "假设第一个表单项为课程名称"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "弹窗-课程分类选择器"
+    selector: ".el-dialog .el-form-item:has(.el-select) .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "弹窗-封面图上传组件"
+    selector: ".el-dialog .el-upload"
+    selector_type: CSS_SELECTOR
+    element_type: upload
+    el_component: el-upload
+    interaction: upload
+    wait_strategy: wait_vue_stable
+    locator_notes: "需先定位上传触发元素，然后使用setInputFiles等方式"
+    risk_level: high
+    risk_reason: "上传文件时需等待上传完成，涉及网络请求"
+
+  - name: "弹窗-确定/提交按钮"
+    selector: ".el-dialog .el-button--primary:has-text('确定')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "弹窗-取消按钮"
+    selector: ".el-dialog .el-button:has-text('取消')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "分页器"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "分页切换会触发数据加载"
+    risk_level: low
+    risk_reason: ""
+
+test_scenarios:
+  - id: TC-CRS-001
+    title: "页面正常加载"
+    priority: P0
+    type: smoke
+    preconditions: ["用户具有查看权限"]
+    steps_summary: "导航至课程管理页面"
+    expected: "课程卡片网格（或表格）正确渲染，无异常错误"
+    relates_to_elements:
+      - "课程表格"
+  - id: TC-CRS-002
+    title: "删除被引用课程"
+    priority: P0
+    type: destructive
+    preconditions: ["存在被培训计划引用的课程"]
+    steps_summary: "点击该课程的删除按钮，确认删除"
+    expected: "后端返回删除失败提示，Toast显示错误信息，表格未刷新"
+    relates_to_elements:
+      - "删除按钮（行内）"
+      - "弹窗-确定/提交按钮"
+  - id: TC-CRS-003
+    title: "名称搜索"
+    priority: P1
+    type: positive
+    preconditions: ["课程列表存在多条记录"]
+    steps_summary: "在课程名称输入框输入已知课程名称，点击搜索"
+    expected: "表格仅显示匹配该名称的课程"
+    relates_to_elements:
+      - "课程名称搜索输入框"
+      - "搜索按钮"
+  - id: TC-CRS-004
+    title: "分类筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在多个分类"]
+    steps_summary: "选择课程分类下拉中的某个选项，点击搜索"
+    expected: "表格仅显示该分类下的课程"
+    relates_to_elements:
+      - "课程分类下拉选择器"
+      - "搜索按钮"
+  - id: TC-CRS-005
+    title: "素材类型筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在不同类型的课程（如视频、文档）"]
+    steps_summary: "选择素材类型下拉（如果存在），点击搜索"
+    expected: "表格过滤正确"
+    relates_to_elements:
+      - "搜索按钮"
+  - id: TC-CRS-006
+    title: "发布状态筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在不同状态的课程"]
+    steps_summary: "选择发布状态下拉（如已发布/未发布），点击搜索"
+    expected: "表格过滤正确"
+    relates_to_elements:
+      - "搜索按钮"
+  - id: TC-CRS-007
+    title: "重置"
+    priority: P1
+    type: positive
+    preconditions: ["已进行搜索或筛选"]
+    steps_summary: "点击重置按钮"
+    expected: "搜索条件清空，表格恢复显示全部课程数据"
+    relates_to_elements:
+      - "重置按钮"
+      - "课程名称搜索输入框"
+      - "课程分类下拉选择器"
+  - id: TC-CRS-008
+    title: "新增课程"
+    priority: P1
+    type: positive
+    preconditions: ["用户具有新增权限"]
+    steps_summary: "点击新增按钮→填写必填项（名称、分类）→上传封面→点击确定"
+    expected: "弹窗关闭，出现成功Toast，表格刷新显示新课程"
+    relates_to_elements:
+      - "新增课程按钮"
+      - "弹窗-课程名称输入框"
+      - "弹窗-课程分类选择器"
+      - "弹窗-封面图上传组件"
+      - "弹窗-确定/提交按钮"
+  - id: TC-CRS-009
+    title: "查看详情"
+    priority: P1
+    type: positive
+    preconditions: ["存在已创建的课程"]
+    steps_summary: "点击课程名称或详情按钮"
+    expected: "弹出课程详情弹窗显示完整信息"
+    relates_to_elements:
+      - "课程表格"
+
+page_behaviors:
+  - behavior: "表格异步加载数据"
+    triggers:
+      - "页面加载"
+      - "搜索后"
+      - "重置后"
+      - "分页切换"
+      - "新增/编辑/删除后"
+    wait_required: true
+    wait_suggestion: "wait_loading_gone (等待.el-loading-mask消失) 或 wait_vue_stable"
+  - behavior: "分类下拉异步加载选项"
+    triggers:
+      - "进入弹窗（新增/编辑）"
+      - "点击分类选择器"
+    wait_required: true
+    wait_suggestion: "等待.el-select-dropdown渲染，或使用wait_vue_stable"
+  - behavior: "文件上传后触发刷新"
+    triggers:
+      - "上传封面图片完成"
+    wait_required: true
+    wait_suggestion: "监听上传成功事件(如响应中出现success标志)，再继续后续操作"
+  - behavior: "弹窗操作后表格刷新"
+    triggers:
+      - "新增/编辑提交成功"
+      - "删除确认后"
+    wait_required: true
+    wait_suggestion: "等待弹窗关闭动画 + 表格loading消失"

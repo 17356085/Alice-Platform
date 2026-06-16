@@ -1,0 +1,70 @@
+{
+  "module": "equipment",
+  "audit_time": "2026-06-15T18:15:47.923375",
+  "period": "30d",
+  "overall_compliance": 0.833,
+  "total_violations": 1,
+  "error_count": 0,
+  "warning_count": 1,
+  "violations": [
+    {
+      "check_type": "p_check",
+      "severity": "warning",
+      "violation_type": "status_phase_mismatch",
+      "detail": "SOP_STATUS 标记为 'completed' 但缺少核心 Phase: ['Bug Analysis', 'Data Sanitization']",
+      "run_id": "",
+      "evidence": {
+        "status": "completed",
+        "missing_phases": [
+          "Bug Analysis",
+          "Data Sanitization"
+        ]
+      },
+      "suggestion": "将缺失的 Phase 标记为跳过(含原因)，或继续运行未完成的 Phase"
+    }
+  ],
+  "checks": {
+    "p_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "infos": 0,
+      "ok": false
+    },
+    "s_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "g_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "h_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "b_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "l_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    }
+  }
+}

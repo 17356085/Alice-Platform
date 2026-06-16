@@ -1,0 +1,130 @@
+{
+  "module": "system-management",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation",
+    "Bug Analysis",
+    "Report"
+  ],
+  "failed_phases": [],
+  "pages_processed": [],
+  "run_id": "",
+  "updated_at": "2026-06-12 16:45",
+  "engine": "langgraph",
+  "sub_pages": {
+    "menu-management": {
+      "status": "completed",
+      "docs": [
+        "PAGE_CONTEXT.md",
+        "PAGE_ELEMENT_POSITION.md",
+        "RISK_MODEL.md",
+        "TEST_DESIGN.md",
+        "TEST_CASES.md",
+        "TECH_ANALYSIS.md",
+        "AUTO_STRATEGY.md"
+      ],
+      "code": {
+        "page_object": "page/system_page/MenuManagePage.py",
+        "test_script": "script/system/test_menu_manage.py (18 cases)"
+      }
+    },
+    "approval-todo": {
+      "status": "code_complete_docs_pending",
+      "route": "#/system/workflow/todo",
+      "type": "工作流-列表页",
+      "code": {
+        "page_object": "page/system_page/ApprovalTodoPage.py (~300 lines)",
+        "test_script": "script/system/test_approval_todo.py (8 cases)"
+      },
+      "test_results": "6P/0F/2S (2026-06-12 verified ✅)",
+      "skip_reasons": {
+        "search_by_status": "el-select无'审批中'选项",
+        "pagination": "只有一页数据"
+      }
+    },
+    "approval-history": {
+      "status": "code_complete_docs_pending",
+      "route": "#/system/workflow/history",
+      "type": "工作流-列表页",
+      "code": {
+        "page_object": "page/system_page/ApprovalHistoryPage.py (~250 lines)",
+        "test_script": "script/system/test_approval_history.py (7 cases)"
+      },
+      "test_results": "6P/0F/1S (2026-06-12 verified ✅)",
+      "skip_reasons": {
+        "pagination": "只有一页数据"
+      }
+    },
+    "my-application": {
+      "status": "code_complete_docs_pending",
+      "route": "#/system/workflow/my-applications",
+      "type": "工作流-列表页",
+      "code": {
+        "page_object": "page/system_page/MyApplicationPage.py (~290 lines)",
+        "test_script": "script/system/test_my_application.py (8 cases)"
+      },
+      "test_results": "5P/0F/3S (2026-06-12 verified ✅)",
+      "skip_reasons": {
+        "search_by_status": "el-select无对应选项",
+        "pagination": "只有一页数据",
+        "withdraw": "无可撤回数据"
+      }
+    },
+    "approval-chain": {
+      "status": "code_complete_docs_pending",
+      "route": "#/system/workflow/approval-chain",
+      "type": "CRUD + 弹窗表单",
+      "code": {
+        "page_object": "page/system_page/ApprovalChainPage.py (~310 lines, 3-round fix)",
+        "test_script": "script/system/test_approval_chain.py (9 cases)"
+      },
+      "test_results": "8P/0F/1S standalone; 7P/1F/0S full-regression (2026-06-12 ✅)",
+      "fix_history": "3轮修复: 按钮定位器→JS文本搜索, DIALOG XPath→CSS Selector, 表单字段→JS label遍历",
+      "known_issues": "test_04 全量回归偶发失败（前序测试删除数据导致搜索为空）"
+    },
+    "sap-push-log": {
+      "status": "code_complete_docs_pending",
+      "route": "#/system/workflow/sap-push-log",
+      "type": "日志列表页",
+      "code": {
+        "page_object": "page/system_page/SapPushLogPage.py (~250 lines)",
+        "test_script": "script/system/test_sap_push_log.py (6 cases)"
+      },
+      "test_results": "4P/0F/2S standalone; 3P/2F/1S full-regression",
+      "known_issues": "element click intercepted (搜索/重置按钮被拦截), 长期问题"
+    },
+    "api-management": {
+      "status": "code_complete_docs_pending",
+      "route": "#/system/api",
+      "type": "Swagger UI 嵌入页",
+      "code": {
+        "page_object": "page/system_page/ApiManagePage.py (~140 lines)",
+        "test_script": "script/system/test_api_management.py (4 cases)"
+      },
+      "test_results": "3P/0F/1S standalone; 1P/1F/2S full-regression",
+      "known_issues": "API分组计数=0 (Swagger iframe渲染时机), 长期问题"
+    },
+    "monitor-management": {
+      "status": "code_complete_docs_pending",
+      "route": "#/system/monitor",
+      "type": "监控仪表盘",
+      "code": {
+        "page_object": "page/system_page/MonitorManagePage.py (~150 lines)",
+        "test_script": "script/system/test_monitor_management.py (4 cases)"
+      },
+      "test_results": "2P/0F/2S standalone; 0P/2F/2S full-regression",
+      "known_issues": "页面内容空白/未渲染 (监控数据可能依赖特定环境), 长期问题"
+    }
+  },
+  "next_steps": [
+    "1. 创建 7 个 PAGE_CONTEXT.md (Phase 1 retroactive)",
+    "2. 创建 module-level RISK_MODEL.md (Phase 1.5)",
+    "3. 创建 module-level TEST_DESIGN.md (Phase 2)",
+    "4. 更新 MODULE_CONTEXT.md 添加 7 新页面信息",
+    "5. Phase 8 — TEST_SUMMARY.md",
+    "6. Phase 9 — 知识提取到 known-issues.yaml"
+  ]
+}

@@ -1,0 +1,206 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:28:00"
+
+meta:
+  module: "system-management"
+  page_name: "SapPushLog"
+  page_slug: "sap-push-log"
+  page_url: "/system-management/sap-push-log"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 1
+      risk_flags: ["偶尔被 overlay 遮挡"]
+    - component: el-select
+      count: 1
+      risk_flags: []
+    - component: el-date-range-picker
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 3
+      risk_flags: ["搜索/重置按钮被 overlay 拦截 (高)")
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+
+elements:
+  - name: "推送状态下拉"
+    selector: "//label[contains(text(),'推送状态')]/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "通过标签文本定位相邻 input 元素，模拟 el-select 点击及选项选择"
+    risk_level: low
+    risk_reason: "稳定的标签文本"
+
+  - name: "日期范围选择器"
+    selector: ".el-date-range-picker"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-range-picker
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "使用 Element Plus 默认类，可配合 BasePage 通用方法"
+    risk_level: low
+    risk_reason: "类名稳定"
+
+  - name: "搜索按钮"
+    selector: "//button[contains(text(),'搜索')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "点击后可能触发加载遮罩，建议先等待遮罩消失"
+    risk_level: high
+    risk_reason: "全量回归时频繁被 overlay 拦截，需三级降级处理"
+
+  - name: "重置按钮"
+    selector: "//button[contains(text(),'重置')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "同搜索按钮，存在相同拦截风险"
+    risk_level: high
+    risk_reason: "全量回归时频繁被 overlay 拦截"
+
+  - name: "日志表格"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格行数极少（测试环境通常只有一页）"
+    risk_level: low
+    risk_reason: "无特殊风险"
+
+  - name: "第一行详情按钮"
+    selector: "(//button[contains(text(),'查看详情')])[1]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "点击表格第一行的查看详情按钮，需确保按钮可见"
+    risk_level: medium
+    risk_reason: "部分行可能无此按钮，需跳过"
+
+  - name: "详情弹窗"
+    selector: ".el-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗内容为只读表单"
+    risk_level: low
+    risk_reason: "弹窗显示稳定"
+
+  - name: "弹窗关闭按钮"
+    selector: ".el-dialog__close"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "也可按 ESC 或点击遮罩关闭"
+    risk_level: low
+    risk_reason: "无特殊风险"
+
+  - name: "分页组件"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "测试环境通常只有一页，分页操作较少使用"
+    risk_level: low
+    risk_reason: "数据量小，分页按钮可能禁用"
+
+test_scenarios:
+  - id: TC-001
+    title: "按推送状态筛选成功记录"
+    priority: P0
+    type: positive
+    preconditions: ["页面存在至少一条推送日志"]
+    steps_summary: "选择推送状态 = '成功'，点击搜索按钮"
+    expected: "表格仅显示推送状态为'成功'的日志行"
+    relates_to_elements: ["推送状态下拉", "搜索按钮"]
+
+  - id: TC-002
+    title: "按日期范围筛选"
+    priority: P1
+    type: positive
+    preconditions: ["数据存在多个日期的日志"]
+    steps_summary: "选择日期范围，点击搜索"
+    expected: "表格仅显示该日期范围内的日志"
+    relates_to_elements: ["日期范围选择器", "搜索按钮"]
+
+  - id: TC-003
+    title: "搜索后重置清空筛选条件"
+    priority: P2
+    type: positive
+    preconditions: ["已执行搜索且表格数据被过滤"]
+    steps_summary: "点击重置按钮"
+    expected: "下拉框和日期选择器恢复默认值，表格显示全部数据"
+    relates_to_elements: ["重置按钮", "推送状态下拉", "日期范围选择器"]
+
+  - id: TC-004
+    title: "查看推送日志详情"
+    priority: P0
+    type: positive
+    preconditions: ["表格至少有一行数据且详情按钮可见"]
+    steps_summary: "点击第一行的查看详情按钮"
+    expected: "弹窗显示该条日志的完整推送信息（只读）"
+    relates_to_elements: ["第一行详情按钮", "详情弹窗"]
+
+  - id: TC-005
+    title: "弹窗关闭"
+    priority: P1
+    type: positive
+    preconditions: ["详情弹窗已打开"]
+    steps_summary: "点击弹窗关闭按钮"
+    expected: "弹窗消失，页面恢复可操作状态"
+    relates_to_elements: ["弹窗关闭按钮"]
+
+  - id: TC-006
+    title: "搜索无结果时的表格表现"
+    priority: P2
+    type: negative
+    preconditions: ["选择不存在的状态或日期范围"]
+    steps_summary: "输入不可能存在的条件（如未来日期），点击搜索"
+    expected: "表格显示空状态（无数据提示），分页组件禁用"
+    relates_to_elements: ["搜索按钮", "日志表格", "分页组件"]
+
+page_behaviors:
+  - behavior: "搜索/重置时存在加载遮罩"
+    triggers: ["点击搜索按钮", "点击重置按钮"]
+    wait_required: true
+    wait_suggestion: "使用 wait_loading_gone 等待遮罩消失后再进行后续操作"
+
+  - behavior: "表格数据刷新后重新渲染"
+    triggers: ["页面加载", "搜索后", "重置后"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable 确保表格行更新完毕"
+
+  - behavior: "弹窗打开后滚动锁定"
+    triggers: ["点击查看详情按钮"]
+    wait_required: true
+    wait_suggestion: "等待 el-dialog 出现且动画完成"
+
+  - behavior: "操作按钮可见性变化"
+    triggers: ["表格行数据加载"]
+    wait_required: false
+    wait_suggestion: "若按钮不可见则跳过，避免点击异常"

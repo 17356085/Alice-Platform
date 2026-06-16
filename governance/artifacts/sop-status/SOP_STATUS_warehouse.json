@@ -1,0 +1,102 @@
+{
+  "module": "warehouse",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Automation",
+    "Bug Analysis"
+  ],
+  "failed_phases": [],
+  "pages_processed": [],
+  "run_id": "",
+  "updated_at": "2026-06-15",
+  "engine": "langgraph",
+  "sub_pages": {
+    "备品备件": {
+      "spare-requisition": {
+        "status": "verified",
+        "cases": 3,
+        "result": "3P/0F"
+      },
+      "spare-out-order": {
+        "status": "verified",
+        "cases": 10,
+        "result": "10P/0F"
+      },
+      "spare-in-order": {
+        "status": "verified",
+        "cases": 8,
+        "result": "8P/0F"
+      },
+      "spare-stock": {
+        "status": "verified",
+        "cases": 4,
+        "result": "4P/0F"
+      },
+      "spare-stocktake": {
+        "status": "verified",
+        "cases": 4,
+        "result": "4P/0F"
+      },
+      "spare-stock-adjust": {
+        "status": "verified",
+        "cases": 4,
+        "result": "4P/0F"
+      },
+      "spare-io-record": {
+        "status": "verified",
+        "cases": 4,
+        "result": "4P/0F"
+      },
+      "spare-item": {
+        "status": "verified",
+        "cases": 6,
+        "result": "6P/0F"
+      }
+    },
+    "环保危废": {
+      "hazard-in-order": {
+        "status": "no_tests",
+        "cases": 0
+      },
+      "hazard-out-order": {
+        "status": "no_tests",
+        "cases": 0
+      },
+      "hazard-stock": {
+        "status": "verified",
+        "cases": 4,
+        "result": "4P/0F"
+      },
+      "hazard-io-record": {
+        "status": "verified",
+        "cases": 3,
+        "result": "3P/0F"
+      },
+      "hazard-item": {
+        "status": "verified",
+        "cases": 6,
+        "result": "6P/0F"
+      }
+    },
+    "三剂消耗": {
+      "reagent-item": {
+        "status": "verified",
+        "cases": 6,
+        "result": "6P/0F"
+      },
+      "reagent-fill": {
+        "status": "verified",
+        "cases": 6,
+        "result": "6P/0F"
+      }
+    }
+  },
+  "next_steps": [
+    "1. 补 hazard-in-order + hazard-out-order 测试脚本（当前 0 用例）",
+    "2. Phase 1: PAGE_CONTEXT 覆盖从 6/16 扩展到 16/16",
+    "3. Phase 2.5: TEST_CASES.md 全面补充",
+    "4. Phase 8: 生成 TEST_SUMMARY.md"
+  ]
+}

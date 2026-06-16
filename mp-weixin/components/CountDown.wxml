@@ -1,0 +1,1 @@
+<view class="{{['countdown', 'data-v-cb882cfe', c]}}"><wd-icon wx:if="{{a}}" class="data-v-cb882cfe" u-i="cb882cfe-0" bind:__l="__l" u-p="{{a}}"/><text class="countdown-text data-v-cb882cfe">{{b}}</text></view>

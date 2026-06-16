@@ -1,0 +1,56 @@
+{
+  "allTabsAnywhere": [
+    {
+      "active": true,
+      "id": "tab-1",
+      "text": "未读(5)"
+    },
+    {
+      "active": false,
+      "id": "tab-2",
+      "text": "已读(45)"
+    },
+    {
+      "active": true,
+      "id": "tab-operations",
+      "text": "PC操作权限"
+    },
+    {
+      "active": false,
+      "id": "tab-miniappOperations",
+      "text": "小程序操作权限"
+    },
+    {
+      "active": false,
+      "id": "tab-dataScope",
+      "text": "数据权限"
+    }
+  ],
+  "containers": [
+    {
+      "hasTabs": 3,
+      "hasTree": 0,
+      "height": 698,
+      "index": 0,
+      "selector": "el-dialog",
+      "title": "分配PC操作权限",
+      "visible": true,
+      "width": 800
+    }
+  ],
+  "footerButtons": [
+    {
+      "primary": true,
+      "text": "确 定"
+    },
+    {
+      "primary": false,
+      "text": "取 消"
+    }
+  ],
+  "radiosInActivePane": [],
+  "treeInfo": {
+    "count": 0,
+    "nodes": []
+  }
+}

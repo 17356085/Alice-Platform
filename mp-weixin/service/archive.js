@@ -1,0 +1,1 @@
+"use strict";const t=require("../utils/http.js");exports.getMyTrainingPlanProgress=function(){return t.http.get("/api/personnel/training/plan/progress/my")},exports.getPlanCourses=function(n){return t.http.get(`/api/personnel/training/plan/course/list/${n}`)};

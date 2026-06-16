@@ -1,0 +1,305 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:14"
+
+meta:
+  module: "lab"
+  page_name: "WaterReport"
+  page_slug: "water-report"
+  page_url: "/lab/water-report"
+  vue_components:
+    - component: el-date-picker
+      count: 2
+      risk_flags: []
+    - component: el-select
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 4
+      risk_flags: []
+    - component: report-table  # 自定义组件
+      count: 1
+      risk_flags: ["自定义组件", "无标准el-table特性"]
+    - component: el-dialog
+      count: 1
+      risk_flags: []
+    - component: el-form
+      count: 1
+      risk_flags: []
+    - component: el-input
+      count: 5  # 检验员、复核员、日期（可能用Picker）、取样时间、取样位置（可能用Select）
+      risk_flags: []
+    - component: el-form-item
+      count: 5
+      risk_flags: []
+
+elements:
+  - name: "开始日期"
+    selector: "input[placeholder='开始日期']"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "结束日期"
+    selector: "input[placeholder='结束日期']"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "下拉筛选"
+    selector: ".search-area .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "假定筛选区域有class search-area"
+    risk_level: medium
+    risk_reason: "未明确label或placeholder，需在元素映射时确认"
+
+  - name: "查询按钮"
+    selector: "//button[contains(text(),'查询')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "相对XPath"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "重置按钮"
+    selector: "//button[contains(text(),'重置')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "相对XPath"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "新增按钮"
+    selector: "//button[contains(text(),'新增')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "相对XPath"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "导出按钮"
+    selector: "//button[contains(text(),'导出')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "相对XPath"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "报告表格"
+    selector: "report-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: report-table
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "自定义组件，无标准el-table类名"
+    risk_level: high
+    risk_reason: "自定义组件可能没有标准表格的行列选择器"
+
+  - name: "新增弹窗-检验员"
+    selector: "//div[contains(@class,'el-dialog')]//label[contains(text(),'检验员')]/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "相对XPath，从label到input"
+    risk_level: medium
+    risk_reason: "若label结构变化需调整"
+
+  - name: "新增弹窗-复核员"
+    selector: "//div[contains(@class,'el-dialog')]//label[contains(text(),'复核员')]/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: ""
+
+  - name: "新增弹窗-日期"
+    selector: "//div[contains(@class,'el-dialog')]//label[contains(text(),'日期')]/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: ""
+
+  - name: "新增弹窗-取样时间"
+    selector: "//div[contains(@class,'el-dialog')]//label[contains(text(),'取样时间')]/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: ""
+
+  - name: "新增弹窗-取样位置"
+    selector: "//div[contains(@class,'el-dialog')]//label[contains(text(),'取样位置')]/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: select  # 实际可能为el-select
+    el_component: el-select
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "若为下拉框则用el-select定位"
+    risk_level: medium
+    risk_reason: "不确定控件类型"
+
+  - name: "新增弹窗-水质指标"
+    selector: "//div[contains(@class,'el-dialog')]//label[contains(text(),'水质指标')]/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "假设为文本输入"
+    risk_level: medium
+    risk_reason: "可能是多个输入框，需细化"
+
+  - name: "新增弹窗-保存按钮"
+    selector: "//div[contains(@class,'el-dialog')]//button[contains(text(),'保存')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "新增弹窗-取消按钮"
+    selector: "//div[contains(@class,'el-dialog')]//button[contains(text(),'取消')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: ""
+
+  - name: "取样位置Tab栏"
+    selector: ".el-tabs__item"
+    selector_type: CSS_SELECTOR
+    element_type: tab
+    el_component: el-tabs
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "可能存在多个Tab，需索引或文本定位"
+    risk_level: medium
+    risk_reason: "Tab内容动态，需确认文本"
+
+test_scenarios:
+  - id: TC-LW-001
+    title: "页面正常加载"
+    priority: P0
+    type: smoke
+    preconditions: ["登录admin"]
+    steps_summary: "导航到水质分析报告单页面，等待渲染完成"
+    expected: "取样位置Tab栏可见、开始/结束日期可见、新增/导出按钮可见"
+    relates_to_elements: ["开始日期", "结束日期", "新增按钮", "导出按钮", "取样位置Tab栏"]
+
+  - id: TC-LW-002
+    title: "切换取样位置"
+    priority: P1
+    type: positive
+    preconditions: ["TC-LW-001通过"]
+    steps_summary: "点击第二个取样位置Tab，等待表格刷新"
+    expected: "Tab高亮切换，表格数据更新"
+    relates_to_elements: ["取样位置Tab栏", "报告表格"]
+
+  - id: TC-LW-010
+    title: "新增报告单-合法数据"
+    priority: P0
+    type: positive
+    preconditions: ["TC-LW-001通过"]
+    steps_summary: "点击新增，填写检验员、复核员、水质指标(pH,COD,氨氮)，保存"
+    expected: "弹窗关闭、toast'保存成功'、表格新增一条记录"
+    relates_to_elements: ["新增按钮", "新增弹窗-检验员", "新增弹窗-复核员", "新增弹窗-水质指标", "新增弹窗-保存按钮", "报告表格"]
+
+  - id: TC-LW-011
+    title: "新增-必填校验"
+    priority: P1
+    type: negative
+    preconditions: []
+    steps_summary: "点击新增，不填检验员和复核员，直接保存"
+    expected: "检验员/复核员显示必填校验提示"
+    relates_to_elements: ["新增弹窗-检验员", "新增弹窗-复核员", "新增弹窗-保存按钮"]
+
+  - id: TC-LW-012
+    title: "新增-指标边界值"
+    priority: P2
+    type: boundary
+    preconditions: []
+    steps_summary: "点击新增，pH填-1，保存"
+    expected: "校验提示'pH值范围为0-14'"
+    relates_to_elements: ["新增弹窗-水质指标", "新增弹窗-保存按钮"]
+
+  - id: TC-LW-020
+    title: "日期范围搜索"
+    priority: P1
+    type: positive
+    preconditions: []
+    steps_summary: "设置开始日期2026-06-01，结束日期2026-06-12，点击查询"
+    expected: "表格仅显示该日期范围内的报告单"
+    relates_to_elements: ["开始日期", "结束日期", "查询按钮", "报告表格"]
+
+page_behaviors:
+  - behavior: "页面初始加载完成"
+    triggers: ["导航进入页面", "刷新页面"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable + 等待取样位置Tab可见"
+
+  - behavior: "取样位置切换后表格刷新"
+    triggers: ["点击取样位置Tab"]
+    wait_required: true
+    wait_suggestion: "wait_loading_gone（自定义表格加载指示器）"
+
+  - behavior: "新增弹窗表单校验"
+    triggers: ["点击保存但表单未通过校验"]
+    wait_required: false
+    wait_suggestion: "无需等待"
+
+  - behavior: "新增成功后表格数据更新"
+    triggers: ["保存成功"]
+    wait_required: true
+    wait_suggestion: "wait_loading_gone（表格重新加载）"
+
+  - behavior: "日期搜索后表格刷新"
+    triggers: ["点击查询"]
+    wait_required: true
+    wait_suggestion: "wait_loading_gone"

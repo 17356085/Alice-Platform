@@ -1,0 +1,179 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/index",
+    "pages/mine/index",
+    "pages/mine/about",
+    "pages/mine/profile",
+    "pages/approval/index",
+    "pages/approval/detail",
+    "pages/alarm/index",
+    "pages/alarm/detail",
+    "pages/demo/icon"
+  ],
+  "subPackages": [
+    {
+      "root": "pages-sub/study",
+      "pages": [
+        "index",
+        "plan-detail",
+        "study",
+        "exam",
+        "answer",
+        "result",
+        "practice",
+        "practice-create",
+        "practice-exam",
+        "practice-result",
+        "practice-detail",
+        "wrong",
+        "wrong-detail",
+        "webview-preview",
+        "safety"
+      ]
+    },
+    {
+      "root": "pages-sub/legal",
+      "pages": [
+        "user-agreement",
+        "privacy-policy"
+      ]
+    },
+    {
+      "root": "pages-sub/feedback",
+      "pages": [
+        "index"
+      ]
+    },
+    {
+      "root": "pages-sub/report",
+      "pages": [
+        "index",
+        "production",
+        "input",
+        "adjust"
+      ]
+    },
+    {
+      "root": "pages-sub/person",
+      "pages": [
+        "index",
+        "profile"
+      ]
+    },
+    {
+      "root": "pages-sub/tank",
+      "pages": [
+        "index",
+        "detail"
+      ]
+    },
+    {
+      "root": "pages-sub/equipment",
+      "pages": [
+        "index",
+        "detail"
+      ]
+    },
+    {
+      "root": "pages-sub/sensor",
+      "pages": [
+        "index",
+        "detail"
+      ]
+    },
+    {
+      "root": "pages-sub/camera",
+      "pages": [
+        "index",
+        "detail"
+      ]
+    },
+    {
+      "root": "pages-sub/settings",
+      "pages": [
+        "message-settings",
+        "security-settings",
+        "device-manage"
+      ]
+    },
+    {
+      "root": "pages-sub/message",
+      "pages": [
+        "index",
+        "detail"
+      ]
+    },
+    {
+      "root": "pages-sub/lab",
+      "pages": [
+        "index",
+        "history"
+      ]
+    },
+    {
+      "root": "pages-sub/sale",
+      "pages": [
+        "index",
+        "add"
+      ]
+    },
+    {
+      "root": "pages-sub/my-application",
+      "pages": [
+        "index",
+        "create",
+        "detail"
+      ]
+    },
+    {
+      "root": "pages-sub/visitor",
+      "pages": [
+        "index",
+        "progress",
+        "detail"
+      ]
+    }
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "中集智能互联",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#999999",
+    "selectedColor": "#1890ff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tab/home.png",
+        "selectedIconPath": "static/tab/home-active.png"
+      },
+      {
+        "pagePath": "pages/approval/index",
+        "text": "审批",
+        "iconPath": "static/tab/approval.png",
+        "selectedIconPath": "static/tab/approval-active.png"
+      },
+      {
+        "pagePath": "pages/alarm/index",
+        "text": "报警",
+        "iconPath": "static/tab/alarm.png",
+        "selectedIconPath": "static/tab/alarm-active.png"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "static/tab/user.png",
+        "selectedIconPath": "static/tab/user-active.png"
+      }
+    ]
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "usingComponents": {}
+}

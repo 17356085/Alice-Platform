@@ -1,0 +1,199 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:22"
+
+meta:
+  module: "sales"
+  page_name: "Contract"
+  page_slug: "contract"
+  page_url: "/sales/contract"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 1
+      risk_flags: []
+    - component: el-select
+      count: 4
+      risk_flags: []
+    - component: el-date-picker
+      count: 1
+      risk_flags: []
+    - component: el-input
+      count: 2
+      risk_flags: []
+    - component: el-button
+      count: 5
+      risk_flags: []
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-form
+      count: 1
+      risk_flags: []
+    - component: el-tag
+      count: 1
+      risk_flags: []
+    - component: el-progress
+      count: 1
+      risk_flags: []
+    - component: el-upload
+      count: 1
+      risk_flags: []
+
+elements:
+  - name: "search_contract_id_input"
+    selector: "//div[contains(@class,'search-form')]//input[contains(@placeholder,'合同编号')]"
+    selector_type: XPATH_RELATIVE
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "合同编号搜索输入框"
+    risk_level: low
+    risk_reason: "基础输入框，风险低"
+
+  - name: "search_customer_select"
+    selector: "//div[contains(@class,'search-form')]//div[contains(@class,'el-select')]//input[contains(@placeholder,'客户')]"
+    selector_type: XPATH_RELATIVE
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "客户下拉搜索条件"
+    risk_level: low
+    risk_reason: "标准下拉，风险低"
+
+  - name: "search_status_select"
+    selector: "//div[contains(@class,'search-form')]//div[contains(@class,'el-select')]//input[contains(@placeholder,'状态')]"
+    selector_type: XPATH_RELATIVE
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "状态下拉搜索条件"
+    risk_level: low
+    risk_reason: "标准下拉，风险低"
+
+  - name: "search_date_range"
+    selector: "//div[contains(@class,'search-form')]//div[contains(@class,'el-date-picker')]"
+    selector_type: XPATH_RELATIVE
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "日期范围选择器（开始/结束）"
+    risk_level: low
+    risk_reason: "日期组件，风险低"
+
+  - name: "search_button"
+    selector: "//div[contains(@class,'search-form')]//button[contains(@class,'el-button--primary') and .//text()='搜索']"
+    selector_type: XPATH_RELATIVE
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "搜索按钮"
+    risk_level: low
+    risk_reason: "触发刷新，wait_loading_gone确保数据加载"
+
+  - name: "reset_button"
+    selector: "//div[contains(@class,'search-form')]//button[contains(text(),'重置')]"
+    selector_type: XPATH_RELATIVE
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "重置搜索条件按钮"
+    risk_level: low
+    risk_reason: "重置不触发额外加载，wait_vue_stable足够"
+
+  - name: "contract_table"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "合同列表示例，包含8列表头"
+    risk_level: medium
+    risk_reason: "表格动态加载，需等待数据就绪"
+
+  - name: "add_contract_button"
+    selector: "//button[contains(@class,'el-button--primary') and .//text()='新增合同']"
+    selector_type: XPATH_RELATIVE
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "顶部新增合同按钮"
+    risk_level: low
+    risk_reason: "权限控制可能隐藏，但UI简单"
+
+  - name: "edit_button_in_row"
+    selector: "//div[contains(@class,'el-table__row')]//button[contains(@class,'edit-button')]"
+    selector_type: XPATH_RELATIVE
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格行内编辑按钮（需识别具体行）"
+    risk_level: medium
+    risk_reason: "依赖表格动态行，建议通过索引定位"
+
+  - name: "delete_button_in_row"
+    selector: "//div[contains(@class,'el-table__row')]//button[contains(@class,'delete-button')]"
+    selector_type: XPATH_RELATIVE
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格行内删除按钮"
+    risk_level: medium
+    risk_reason: "删除可能触发确认弹窗"
+
+  - name: "detail_button_in_row"
+    selector: "//div[contains(@class,'el-table__row')]//button[contains(@class,'detail-button')]"
+    selector_type: XPATH_RELATIVE
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "查看详情按钮"
+    risk_level: low
+
+  - name: "approve_button_in_row"
+    selector: "//div[contains(@class,'el-table__row')]//button[contains(@class,'approve-button')]"
+    selector_type: XPATH_RELATIVE
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "审批按钮（仅针对指定状态）"
+    risk_level: medium
+    risk_reason: "状态限制，可能导致按钮不可用"
+
+  - name: "pagination"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "底部分页器"
+    risk_level: low
+    risk_reason: "标准分页组件"
+
+  - name: "contract_dialog"
+    selector: ".el-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_loading_gone
+    locator_notes: "新增/编辑合同弹窗"
+    risk_level: medium
+   

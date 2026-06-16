@@ -1,0 +1,273 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:10"
+
+meta:
+  module: "equipment"
+  page_name: "KeyParam"
+  page_slug: "key-param"
+  page_url: "/equipment/key-param"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 3
+      risk_flags: []
+    - component: el-input
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 4
+      risk_flags: []
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-card
+      count: 4
+      risk_flags: []
+
+elements:
+  - name: "搜索输入框"
+    selector: ".search-input input"
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "根据页面实际class调整"
+    risk_level: low
+    risk_reason: "单列输入，无复杂行为"
+
+  - name: "重置按钮"
+    selector: "//button[contains(.,'重置')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "可能带有danger类型样式"
+    risk_level: low
+    risk_reason: "文本定位稳定，但需确保唯一"
+
+  - name: "统计卡片-总数"
+    selector: ".stat-card.total .value"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-card
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "若结构变化需调整"
+    risk_level: medium
+    risk_reason: "依赖具体class命名"
+
+  - name: "统计卡片-正常"
+    selector: ".stat-card.normal .value"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-card
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: "依赖具体class命名"
+
+  - name: "统计卡片-预警"
+    selector: ".stat-card.warning .value"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-card
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: "依赖具体class命名"
+
+  - name: "统计卡片-报警"
+    selector: ".stat-card.alarm .value"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-card
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: "依赖具体class命名"
+
+  - name: "设备参数表格"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: "标准Element Plus表格"
+
+  - name: "分页器"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: "标准分页组件"
+
+  - name: "查看详情按钮"
+    selector: "//button[contains(text(),'查看')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "行内操作按钮，可能有多行匹配，需结合行上下文"
+    risk_level: medium
+    risk_reason: "可能匹配多个，需确保点击目标行"
+
+  - name: "编辑按钮"
+    selector: "//button[contains(text(),'编辑')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: "可能匹配多个，需确保点击目标行"
+
+  - name: "删除按钮"
+    selector: "//button[contains(text(),'删除')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: "可能匹配多个，需确保点击目标行；触发确认框"
+
+  - name: "详情弹窗"
+    selector: ".detail-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "查看详情弹窗"
+    risk_level: low
+    risk_reason: "标准弹窗，等待可见即可"
+
+  - name: "编辑弹窗"
+    selector: ".edit-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "编辑弹窗，可能包含表单"
+    risk_level: medium
+    risk_reason: "弹窗内表单字段需额外定位"
+
+  - name: "删除确认弹窗"
+    selector: ".el-message-box"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-message-box
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "确认删除操作"
+    risk_level: low
+    risk_reason: "标准确认框，确认按钮需定位"
+
+test_scenarios:
+  - id: TC-KP-001
+    title: "页面正常加载"
+    priority: P0
+    type: smoke
+    preconditions: []
+    steps_summary: "navigate→等待表格+统计卡片出现"
+    expected: "统计卡片/表格/分页可见"
+    relates_to_elements:
+      - "统计卡片-总数"
+      - "设备参数表格"
+      - "分页器"
+
+  - id: TC-KP-002
+    title: "统计卡片数据校验"
+    priority: P0
+    type: positive
+    preconditions: []
+    steps_summary: "读取总数/正常/预警/报警四卡片数值"
+    expected: "数值≥0且总数=正常+预警+报警"
+    relates_to_elements:
+      - "统计卡片-总数"
+      - "统计卡片-正常"
+      - "统计卡片-预警"
+      - "统计卡片-报警"
+
+  - id: TC-KP-003
+    title: "表格表头完整性"
+    priority: P0
+    type: positive
+    preconditions: []
+    steps_summary: "获取表头列表与9个预期列对比"
+    expected: "9列全部匹配"
+    relates_to_elements:
+      - "设备参数表格"
+
+  - id: TC-KP-004
+    title: "关键词搜索"
+    priority: P1
+    type: positive
+    preconditions: ["页面已加载并有数据"]
+    steps_summary: "在搜索框输入关键词→等待刷新"
+    expected: "表格过滤显示匹配数据"
+    relates_to_elements:
+      - "搜索输入框"
+      - "设备参数表格"
+
+  - id: TC-KP-005
+    title: "重置按钮"
+    priority: P1
+    type: positive
+    preconditions: ["已执行搜索"]
+    steps_summary: "点击重置按钮"
+    expected: "表格恢复全量数据"
+    relates_to_elements:
+      - "重置按钮"
+      - "设备参数表格"
+
+  - id: TC-KP-006
+    title: "分页-翻页"
+    priority: P1
+    type: positive
+    preconditions: ["数据量超过一页"]
+    steps_summary: "点击下一页→校验行变化"
+    expected: "翻页后数据变化"
+    relates_to_elements:
+      - "分页器"
+      - "设备参数表格"
+
+  - id: TC-KP-007
+    title: "查看详情弹窗"
+    priority: P1
+    type: positive
+    preconditions: []
+    steps_summary: "点击行内'查看'按钮"
+    expected: "弹窗出现，信息完整"
+    relates_to_elements:
+      - "查看详情按钮"
+      - "详情弹窗"
+
+  - id: TC-KP-008
+    title: "编辑弹窗-数据回显"
+    priority: P1
+    type: positive
+    preconditions: []
+    steps_summary: "点击编辑按钮→校验弹窗字段值"
+    expected:

@@ -1,0 +1,310 @@
+# Agent Definitions — 单一事实源
+#
+# 这是所有 Agent 的唯一定义来源。
+# 其他文件从此文件派生:
+#   - aitest/agent_runner.py  → AGENT_SKILL_MAP 从此文件加载
+#   - .claude/skills/<name>/SKILL.md → 从此文件生成 Claude Code 适配层
+#   - governance/agents/<name>.md → 从此文件生成人类可读文档
+#
+# 修改 Agent 行为时，只修改此文件。
+# 运行 python -m aitest.check_agent_drift 检测派生文件是否过期。
+
+version: "2.0"
+last_updated: "2026-06-12"
+
+agents:
+  # ═══════════════════════════════════════════════════════
+  # ① Project Agent — Phase 0
+  # ═══════════════════════════════════════════════════════
+  project-agent:
+    name: 项目 Agent
+    category: project
+    phase: "0"
+    description: 项目初始化、上下文管理、文档审计、目录卫生
+    system_prompt_role: 资深测试项目架构师
+    trigger_keywords:
+      - 初始化项目
+      - 更新上下文
+      - 上次做到哪了
+      - 卫生检查
+      - 目录清理
+    skills:
+      - project/project-context-manager
+      - project/context-sync
+      - project/hygiene-check
+      - knowledge/completeness-check
+    primary_skill_owner_of:
+      - completeness-check
+      - hygiene-check
+    boundaries:
+      - 不执行测试
+      - 不生成自动化代码
+      - 不分析 Bug
+    context_files:
+      - project-profile
+      - base-api-reference
+
+  # ═══════════════════════════════════════════════════════
+  # ② Requirement Agent — Phase 0.5~0.8
+  # ═══════════════════════════════════════════════════════
+  requirement-agent:
+    name: 需求 Agent
+    category: requirements
+    phase: "0.5~0.8"
+    description: 模块建模、需求分析
+    system_prompt_role: 资深需求分析师 + 测试架构师
+    trigger_keywords:
+      - 分析XX模块
+      - 模块建模
+      - 需求分析
+    skills:
+      - requirements/module-modeling
+      - requirements/requirement-analysis
+    boundaries:
+      - 不涉及页面细节
+      - 不生成自动化代码
+      - 不设计测试用例
+    context_files:
+      - project-profile
+
+  # ═══════════════════════════════════════════════════════
+  # ③ Test Design Agent — Phase 1~2.5
+  # ═══════════════════════════════════════════════════════
+  test-design-agent:
+    name: 测试设计 Agent
+    category: test-design
+    phase: "1~2.5"
+    description: 页面分析、风险建模、测试用例设计
+    system_prompt_role: 资深测试分析师 + 质量风险专家
+    trigger_keywords:
+      - 看看.*页面.*元素
+      - 设计测试用例
+      - 风险建模
+      - 测试设计
+    skills:
+      - test-design/page-analysis       # P1-2: page-interface-generator 已合并为 page-analysis 的后处理
+      - test-design/risk-modeling
+      - test-design/testcase-design
+      - test-design/test-data-generation
+      - test-design/api-testing
+      - test-design/miniapp-testing
+    output_artifacts:
+      - PAGE_CONTEXT.md
+      - RISK_MODEL.md
+      - TEST_DESIGN.md
+      - TEST_CASES.md
+      - PAGE_INTERFACE.yaml             # page-analysis 自动生成
+    boundaries:
+      - 不写代码
+      - 不执行测试
+      - 不分析 Bug
+    context_files:
+      - project-profile
+
+  # ═══════════════════════════════════════════════════════
+  # ④ Automation Agent — Phase 3~4
+  # ═══════════════════════════════════════════════════════
+  automation-agent:
+    name: 自动化 Agent
+    category: automation
+    phase: "3~4"
+    description: 技术分析、定位器设计、自动化策略、PageObject/测试脚本生成、代码合规检查、失败自动修复
+    system_prompt_role: 资深 Selenium + pytest 自动化开发专家
+    trigger_keywords:
+      - 这个按钮.*定位
+      - 生成.*PageObject
+      - 写.*自动化.*脚本
+      - 修复.*自动化.*代码
+    skills:
+      - automation/tech-analysis
+      - automation/auto-strategy
+      - automation/page-object-generator
+      - automation/test-script-generator      # P1-2: conftest-generator 已合并为 test-script-generator 的附带产出
+      - automation/code-consistency-checker
+    output_artifacts:
+      - TECH_ANALYSIS.md
+      - AUTO_STRATEGY.md
+      - PageObject .py
+      - test_*.py
+      - conftest.py                            # test-script-generator 附带生成
+    core_rules:
+      - "先分析后编码：TECH_ANALYSIS → AUTO_STRATEGY → 代码生成"
+      - "定位器值必须来自真实 HTML，不得编造"
+      - "生成后必执行自检：grep 继承/绝对XPath/sleep/print"
+    boundaries:
+      - 不设计测试用例
+      - 不分析页面元素清单
+      - 不诊断失败根因
+      - 不执行测试
+    context_files:
+      - base-api-reference
+      - coding-standards
+      - element-plus-pitfalls
+    modes:
+      - generate:
+          description: 完整生成 TECH_ANALYSIS + AUTO_STRATEGY + PageObject + test + conftest + 合规检查
+          requires_page: true
+      - fix:
+          description: 增量修复定位器/等待/选择器/断言/代码错误，不修改测试逻辑
+          requires_page: false
+
+  # ═══════════════════════════════════════════════════════
+  # ⑤ Execution Agent — Phase 4.5~7
+  # ═══════════════════════════════════════════════════════
+  execution-agent:
+    name: 执行 Agent
+    category: execution
+    phase: "4.5~7"
+    description: 测试执行、Allure 报告收集
+    system_prompt_role: 资深测试执行工程师
+    trigger_keywords:
+      - 运行.*测试
+      - 执行.*模块
+      - 跑.*用例
+    skills:
+      - execution/allure-report-analyzer
+    boundaries:
+      - 不修改代码
+      - 不分析失败原因
+      - 不生成报告
+    context_files:
+      - test-data-policy
+
+  # ═══════════════════════════════════════════════════════
+  # ⑥ Bug Analysis Agent — Phase 4.5~7
+  # ═══════════════════════════════════════════════════════
+  bug-analysis-agent:
+    name: Bug 分析 Agent
+    category: diagnosis
+    phase: "4.5~7"
+    description: 失败根因分析、CI 诊断、批量失败分类
+    system_prompt_role: 资深测试诊断专家 + CI 工程师
+    trigger_keywords:
+      - 这个用例.*挂
+      - 失败.*分类
+      - Jenkins.*失败
+      - CI.*诊断
+    skills:
+      - diagnosis/bug-analysis
+      - diagnosis/ci-pipeline-analysis
+      - diagnosis/jenkinsfile-generator
+    boundaries:
+      - 不修改代码
+      - 不执行测试
+    context_files:
+      - element-plus-pitfalls
+    modes:
+      - single:
+          description: 分析单个失败用例
+      - batch:
+          description: 批量分类多个失败用例，区分可自动修复 vs 非代码问题
+
+  # ═══════════════════════════════════════════════════════
+  # ⑦ Report Agent — Phase 8~9
+  # ═══════════════════════════════════════════════════════
+  report-agent:
+    name: 报告 Agent
+    category: reporting
+    phase: "8~9"
+    description: 测试总结、进度报告、Excel 导出
+    system_prompt_role: 资深测试报告分析师
+    trigger_keywords:
+      - 生成.*报告
+      - 导出.*Excel
+      - 测试总结
+      - 进度.*汇报
+    skills:
+      - reporting/report-generator
+      - execution/excel-exporter
+    primary_skill_owner_of:
+      - excel-exporter
+    boundaries:
+      - 不执行测试
+      - 不分析 Bug
+    context_files:
+      - project-profile
+    modes:
+      - summary:
+          description: 生成 TEST_SUMMARY.md
+      - progress:
+          description: 生成进度报告
+      - excel:
+          description: 导出综合 Excel（TEST_CASES + Allure 结果合并）
+
+  # ═══════════════════════════════════════════════════════
+  # ⑧ Knowledge Agent — 横向贯穿
+  # ═══════════════════════════════════════════════════════
+  knowledge-agent:
+    name: 知识 Agent
+    category: knowledge
+    phase: "横向贯穿"
+    description: 知识提取、沉淀、审计。唯一可跨 Agent 写入知识库的 Agent。
+    system_prompt_role: 资深测试知识管理专家
+    trigger_keywords:
+      - 沉淀经验
+      - Bug.*别人.*遇到
+      - 知识.*提取
+      - 知识.*审计
+    skills:
+      - knowledge/knowledge-manager
+    secondary_skill_owner_of:
+      - completeness-check
+    boundaries:
+      - 是唯一可跨 Agent 写入知识库的 Agent
+      - 不执行测试
+      - 不生成代码
+    context_files:
+      - element-plus-pitfalls
+    modes:
+      - extract:
+          description: 从 Bug/Agent 产出中提取知识模式
+      - precipitate:
+          description: 测试周期结束后的批量知识沉淀
+
+  # ═══════════════════════════════════════════════════════
+  # Full SOP — 编排器（非独立 Agent）
+  # ═══════════════════════════════════════════════════════
+  full-sop:
+    name: 全流程编排器
+    category: orchestrator
+    description: 端到端 SOP 编排，按规范 Phase 顺序自动串联 8 个 Agent。Phase 名称与 aitest/graphs/state.py CANONICAL_PHASES 一致。
+    is_orchestrator: true
+    phases:
+      - phase: Preflight
+        agent: null
+        canonical: null
+        description: 前置检查 + 断点恢复（隐式阶段，不在 CANONICAL_PHASES 中）
+      - phase: Project Init
+        agent: project-agent
+        condition: PROJECT_CONTEXT 缺失时
+      - phase: Requirement
+        agent: requirement-agent
+        note: 旧名 "Module Modeling"
+      - phase: Test Design
+        agent: test-design-agent
+        per_page: true
+      - phase: Automation
+        agent: automation-agent
+        per_page: true
+      - phase: Execute & Debug
+        agent: execution-agent
+        on_failure: bug-analysis-agent → automation-agent(fix)
+        max_rounds: 3
+      - phase: Bug Analysis
+        agent: bug-analysis-agent
+        condition: execution_failed
+        max_rounds: 3
+      - phase: Data Sanitization
+        agent: null
+        description: scan_and_clean.py --force 离线扫描清理残留数据
+      - phase: Report
+        agent: report-agent
+      - phase: Knowledge
+        agent: knowledge-agent
+    modes:
+      - full
+      - resume
+      - status
+      - from-requirement
+      - from-test-design
+      - from-automation

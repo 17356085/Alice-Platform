@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "摄像头监控",
+  "usingComponents": {
+    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
+    "wd-loading": "../../node-modules/wot-design-uni/components/wd-loading/wd-loading",
+    "empty": "../../components/Empty"
+  }
+}

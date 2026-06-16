@@ -1,0 +1,98 @@
+{
+  "module": "workflow",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation",
+    "Bug Analysis",
+    "Report"
+  ],
+  "failed_phases": [],
+  "pages_processed": [],
+  "run_id": "",
+  "updated_at": "2026-06-15",
+  "engine": "langgraph",
+  "extracted_from": "system-module",
+  "sub_pages": {
+    "approval-chain": {
+      "status": "completed",
+      "route": "#/system/workflow/approval-chain",
+      "type": "工作流-CRUD配置",
+      "code": {
+        "page_object": "page/workflow_page/ApprovalChainPage.py",
+        "test_script": "script/workflow/test_approval_chain.py (9 cases)"
+      },
+      "test_results": "8P/1F/0S (2026-06-12 — 3轮修复后稳定)",
+      "notes": "1F为前序测试数据被删导致（非代码缺陷）"
+    },
+    "approval-todo": {
+      "status": "completed",
+      "route": "#/system/workflow/todo",
+      "type": "工作流-列表页",
+      "code": {
+        "page_object": "page/workflow_page/ApprovalTodoPage.py",
+        "test_script": "script/workflow/test_approval_todo.py (8 cases)"
+      },
+      "test_results": "6P/0F/2S (2026-06-12 verified ✅)",
+      "skip_reasons": {
+        "search_by_status": "el-select无'审批中'选项",
+        "pagination": "只有一页数据"
+      }
+    },
+    "approval-history": {
+      "status": "completed",
+      "route": "#/system/workflow/history",
+      "type": "工作流-列表页",
+      "code": {
+        "page_object": "page/workflow_page/ApprovalHistoryPage.py",
+        "test_script": "script/workflow/test_approval_history.py (7 cases)"
+      },
+      "test_results": "6P/0F/1S (2026-06-12 verified ✅)",
+      "skip_reasons": {
+        "pagination": "只有一页数据"
+      }
+    },
+    "my-application": {
+      "status": "completed",
+      "route": "#/system/workflow/my-applications",
+      "type": "工作流-列表页",
+      "code": {
+        "page_object": "page/workflow_page/MyApplicationPage.py",
+        "test_script": "script/workflow/test_my_application.py (8 cases)"
+      },
+      "test_results": "5P/0F/3S (2026-06-12 verified ✅)",
+      "skip_reasons": {
+        "search_by_status": "el-select选项不匹配",
+        "revoke": "无'审批中'状态的数据",
+        "pagination": "数据不足分页"
+      }
+    },
+    "sap-push-log": {
+      "status": "completed",
+      "route": "#/system/workflow/sap-push-log",
+      "type": "工作流-日志页",
+      "code": {
+        "page_object": "page/workflow_page/SapPushLogPage.py",
+        "test_script": "script/workflow/test_sap_push_log.py (6 cases)"
+      },
+      "test_results": "4P/2F/0S (2026-06-12 — 全量回归偶发 click intercepted)",
+      "known_issues": ["element click intercepted 全量回归高发 (RM-WF-019)"]
+    },
+    "workflow-e2e": {
+      "status": "completed",
+      "type": "端到端",
+      "code": {
+        "test_script": "script/workflow/test_workflow_e2e.py (4 cases)"
+      },
+      "test_results": "4P/0F/0S (2026-06-13 verified ✅)",
+      "notes": "双浏览器: warehouse提交 → workflow审批 → 状态验证"
+    }
+  },
+  "governance_docs": {
+    "MODULE_CONTEXT": "governance/context/projects/web-automation/modules/workflow/MODULE_CONTEXT.md",
+    "RISK_MODEL": "governance/context/projects/web-automation/modules/workflow/RISK_MODEL.md",
+    "TEST_DESIGN": "governance/context/projects/web-automation/modules/workflow/TEST_DESIGN.md"
+  }
+}

@@ -1,0 +1,67 @@
+# PAGE_INTERFACE — tank/monitor (储罐监控)
+# 由 test-design-agent 在 Phase 1 生成, automation-agent 在 Phase 3-4 消费
+# 取代完整 PAGE_CONTEXT.md 读取, Token 节省 ~90% (2000→200)
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+
+meta:
+  module: tank
+  page_name: TankMonitor
+  page_slug: monitor
+  page_url: /tank/monitor
+  ui_framework: custom
+  vue_components: []
+
+elements:
+  - name: 储罐搜索输入框
+    selector: input.filter-input[placeholder*="储罐"]
+    selector_type: CSS_SELECTOR
+    element_type: input
+    interaction: input
+    wait_strategy: WebDriverWait 3s
+    risk_level: low
+
+  - name: 搜索按钮
+    selector: button.btn-primary:has-text("搜索")
+    selector_type: CSS_SELECTOR
+    element_type: button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    risk_level: low
+
+  - name: 储罐数据表格
+    selector: table.data-table
+    selector_type: CSS_SELECTOR
+    element_type: table
+    interaction: wait
+    wait_strategy: wait_vue_stable + WebDriverWait 10s
+    risk_level: medium
+    risk_reason: "自定义框架无 el-table 内置等待"
+
+  - name: 统计卡片-运行中
+    selector: .stat-card:has-text("运行中") .stat-value
+    selector_type: CSS_SELECTOR
+    element_type: other
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    risk_level: low
+
+  - name: 趋势图容器
+    selector: .chart-container canvas
+    selector_type: CSS_SELECTOR
+    element_type: other
+    interaction: wait
+    wait_strategy: WebDriverWait 15s
+    risk_level: high
+    risk_reason: "图表 JS 渲染异步，canvas/SVG 双模式需三级降级断言"
+
+page_behaviors:
+  - behavior: 实时数据轮询刷新
+    triggers: ["页面加载", "定时器触发"]
+    wait_required: false
+  - behavior: 图表异步渲染
+    triggers: ["页面加载", "切换储罐"]
+    wait_required: true
+    wait_suggestion: "等待 .chart-container canvas 或 svg 出现"
