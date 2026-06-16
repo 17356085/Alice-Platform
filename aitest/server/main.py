@@ -7,7 +7,9 @@
 启动后访问 http://localhost:8000/docs 查看交互式 API 文档。
 """
 import sys
+import os
 import asyncio
+from datetime import datetime
 
 # Windows: 用 SelectorEventLoop 替代 ProactorEventLoop，避免 SSE 断开时报
 # "Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)"
@@ -51,8 +53,65 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"[Governance] Subscriber activation failed: {e}")
 
+    # P2-ACTIVATION (2026-06-16): Dead Path — 审计未自动调度
+    # 后台 asyncio Task 周期性运行 State/SOP/Cost 审计
+    audit_interval = int(os.environ.get("AITEST_AUDIT_INTERVAL", "86400"))  # 默认 24h
+    _audit_stop = asyncio.Event()
+
+    async def _audit_scheduler():
+        """后台审计调度器 — 周期性运行全量审计并发射治理事件。"""
+        # 启动后等待 60s 再首次审计（让服务完全初始化）
+        await asyncio.sleep(60)
+        iteration = 0
+        from aitest.scheduled_audit import run_all_audits, discover_modules
+        while not _audit_stop.is_set():
+            iteration += 1
+            started = asyncio.get_event_loop().time()
+            print(f"[ScheduledAudit] #{iteration} starting — {datetime.now().strftime('%H:%M:%S')}")
+
+            try:
+                # 在线程池中运行审计（审计器包含阻塞 I/O）
+                modules = discover_modules()
+                results = await asyncio.to_thread(run_all_audits, modules)
+
+                state_drifts = sum(
+                    r.get("drift_count", 0)
+                    for r in results["state_audits"].values()
+                )
+                sop_violations = sum(
+                    r.get("violations", 0)
+                    for r in results["sop_audits"].values()
+                )
+                cost_info = results.get("cost_audit", {})
+                print(f"[ScheduledAudit] #{iteration} done — "
+                      f"State: {state_drifts} drifts, "
+                      f"SOP: {sop_violations} violations, "
+                      f"Cost: ${cost_info.get('total_cost', 0):.4f} "
+                      f"({asyncio.get_event_loop().time() - started:.1f}s)")
+            except Exception as e:
+                print(f"[ScheduledAudit] #{iteration} error: {e}")
+
+            # 等待下一次审计（支持提前取消）
+            try:
+                await asyncio.wait_for(_audit_stop.wait(), timeout=audit_interval)
+            except asyncio.TimeoutError:
+                pass  # 正常超时，继续下一次审计
+
+        print(f"[ScheduledAudit] Stopped. {iteration} iterations completed.")
+
+    _audit_task = asyncio.create_task(_audit_scheduler())
+    print(f"[Governance] Audit scheduler started — interval={audit_interval}s")
+
     yield
 
+    # ── Shutdown ──
+    _audit_stop.set()
+    _audit_task.cancel()
+    try:
+        await _audit_task
+    except asyncio.CancelledError:
+        pass
+    print("[Governance] Audit scheduler stopped.")
     runner.stop()
     print("[TaskRunner] Stopped.")
 

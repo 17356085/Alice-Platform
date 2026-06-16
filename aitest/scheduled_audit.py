@@ -126,7 +126,7 @@ def run_scheduled(interval: int = DEFAULT_INTERVAL, modules: list[str] = None):
 
             print(f"  State:  {state_drifts} drifts across {len(results['state_audits'])} modules")
             print(f"  SOP:    {sop_violations} violations across {len(results['sop_audits'])} modules")
-            print(f"  Cost:   {cost_alerts} alerts, \${results.get('cost_audit', {}).get('total_cost', 0):.4f}")
+            print(f"  Cost:   {cost_alerts} alerts, ${results.get('cost_audit', {}).get('total_cost', 0):.4f}")
             print(f"  Done in {time.time() - started:.1f}s\n")
 
             time.sleep(interval)
@@ -163,6 +163,6 @@ if __name__ == "__main__":
             print(f"State drifts: {sum(r.get('drift_count', 0) for r in results['state_audits'].values())}")
             print(f"SOP violations: {sum(r.get('violations', 0) for r in results['sop_audits'].values())}")
             cost = results.get("cost_audit", {})
-            print(f"Cost: \${cost.get('total_cost', 0):.4f}, {cost.get('alert_count', 0)} alerts")
+            print(f"Cost: ${cost.get('total_cost', 0):.4f}, {cost.get('alert_count', 0)} alerts")
     else:
         run_scheduled(interval=args.interval, modules=modules)
