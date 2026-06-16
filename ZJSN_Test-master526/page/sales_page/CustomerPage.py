@@ -813,24 +813,33 @@ class CustomerPage(BasePage):
             )
         return [(c.text or "").strip() for c in cells if c.is_displayed()]
 
-    def is_row_present(self, identifier):
+    def is_row_present(self, identifier, timeout=10):
         """检查表格中是否存在指定标识的行
+
+        轮询重试以处理 Vue 异步数据刷新竞态。
 
         Args:
             identifier: 客户编码或客户名称（部分匹配）
+            timeout: 轮询超时秒数
 
         Returns:
             bool: 是否存在
         """
         self._wait_table_ready()
-        try:
-            xpath = (
-                f'//tr[contains(@class,"el-table__row")]'
-                f'//td[contains(normalize-space(.),"{identifier}")]'
-            )
-            return self.is_present((By.XPATH, xpath), timeout=3)
-        except Exception:
-            return False
+        xpath = (
+            f'//tr[contains(@class,"el-table__row")]'
+            f'//td[contains(normalize-space(.),"{identifier}")]'
+        )
+        import time as _time
+        deadline = _time.time() + timeout
+        while _time.time() < deadline:
+            try:
+                if self.is_present((By.XPATH, xpath), timeout=2):
+                    return True
+            except Exception:
+                pass
+            _time.sleep(0.5)
+        return False
 
     def get_customer_status(self, identifier):
         """获取指定行的合作状态文本

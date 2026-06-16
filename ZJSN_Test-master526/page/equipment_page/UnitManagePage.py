@@ -463,18 +463,27 @@ class UnitManagePage(BasePage):
         self._wait_table_ready()
         return self.is_visible(self.TABLE_EMPTY, timeout=2)
 
-    def is_row_present(self, text):
+    def is_row_present(self, text, timeout=10):
         """判断表格中是否存在包含指定文本的行
+
+        轮询重试以处理 Vue 异步数据刷新（AJAX 重新拉取表格数据）导致的竞态。
 
         Args:
             text: 单元格中的任意文本（如装置名称、装置编号）
+            timeout: 轮询超时秒数
         """
         self._wait_table_ready()
         xpath = (
             f'//tr[contains(@class,"el-table__row")]'
             f'//td[contains(normalize-space(.),"{text}")]'
         )
-        return self.is_present((By.XPATH, xpath))
+        import time as _time
+        deadline = _time.time() + timeout
+        while _time.time() < deadline:
+            if self.is_present((By.XPATH, xpath), timeout=2):
+                return True
+            _time.sleep(0.5)
+        return False
 
     def click_row_button(self, row_identifier, button_text):
         """在表格中查找包含指定文本的行，点击行内操作按钮
