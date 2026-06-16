@@ -96,7 +96,7 @@ def _load_skill_cached(skill_id: str, variant: str = "", version: str = "") -> s
     for s in registry.get("skills", []):
         s_id = s.get("id", "")
         # 匹配完整 ID 或尾部名称
-        if s_id == skill_id or s_id.split("/")[-1] == skill_id:
+        if s_id == skill_id or s_id.split("/")[-1] == skill_id.split("/")[-1]:
             skill_path = GOVERNANCE / s.get("file", "")
             if skill_path.exists():
                 return skill_path.read_text(encoding="utf-8")
@@ -132,7 +132,7 @@ def _resolve_version_file(skill_id: str, version: str) -> Path | None:
     registry = _load_registry()
     for s in registry.get("skills", []):
         s_id = s.get("id", "")
-        if s_id == skill_id or s_id.split("/")[-1] == skill_id:
+        if s_id == skill_id or s_id.split("/")[-1] == skill_id.split("/")[-1]:
             for v in s.get("versions", []):
                 if v.get("version") == version:
                     vf = GOVERNANCE / v.get("file", "")
@@ -281,7 +281,7 @@ def get_skill_version(skill_id: str) -> SkillVersionInfo | None:
     registry = _load_registry()
     for s in registry.get("skills", []):
         s_id = s.get("id", "")
-        if s_id == clean_id or s_id.split("/")[-1] == clean_id:
+        if s_id == clean_id or s_id.split("/")[-1] == clean_id.split("/")[-1]:
             versions = s.get("versions", [])
             current = s.get("current_version", "?")
             # 找到 current_version 对应的版本详情
@@ -362,7 +362,7 @@ def resolve_skill_version(skill_id: str, requested_version: str = None) -> Skill
         # 验证请求的版本是否存在
         registry = _load_registry()
         for s in registry.get("skills", []):
-            if s.get("id") == clean_id or s.get("id", "").split("/")[-1] == clean_id:
+            if s.get("id") == clean_id or s.get("id", "").split("/")[-1] == clean_id.split("/")[-1]:
                 for v in s.get("versions", []):
                     if v.get("version") == ver:
                         info.resolved_version = ver

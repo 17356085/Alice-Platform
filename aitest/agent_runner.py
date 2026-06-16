@@ -710,7 +710,8 @@ class AgentLoop:
         run_id = context.get("run_id") or f"sop-{module or 'unknown'}-{int(_time.time())}"
         self.run_id = run_id
         from aitest.trace import TraceContext
-        TraceContext.set(run_id=run_id, agent_name=agent_name)
+        TraceContext.set(run_id=run_id, agent_name=agent_name,
+                         skill_version=TraceContext.get_skill_version())  # P0-1: 保留已设置的版本
 
         self.state = AgentState(
             agent_name=agent_name,

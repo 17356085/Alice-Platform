@@ -269,6 +269,9 @@ def write_trace_event(event: TraceEvent) -> dict:
     """
     线程安全地将 TraceEvent 写入 JSONL 文件。
 
+    P0-1 (2026-06-16): 自动从 TraceContext 注入 skill_version，
+    确保所有 trace event 都携带版本信息（Prompt Versioning 数据流闭合）。
+
     参数:
         event: TraceEvent 实例
 
@@ -276,6 +279,12 @@ def write_trace_event(event: TraceEvent) -> dict:
         已写入的事件字典
     """
     _ensure_dir()
+
+    # P0-1: 自动注入 skill_version — 调用者无需手动传递
+    sv = TraceContext.get_skill_version()
+    if sv and "skill_version" not in event.metadata:
+        event.metadata["skill_version"] = sv
+
     entry = event.to_dict()
 
     try:
