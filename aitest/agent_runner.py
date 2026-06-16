@@ -1179,19 +1179,25 @@ class AgentLoop:
             saved_paths.append(str(file_path))
 
         # P1-ACTIVATION (2026-06-15): Dead Path #6 修复 — ContextUpdated 事件
-        # 当 Agent 产出治理上下文文件时发射事件，通知下游同步
+        # 当 Agent 产出任何文件时发射事件，通知 KnowledgeAgentSubscriber 同步
         if saved_paths:
-            gov_context = [p for p in saved_paths if "governance/context" in str(p).replace("\\", "/")]
-            if gov_context:
-                try:
-                    from aitest.event_bus import emit
+            try:
+                from aitest.event_bus import emit
+                # 区分治理上下文 vs 测试代码产出
+                gov_files = [p for p in saved_paths if "governance/context" in str(p).replace("\\", "/")]
+                code_files = [p for p in saved_paths if p not in gov_files]
+                if gov_files:
                     emit("ContextUpdated",
-                         file=str(gov_context[0]),
-                         changes=f"Agent {self.agent_name} updated {len(gov_context)} context file(s)")
-                except Exception as e:
-                    from aitest.error_logger import log_error
-                    log_error("agent_runner._save_skill_output", "emit_ContextUpdated", e,
-                              {"agent": self.agent_name, "files": gov_context})
+                         file=str(gov_files[0]),
+                         changes=f"Agent {self.agent_name} updated {len(gov_files)} governance context file(s): {', '.join(str(Path(f).name) for f in gov_files)}")
+                if code_files:
+                    emit("ContextUpdated",
+                         file=str(code_files[0]),
+                         changes=f"Agent {self.agent_name} generated {len(code_files)} code file(s): {', '.join(str(Path(f).name) for f in code_files)}")
+            except Exception as e:
+                from aitest.error_logger import log_error
+                log_error("agent_runner._save_skill_output", "emit_ContextUpdated", e,
+                          {"agent": self.agent_name, "files": saved_paths})
 
         return saved_paths[0] if saved_paths else ""
 
