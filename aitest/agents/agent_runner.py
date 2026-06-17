@@ -664,6 +664,9 @@ class AgentLoop:
             # ── 5. Update ──
             self.update(skill_id, observation)
 
+            # 增加步数计数器
+            self.state.step += 1
+
             # 根据观察决定下一步
             if observation.suggestion == "retry":
                 # 不增加 skill_index——下次循环 Plan 阶段会处理重试
