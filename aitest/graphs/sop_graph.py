@@ -1180,6 +1180,7 @@ def build_sop_graph() -> StateGraph:
             "automation/test-script-generator",
             "automation/code-consistency-checker",
         ],
+        use_context_agent=True,  # ContextAgent: 只看本页 context，省 70%+ token
     ))
 
     # P1-3 HITL: P0 模块测试用例审批节点
@@ -1256,7 +1257,7 @@ def build_sop_graph() -> StateGraph:
     builder.add_edge("test_design_agent", "testcase_quality_gate")
     # quality_gate → automation_agent_pre（有页面未处理）/ route_next_phase（通过）/ test_design_agent（打回重做）
     def _route_quality_gate(state):
-        if "Test Design" not in state.get("completed_phases", []) or state.get("force_retry_phase") == "Test Design":
+        if not state.get("test_cases_approved") or state.get("force_retry_phase") == "Test Design":
             return "test_design_agent"
         # 如果还有页面未自动化，直接进 automation_agent_pre（跳过 phase 检查）
         pages = state.get("pages", [])

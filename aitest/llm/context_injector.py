@@ -176,6 +176,17 @@ class ContextInjector:
             注入了上下文的完整 system prompt
         """
         variables = variables or {}
+
+        # ── ContextAgent 精准注入 —— 跳过 SKILL_CONTEXT_MAP 文件读取（省 token）──
+        if variables.get("focused_context"):
+            focused = variables["focused_context"]
+            self._last_inject_stats = {
+                "context_chars": len(focused),
+                "source_count": 1,
+                "sources": ["context_agent:focused"],
+            }
+            return f"{skill_prompt}\n\n## 参考上下文\n\n{focused}"
+
         context_map = SKILL_CONTEXT_MAP.get(skill_id, [])
 
         # 开发技能: 检查 DEV_SKILL_CONTEXT_MAP

@@ -22,13 +22,18 @@ WORKSTUDY = Path(__file__).resolve().parent.parent.parent
 #  ★ P0-1: 统一 Agent 节点 — AgentLoop.run() 作为唯一执行引擎
 #  ══════════════════════════════════════════════════════════════════════════
 
-def make_agent_loop_node(agent_name: AgentName, skill_subset: list = None):
+def make_agent_loop_node(
+    agent_name: AgentName,
+    skill_subset: list = None,
+    use_context_agent: bool = False,
+):
     """
     创建调用 AgentLoop.run() 的 LangGraph 节点 —— 替代整个 SubGraph。
 
     P0-1 架构统一：消除 AgentLoop 与 LangGraph SubGraph 的双重实现。
     P2-4 分层：Agent 内部状态封装在 agent_outputs[agent_name] (AgentResult) 中。
     P1-3 HITL: skill_subset 参数支持运行部分 Skill 链（用于 HITL 断点前后分段执行）。
+    use_context_agent: 为 automation_agent 启用 ContextAgent 精准 context 注入（省 70%+ token）。
     """
 
     def agent_loop_node(state: SOPState) -> dict:
@@ -41,6 +46,22 @@ def make_agent_loop_node(agent_name: AgentName, skill_subset: list = None):
             if idx < len(state["pages"]):
                 page = state["pages"][idx]
 
+        # ── Context Agent 精准注入（仅 automation_agent）──
+        focused_context_inline = ""
+        if use_context_agent and state.get("module") and page:
+            try:
+                from aitest.agents.context_agent import ContextAgent, TaskContext
+                ctx_agent = ContextAgent()
+                task = TaskContext(
+                    module=state["module"],
+                    pages=[page],
+                    current_phase="Automation",
+                )
+                focused = ctx_agent.pack_focused_context(task, page=page)
+                focused_context_inline = focused.to_inline_context()
+            except Exception:
+                pass  # 失败时降级到普通注入
+
         try:
             agent = AgentLoop(
                 agent_name,
@@ -49,6 +70,7 @@ def make_agent_loop_node(agent_name: AgentName, skill_subset: list = None):
                 page=page,
                 verbose=False,
                 skill_subset=skill_subset,  # P1-3 HITL: None=全部Skill
+                focused_context=focused_context_inline or None,
             )
             loop_state = agent.run()
         except Exception as e:
@@ -95,9 +117,9 @@ def make_agent_loop_node(agent_name: AgentName, skill_subset: list = None):
 
         # ── Phase 完成/失败 ──
         if loop_state.success:
-            updates["completed_phases"] = [phase]
+            updates["completed_phases"] = state.get("completed_phases", []) + [phase]
         else:
-            updates["failed_phases"] = [phase]
+            updates["failed_phases"] = state.get("failed_phases", []) + [phase]
             if loop_state.termination_reason == "agent_aborted":
                 updates["fatal_error"] = f"{agent_name}: {loop_state.termination_reason}"
 
@@ -165,9 +187,9 @@ def make_pass_through_node(agent_name: AgentName):
             updates["skill_observations"] = observations
 
         if result.success:
-            updates["completed_phases"] = [phase]
+            updates["completed_phases"] = state.get("completed_phases", []) + [phase]
         else:
-            updates["failed_phases"] = [phase]
+            updates["failed_phases"] = state.get("failed_phases", []) + [phase]
             # 不设置 fatal_error — 允许后续 Phase 继续
             if result.termination_reason == "agent_aborted":
                 updates["fatal_error"] = f"{agent_name}: {result.termination_reason}"
