@@ -1,24 +1,23 @@
 """设备管理模块共享 fixtures
 
-driver_setup（module 级）：
-  - 每个 test_*.py 文件独立浏览器
-  - 自动按模块名导航到对应设备管理页面
+UI fixtures:
+  driver_setup（module 级）：每个 test_*.py 文件独立浏览器 + 自动导航到设备管理页面
+  使用方式：def test_xxx(self, driver_setup): page = UnitManagePage(driver_setup)
 
-使用方式：
-    def test_xxx(self, driver_setup):
-        page = UnitManagePage(driver_setup)
-        ...
-
-可选 Page Object fixture（已导航，直接操作）：
-    def test_xxx(self, unit_page):
-        unit_page.click_search()
+API fixtures:
+  api_client（module 级）：已认证的 API 客户端（equipment 模块）
+  test_data_cleanup（function 级）：用例级自动清理
+  使用方式：def test_xxx(api_client): resp = api_client.get_equipment_list()
 """
 import logging
+import os
+import sys
 import time
 
 import pytest
 
 from base.browser_driver import BaseDriver, ensure_logged_in
+from base.api_base import AJSystemAPI
 from page.equipment_page.UnitManagePage import UnitManagePage
 from page.equipment_page.EquipmentPage import EquipmentPage
 from page.equipment_page.SensorManagePage import SensorManagePage
@@ -169,3 +168,70 @@ def alarm_config_page(driver_setup):
     page = AlarmConfigPage(driver_setup)
     page._wait_page_ready()
     return page
+
+
+# ==================================================================
+#  API fixtures（equipment 模块）
+# ==================================================================
+
+@pytest.fixture(scope="module")
+def api_client():
+    """
+    模块级 API 客户端（equipment 模块）。
+
+    自动登录 + Token 注入。
+    """
+    base_url = os.getenv(
+        "TEST_API_BASE_URL",
+        "https://aiwechatminidemo.cimc-digital.com/api",
+    )
+    username = os.getenv("TEST_USER", "admin")
+    password = os.getenv("TEST_PASSWORD", "password")
+
+    logger.info(f"Creating API client: {base_url}")
+
+    api = AJSystemAPI(
+        base_url=base_url,
+        timeout=30,
+        verify_ssl=False,
+    )
+
+    try:
+        api.login(username=username, password=password)
+        logger.info(f"Login successful: {username}")
+    except Exception as e:
+        logger.error(f"Login failed: {e}")
+        api.close()
+        raise
+
+    yield api
+    api.close()
+    logger.info("API client closed")
+
+
+@pytest.fixture(scope="function")
+def test_data_cleanup(api_client):
+    """
+    用例级自动清理。
+
+    用法:
+        def test_create_equipment(api_client, test_data_cleanup):
+            equipment = api_client.create_equipment(name="Test")
+            test_data_cleanup.add("equipment", equipment["id"])
+    """
+    cleanup_list = []
+
+    class Cleanup:
+        def add(self, resource_type: str, resource_id: str):
+            cleanup_list.append((resource_type, resource_id))
+
+    yield Cleanup()
+
+    for resource_type, resource_id in reversed(cleanup_list):
+        try:
+            if resource_type == "equipment":
+                api_client.delete_equipment(resource_id)
+                logger.debug(f"Cleaned equipment: {resource_id}")
+        except Exception as e:
+            logger.warning(f"Cleanup failed {resource_type}:{resource_id}: {e}")
+
