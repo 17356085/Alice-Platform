@@ -177,7 +177,7 @@ def entry_node(state: dict) -> dict:
 
 
 def run_review_phase(state: dict) -> dict:
-    """Run current review phase's skill."""
+    """Run current review phase's skill. Uses DiffFirstReviewAdapter to optimize token usage."""
     idx = state.get("phase_index", 0)
     phases = state.get("phases", [])
     if idx >= len(phases):
@@ -189,11 +189,26 @@ def run_review_phase(state: dict) -> dict:
         return {**state, "phase_index": idx + 1}
 
     from aitest.agents.agent_runner import run_skill
+    from aitest.governance.diff_first_review_adapter import DiffFirstReviewAdapter
 
-    user_input = f"""Run {PHASE_TO_SKILL[phase_key]} for AITest Platform.
+    # NEW: Use DiffFirstReviewAdapter to reduce token usage
+    adapter = DiffFirstReviewAdapter(context_lines=3, full_file_threshold=100)
+    review_input = adapter.prepare_review_input(
+        ref1="HEAD~1",
+        ref2="HEAD",
+        fallback_to_full=True,
+    )
 
-## Review Context
-{state.get("context_text", "No context available.")}
+    # Build review prompt with code diff priority
+    user_input = adapter.build_review_prompt(
+        skill_name=skill_id,
+        review_input=review_input,
+        context_text=state.get("context_text", ""),
+        trigger=state.get("trigger", "manual"),
+    )
+
+    # Append prior review context
+    user_input += f"""
 
 ## Trigger
 {state.get("trigger", "manual")}
@@ -216,6 +231,7 @@ Produce a complete review report following the standard REVIEW_REPORT.md templat
         **state,
         "review_results": results,
         "phase_index": idx + 1,
+        "last_review_strategy": review_input.get("strategy"),
     }
 
 
