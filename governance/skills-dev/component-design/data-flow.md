@@ -29,3 +29,8 @@
 ## 输出
 每个页面: API 调用 → Store 更新 → Props 传递 → Events 回传 的完整链路。
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | component-design | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

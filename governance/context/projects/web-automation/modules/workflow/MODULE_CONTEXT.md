@@ -110,3 +110,23 @@
 - [x] 5/5 页面已独立建模
 - [x] 工作流 5 页面测试完成 — 38 cases, 3 轮修复后稳定
 - [ ] 前端菜单结构调整 — 待 Vue 项目配合
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-stats -->
+<!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
+## 自动统计数据 (更新于 2026-06-17 16:53)
+
+| 指标 | 数值 |
+|------|:---:|
+| 测试文件 | 6 (script/workflow/test_*.py) |
+| Page Object | 5 (page/workflow_page/*.py) |
+| 治理文档 | 21 .md 文件 |
+| TECH_ANALYSIS | 2 |
+| AUTO_STRATEGY | 2 |
+| RISK_MODEL | 3 |
+| PAGE_CONTEXT | 6 |
+| SOP 状态 | completed |
+| Phase 完成 | Automation, Bug Analysis, Data Sanitization, Execute & Debug, Knowledge, Project Init, Report, Requirement, Test Design |
+
+> 此段由 sync_progress.py 自动更新。手动编辑会被覆盖。
+<!-- ⚠️ AUTO-GENERATED SECTION END: module-stats -->

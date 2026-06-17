@@ -23,8 +23,8 @@
 | 页面 | 路由 | PAGE_CONTEXT | POSITION | RISK | TEST_DESIGN | TEST_CASES | TECH | AUTO_STRATEGY | PageObject | Test |
 |------|------|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 | 水质分析报告单 | #/lab/water/report | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ WaterAnalysisReportPage | ✅ |
-| 水质分析对比 | #/lab/water/compare | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ LabComparePage | ✅ |
-| 水质分析设计指标 | #/lab/water/indicator | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ LabIndicatorPage | ✅ |
+| 水质分析对比 | #/lab/water/compare | ✅ | — | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ✅ LabComparePage | ✅ |
+| 水质分析设计指标 | #/lab/water/indicator | ✅ | — | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ✅ LabIndicatorPage | ✅ |
 
 ## 代码资产
 
@@ -55,3 +55,23 @@
 - 无绝对XPath ✅
 - 无 time.sleep 硬等待 ✅
 - check_code_quality: 新文件全部 PASS ✅
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-stats -->
+<!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
+## 自动统计数据 (更新于 2026-06-17 16:53)
+
+| 指标 | 数值 |
+|------|:---:|
+| 测试文件 | 9 (script/lab/test_*.py) |
+| Page Object | 9 (page/lab_page/*.py) |
+| 治理文档 | 40 .md 文件 |
+| TECH_ANALYSIS | 5 |
+| AUTO_STRATEGY | 5 |
+| RISK_MODEL | 5 |
+| PAGE_CONTEXT | 7 |
+| SOP 状态 | completed |
+| Phase 完成 | Automation, Bug Analysis, Data Sanitization, Execute & Debug, Knowledge, Project Init, Report, Requirement, Test Design |
+
+> 此段由 sync_progress.py 自动更新。手动编辑会被覆盖。
+<!-- ⚠️ AUTO-GENERATED SECTION END: module-stats -->

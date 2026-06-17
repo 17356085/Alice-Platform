@@ -18,7 +18,7 @@ P3-0: 模块化架构 — 从 1369 行单体拆分为 aitest/mcp/ 包。
 用法:
   python -m aitest.mcp                    # stdio transport (默认)
   python -m aitest.mcp --transport http   # HTTP transport (P3-1)
-  python -m aitest.mcp_server             # 向下兼容 (thin re-export)
+  python -m aitest.infra.mcp_server             # 向下兼容 (thin re-export)
 """
 
 import asyncio as _asyncio

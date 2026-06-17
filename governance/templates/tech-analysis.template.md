@@ -68,3 +68,10 @@
 | 弹窗-取消 | XPATH | `//div[contains(@class,'el-dialog') and not(contains(@style,'display: none'))]//button[.//span[text()='取消']]` | B | 可能与其它弹窗冲突 |
 | 删除确认弹窗 | CSS | `.el-message-box` | A | Element Plus 消息框 |
 | 分页器 | CSS | `.el-pagination` | A | |
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: template-meta -->
+> last_verified: 2026-06-17 16:53 | sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: template-meta -->

@@ -62,7 +62,7 @@ def analyze_fail_node(state: SOPState) -> dict:
     rag_matches = []
     cross_module_hits = []
     try:
-        from aitest.rag_engine import search_known_issues, search_context, get_chroma_client
+        from aitest.knowledge.rag_engine import search_known_issues, search_context, get_chroma_client
 
         _chroma_client = get_chroma_client()
 
@@ -98,11 +98,11 @@ def analyze_fail_node(state: SOPState) -> dict:
         ][:2]
 
     except Exception as e:
-        from aitest.error_logger import log_error
+        from aitest.infra.error_logger import log_error
         log_error("bug_analysis.analyze_fail", "rag_search", e, {"module": module, "page": page})
 
     # ── LLM 深度分析 ──
-    from aitest.agent_runner import run_skill
+    from aitest.agents.agent_runner import run_skill
 
     cross_module_context = ""
     if cross_module_hits:
@@ -161,7 +161,7 @@ def auto_fix_node(state: SOPState) -> dict:
     if analysis.get("rag_matches"):
         fix_input_parts.append(f"已知修复:\n{analysis['rag_matches']}")
 
-    from aitest.agent_runner import run_skill
+    from aitest.agents.agent_runner import run_skill
 
     # 使用 automation 相关的修复 skill
     response = run_skill(

@@ -21,3 +21,8 @@
 cd frontend && npx tsc --noEmit 2>&1
 cd backend && mypy app/ 2>&1
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | build | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

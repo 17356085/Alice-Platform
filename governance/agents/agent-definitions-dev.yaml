@@ -2,7 +2,18 @@
 # Phase 1→2: 从 3 Agent 扩展到 9 Agent，覆盖完整软件开发生命周期
 
 version: "2.0"
-last_updated: "2026-06-14"
+last_updated: "2026-06-17"
+
+# ═══════════════════════════════════════════════════════
+# 横向贯穿 Skill（所有 Agent 可用，不绑定特定 Agent）
+# ═══════════════════════════════════════════════════════
+cross_cutting_skills:
+  - id: productivity/caveman
+    description: 超压缩通信模式（~75% token 节省），三级强度 lite/full/ultra
+    trigger: 用户说 caveman/洞穴人/less tokens/be brief
+  - id: automation/prompt-engineering-expert
+    description: 应用PE技术主动优化Skill Prompt (dair-ai分类法). 与review/prompt-engineering互补.
+    trigger: PromptChanged事件 / Agent自优化 / 手动调用
 
 agents:
   # ═══════════════════════════════════════════════════════════
@@ -34,6 +45,7 @@ agents:
       - PROGRESS_REPORT.md
       - RISK_ANALYSIS.md
     context_files:
+      - shared-language
       - project-context
       - tech-stack
 
@@ -53,6 +65,7 @@ agents:
       - requirements-dev/user-story-writer
       - requirements-dev/acceptance-criteria
       - requirements-dev/data-model-spec
+      - automation/prompt-engineering-expert
     boundaries:
       - 不设计 UI
       - 不编写代码
@@ -63,6 +76,7 @@ agents:
       - ACCEPTANCE_CRITERIA.md
       - DATA_MODEL.md
     context_files:
+      - shared-language
       - project-context
       - tech-stack
 
@@ -96,6 +110,7 @@ agents:
       - COMPONENT_TREE.md
       - API_CONTRACTS.md
     context_files:
+      - shared-language
       - coding-standards
 
   design-agent:
@@ -150,6 +165,7 @@ agents:
       - "TypeScript 严格模式，any 禁止"
       - "生成后自检: ESLint + tsc --noEmit"
     context_files:
+      - shared-language
       - coding-standards
 
   backend-agent:
@@ -181,6 +197,7 @@ agents:
       - "Pydantic v2 ConfigDict"
       - "async def 所有端点"
     context_files:
+      - shared-language
       - coding-standards
 
   # ═══════════════════════════════════════════════════════════
@@ -203,6 +220,7 @@ agents:
       - code-review/performance-analyzer
       - code-review/security-scanner
       - code-review/consistency-enforcer
+      - automation/prompt-engineering-expert
     boundaries:
       - 不修改代码（只报告）
       - 不执行构建
@@ -212,6 +230,7 @@ agents:
       - SECURITY_REPORT.md
       - CONSISTENCY_REPORT.md
     context_files:
+      - shared-language
       - coding-standards
 
   dev-test-agent:
@@ -237,6 +256,7 @@ agents:
       - "tests/integration/test_*.py"
       - COVERAGE_REPORT.md
     context_files:
+      - shared-language
       - coding-standards
 
   debug-agent:
@@ -255,6 +275,7 @@ agents:
       - debug/stack-trace-analyzer
       - debug/fix-suggester
       - debug/regression-verifier
+      - automation/prompt-engineering-expert
     boundaries:
       - 不直接修改文件（只建议修复）
       - 修复需人工确认
@@ -292,6 +313,85 @@ agents:
     output_artifacts:
       - BUILD_REPORT.md
       - TEST_RESULTS.md
+
+  # ═══════════════════════════════════════════════════════════
+  # 元治理层 (1 Agent) — P1 Architecture Review Agent
+  # ═══════════════════════════════════════════════════════════
+
+  architecture-review-agent:
+    name: 架构评审 Agent
+    category: review
+    phase: "meta"
+    description: 系统架构评审、治理覆盖评估、Token效率分析、Prompt质量审查、生产就绪度评估。元治理 — 不执行治理，评估治理的有效性。
+    system_prompt_role: 资深系统架构师 + 治理架构师
+    trigger_keywords:
+      - 架构评审
+      - 架构审查
+      - 治理评估
+      - 治理覆盖
+      - 成本评审
+      - 生产就绪
+      - 技术债务
+      - review architecture
+      - governance review
+    skills:
+      - review/architecture-assessment
+      - review/tech-debt-inventory
+      - review/component-cohesion
+      - review/token-efficiency
+      - review/model-selection
+      - review/governance-coverage
+      - review/quality-regression-analysis
+      - review/sop-effectiveness
+      - review/prompt-engineering
+      - review/production-readiness
+      - review/observability-gap
+      - review/security-posture
+      - review/skill-health
+      - review/agent-health
+      - review/memory-quality
+      - automation/prompt-engineering-expert
+    boundaries:
+      - 不修改代码（只评审和建议）
+      - 不修改 Agent/Skill 定义（automation/prompt-engineering-expert 创建新版本文件除外）
+      - 不直接执行治理（审计由 Auditor 负责）
+      - 不部署
+    output_artifacts:
+      - ARCH_REVIEW.md
+      - TOKEN_REVIEW.md
+      - GOV_COVERAGE.md
+      - PROMPT_REVIEW.md
+      - PROD_READY.md
+      - REVIEW_REPORT.md
+    context_files:
+      - shared-language
+      - agent-definitions
+      - skill-registries
+      - sop-graphs
+      - source-of-truth
+      - audit-reports
+      - trace-log
+    modes:
+      full:
+        description: 全维度深度评审 (architecture + governance + cost + quality + production)
+      quick:
+        description: 快速检查清单评审 (仅 critical 维度)
+      architecture:
+        description: 仅架构维度
+      governance:
+        description: 仅治理覆盖维度
+      cost:
+        description: 仅成本和 Token 效率维度
+      production:
+        description: 仅生产就绪维度
+    event_subscriptions:
+      - StateDrift → review/architecture-assessment
+      - SOPViolation → review/governance-coverage
+      - CostAnomaly → review/token-efficiency
+      - EvalRegressed → review/architecture-assessment
+      - PromptChanged → review/prompt-engineering
+      - PromptChanged → automation/prompt-engineering-expert
+      - AuditCompleted → knowledge/knowledge-manager  # mode=precipitate
 
   # ═══════════════════════════════════════════════════════════
   # 编排器

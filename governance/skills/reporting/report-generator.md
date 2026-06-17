@@ -20,7 +20,7 @@
 |------|------|
 | A | TEST_SUMMARY.md（含结论：✅建议上线 / ⚠️有条件 / ❌不建议） |
 | B | 进度报告 + 更新后的进度追踪 |
-| C | .xlsx 文件（reports/ 目录） |
+| C | .xlsx 文件（governance/kpi/reports/{模块}/ 目录，覆盖式无日期后缀） |
 
 ## 规则（通用）
 
@@ -114,20 +114,23 @@
 
 ## 场景 C-1：TEST_CASES.md → 测试用例 Excel
 
+> ⚠️ **已废弃**：Phase 3 不生成 Excel，仅产出 .md 文件。此场景保留供手动使用，不走 SOP 流程。
+
 参数：
 - 模块名称：{{设备管理}}
 - 页面名称：{{设备报警配置}}
 - TEST_CASES.md：{{粘贴用例表格}}
 
-输出：`reports/测试用例-{模块}-{页面}-{日期}.xlsx`
+输出：`governance/kpi/reports/{模块}/测试用例-{模块}-{页面}.xlsx`（手动触发，非 SOP）
 样式：蓝色表头(#4472C4)、P0=红/P1=黄/P2=绿、冻结首行、自动列宽
 
-## 场景 C-2：Allure JSON → 执行结果 Excel
+## 场景 C-2：Allure JSON → 执行结果 Excel ★ Phase 9 主场景
 
 参数：
+- 模块名称：{{模块}}
 - allure-results/ 目录下的 *-result.json 文件
 
-输出：`reports/执行结果-{日期}_{时间}.xlsx`
+输出：`governance/kpi/reports/{模块}/测试报告-{模块}.xlsx`（覆盖式，无日期后缀）
 样式：PASS=绿/FAIL=红/SKIP=黄/BROKEN=灰、按模块分Sheet、含通过率统计行
 ```
 
@@ -151,7 +154,7 @@
 ### 模式 C
 - [ ] 优先级/状态配色正确
 - [ ] 冻结首行 + 列宽自适应
-- [ ] 文件名含模块名和日期
+- [ ] 文件名：`测试报告-{模块}.xlsx`（无日期后缀，覆盖式）
 - [ ] 通过率计算正确（场景 C-2）
 
 ## 产出物
@@ -160,4 +163,9 @@
 |------|------|
 | A | `context/projects/*/summaries/TEST_SUMMARY.md` |
 | B | 周报草稿 + 进度追踪更新 |
-| C | `reports/测试用例-*.xlsx` / `reports/执行结果-*.xlsx` |
+| C | `governance/kpi/reports/{模块}/测试报告-{模块}.xlsx`（覆盖式） |
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | reporting | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

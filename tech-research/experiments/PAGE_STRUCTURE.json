@@ -1,0 +1,61 @@
+{
+  "search_fields": [
+    {
+      "label": "危废品分类",
+      "type": "select",
+      "html_hint": "全部"
+    },
+    {
+      "label": "危废品名称",
+      "type": "input",
+      "html_hint": "请输入危废品名称"
+    },
+    {
+      "label": "所属装置",
+      "type": "select",
+      "html_hint": "全部"
+    }
+  ],
+  "action_buttons": [
+    {
+      "label": "查询",
+      "css_hint": "button"
+    },
+    {
+      "label": "重置",
+      "css_hint": "button"
+    },
+    {
+      "label": "新增",
+      "css_hint": "button"
+    },
+    {
+      "label": "导入",
+      "css_hint": "button"
+    },
+    {
+      "label": "导出",
+      "css_hint": "button"
+    }
+  ],
+  "table_columns": [
+    "序号",
+    "危废品分类",
+    "危废品名称",
+    "固废编号",
+    "包装方式",
+    "单位",
+    "工序/生产线",
+    "所属装置",
+    "产废周期",
+    "固废属性",
+    "危废鉴别",
+    "危险特性",
+    "核算方法",
+    "产生规律",
+    "最终去向"
+  ],
+  "has_pagination": true,
+  "has_checkbox_column": true,
+  "page_title": "库管管理 / 环保危废管理 / 物品管理"
+}

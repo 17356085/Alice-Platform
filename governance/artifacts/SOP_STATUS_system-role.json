@@ -1,0 +1,40 @@
+{
+  "module": "system-role",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation",
+    "Execute & Debug",
+    "Data Sanitization",
+    "Report",
+    "Knowledge"
+  ],
+  "failed_phases": [],
+  "pages_processed": [
+    "role-list"
+  ],
+  "per_page_results": [
+    {
+      "page_slug": "role-list",
+      "status": "?",
+      "artifacts": [
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system-role\\pages\\role-list\\PAGE_CONTEXT.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system-role\\pages\\role-list\\TEST_CASES.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system-role\\pages\\role-list\\TECH_ANALYSIS.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system-role\\pages\\role-list\\AUTO_STRATEGY.md"
+      ]
+    }
+  ],
+  "agent_summary": {
+    "preflight_auto_detect": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": ""
+    }
+  },
+  "run_id": "sop-system-role-1781687936",
+  "updated_at": "2026-06-17T17:19:03",
+  "engine": "langgraph"
+}

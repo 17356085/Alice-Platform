@@ -21,7 +21,7 @@ ZJSN_TEST = WORKSTUDY / "ZJSN_Test-master526"
 
 def _skill_act(state: dict, skill_id: str, extra_context: dict = None) -> dict:
     """通用 Skill 执行节点：调用 LLM + 保存产出。"""
-    from aitest.agent_runner import run_skill
+    from aitest.agents.agent_runner import run_skill
 
     module = state["module"]
     provider = state.get("provider", "claude")

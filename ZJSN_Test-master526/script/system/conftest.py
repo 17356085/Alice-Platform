@@ -92,6 +92,7 @@ def _navigate_for_module(driver, module):
         "test_menu_management":         "#/system/menu",
         "test_api_management":          "#/system/api",
         "test_monitor_management":      "#/system/monitor",
+        "test_system_e2e":              None,  # e2e 测试自行导航
     }
 
     href = href_map.get(name)

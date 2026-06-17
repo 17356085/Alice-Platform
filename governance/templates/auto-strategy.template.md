@@ -72,3 +72,10 @@ AlarmConfigDialog      ← 新增/编辑弹窗的 CRUD 操作
 
 ### ROI
 开发 4h + 维护 0.5h/月，手工 15min/次 × 3次/周 → 约 2.5 个月回本
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: template-meta -->
+> last_verified: 2026-06-17 16:53 | sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: template-meta -->

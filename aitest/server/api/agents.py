@@ -25,7 +25,7 @@ class AgentRunRequest(BaseModel):
 @agents_router.post("/run")
 async def trigger_agent_async(req: AgentRunRequest):
     """触发 Agent 执行（异步）。任务入队后立即返回 task_id，后台消费线程执行。"""
-    from aitest.task_queue import get_queue
+    from aitest.infra.task_queue import get_queue
 
     queue = get_queue()
     task_id = queue.enqueue(
@@ -56,7 +56,7 @@ async def get_task_status(task_id: str):
       - completed: 执行完成，result 中包含产出
       - failed: 执行失败，error_msg 中包含错误信息
     """
-    from aitest.task_queue import get_queue
+    from aitest.infra.task_queue import get_queue
 
     queue = get_queue()
     task = queue.get(task_id)
@@ -89,7 +89,7 @@ async def get_task_status(task_id: str):
 @agents_router.get("/queue")
 async def get_queue_stats():
     """查询任务队列统计信息。"""
-    from aitest.task_queue import get_queue
+    from aitest.infra.task_queue import get_queue
 
     queue = get_queue()
     counts = queue.count_by_status()
@@ -115,7 +115,7 @@ async def get_queue_stats():
 async def module_sop_status(module: str):
     """查询模块 SOP 进度（调用 agent_scheduler）。"""
     try:
-        from aitest.agent_scheduler import check_preconditions
+        from aitest.agents.agent_scheduler import check_preconditions
         return check_preconditions(module)
     except Exception as e:
         return {"status": "error", "module": module, "message": str(e)}
@@ -156,7 +156,7 @@ async def all_modules_status():
 @agents_router.get("/list")
 async def list_available_agents():
     """列出所有可用 Agent 及其 Skill 绑定。"""
-    from aitest.agent_runner import AGENT_SKILL_MAP
+    from aitest.agents.agent_runner import AGENT_SKILL_MAP
     return {
         "agents": {
             agent: skills

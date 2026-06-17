@@ -87,3 +87,8 @@
 - [ ] 每个模块有测试风险评估
 - [ ] 自动化优先级分层明确（P0/P1/P2）
 - [ ] 踩坑经验记录完整
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | project | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

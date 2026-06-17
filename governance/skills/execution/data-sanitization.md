@@ -45,3 +45,8 @@ python tools/cleanup/scan_and_clean.py --force [--modules=<module>]
 - 不清理 UI 创建的数据（需通过 CleanupTracker UI 模式清理）
 - 不修改测试代码
 - 不分析清理失败原因（那是 bug-analysis 的职责）
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | execution | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

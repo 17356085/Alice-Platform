@@ -1,0 +1,75 @@
+{
+  "module": "lab",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation",
+    "Report",
+    "Bug Analysis",
+    "Execute & Debug",
+    "Data Sanitization",
+    "Knowledge"
+  ],
+  "failed_phases": [],
+  "pages_processed": [],
+  "run_id": "",
+  "updated_at": "2026-06-17",
+  "engine": "langgraph",
+  "sub_pages": {
+    "gas-analysis-report": {
+      "status": "completed",
+      "route": "#/lab/gas/report",
+      "cases": 10,
+      "po": "GasAnalysisReportPage"
+    },
+    "gas-compare": {
+      "status": "completed",
+      "route": "#/lab/gas/compare",
+      "cases": 2,
+      "po": "LabComparePage(sub='gas')"
+    },
+    "gas-indicator": {
+      "status": "completed",
+      "route": "#/lab/gas/indicator",
+      "cases": 2,
+      "po": "LabIndicatorPage(sub='gas')"
+    },
+    "water-report": {
+      "status": "completed",
+      "route": "#/lab/water/report",
+      "cases": 1,
+      "po": "WaterAnalysisReportPage"
+    },
+    "water-compare": {
+      "status": "completed",
+      "route": "#/lab/water/compare",
+      "cases": 2,
+      "po": "LabComparePage(sub='water')"
+    },
+    "water-indicator": {
+      "status": "completed",
+      "route": "#/lab/water/indicator",
+      "cases": 2,
+      "po": "LabIndicatorPage(sub='water')"
+    }
+  },
+  "next_steps": [],
+  "known_issues": [
+    "R6: 全量回归session竞态",
+    "R3: MODULE_CONTEXT曾遗漏5页面(已修复)"
+  ],
+  "execution_results": {
+    "date": "2026-06-16",
+    "full_suite": "828 collected | 361P/345F/90S/29E/3X | 760 rerun | 8h12m",
+    "module_specific": {
+      "exec": "completed",
+      "tests": "8 files + 1 e2e",
+      "note": "全量回归通过（R6 session竞态已知问题）, 新增跨页面E2E"
+    }
+  },
+  "fix_log": {
+    "2026-06-17": "新增 test_lab_e2e.py (3跨页场景)"
+  }
+}

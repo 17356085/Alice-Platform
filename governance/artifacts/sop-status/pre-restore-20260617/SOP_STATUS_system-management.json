@@ -1,0 +1,12 @@
+{
+  "module": "system-management",
+  "status": "pending",
+  "completed_phases": [],
+  "failed_phases": [],
+  "pages_processed": [],
+  "run_id": "",
+  "updated_at": "2026-06-17",
+  "engine": "langgraph",
+  "reset_at": "2026-06-17T14:18:44.262970",
+  "reset_reason": "Full SOP re-run — business-driven test rewrite"
+}

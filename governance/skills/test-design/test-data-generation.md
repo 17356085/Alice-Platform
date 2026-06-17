@@ -119,3 +119,8 @@ SEARCH_KEYWORDS = [
 - [ ] 数据间无冲突（唯一性约束满足）
 - [ ] 标注了数据间的依赖关系（先创建再编辑等）
 - [ ] Python 数据文件可直接 import 使用
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | test-design | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

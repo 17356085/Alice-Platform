@@ -23,3 +23,8 @@
 cd frontend && npm run build 2>&1
 cd backend && pip install -e . --dry-run 2>&1
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | build | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

@@ -60,7 +60,46 @@
   → 跳过已知问题匹配，直接进入深度分析
   → 在报告中标注「⚠️ 已知问题匹配不可用」
 
-### L1：深度分析（仅在 RAG 未直接匹配时执行）
+### L1.0：构建反馈循环（🔴 在深度分析前执行）
+
+> 方法论来源: [mattpocock/skills — /diagnose](https://github.com/mattpocock/skills)
+
+**核心原则**: 如果你有一个快速、确定性、Agent 可运行的 pass/fail 信号，bug 90% 已经修复。没有反馈循环，盯着代码看是浪费时间。
+
+#### 构建方式（按推荐顺序尝试）
+
+1. **Failing test** — 在离 bug 最近的可测试接缝处写一个失败的 pytest 用例。首选。
+2. **curl / HTTP 脚本** — 针对 API 级 bug，直接构造请求比对响应。
+3. **CLI 调用 + fixture diff** — 固定输入，比对 stdout 与已知正确快照。
+4. **Playwright / BrowserUse 脚本** — 操作 UI，断言 DOM / Console / 网络请求。适合 Element Plus Teleport 类 bug。
+5. **回放捕获的 trace** — 把真实的网络请求 / payload / event log 存盘，隔离回放。
+6. **最小化 throwaway harness** — 只启动相关服务子集 + mock 依赖，单函数入口。
+7. **Property / fuzz loop** — 若 bug 是"偶尔输出错误"，跑 1000 次随机输入找失败模式。
+8. **Bisection harness** — 若 bug 出现在两个已知状态之间（commit / 数据集），自动化 `git bisect run`。
+9. **Differential loop** — 同一输入跑旧版本 vs 新版本，diff 输出。
+10. **HITL bash 脚本** — 最后手段。若必须人工点击，用 `scripts/hitl-loop.template.sh` 结构化人工流程。
+
+#### 迭代反馈循环自身
+
+有了第一个 loop 后问：
+
+- 能更快吗？（缓存 setup，跳过无关 init，缩小测试范围）
+- 信号能更尖锐吗？（断言到具体症状，不只是"没崩"）
+- 能更确定吗？（固定时间/seed/RNG，隔离文件系统，冻结网络）
+
+**30 秒的 flaky loop ≈ 没有 loop。2 秒的确定性 loop = 调试超能力。**
+
+#### 非确定性 bug
+
+目标不是完美复现，而是**提高复现率**。loop 跑 100 次并行，加 stress，缩小时间窗口，注入 sleep。50% flaky → 可调试；1% flaky → 不可调试 → 继续提高复现率。
+
+#### 确实无法构建 loop 时
+
+停止，明确说明。列出尝试过的方式。向用户请求：(a) 能复现的环境访问权限，(b) 捕获的 artifact（HAR / log dump / 录屏+时间戳），(c) 临时生产环境插桩授权。**没有 loop 不要进入 L1。**
+
+---
+
+### L1：深度分析（仅在 RAG 未直接匹配且反馈循环已建立时执行）
 执行标准 5 层递进排查：定位器失效 → 等待不足 → 数据问题 → 环境问题 → 产品Bug
 
 ## 规则
@@ -95,7 +134,7 @@
 
 → 如果 distance < 0.5（极高相似度）：🟢 直接匹配已知坑位，引用解决方案，标记为「已知问题」
 → 如果 distance < 1.0（高相似度）：🟡 参考已知坑位作为分析方向
-→ 如果 distance >= 1.0 或无结果：🔵 进入 L1-L5 标准排查
+→ 如果 distance >= 1.0 或无结果：🔵 先构建反馈循环（L1.0），再进入 L1-L5 标准排查
 
 **降级规则**：
 - RAG 不可用时 → 手动读取 `governance/context/known-issues.yaml` → 关键字匹配
@@ -179,6 +218,9 @@
 ## 检查清单
 
 ### 单个 Bug 分析
+
+- [ ] L0 RAG 已知问题匹配已执行
+- [ ] L1.0 反馈循环已构建（至少一种方式，确定性可 Agent 运行）
 - [ ] 现象描述清晰（什么用例、什么阶段、什么错误）
 - [ ] 复现率明确（X/5）
 - [ ] 5 层根因排查全部执行（定位器→等待→数据→环境→产品Bug）
@@ -199,3 +241,8 @@
 ## 产出物
 → `BUG_ANALYSIS.md`，存放至 `artifacts/`。
 → 输出格式参见 `templates/bug-analysis.template.md`。
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.1** | active | diagnosis | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

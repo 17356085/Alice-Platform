@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from fastapi import APIRouter, Request, HTTPException
 from sse_starlette.sse import EventSourceResponse
 
-from aitest.agent_runner import AgentLoop, AgentEvent, list_agents
+from aitest.agents.agent_runner import AgentLoop, AgentEvent, list_agents
 from aitest.chat.intent_parser import parse_intent
 
 chat_router = APIRouter(prefix="/api/chat", tags=["chat"])
@@ -310,7 +310,7 @@ async def stream_response(session_id: str, message_id: str, request: Request):
         s.agent = None
         # 直接返回状态信息
         async def status_generator():
-            from aitest.agent_scheduler import check_preconditions
+            from aitest.agents.agent_scheduler import check_preconditions
             from aitest.chat.intent_parser import _get_known_modules
             mod = intent.get("module", "")
             if mod:

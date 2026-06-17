@@ -1,0 +1,35 @@
+{
+  "module": "warehouse",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation"
+  ],
+  "failed_phases": [],
+  "pages_processed": [
+    "hazard-in-order",
+    "hazard-io-record",
+    "hazard-item",
+    "hazard-out-order",
+    "hazard-quick",
+    "hazard-stock",
+    "reagent-fill",
+    "reagent-item",
+    "spare-in-order",
+    "spare-io-record",
+    "spare-item",
+    "spare-out-order",
+    "spare-quick",
+    "spare-requisition",
+    "spare-stock",
+    "spare-stock-adjust",
+    "spare-stocktake"
+  ],
+  "artifact_count": 68,
+  "run_id": "sop-warehouse-batch3",
+  "updated_at": "2026-06-17",
+  "engine": "langgraph",
+  "note": "SOP batch 3 — 175 artifacts regenerated from business requirements"
+}

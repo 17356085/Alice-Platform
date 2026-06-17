@@ -33,6 +33,36 @@
 - 不生成 conftest.py（由 test-script-generator 附带生成，P1-2）
 - 不涉及已有代码审查（那是 code-consistency-checker 的职责）
 
+## Modes
+
+### mode: manual（默认）
+
+现有流程，基于 TECH_ANALYSIS 中的人工定位器设计表生成 PO。
+
+触发: "生成XX的PageObject"
+
+### mode: browser-use（🆕）
+
+BrowserUse AI Agent 自动探索页面 → 提取选择器 → 注入模板 → 生成 PO。
+
+流程:
+1. 调用 `aitest.bu_adapter.BrowserUseSkillAdapter.generate_po_suggestions(hash_route)`
+2. 从返回的 locators 中筛选 confidence > 0.6 的条目
+3. 将 locators 注入 Jinja2 模板 → 渲染 .py 文件
+4. `code-consistency-checker` 合规检查
+5. 不通过 → 降级到 manual mode
+
+触发: "用AI生成XX的PageObject"
+
+依赖:
+- `aitest/bu_adapter.py` — BrowserUseSkillAdapter
+- `.env`: `BU_LLM_PROVIDER=mimo`, MiMo API key
+
+约束:
+- BrowserUse 生成的 PO 必须走 code-consistency-checker
+- 置信度 < 0.6 的定位器自动丢弃，降级到人工补充
+- LLM 成本 ≤ $0.05/次
+
 ---
 
 ## Prompt 模板
@@ -153,3 +183,8 @@ class AlarmConfigPage(BasePage):
 ## 产出物
 → `page/<module>_page/<PageName>Page.py`
 → 编码规范参见 `PROJECT_CONTEXT.md` § 自动化编码强制规范。
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | automation | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

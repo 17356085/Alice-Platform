@@ -1,106 +1,107 @@
 # Skill: module-modeling
 
 ## 目标
-从项目上下文出发，为指定模块建立完整的模块级上下文文档。
+从现有代码和项目结构反推模块级上下文文档——无需 PRD 或产品说明。
 
 ## 输入
-- PROJECT_CONTEXT.md
-- 模块入口 URL
-- 模块名称
-- 模块所属一级菜单
+- 模块名（如 `warehouse`）
+- PROJECT_CONTEXT.md（项目级背景）
+- 代码目录：`ZJSN_Test-master526/page/<module>_page/`（Page Object 文件）
+- 代码目录：`ZJSN_Test-master526/script/<module>/`（测试脚本文件）
+- 治理目录：`governance/context/projects/web-automation/modules/<module>/`（已有治理文档）
 
 ## 输出
-- MODULE_CONTEXT.md
+- MODULE_CONTEXT.md — 模块级上下文（基于真实代码结构）
 
 ## 规则
-- 必须先有 PROJECT_CONTEXT，再开始模块建模
-- 每个模块独立输出，禁止多模块混入同一输出文件
-- 页面状态统一标记：✅ 已完成 / 🔄 进行中 / ⏳ 待开始
+- **禁止编造页面名**：所有子页面必须从 `page/<module>_page/` 目录中实际存在的 Page Object 文件推导
+- **禁止编造路由**：路由从 Page Object 的 URL 注释或类名推导，不确定则标注"待确认"
+- 页面状态标记：✅ 已完成（有 PO + 有 test） / 🔄 有 PO 无 test / ⏳ 仅占位
 - 不确定的页面/功能标注"待确认"
-- 模块级风险必须标注 P0/P1/P2 并给出缓解措施
+- 模块级风险必须基于代码实际情况（如：Page Object 无 base_page 继承、locator 使用 XPath 等）
+
+## 执行步骤
+1. **扫描 Page Object 目录**：`ls page/<module>_page/` 列出所有 `*Page.py` 文件
+2. **扫描测试脚本目录**：`ls script/<module>/` 列出所有 `test_*.py` 和 `conftest.py`
+3. **读取 2-3 个代表性 Page Object**：提取类名、URL 注释、核心方法
+4. **读取 PROJECT_CONTEXT.md**：获取项目级背景
+5. **生成 MODULE_CONTEXT.md**：基于真实代码结构，不编造
 
 ## 依赖
 - templates/module-context.template.md
 - workflows/sop-summary.md (§ Phase 0.5)
 
 ## 边界
-- 本 Skill 不产出具体页面级文档（那是 page-analysis 的职责）
-- 本 Skill 不包含需求分析（那是 requirement-analysis 的职责）
+- 本 Skill 不产出具体页面级文档（那是 requirement-analysis / page-analysis 的职责）
+- 本 Skill 不产出测试用例（那是 testcase-design 的职责）
+- 本 Skill 不做 DOM 观测（那是 page-observe 的职责）
+- **禁止虚构不存在的页面或功能**
 
 ---
 
 ## Prompt 模板
 
-> 以下 Prompt 可直接复制到 AI 对话中使用。替换 `{{ }}` 占位符即可。
-
-### 建立模块级上下文
+### 从代码反推模块上下文
 
 ```text
-你是一个熟悉 {{鞍集涂源管理系统}} 的测试工程师。请为以下模块建立 MODULE_CONTEXT.md。
-
-## 模块信息
-- 模块名称：{{设备管理}}
-- 模块入口URL：{{https://aiwechatminidemo.cimc-digital.com/#/{页面名}}}
-- 所属一级菜单：{{设备管理}}
-- 参考项目知识库：{{粘贴 PROJECT_CONTEXT.md 中该模块相关内容}}
+你是一个测试工程师，需要为现有项目建立模块上下文文档。**该项目没有 PRD**，所有信息必须从代码中提取。
 
 ## 任务
-输出 MODULE_CONTEXT.md，包含：
+为模块 `{{module}}` 生成 MODULE_CONTEXT.md。
 
-1. **模块概述**：模块名称、路径、权限要求
-2. **子页面清单**：列出所有子页面（页面名称、路由、状态）
-3. **页面关系图**：页面之间的导航/依赖关系（用文字或ASCII图）
-4. **核心业务流程**：该模块最重要的2-3条操作链路
-5. **数据对象**：该模块涉及的主要数据实体（如：设备、装置、报警规则）
-6. **权限矩阵**：不同角色对该模块各页面的访问/操作权限
-7. **模块级风险点**：列出风险ID、描述、影响范围、优先级（P0/P1/P2）
-8. **自动化价值评估**：该模块自动化的ROI分析
+## 步骤
 
-## 格式要求
-- 表格优先，层级清晰
-- 每个风险给出缓解措施
-- 页面状态用 ✅（已完成）/🔄（进行中）/⏳（待开始）
-- 不确定的页面/功能标注"待确认"
-```
+### 第一步：扫描代码目录
+使用工具扫描以下目录：
+1. `ZJSN_Test-master526/page/{{module}}_page/` — Page Object 文件
+2. `ZJSN_Test-master526/script/{{module}}/` — 测试脚本文件
 
-### 批量模块建模（按需）
+### 第二步：读取代表性文件
+- 读取 `PROJECT_CONTEXT.md`（路径：`governance/context/projects/web-automation/PROJECT_CONTEXT.md`）
+- 读取 2-3 个 Page Object 文件，提取：类名、URL注释、核心方法名
+- 读取 conftest.py 了解 fixture 配置
 
-```text
-基于以下 PROJECT_CONTEXT.md 中的模块树，请分别为每个未建立上下文的模块生成 MODULE_CONTEXT.md 框架。
+### 第三步：生成 MODULE_CONTEXT.md
 
-## 已完成模块
-{{粘贴 测试进度追踪.md 中已完成模块列表}}
+输出到 `governance/context/projects/web-automation/modules/{{module}}/MODULE_CONTEXT.md`，包含：
 
-## 待建模模块
-{{粘贴 待建模模块列表}}
+1. **模块概述**：模块名、推测的路由前缀、推测的权限要求
+2. **子页面清单**（从代码扫描结果填充，不编造）：
 
-## 任务
-对每个待建模模块，输出：
-1. MODULE_CONTEXT.md 骨架（标注 ⏳ 待填充的章节）
-2. 子页面清单（基于 PROJECT_CONTEXT 中的菜单结构推断）
-3. 预估测试工作量（人天）
+| 页面名称 | Page Object 类 | 推测路由 | PO状态 | 测试状态 | 备注 |
+|---------|---------------|---------|--------|---------|------|
+| {{从 PO 文件名推导}} | {{类名}} | {{从 URL 注释提取}} | ✅ | ✅/❌ | |
 
-## 注意
-- 一次只处理一个模块，处理完等我确认再继续下一个
-- 不确定的页面/功能标注"待确认"
+3. **页面关系图**：基于 PO 文件中的导航方法推断
+4. **核心数据实体**：从 PO 代码中的表单字段/表格列推断
+5. **模块级风险点**（基于代码实际情况）：
+   - 如：PO 是否使用 base_page？定位器是 CSS 还是 XPath？
+   - 如：conftest.py 是否配置了正确的登录/权限？
+6. **自动化价值评估**：基于现有测试覆盖率
+
+## 约束
+- **禁止编造**：所有信息必须有代码依据
+- 不确定的标注"待确认"
+- 页面状态：✅ = PO+test 都存在，🔄 = 仅有 PO，⏳ = 仅有目录占位
 ```
 
 ---
 
 ## 检查清单
 
-- [ ] 模块名称、路径、权限要求明确
-- [ ] 子页面清单完整（缺失的标注"待确认"）
-- [ ] 页面关系图清晰（导航/依赖）
-- [ ] 2-3 条核心业务流程已描述
-- [ ] 数据对象已列出（实体名 + 关键字段）
-- [ ] 权限矩阵已覆盖所有相关角色
-- [ ] 每个模块级风险有：ID + 描述 + 影响范围 + P0/P1/P2 + 缓解措施
-- [ ] 自动化 ROI 分析有结论（高/中/低 + 理由）
-- [ ] 页面状态标记使用统一图标 ✅/🔄/⏳
+- [ ] 子页面清单全部来自代码扫描（非编造）
+- [ ] 每个页面标注 PO 状态和测试状态
+- [ ] 路由从 URL 注释提取（无注释则标注"待确认"）
+- [ ] 模块风险基于代码实际情况
+- [ ] 不确定信息标注"待确认"
+- [ ] 页面状态使用统一图标 ✅/🔄/⏳
 
 ---
 
 ## 产出物
-→ `MODULE_CONTEXT.md`，存放至 `context/projects/web-automation/modules/<module>/`。
+→ `MODULE_CONTEXT.md`，存放至 `governance/context/projects/web-automation/modules/<module>/`。
 → 输出格式参见 `templates/module-context.template.md`。
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.1** | active | requirements | synced 2026-06-17
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

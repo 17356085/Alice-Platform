@@ -60,3 +60,8 @@
 - [ ] 区分了环境问题/配置问题/脚本问题/产品问题
 - [ ] 与上次成功构建有对比分析
 - [ ] 修复建议具体可操作
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | diagnosis | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

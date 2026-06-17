@@ -27,3 +27,8 @@
 ## 输出
 每个页面: ASCII 布局图 + flex/grid 标注 + 响应式断点。
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | component-design | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

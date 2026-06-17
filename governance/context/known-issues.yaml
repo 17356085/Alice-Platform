@@ -10,8 +10,8 @@
 #   - 每次再次遇到时更新 last_seen 和 occurrence_count
 #   - 状态流转: active → mitigated → resolved
 
-version: 0.4
-last_updated: 2026-06-14
+version: 0.5
+last_updated: 2026-06-17
 
 # ============================================================
 # Element Plus 组件坑位 (EP-001 ~ EP-011)
@@ -402,13 +402,74 @@ issues:
     occurrence_count: 1
     status: active
 
+  - id: FP-010
+    title: "Element Plus 2.x `.el-pagination__total` CSS class 不匹配导致 get_total_count() 返回 0"
+    category: base-page
+    component: BasePage.get_total_count
+    severity: high
+    reproduce_rate: 60
+    symptoms:
+      - "assert total > 0 失败 (分页组件存在但总数解析为0)"
+      - "el-pagination__total selector 在不同 Element Plus 版本间不稳定"
+    root_cause: "Element Plus 2.x 分页组件渲染的 CSS class 名可能与 1.x 不同，get_text() 超时返回空字符串"
+    solution: |
+      BasePage.get_total_count() 改为 CSS 优先 + JS 兜底：
+      1. 先尝试 CSS selector `.el-pagination__total`
+      2. 失败则 JS 从 `.el-pagination` textContent 提取第一个数字
+    affected_modules: [equipment, unit_management, maintenance]
+    first_seen: 2026-06-16
+    last_seen: 2026-06-17
+    occurrence_count: 2
+    status: fixed
+    fix_commit: "BasePage.get_total_count() 双策略 (CSS+JS 兜底)"
+
+  - id: FP-011
+    title: "多 el-table 页面 row 计数匹配全部表格 — 维保/生产等多表格页行数不准"
+    category: base-page
+    component: table-rows
+    severity: high
+    reproduce_rate: 80
+    symptoms:
+      - "get_table_row_count() 返回非预期值（包含隐藏表格的行）"
+      - "is_displayed() 过滤不完全，多表格数据混淆"
+    root_cause: "页面包含多个 el-table（如维保页面：维保计划+登录日志+设备状态），TABLE_ROWS selector 匹配全部表格"
+    solution: "PO 内覆写 get_table_row_count()，JS 限定 document.querySelectorAll('.el-table')[0] 仅取第一个表格"
+    affected_modules: [equipment, production]
+    affected_pages: [maintenance, daily-report]
+    first_seen: 2026-06-16
+    last_seen: 2026-06-17
+    occurrence_count: 1
+    status: fixed
+    fix_commit: "MaintenancePage.get_table_row_count() 限第一个 el-table"
+
+  - id: FP-012
+    title: "跨页面 E2E 测试覆盖严重不足 — 87% 浅层覆盖仅 7 个 E2E"
+    category: test-coverage
+    component: e2e
+    severity: high
+    reproduce_rate: 100
+    symptoms:
+      - "10/11 模块零跨页面测试"
+      - "809 test methods 仅 7 个 e2e（全在 workflow）"
+      - "业务规则测试 28 (3%)，跨页面 7 (<1%)"
+    root_cause: "测试自动化仅覆盖单页面 CRUD/搜索/展示，缺跨页面业务流程验证"
+    solution: |
+      2026-06-17 新增 27 个跨页面 E2E，覆盖 10 模块：
+      equipment(4), personnel(4), warehouse(4), tank(2), system(4),
+      lab(3), production(2), sales(2), system-role(2)
+    affected_modules: [all]
+    first_seen: 2026-06-16
+    last_seen: 2026-06-17
+    occurrence_count: 2
+    status: in_progress
+
 # ============================================================
 # 统计
 # ============================================================
-# Total: 21 issues
+# Total: 24 issues
 #   Element Plus:  11 (EP-001 ~ EP-011)
-#   Failure Pattern: 9 (FP-001 ~ FP-009)
+#   Failure Pattern: 12 (FP-001 ~ FP-012)
 #   Environment:    1 (ENV-001)
 #
-# By severity: high=9, medium=11, low=1
-# By status:   active=16, in_progress=1, partially_fixed=2, fix_available=1, mitigated=1
+# By severity: high=12, medium=11, low=1
+# By status:   active=16, in_progress=2, partially_fixed=2, fix_available=1, mitigated=1, fixed=2

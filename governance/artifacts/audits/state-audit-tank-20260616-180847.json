@@ -1,0 +1,109 @@
+{
+  "module": "tank",
+  "audit_time": "2026-06-16T18:08:47.975416",
+  "overall_status": "error",
+  "drift_count": 6,
+  "error_count": 1,
+  "warning_count": 5,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Project Init",
+      "description": "Phase 'Project Init' 已完成，但模块级产物缺失: PROJECT_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\PROJECT_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Project Init 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'alarm-config' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\pages\\alarm-config\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'alarm-config' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\pages\\alarm-config\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'monitor' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\pages\\monitor\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'report' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\pages\\report\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'alarm-config' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\pages\\alarm-config\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 6,
+      "errors": 1,
+      "warnings": 5,
+      "ok": false
+    },
+    "r_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "o_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "orphan_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "c_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "q_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "t_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    }
+  }
+}

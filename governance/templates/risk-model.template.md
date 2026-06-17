@@ -40,3 +40,10 @@
 | RISK-ALARM-004 | 接口 | 新增报警时接口超时10s，前端弹窗无响应，用户无法关闭 | 中 | P1 | 前端超时(5s)自动关闭弹窗 + toast提示"操作超时" | ❌ 未覆盖 |
 | RISK-ALARM-005 | UI/UX | 1366x768 分辨率下表头文字截断 | 低 | P2 | el-table 自适应列宽 + tooltip | — |
 | RISK-ALARM-006 | 性能 | 500+条报警规则时表格首次渲染超过3秒 | 低 | P2 | 分页默认20条 + 虚拟滚动（如必要） | — |
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: template-meta -->
+> last_verified: 2026-06-17 16:53 | sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: template-meta -->

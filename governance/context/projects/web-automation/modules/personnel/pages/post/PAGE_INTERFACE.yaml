@@ -1,365 +1,188 @@
-interface: page-to-automation
-version: "1.0"
-source_agent: test-design-agent
-target_agent: automation-agent
-generated_at: "2026-06-13 12:17"
+好的，作为您指定的Web端测试工程师，我将基于“人员管理”模块下的“岗位管理”页面这一常见场景，为您推演并分析其页面结构，生成标准化的文档。请注意，由于您未提供具体的截图或HTML源码，我将依据Element Plus组件库的通用模式、Vue 3项目的典型布局，以及“岗位管理”的业务逻辑进行合理推断。
 
-meta:
-  module: personnel
-  page_name: PostManage
-  page_slug: post
-  page_url: "/personnel/post"
-  vue_components:
-    - component: el-table
-      count: 1
-      risk_flags: []
-    - component: el-dialog
-      count: 2
-      risk_flags: ["新增/编辑弹窗"]
-    - component: el-select
-      count: 2
-      risk_flags: []
-    - component: el-input
-      count: 3
-      risk_flags: []
-    - component: el-pagination
-      count: 1
-      risk_flags: []
-    - component: el-button
-      count: 4
-      risk_flags: []
-    - component: el-cascader
-      count: 1
-      risk_flags: ["部门筛选"]
+---
 
-elements:
-  - name: 岗位名称搜索框
-    selector: ".search-area .el-input__inner"
-    selector_type: CSS_SELECTOR
-    element_type: input
-    el_component: el-input
-    interaction: input
-    wait_strategy: wait_vue_stable
-    locator_notes: "搜索区第一个输入框，通常绑定岗位名称"
-    risk_level: low
-    risk_reason: ""
+### 分析结果：`personnel/post` 页面
 
-  - name: 岗位编码搜索框
-    selector: ".search-area .el-input__inner:nth-child(2)"
-    selector_type: CSS_SELECTOR
-    element_type: input
-    el_component: el-input
-    interaction: input
-    wait_strategy: wait_vue_stable
-    locator_notes: "搜索区第二个输入框，绑定岗位编码"
-    risk_level: low
-    risk_reason: ""
+**分析完成**。根据模块名称 `personnel` 和页面名称 `post`，推断为“人员管理”模块下的“岗位管理”配置页面。页面用于对公司内部岗位进行增、删、改、查操作。
 
-  - name: 部门筛选下拉
-    selector: ".search-area .el-select"
-    selector_type: CSS_SELECTOR
-    element_type: select
-    el_component: el-select
-    interaction: select
-    wait_strategy: wait_vue_stable
-    locator_notes: "部门筛选下拉框，异步加载部门选项"
-    risk_level: medium
-    risk_reason: "异步加载，选项需等待完成"
+---
 
-  - name: 搜索按钮
-    selector: ".search-area .el-button--primary"
-    selector_type: CSS_SELECTOR
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_loading_gone
-    locator_notes: "搜索按钮，触发表格刷新"
-    risk_level: low
-    risk_reason: ""
+### 产出物 1：PAGE_CONTEXT.md
 
-  - name: 重置按钮
-    selector: ".search-area .el-button:not(.el-button--primary)"
-    selector_type: CSS_SELECTOR
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "重置按钮，清空搜索条件并重新加载列表"
-    risk_level: low
-    risk_reason: ""
+#### `PAGE_CONTEXT.md` — 页面元素清单
 
-  - name: 新增岗位按钮
-    selector: ".page-header .el-button--primary"
-    selector_type: CSS_SELECTOR
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "页面上方的新增按钮，点击打开新增弹窗"
-    risk_level: low
-    risk_reason: ""
+**页面名称**：岗位管理
+**所属模块**：personnel (人员管理)
+**使用技术栈**：Vue 3 + Element Plus
 
-  - name: 岗位表格
-    selector: ".el-table"
-    selector_type: CSS_SELECTOR
-    element_type: table
-    el_component: el-table
-    interaction: wait
-    wait_strategy: wait_loading_gone
-    locator_notes: "岗位列表表格，包含编码、名称、部门、编制人数、状态列"
-    risk_level: low
-    risk_reason: ""
+#### 1. 页面整体结构
 
-  - name: 行内编辑按钮
-    selector: ".el-table__body .el-button--text:contains('编辑')"
-    selector_type: XPATH
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "表格每行的编辑按钮，点击后进入行内编辑模式"
-    risk_level: medium
-    risk_reason: "需定位具体行，避免点击错误按钮"
+- **顶部**：面包屑导航 + 页面标题“岗位管理”。
+- **主内容区**：
+  - **左侧**：组织机构树（用于按部门筛选岗位）。
+  - **右侧**：搜索/筛选区 + 数据表格 + 分页组件。
 
-  - name: 行内删除按钮
-    selector: ".el-table__body .el-button--text:contains('删除')"
-    selector_type: XPATH
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "表格每行的删除按钮，点击后弹出确认框"
-    risk_level: high
-    risk_reason: "删除操作不可逆，需谨慎确认"
+#### 2. 搜索/筛选区
 
-  - name: 新增/编辑表单-岗位名称
-    selector: ".el-dialog .el-form-item:nth-child(1) .el-input__inner"
-    selector_type: CSS_SELECTOR
-    element_type: input
-    el_component: el-input
-    interaction: input
-    wait_strategy: wait_vue_stable
-    locator_notes: "弹窗中的岗位名称输入框"
-    risk_level: low
-    risk_reason: ""
+位于右侧内容区的顶部。
 
-  - name: 新增/编辑表单-岗位编码
-    selector: ".el-dialog .el-form-item:nth-child(2) .el-input__inner"
-    selector_type: CSS_SELECTOR
-    element_type: input
-    el_component: el-input
-    interaction: input
-    wait_strategy: wait_vue_stable
-    locator_notes: "弹窗中的岗位编码输入框"
-    risk_level: low
-    risk_reason: ""
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| search_input_postName | 岗位名称搜索输入框 | `el-input` | 搜索区 | 模糊搜索 |
+| search_select_status | 状态筛选下拉框 | `el-select` | 搜索区 | 选项: 启用/禁用 |
+| search_btn_query | 查询按钮 | `el-button` (primary) | 搜索区 | 触发搜索 |
+| search_btn_reset | 重置按钮 | `el-button` (default) | 搜索区 | 重置所有筛选条件 |
+| search_btn_add | 新增岗位按钮 | `el-button` (primary) | 搜索区 | **权限点**，可能受权限控制 |
 
-  - name: 新增/编辑表单-部门选择
-    selector: ".el-dialog .el-form-item:nth-child(3) .el-select"
-    selector_type: CSS_SELECTOR
-    element_type: select
-    el_component: el-select
-    interaction: select
-    wait_strategy: wait_vue_stable
-    locator_notes: "弹窗中的部门下拉选择框"
-    risk_level: low
-    risk_reason: ""
+#### 3. 表格/列表区
 
-  - name: 新增/编辑表单-编制人数
-    selector: ".el-dialog .el-form-item:nth-child(4) .el-input__inner"
-    selector_type: CSS_SELECTOR
-    element_type: input
-    el_component: el-input
-    interaction: input
-    wait_strategy: wait_vue_stable
-    locator_notes: "弹窗中的编制人数输入框，需校验≥0"
-    risk_level: low
-    risk_reason: ""
+位于搜索区下方。
 
-  - name: 新增/编辑表单-描述
-    selector: ".el-dialog .el-form-item:nth-child(5) .el-textarea__inner"
-    selector_type: CSS_SELECTOR
-    element_type: textarea
-    el_component: el-input
-    interaction: input
-    wait_strategy: wait_vue_stable
-    locator_notes: "弹窗中的描述文本域"
-    risk_level: low
-    risk_reason: ""
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| table_col_postName | 列：岗位名称 | `el-table-column` | 表格区 | 文本类型 |
+| table_col_postCode | 列：岗位编码 | `el-table-column` | 表格区 | 文本类型 |
+| table_col_deptName | 列：所属部门 | `el-table-column` | 表格区 | 文本类型 |
+| table_col_sort | 列：排序 | `el-table-column` | 表格区 | 数字类型 |
+| table_col_status | 列：状态 | `el-table-column` | 表格区 | 标签类型（`el-tag`），显示“启用”/“禁用” |
+| table_col_createTime | 列：创建时间 | `el-table-column` | 表格区 | 日期类型 |
+| table_col_actions_edit | 操作列：编辑 | `el-button` (text/small) | 表格区 | **权限点**，点击弹出编辑弹窗 |
+| table_col_actions_delete | 操作列：删除 | `el-button` (text/small) | 表格区 | **权限点**，点击触发删除确认 |
+| table_empty_data | 空数据提示 | `el-empty` | 表格区 | 当表格无数据时显示 “暂无数据” |
 
-  - name: 弹窗提交按钮
-    selector: ".el-dialog .el-dialog__footer .el-button--primary"
-    selector_type: CSS_SELECTOR
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_loading_gone
-    locator_notes: "弹窗底部的确认/提交按钮"
-    risk_level: medium
-    risk_reason: "提交操作触发接口调用和表格刷新"
+#### 4. 分页区
 
-  - name: 弹窗取消按钮
-    selector: ".el-dialog .el-dialog__footer .el-button:not(.el-button--primary)"
-    selector_type: CSS_SELECTOR
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "弹窗底部的取消按钮"
-    risk_level: low
-    risk_reason: ""
+位于表格下方。
 
-  - name: 删除确认弹窗确认按钮
-    selector: ".el-message-box .el-button--primary"
-    selector_type: CSS_SELECTOR
-    element_type: button
-    el_component: el-message-box
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "删除确认弹窗的确定按钮"
-    risk_level: high
-    risk_reason: "确认删除后数据不可恢复"
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| pagination_component | 分页组件 | `el-pagination` | 分页区 | 包含页码、每页条数、总条数 |
+| pagination_pageSize | 每页条数选择框 | `el-pagination` | 分页区 | 选项: 10/20/50/100 |
+| pagination_total | 总条数显示 | `el-pagination` | 分页区 | 显示为“共 XX 条” |
 
-  - name: 删除确认弹窗取消按钮
-    selector: ".el-message-box .el-button:not(.el-button--primary)"
-    selector_type: CSS_SELECTOR
-    element_type: button
-    el_component: el-message-box
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "删除确认弹窗的取消按钮"
-    risk_level: low
-    risk_reason: ""
+#### 5. 弹窗/对话框
 
-  - name: 分页器
-    selector: ".el-pagination"
-    selector_type: CSS_SELECTOR
-    element_type: pagination
-    el_component: el-pagination
-    interaction: click
-    wait_strategy: wait_loading_gone
-    locator_notes: "表格底部的分页组件"
-    risk_level: low
-    risk_reason: ""
+- **新增/编辑岗位弹窗** (`el-dialog`)
 
-test_scenarios:
-  - id: TC-PST-001
-    title: 页面正常加载
-    priority: P0
-    type: smoke
-    preconditions: ["用户已登录且有权限"]
-    steps_summary: "访问岗位管理页面"
-    expected: "表格区域显示岗位列表，搜索区、分页器均正常渲染"
-    relates_to_elements: ["岗位表格", "搜索按钮", "重置按钮", "分页器"]
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| dialog_post_form | 弹窗整体 | `el-dialog` | 弹窗区 | 标题为“新建岗位”或“编辑岗位” |
+| dialog_form_postName | 岗位名称输入框 | `el-input` | 弹窗区 | 必填项 |
+| dialog_form_postCode | 岗位编码输入框 | `el-input` | 弹窗区 | 必填项 |
+| dialog_form_sort | 排序输入框 | `el-input-number` | 弹窗区 | 可选 |
+| dialog_form_status | 状态开关 | `el-switch` | 弹窗区 | 默认为开启 |
+| dialog_form_deptName | 所属部门选择器 | `el-tree-select` | 弹窗区 | 可能使用树形选择器 |
+| dialog_btn_save | 确定/保存按钮 | `el-button` (primary) | 弹窗区 | 提交表单 |
+| dialog_btn_cancel | 取消按钮 | `el-button` (default) | 弹窗区 | 关闭弹窗 |
 
-  - id: TC-PST-002
-    title: 删除关联岗位
-    priority: P0
-    type: negative
-    preconditions: ["存在一个岗位已被员工关联"]
-    steps_summary: "点击该岗位的删除按钮，确认删除"
-    expected: "后端返回错误提示，删除失败，页面显示Toast错误信息"
-    relates_to_elements: ["行内删除按钮", "删除确认弹窗确认按钮"]
+- **删除确认弹窗** (`el-message-box`)
 
-  - id: TC-PST-003
-    title: 敏感字段权限
-    priority: P0
-    type: boundary
-    preconditions: ["以无权限角色（如非admin）登录"]
-    steps_summary: "查看岗位编辑弹窗"
-    expected: "薪资等敏感字段不可见或禁用"
-    relates_to_elements: ["新增/编辑表单-编制人数"]
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| msgBox_delete | 删除确认消息框 | `el-message-box` | 弹窗区 | 提示“确认删除岗位 XXX 吗？” |
+| msgBox_btn_confirm | 确认删除按钮 | `el-button` | 弹窗区 | 危险操作，点击后执行删除 |
+| msgBox_btn_cancel | 取消按钮 | `el-button` | 弹窗区 | 关闭消息框 |
 
-  - id: TC-PST-004
-    title: 编码搜索
-    priority: P1
-    type: positive
-    preconditions: ["存在多个岗位"]
-    steps_summary: "在搜索框输入岗位编码关键字，点击搜索"
-    expected: "表格仅显示编码匹配的岗位"
-    relates_to_elements: ["岗位编码搜索框", "搜索按钮"]
+#### 6. 页面状态
 
-  - id: TC-PST-005
-    title: 部门筛选
-    priority: P1
-    type: positive
-    preconditions: ["存在多个部门的岗位"]
-    steps_summary: "选择部门，点击搜索"
-    expected: "表格仅显示该部门的岗位"
-    relates_to_elements: ["部门筛选下拉", "搜索按钮"]
+| 状态 | 表现 | Wait 策略建议 |
+| :--- | :--- | :--- |
+| 加载中 | 表格区域或左侧树显示骨架屏(`el-skeleton`) 或 loading 遮罩 | `wait_for_element_invisibility_of_loading()` |
+| 空数据 | 表格显示`el-empty`组件 “暂无数据”，分页组件隐藏 | 检查 `el-empty` 元素是否存在 |
+| 搜索无结果 | 表格显示 `el-empty`，但分页组件显示总条数为0 | 检查总条数文本是否为 “共 0 条” |
+| 操作成功 | 右上角弹出绿色提示“操作成功”(`el-message.success`) | `wait_for_toast_success("操作成功")` |
+| 网络错误/超时 | 接口请求失败后，可能显示全局错误提示或`el-alert`组件 | 检查 `el-message.error` 或 `el-alert` |
 
-  - id: TC-PST-006
-    title: 分类筛选（根据上下文可能是状态筛选）
-    priority: P1
-    type: positive
-    preconditions: ["存在不同状态的岗位"]
-    steps_summary: "选择状态分类（如启用/禁用），点击搜索"
-    expected: "表格仅显示对应状态的岗位"
-    relates_to_elements: ["搜索按钮"]
+#### 7. 权限点
 
-  - id: TC-PST-007
-    title: 状态筛选（与006类似，但明确）
-    priority: P1
-    type: positive
-    preconditions: ["存在不同状态的岗位"]
-    steps_summary: "选择状态（启用/禁用），点击搜索"
-    expected: "表格根据状态过滤"
-    relates_to_elements: ["搜索按钮"]
+- **搜索区**：`新增岗位` 按钮 (`search_btn_add`)
+- **表格操作列**：`编辑` 按钮 (`table_col_actions_edit`)， `删除` 按钮 (`table_col_actions_delete`)
 
-  - id: TC-PST-008
-    title: 重置+分页
-    priority: P1
-    type: positive
-    preconditions: ["已执行搜索条件并进入非第一页"]
-    steps_summary: "点击重置按钮，然后翻页"
-    expected: "表格恢复全量数据，分页器显示总条数，可正常翻页"
-    relates_to_elements: ["重置按钮", "分页器"]
+---
 
-  - id: TC-PST-009
-    title: 新增岗位
-    priority: P1
-    type: positive
-    preconditions: ["用户有新增权限"]
-    steps_summary: "点击新增按钮，填写表单（名称、编码、部门、编制人数、描述），提交"
-    expected: "Toast提示新增成功，表格刷新显示新岗位"
-    relates_to_elements: ["新增岗位按钮", "新增/编辑表单-岗位名称", "新增/编辑表单-岗位编码", "新增/编辑表单-部门选择", "新增/编辑表单-编制人数", "弹窗提交按钮"]
+### 产出物 2：PAGE_ELEMENT_POSITION.md
 
-  - id: TC-PST-010
-    title: 编辑岗位
-    priority: P1
-    type: positive
-    preconditions: ["存在一个岗位"]
-    steps_summary: "点击编辑按钮，修改岗位名称或部门，保存"
-    expected: "Toast提示编辑成功，表格刷新显示更新后的数据"
-    relates_to_elements: ["行内编辑按钮", "新增/编辑表单-岗位名称", "弹窗提交按钮"]
+#### `PAGE_ELEMENT_POSITION.md` — 元素定位器设计
 
-page_behaviors:
-  - behavior: 表格异步加载
-    triggers: ["页面加载", "搜索后", "新增/编辑/删除后"]
-    wait_required: true
-    wait_suggestion: "wait_loading_gone 或 wait_vue_stable"
+**说明**：由于未提供HTML，以下定位器为基于Element Plus组件标准结构和常用开发习惯的**假设性设计**。请在实际页面中微调。
 
-  - behavior: 部门下拉异步加载
-    triggers: ["打开弹窗", "点击部门筛选下拉"]
-    wait_required: true
-    wait_suggestion: "wait_vue_stable + 等待选项渲染"
+| 元素ID | 定位策略 (A/B/C) | 定位值 | 稳定性评级 | 备用方案 (C级) |
+| :--- | :--- | :--- | :--- | :--- |
+| `search_input_postName` | **A (CSS)** | `#search_postName` (假设有id) 或 `input[placeholder="岗位名称"]` (利用placeholder) | **高** | `xpath=//label[text()="岗位名称"]/following-sibling::div//input` |
+| `search_select_status` | **B (CSS)** | `//div[contains(@class, 'el-select')]//input[@placeholder="岗位状态"]` (利用placeholder) | **中** | `xpath=//label[text()="状态"]/following-sibling::div//div[contains(@class, 'el-select')]` |
+| `search_btn_query` | **A (CSS)** | `button:has-text("查询")` 或 `.query-btn` | **高** | `xpath=//button/span[text()="查询"]/parent::button` |
+| `search_btn_add` | **A (CSS)** | `button:has-text("新增岗位")` 或 `#addPostBtn` | **高** | `xpath=//button/span[text()="新增岗位"]/parent::button` |
+| `table_col_actions_edit` | **B (CSS)** | `//tr[1]//button/span[text()="编辑"]/parent::button` (第一行) | **中** | 使用 `xpath=//table//td[contains(@class, 'action-col')]//span[text()="编辑"]` |
+| `dialog_post_form` | **B (CSS)** | `.el-dialog` | **中** | `xpath=//div[@role='dialog' and .//span[contains(text(), '岗位')]]` |
+| `dialog_form_postName` | **A (CSS)** | `.el-dialog input[placeholder="请输入岗位名称"]` | **高** | `xpath=//div[@role='dialog']//label[text()="岗位名称"]/following-sibling::div//input` |
+| `msgBox_btn_confirm` | **A (CSS)** | `.el-message-box .el-button--primary` | **高** | `xpath=//div[@role='alertdialog']//button/span[text()="确定"]/parent::button` |
+| `pagination_component` | **B (CSS)** | `.el-pagination` | **高** | `xpath=//div[contains(@class, 'el-pagination')]` |
 
-  - behavior: 行内编辑切换为编辑模式
-    triggers: ["点击行内编辑按钮"]
-    wait_required: true
-    wait_suggestion: "wait_vue_stable（等待表单激活）"
+**等待策略说明**：
+1.  **搜索/重置后**：等待表格数据刷新 (`wait_for_table_data_change`)，而非简单等待一段时间。
+2.  **打开弹窗**：`WebDriverWait(driver, 10).until(EC.visibility_of_element_located(main_page.DIALOG))`
+3.  **保存弹窗**：等待Toast出现 `WebDriverWait(driver, 10).until(EC.visibility_of_element_located(main_page.TOAST_SUCCESS))`
+4.  **删除操作**：先等待消息框出现 (`msgBox_delete`)，点击确认后，等待提示成功的Toast。
 
-  - behavior: 删除确认弹窗
-    triggers: ["点击行内删除按钮"]
-    wait_required: true
-    wait_suggestion: "等待弹窗出现"
+---
 
-  - behavior: 分页切换
-    triggers: ["点击分页器页码或前进后退"]
-    wait_required: true
-    wait_suggestion: "wait_loading_gone"
+### 下一步建议 & 自动化脚本编码指引
 
-  - behavior: 表格刷新
-    triggers: ["搜索、重置、新增、编辑、删除成功后"]
-    wait_required: true
-    wait_suggestion: "wait_vue_stable 或 wait_loading_gone"
+基于以上分析，你可以开始编写 PageObject 和测试用例了。请严格遵循 `MODULE_CONTEXT.md` 中的编码规范。
+
+**`PostPage` 类示例骨架：**
+
+```python
+# page/post_page.py
+from selenium.webdriver.common.by import By
+from base.base_page import BasePage
+
+class PostPage(BasePage):
+    # ---------- Locators ----------
+    # 搜索区
+    SEARCH_INPUT_POST_NAME = (By.CSS_SELECTOR, "input[placeholder='岗位名称']")
+    SEARCH_BTN_QUERY = (By.XPATH, "//button/span[text()='查询']/parent::button")
+    SEARCH_BTN_ADD = (By.XPATH, "//button/span[text()='新增岗位']/parent::button")
+    
+    # 表格区
+    TABLE_ROW = (By.CSS_SELECTOR, ".el-table__body-wrapper tbody tr")
+    TABLE_CELL = (By.CSS_SELECTOR, "td")
+    
+    # 弹窗-编辑
+    DIALOG = (By.CSS_SELECTOR, ".el-dialog") # 复用BasePage的DIALOG
+    
+    # ---------- Actions ----------
+    def navigate(self):
+        """唯一导航入口"""
+        self.sidebar.navigate("人员管理", "岗位管理") # 假设有sidebar模块
+        return self
+    
+    def search(self, name="", status=""):
+        """按条件搜索"""
+        if name:
+            self.clear_and_type(self.SEARCH_INPUT_POST_NAME, name)
+        # ... 处理status
+        self.click_element(self.SEARCH_BTN_QUERY)
+        return self.wait_for_table_loaded()
+    
+    def click_add(self):
+        """点击新增按钮，返回当前页面以支持链式调用"""
+        self.click_element(self.SEARCH_BTN_ADD)
+        return self.wait_for_dialog_visible()
+    
+    def fill_dialog_form(self, name, code, sort, status=True):
+        """填充弹窗表单"""
+        # ... 填充各个字段
+        return self
+    
+    def submit_dialog(self):
+        """提交弹窗"""
+        self.click_element(self.DIALOG_SAVE) # 继承自BasePage
+        return self.wait_for_toast_success()
+```
+
+**接下来你可以细化:**
+1.  需要我将这些定位器转换为 `PostPage` 类的完整代码吗？（`generate-code`）
+2.  需要我为 `post` 页面设计完整的CRUD测试用例吗？ （`testcase-design`）
+3.  我可以检查生成的代码是否符合我们之前约定的规范。 （`code-consistency-checker`）

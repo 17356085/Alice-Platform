@@ -14,21 +14,22 @@
 | `coding-standards.md` | 8 条代码红线、PageObject/测试脚本规范、禁止模式、自检命令 | automation-agent | ~1,200 |
 | `element-plus-pitfalls.md` | EP-001~EP-011 快速索引（事实源: known-issues.yaml） | automation-agent, bug-analysis-agent, knowledge-agent | ~300 |
 | `test-data-policy.md` | 数据管理规范、CleanupTracker、清理策略、命名规范 | automation-agent, execution-agent | ~500 |
+| `../shared-language.md` | 平台术语表、测试术语、被测系统业务术语、歧义消除 | 所有 Agent | ~350 |
 
 ## 按 Agent 加载策略
 
 | Agent | 加载文件 | 合计 Token |
 |-------|---------|-----------|
-| **project-agent** | project-profile + base-api-reference（审计时） | 500–2,000 |
-| **requirement-agent** | project-profile | 500 |
-| **test-design-agent** | project-profile | 500 |
-| **automation-agent** | base-api-reference + coding-standards + element-plus-pitfalls | 3,000 |
-| **execution-agent** | test-data-policy | 500 |
-| **bug-analysis-agent** | element-plus-pitfalls | 300 |
-| **report-agent** | project-profile | 500 |
-| **knowledge-agent** | element-plus-pitfalls | 300 |
+| **project-agent** | shared-language + project-profile + base-api-reference（审计时） | 850–2,350 |
+| **requirement-agent** | shared-language + project-profile | 850 |
+| **test-design-agent** | shared-language + project-profile | 850 |
+| **automation-agent** | shared-language + base-api-reference + coding-standards + element-plus-pitfalls | 3,350 |
+| **execution-agent** | shared-language + test-data-policy | 850 |
+| **bug-analysis-agent** | shared-language + element-plus-pitfalls | 650 |
+| **report-agent** | shared-language + project-profile | 850 |
+| **knowledge-agent** | shared-language + element-plus-pitfalls | 650 |
 
-> 平均每次 Agent 加载: **~900 tokens**（拆分前: ~4,500 tokens, 节省 **80%**）
+> 平均每次 Agent 加载: **~1,250 tokens**（拆分前: ~4,500 tokens, 节省 **72%**）。shared-language.md 新增 ~350 tokens/Agent 增量，换取术语一致性。**注意**: 以上为完整列表；会话级按需加载，非每个 Agent 都加载全部。实际平均加载 ~900 tokens/Agent。
 
 ## 相关资源
 - 环境信息：`governance/context/environments.yaml`
@@ -39,3 +40,20 @@
 
 ## 维护范围
 项目目标、技术边界、模块划分原则、协作约束。页面级细节、风险分析、测试设计、Bug 分析不在本文件维护范围。
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: project-stats -->
+<!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
+## 项目统计数据 (更新于 2026-06-17 16:53)
+
+| 指标 | 数值 |
+|------|:---:|
+| 纳管模块 | 12 |
+| 100% 完成模块 | 2 (tank, lab) |
+| SOP completed | 10 |
+| Pending/重置 | 1 |
+| 测试文件总数 | 116 |
+| Page Object 总数 | 85 |
+| 治理文档总数 | 354 |
+| 总体进度 | 81% |
+
+> 此段由 sync_progress.py 自动更新。2026-06-17 16:53
+<!-- ⚠️ AUTO-GENERATED SECTION END: project-stats -->

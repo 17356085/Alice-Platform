@@ -164,7 +164,7 @@ def act_node(state: SOPState) -> dict:
         return _act_mechanical_check(module, page)
 
     # ── LLM Skill 调用 ──
-    from aitest.agent_runner import run_skill
+    from aitest.agents.agent_runner import run_skill
 
     response = run_skill(
         skill_id=skill_id,
@@ -435,7 +435,7 @@ def automation_review(state: SOPState) -> dict:
     po_code = po_path.read_text(encoding="utf-8")[:2000] if po_path.exists() else "(缺失)"
     test_code = test_path.read_text(encoding="utf-8")[:2000] if test_path.exists() else "(缺失)"
 
-    from aitest.agent_runner import run_skill
+    from aitest.agents.agent_runner import run_skill
     import json, re
 
     review_input = f"""你是资深UI自动化工程师，请**批判**以下自动化代码：

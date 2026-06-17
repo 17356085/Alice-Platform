@@ -86,3 +86,8 @@ npx vue-tsc --noEmit
 ## 输出
 只输出完整的 .vue 文件内容，包裹在 ```vue 代码块中。
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | frontend | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

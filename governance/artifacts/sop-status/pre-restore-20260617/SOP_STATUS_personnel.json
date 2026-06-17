@@ -1,0 +1,34 @@
+{
+  "module": "personnel",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation"
+  ],
+  "failed_phases": [],
+  "pages_processed": [
+    "certificate",
+    "contractor-personnel",
+    "contractor-unit",
+    "course",
+    "employee",
+    "entry-approval",
+    "entry-confirm",
+    "entry-record",
+    "exam",
+    "paper",
+    "plan",
+    "post",
+    "practice",
+    "question",
+    "study-record",
+    "wrong-question"
+  ],
+  "artifact_count": 64,
+  "run_id": "sop-personnel-batch3",
+  "updated_at": "2026-06-17",
+  "engine": "langgraph",
+  "note": "SOP batch 3 — 175 artifacts regenerated from business requirements"
+}

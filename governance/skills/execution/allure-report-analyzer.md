@@ -127,3 +127,8 @@
 ## 产出物
 → `TEST_SUMMARY.md`，存放至 `governance/context/projects/web-automation/summaries/`。
 → 格式参见 `templates/test-summary.template.md`。
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | execution | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

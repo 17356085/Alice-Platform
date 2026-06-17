@@ -32,7 +32,7 @@ def make_agent_loop_node(agent_name: AgentName, skill_subset: list = None):
     """
 
     def agent_loop_node(state: SOPState) -> dict:
-        from aitest.agent_runner import AgentLoop
+        from aitest.agents.agent_runner import AgentLoop
         from aitest.graphs.state import AgentResult
 
         page = ""
@@ -128,7 +128,7 @@ def make_pass_through_node(agent_name: AgentName):
     """
 
     def pass_through(state: SOPState) -> dict:
-        from aitest.agent_runner import AgentLoop
+        from aitest.agents.agent_runner import AgentLoop
 
         page = ""
         if state.get("pages"):
@@ -196,7 +196,7 @@ def make_skill_node(skill_id: str, provider_field: str = "provider"):
     """
 
     def skill_node(state: SOPState) -> dict:
-        from aitest.agent_runner import run_skill
+        from aitest.agents.agent_runner import run_skill
 
         page = ""
         if state.get("pages"):

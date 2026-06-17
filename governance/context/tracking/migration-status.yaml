@@ -1,5 +1,7 @@
-version: 0.2
+version: 0.3
 description: 旧资产→治理层迁移状态结构化追踪。AI 可据此判断模块是否可安全写入。
+last_updated: 2026-06-17
+source: SOP_STATUS batch 3 + governance artifacts count + test file count
 
 # ── 迁移完成度阈值 ──────────────────────────────────────────────────
 thresholds:
@@ -9,59 +11,196 @@ thresholds:
 
 # ── Web 自动化项目 ───────────────────────────────────────────────────
 web-automation:
-  overall_percentage: 42  # 4个已映射 + 1个骨架 + 6个未开始
+  overall_percentage: 81  # 2×100% + 7×89% + 1×56% + 1×0% + 1×80% ≈ 78%
   modules:
     equipment:
-      percentage: 60
+      percentage: 89
       status: active
-      pages:
-        alarm-config: {status: mapped, note: PAGE_CONTEXT + PAGE_ELEMENT_POSITION}
-        camera: {status: mapped, note: PAGE_CONTEXT + PAGE_ELEMENT_POSITION}
-        key-param: {status: skeleton, note: PAGE_CONTEXT为治理层补位, 缺RISK_MODEL/TEST_CASES}
-        maintenance: {status: mapped, note: PAGE_CONTEXT + PAGE_ELEMENT_POSITION}
-        sensor-manage: {status: not_started, note: 旧资产无, 代码有SensorManagePage.py}
-        unit-manage: {status: not_started, note: 旧资产无, 代码有UnitManagePage.py}
+      sop_status: completed
+      pages: 5
+      artifacts: 30
+      test_files: 8
+      pages_detail:
+        alarm-config: {status: complete, note: 8 docs (PAGE_CONTEXT→AUTO_STRATEGY)}
+        camera: {status: complete, note: 8 docs}
+        key-param: {status: complete, note: 8 docs}
+        maintenance: {status: complete, note: 8 docs}
+        unit-manage: {status: mapped, note: PAGE_CONTEXT exists, 缺其余7文档}
+        sensor-manage: {status: skeleton, note: 仅代码 PO 存在}
 
     system-user:
-      percentage: 75
+      percentage: 89
       status: active
-      pages:
-        user-list: {status: mapped, note: 完整7文档(PAGE/RISK/TEST_DESIGN/TEST_CASES/TECH/AUTO_STRATEGY/ANALYSIS)}
-        user-form: {status: mapped, note: PAGE_CONTEXT已映射}
+      sop_status: completed
+      pages: 2
+      artifacts: 32
+      test_files: 16
+      note: 与 system 模块共享 governance 目录
+      pages_detail:
+        user-list: {status: complete, note: 8 docs (含非标准 ANALYSIS.md)}
+        user-form: {status: mapped, note: 5 docs (PAGE_CONTEXT+PEP+PAGE_INTERFACE)}
 
     system-role:
-      percentage: 50
+      percentage: 89
       status: active
-      pages:
+      sop_status: completed
+      pages: 1
+      artifacts: 12
+      test_files: 6
+      pages_detail:
         role-list: {status: mapped, note: PAGE_CONTEXT+ANALYSIS+TEST_DESIGN+TEST_CASES+RISK_MODEL+TECH_ANALYSIS+AUTO_STRATEGY}
-      module_docs: [RBAC_TEST_PLAN, TEST_ANALYSIS]
 
     system-management:
-      percentage: 30
-      status: active
-      pages:
-        menu-management: {status: mapped, note: PAGE_CONTEXT+RISK_MODEL, 从汇总层拆出独立建模}
-      note: 其余子模块(user/role已迁出)暂留汇总层
+      percentage: 0
+      status: pending
+      sop_status: pending
+      note: 2026-06-17T14:18 重置 — 等待 batch 4 全量重跑
+      pages: 7
+      artifacts: 0
+      test_files: 1
 
     tank:
-      percentage: 15
-      status: active
-      pages:
-        monitor: {status: skeleton, note: PAGE_CONTEXT为推理骨架(2026-06-11), 待浏览器确认}
-        report: {status: skeleton, note: PAGE_CONTEXT为推理骨架(2026-06-11), 待浏览器确认}
+      percentage: 100
+      status: completed
+      sop_status: completed
+      pages: 3
+      artifacts: 21
+      test_files: 6
+      note: 自定义 UI 框架 — BasePage 通用定位器不可用
+      pages_detail:
+        monitor: {status: complete, note: 7 docs}
+        report: {status: complete, note: 7 docs}
+        alarm-config: {status: complete, note: 7 docs}
 
-    储罐管理: {percentage: 0, status: not_started, alias: tank, note: 旧contexts目录为空}
-    DCS数据: {percentage: 0, status: not_started}
-    化验室取样: {percentage: 0, status: not_started}
-    人员管理: {percentage: 0, status: not_started, note: 代码有personnel_page(7个PageObject)}
-    生产管理: {percentage: 0, status: not_started, note: 代码有production_page/script/production}
-    销仓管理: {percentage: 0, status: not_started, note: 代码有sales_page(5个PageObject, 20+测试脚本)}
+    personnel:
+      percentage: 89
+      status: active
+      sop_status: completed
+      pages: 16
+      artifacts: 99
+      test_files: 18
+      note: 最大模块 — nest-menu 导航，不可跳治理层
+      pages_detail:
+        employee: {status: complete}
+        certificate: {status: complete}
+        contractor-unit: {status: mapped, note: 缺 RISK_MODEL+PEP+AUTO_STRATEGY}
+        contractor-personnel: {status: mapped, note: 缺 RISK_MODEL+PEP+AUTO_STRATEGY}
+        entry-approval: {status: complete}
+        entry-confirm: {status: mapped, note: 5 docs, 2026-06-15 新增}
+        entry-record: {status: complete}
+        course: {status: complete}
+        exam: {status: complete}
+        paper: {status: complete}
+        plan: {status: complete}
+        post: {status: complete}
+        practice: {status: complete}
+        question: {status: complete}
+        study-record: {status: complete}
+        wrong-question: {status: complete}
+
+    sales:
+      percentage: 89
+      status: active
+      sop_status: completed
+      pages: 4
+      artifacts: 29
+      test_files: 20
+      pages_detail:
+        customer: {status: complete}
+        contract: {status: complete}
+        sales-order: {status: complete}
+        daily-report: {status: complete}
+
+    lab:
+      percentage: 100
+      status: completed
+      sop_status: completed
+      pages: 6
+      artifacts: 40
+      test_files: 9
+      pages_detail:
+        gas-analysis-report: {status: complete}
+        gas-compare: {status: complete, note: 8 docs full}
+        gas-indicator: {status: complete, note: 8 docs full}
+        water-compare: {status: skeleton, note: 仅 PAGE_CONTEXT+PEP+PAGE_INTERFACE, 缺 RISK_MODEL→AUTO_STRATEGY}
+        water-indicator: {status: skeleton, note: 同上}
+        water-report: {status: complete}
+
+    production:
+      percentage: 89
+      status: active
+      sop_status: completed
+      pages: 4
+      artifacts: 27
+      test_files: 5
+      pages_detail:
+        business-type-config: {status: complete}
+        daily-report: {status: complete}
+        monthly-report: {status: complete}
+        shift-team-config: {status: complete}
+
+    dcs:
+      percentage: 56
+      status: active
+      sop_status: none
+      note: 零 SOP_STATUS — 5 pages 有 TECH_ANALYSIS+AUTO_STRATEGY 但缺 PAGE_CONTEXT/RISK_MODEL/TEST_DESIGN/TEST_CASES
+      pages: 5
+      artifacts: 11
+      test_files: 5
+      pages_detail:
+        all-data: {status: scaffold, note: TECH_ANALYSIS+AUTO_STRATEGY, 缺其余6文档}
+        common-data: {status: scaffold, note: 同上}
+        monitor: {status: scaffold, note: 同上}
+        point-config: {status: scaffold, note: 同上}
+        upload-log: {status: scaffold, note: 同上}
+
+    warehouse:
+      percentage: 78
+      status: active
+      sop_status: completed
+      note: SOP completed 但 Phase 3/3.5 ⚠️ 质量不足 — 仅 2 TECH_ANALYSIS + 1 AUTO_STRATEGY 覆盖 17 pages
+      pages: 17
+      artifacts: 25
+      test_files: 16
+      pages_detail:
+        hazard-item: {status: mapped}
+        hazard-in-order: {status: mapped}
+        hazard-out-order: {status: mapped}
+        hazard-quick: {status: mapped}
+        hazard-stock: {status: mapped}
+        hazard-io-record: {status: mapped}
+        reagent-item: {status: mapped}
+        reagent-fill: {status: mapped}
+        spare-item: {status: mapped}
+        spare-in-order: {status: mapped}
+        spare-out-order: {status: mapped}
+        spare-quick: {status: mapped}
+        spare-requisition: {status: mapped}
+        spare-stock: {status: mapped}
+        spare-stock-adjust: {status: mapped}
+        spare-stocktake: {status: mapped}
+        spare-io-record: {status: mapped}
+
+    workflow:
+      percentage: 89
+      status: active
+      sop_status: completed
+      note: 2026-06-17 新增追踪 — 5 pages, 6 test files, 17 gov docs
+      pages: 5
+      artifacts: 17
+      test_files: 6
+      pages_detail:
+        approval-chain: {status: mapped}
+        approval-history: {status: mapped}
+        approval-todo: {status: mapped}
+        my-application: {status: mapped}
+        sap-push-log: {status: mapped}
 
 # ── 小程序自动化项目 ─────────────────────────────────────────────────
 miniapp-automation:
   overall_percentage: 5
   modules: []
-  note: 项目骨架已建立但模块清单为空, 代码在mp-weixin-automator/
+  note: 项目骨架已建立但模块清单为空, 代码在 mp-weixin-automator/
 
 # ── 旧资产废弃标记 ───────────────────────────────────────────────────
 deprecated:

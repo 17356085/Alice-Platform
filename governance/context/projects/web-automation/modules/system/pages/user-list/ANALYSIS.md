@@ -1,6 +1,7 @@
 # ANALYSIS — 用户管理模块 需求分析
 
 > **编制日期**: 2026-06-10 | **分析师**: 测试工程师
+> **文档类型**: 非标准 (标准类型为 PAGE_CONTEXT/RISK_MODEL/TEST_DESIGN/TEST_CASES/TECH_ANALYSIS/PAGE_ELEMENT_POSITION/AUTO_STRATEGY/PAGE_INTERFACE)。本文档为遗留综合分析，可拆分为 RISK_MODEL + TEST_DESIGN。
 > **分析方法**: 基于现有自动化代码（15 条用例 + Page Object ~1,250 行）+ 项目知识库反向推导
 > **⚠️ 重要声明**: 本次分析**未收到新 PRD 或需求变更文档**，分析对象为当前已实现的用户管理功能。如后续收到正式 PRD，需更新本文档。
 > **关联文档**: [MODULE_CONTEXT.md](../MODULE_CONTEXT.md) | [PAGE_CONTEXT.md](PAGE_CONTEXT.md) | [TEST_DESIGN.md](TEST_DESIGN.md)

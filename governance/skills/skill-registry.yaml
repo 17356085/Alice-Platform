@@ -84,6 +84,22 @@ skills:
     status: active
   workflows:
   - module-onboarding
+- id: page-observe
+  category: test-design
+  status: active
+  file: skills/test-design/page-observe.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/test-design/page-observe.md
+    released: '2026-06-17'
+    changelog: BrowserUse 驱动页面结构自动观察 — 零人工 DOM 诊断
+    status: active
+  depends_on:
+  - page-analysis
+  note: BrowserUse AI Agent 自动探索页面，提取 search_fields / buttons / columns / pagination。作为 page-analysis 的 BrowserUse 驱动后处理。
+  workflows:
+  - module-onboarding
 - id: risk-modeling
   category: test-design
   status: active
@@ -269,12 +285,31 @@ skills:
   workflows:
   - module-test-design
   - test-cycle-closure
+- id: data-sanitization
+  category: execution
+  status: active
+  file: skills/execution/data-sanitization.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/execution/data-sanitization.md
+    released: '2026-06-17'
+    changelog: 初始版本 — 注册孤立 Skill (SOP graph 通过 scan_and_clean.py 节点直接调用)
+    status: active
+  workflows:
+  - test-cycle-closure
+  note: 当前由 sop_graph.py data_sanitization_node 直接调用 scan_and_clean.py。Skill 文件提供 Prompt 文档参考。
 - id: bug-analysis
   category: diagnosis
   status: active
   file: skills/diagnosis/bug-analysis.md
-  current_version: '1.0'
+  current_version: '1.1'
   versions:
+  - version: '1.1'
+    file: skills/diagnosis/bug-analysis.md
+    released: '2026-06-17'
+    changelog: 新增 L1.0 反馈循环构建方法（10 种方式，来源 mattpocock/skills /diagnose）；更新检查清单和 Prompt 模板
+    status: active
   - version: '1.0'
     file: skills/diagnosis/bug-analysis.md
     released: '2026-05-01'
@@ -359,4 +394,16 @@ skills:
   - progress-report
   workflows:
   - test-cycle-closure
+- id: caveman
+  category: productivity
+  status: active
+  file: skills/productivity/caveman.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/productivity/caveman.md
+    released: '2026-06-17'
+    changelog: 初始版本 — 来源 mattpocock/skills /caveman，适配 AITest Platform；三级强度(lite/full/ultra)，横向贯穿所有 Agent
+    status: active
+  note: 横向贯穿 Skill，不绑定特定 Agent。所有 Agent 在任何 Phase 均可使用。长会话/批量 Bug 分析时推荐开启。
 variants: null

@@ -1,0 +1,2 @@
+{"timestamp": "2026-06-17T13:41:50.373609", "total_tokens": 0, "total_cost_usd": 0.0, "by_provider": {}, "by_module": {"equipment": 0, "personnel": 0, "warehouse": 0, "system": 0, "tank": 0, "lab": 0, "production": 0, "sales": 0, "system-role": 0, "system-management": 0, "workflow": 0}, "note": "E2E run — no LLM cost (Selenium-only execution)"}
+{"note": "2026-06-17 E2E run was Selenium-only execution (no LLM API calls). Cost=0 is accurate for this run. Historical cost data not yet tracked — needs cost_auditor integration.", "updated": "2026-06-17"}

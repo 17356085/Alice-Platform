@@ -93,7 +93,7 @@ def td_act(state: SOPState) -> dict:
     page = _get_current_page(state)
     provider = state.get("provider", "claude")
 
-    from aitest.agent_runner import run_skill
+    from aitest.agents.agent_runner import run_skill
 
     response = run_skill(
         skill_id=skill_id,
@@ -219,7 +219,7 @@ def td_review(state: SOPState) -> dict:
         return {"agent_outputs": {**state.get("agent_outputs", {}), "td_review": {"passed": True, "note": "No artifacts to review"}}}
 
     # 对抗性审查 prompt
-    from aitest.agent_runner import run_skill
+    from aitest.agents.agent_runner import run_skill
 
     review_input = f"""你是资深测试架构师，请**批判**下面这份测试设计，找出遗漏和问题：
 

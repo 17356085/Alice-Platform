@@ -176,3 +176,30 @@ workflows:
       - api_test_design
     artifacts:
       - context/projects/*/modules/*/API_TEST_DESIGN.md
+
+  - id: architecture-review
+    name: 架构评审
+    status: active
+    gates:
+      - sop-state
+    inputs:
+      - agent_definitions
+      - skill_registries
+      - sop_graphs
+      - audit_reports
+      - trace_log
+    outputs:
+      - arch_review
+      - governance_review
+      - token_review
+      - production_review
+    artifacts:
+      - governance/artifacts/reviews/system/ARCH_REVIEW-*.md
+      - governance/artifacts/reviews/system/GOV_COVERAGE-*.md
+      - governance/artifacts/reviews/system/TOKEN_REVIEW-*.md
+      - governance/artifacts/reviews/system/PROD_READY-*.md
+    # TODO: planned — runtime support pending
+    review_gate:
+      min_architecture_score: 60
+      min_governance_score: 50
+      max_critical_issues: 5

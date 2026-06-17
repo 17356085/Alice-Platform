@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI):
     await init_db()
     print("[SessionStore] Database initialized")
 
-    from aitest.task_queue import get_runner, get_queue
+    from aitest.infra.task_queue import get_runner, get_queue
     runner = get_runner()
     runner.start()
     queue = get_queue()
@@ -46,7 +46,7 @@ async def lifespan(app: FastAPI):
     # P1-ACTIVATION (2026-06-15): 生产环境激活 KnowledgeAgentSubscriber
     # Dead Path #5 修复 — 此前仅在 event_bus watch CLI 模式激活
     try:
-        from aitest.event_bus import KnowledgeAgentSubscriber
+        from aitest.governance.event_bus import KnowledgeAgentSubscriber
         _gov_subscriber = KnowledgeAgentSubscriber(provider="claude", auto_process=True)
         _gov_subscriber.activate()
         print(f"[Governance] KnowledgeAgentSubscriber activated — listening for governance events")
@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI):
         # 启动后等待 60s 再首次审计（让服务完全初始化）
         await asyncio.sleep(60)
         iteration = 0
-        from aitest.scheduled_audit import run_all_audits, discover_modules
+        from aitest.governance.scheduled_audit import run_all_audits, discover_modules
         while not _audit_stop.is_set():
             iteration += 1
             started = asyncio.get_event_loop().time()
@@ -88,6 +88,19 @@ async def lifespan(app: FastAPI):
                       f"SOP: {sop_violations} violations, "
                       f"Cost: ${cost_info.get('total_cost', 0):.4f} "
                       f"({asyncio.get_event_loop().time() - started:.1f}s)")
+
+                # 审计后检查是否需要触发架构评审
+                try:
+                    from aitest.governance.review_trigger import check_and_enqueue, format_queue_summary
+                    tasks = check_and_enqueue()
+                    if tasks:
+                        summary = format_queue_summary()
+                        print(f"[ReviewTrigger] {len(tasks)} review(s) enqueued:")
+                        for t in tasks:
+                            print(f"  - {t.urgency.upper()}: {t.mode} ({t.reason})")
+                except Exception as re:
+                    print(f"[ReviewTrigger] check failed: {re}")
+
             except Exception as e:
                 print(f"[ScheduledAudit] #{iteration} error: {e}")
 
@@ -153,8 +166,8 @@ async def root():
 @app.get("/health")
 async def health():
     """P2-5: 平台健康检查 — 各组件状态汇总。"""
-    from aitest.task_queue import get_queue
-    from aitest.error_logger import get_summary as error_summary
+    from aitest.infra.task_queue import get_queue
+    from aitest.infra.error_logger import get_summary as error_summary
 
     components = {}
     overall = "healthy"
@@ -169,7 +182,7 @@ async def health():
 
     # ── RAG / ChromaDB ──
     try:
-        from aitest.rag_engine import get_chroma_client
+        from aitest.knowledge.rag_engine import get_chroma_client
         client = get_chroma_client()
         colls = client.list_collections()
         components["rag"] = {
@@ -184,7 +197,7 @@ async def health():
 
     # ── Known Issues Sync (P2-1) ──
     try:
-        from aitest.rag_engine import _known_issues_mtime, KNOWN_ISSUES
+        from aitest.knowledge.rag_engine import _known_issues_mtime, KNOWN_ISSUES
         yaml_mtime = KNOWN_ISSUES.stat().st_mtime if KNOWN_ISSUES.exists() else 0
         components["known_issues"] = {
             "status": "synced" if _known_issues_mtime >= yaml_mtime else "stale",
@@ -229,7 +242,7 @@ async def health():
 async def audit_state(module: str = "equipment", repair: bool = False):
     """State Auditor — 状态审计 API。"""
     try:
-        from aitest.state_auditor import StateAuditor
+        from aitest.governance.state_auditor import StateAuditor
         auditor = StateAuditor()
         report = auditor.audit(module, auto_repair=repair)
         return report
@@ -241,7 +254,7 @@ async def audit_state(module: str = "equipment", repair: bool = False):
 async def audit_sop(module: str = "equipment", days: int = 7):
     """SOP Auditor — SOP 合规审计 API。"""
     try:
-        from aitest.sop_auditor import SOPAuditor
+        from aitest.governance.sop_auditor import SOPAuditor
         auditor = SOPAuditor()
         report = auditor.audit(module, days=days)
         return report
@@ -253,7 +266,7 @@ async def audit_sop(module: str = "equipment", days: int = 7):
 async def audit_cost(days: int = 7):
     """Cost Auditor — 成本审计 API。"""
     try:
-        from aitest.cost_auditor import CostAuditor
+        from aitest.governance.cost_auditor import CostAuditor
         auditor = CostAuditor()
         report = auditor.audit(days=days)
         return report
@@ -269,17 +282,17 @@ async def audit_governance(module: str = "equipment", days: int = 7):
         "timestamp": __import__("datetime").datetime.now().isoformat(),
     }
     try:
-        from aitest.state_auditor import StateAuditor
+        from aitest.governance.state_auditor import StateAuditor
         result["state"] = StateAuditor().audit(module, auto_repair=False)
     except Exception as e:
         result["state"] = {"error": str(e)[:200]}
     try:
-        from aitest.sop_auditor import SOPAuditor
+        from aitest.governance.sop_auditor import SOPAuditor
         result["sop"] = SOPAuditor().audit(module, days=days)
     except Exception as e:
         result["sop"] = {"error": str(e)[:200]}
     try:
-        from aitest.cost_auditor import CostAuditor
+        from aitest.governance.cost_auditor import CostAuditor
         result["cost"] = CostAuditor().audit(days=days)
     except Exception as e:
         result["cost"] = {"error": str(e)[:200]}
@@ -294,7 +307,7 @@ async def audit_governance(module: str = "equipment", days: int = 7):
 async def kpi_summary(days: int = 30):
     """KPI 总览 — 治理指标体系聚合。"""
     try:
-        from aitest.governance_kpi import KPICollector
+        from aitest.governance.governance_kpi import KPICollector
         return KPICollector().get_summary(days=days)
     except Exception as e:
         return {"error": str(e)[:300]}
@@ -304,7 +317,7 @@ async def kpi_summary(days: int = 30):
 async def kpi_trends(audit_type: str = "state", days: int = 30):
     """KPI 趋势 — 指定审计类型的趋势分析。"""
     try:
-        from aitest.governance_kpi import KPICollector
+        from aitest.governance.governance_kpi import KPICollector
         collector = KPICollector()
         trends = collector.get_trends(audit_type, days=days)
         return {
@@ -320,7 +333,7 @@ async def kpi_trends(audit_type: str = "state", days: int = 30):
 async def kpi_audit_all(modules: str = None):
     """L4: 一次性审计全部模块（定时调度入口）。"""
     try:
-        from aitest.scheduled_audit import run_all_audits, discover_modules
+        from aitest.governance.scheduled_audit import run_all_audits, discover_modules
         mod_list = modules.split(",") if modules else discover_modules()
         return run_all_audits(mod_list)
     except Exception as e:

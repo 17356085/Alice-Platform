@@ -27,3 +27,8 @@
 ## 输出
 每个组件: 名称 / 职责 / Props / Events / 状态(6种) / 插槽
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | component-design | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

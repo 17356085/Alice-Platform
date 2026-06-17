@@ -8,7 +8,26 @@ SOPState TypedDict 流经每个 LangGraph 节点。
 from typing import TypedDict, Optional, List, Dict, Any, Annotated, Literal
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 import operator
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  路径工具 — 消除 state_auditor._module_dir() / sop_graph 的重复路径构造
+# ══════════════════════════════════════════════════════════════════════════
+
+_PATH_BASE = Path(__file__).resolve().parent.parent.parent
+_CONTEXT_MODULES = _PATH_BASE / "governance" / "context" / "projects" / "web-automation" / "modules"
+
+
+def get_module_dir(module: str) -> Path:
+    """模块治理文档目录 (governance/context/.../modules/<module>)。"""
+    return _CONTEXT_MODULES / module
+
+
+def get_page_dir(module: str, page: str) -> Path:
+    """页面治理文档目录 (governance/context/.../modules/<module>/pages/<page>)。"""
+    return _CONTEXT_MODULES / module / "pages" / page
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -51,6 +70,60 @@ class GateLevel(Enum):
     L3_VALIDATOR = 3      # Python validator 调用
 
 
+class CommonSOPStage(Enum):
+    """
+    P1 Architecture Review (C02): 共通 SOP 阶段抽象。
+
+    将 Test SOP (9 phase) 和 Dev SOP (10 phase) 映射到 4 个共通阶段，
+    解决架构评审发现的 SOP 模式不对称问题。
+
+    用途:
+      - 跨 SOP 治理检查（统一门禁规则）
+      - Architecture Review Agent 评审基线
+      - Knowledge Agent 跨 SOP 知识归类
+    """
+    PLAN = "planning"        # 规划: 项目/需求分析
+    EXECUTE = "executing"    # 执行: 设计/编码/测试生成
+    VERIFY = "verifying"     # 验证: 审查/测试/调试
+    CLOSE = "closing"        # 收尾: 报告/构建/知识沉淀
+
+
+# Test SOP phase → CommonSOPStage
+TEST_PHASE_STAGE_MAP: dict[str, CommonSOPStage] = {
+    "Preflight":        CommonSOPStage.PLAN,
+    "Project Init":     CommonSOPStage.PLAN,
+    "Requirement":      CommonSOPStage.PLAN,
+    "Test Design":      CommonSOPStage.EXECUTE,
+    "Automation":       CommonSOPStage.EXECUTE,
+    "Execute & Debug":  CommonSOPStage.VERIFY,
+    "Bug Analysis":     CommonSOPStage.VERIFY,
+    "Data Sanitization": CommonSOPStage.CLOSE,
+    "Report":           CommonSOPStage.CLOSE,
+    "Knowledge":        CommonSOPStage.CLOSE,
+}
+
+# Dev SOP phase → CommonSOPStage
+DEV_PHASE_STAGE_MAP: dict[str, CommonSOPStage] = {
+    "Plan":             CommonSOPStage.PLAN,
+    "Requirements":     CommonSOPStage.PLAN,
+    "Architecture":     CommonSOPStage.EXECUTE,
+    "Component Design": CommonSOPStage.EXECUTE,
+    "Frontend Impl":    CommonSOPStage.EXECUTE,
+    "Backend Impl":     CommonSOPStage.EXECUTE,
+    "Code Review":      CommonSOPStage.VERIFY,
+    "Dev Test":         CommonSOPStage.VERIFY,
+    "Debug & Fix":      CommonSOPStage.VERIFY,
+    "Build":            CommonSOPStage.CLOSE,
+}
+
+
+def get_common_stage(phase: str, sop_type: str = "test") -> CommonSOPStage:
+    """返回任意 SOP phase 对应的共通阶段。sop_type: 'test' | 'dev'."""
+    if sop_type == "dev":
+        return DEV_PHASE_STAGE_MAP.get(phase, CommonSOPStage.EXECUTE)
+    return TEST_PHASE_STAGE_MAP.get(phase, CommonSOPStage.EXECUTE)
+
+
 # ── P1-6: Bounded list reducers — 防止 SOPState 字段无限累积 ──
 
 _SKILL_OBS_MAX = 100
@@ -67,6 +140,41 @@ def _bounded_gate_results(current: list, update: list) -> list:
     """保留最近 _GATE_RESULTS_MAX 条 gate_results。"""
     combined = current + update
     return combined[-_GATE_RESULTS_MAX:] if len(combined) > _GATE_RESULTS_MAX else combined
+
+
+def _unique_list(current: list, update: list) -> list:
+    """去重追加：update 中已存在于 current 或 update 前部的元素被跳过。"""
+    seen = set(current)
+    new_items = []
+    for x in update:
+        if x not in seen:
+            new_items.append(x)
+            seen.add(x)
+    return current + new_items
+
+
+def _merge_agent_outputs(current: dict, update: dict) -> dict:
+    """深度合并 agent_outputs，update 的键覆盖 current 的同名键。"""
+    merged = dict(current)
+    merged.update(update)
+    return merged
+
+
+def _merge_dict(current: dict, update: dict) -> dict:
+    """深度合并字典（用于 artifact_map 等）。"""
+    merged = dict(current)
+    merged.update(update)
+    return merged
+
+
+def _pick_last(current, update):
+    """选取最后一次写入的值（通用 last-write-wins reducer）。"""
+    return update
+
+
+# 向后兼容别名
+_pick_last_bool = _pick_last
+_pick_last_str = _pick_last
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -230,33 +338,37 @@ class SOPState(TypedDict):
 
     # ── Phase 状态机 (编排层) ──
     current_phase: PhaseName
-    completed_phases: Annotated[List[PhaseName], operator.add]
-    failed_phases: Annotated[List[PhaseName], operator.add]
+    completed_phases: Annotated[List[PhaseName], _unique_list]
+    failed_phases: Annotated[List[PhaseName], _unique_list]
     skip_phases: List[PhaseName]          # mode 决定的跳过列表
 
     # ── Per-page 迭代 (编排层) ──
     current_page_index: int               # 0-based，驱动 test-design/automation 的页面循环
+    bsc_retry_count: int                  # 质量门禁 BSC 打回重试计数（独立字段，不被 agent loop 覆盖）
     per_page_results: Annotated[List[Dict[str, Any]], operator.add]
 
     # ── Agent 输出 (编排 → Agent 接口) ──
     # agent_outputs[agent_name] = AgentResult.to_dict()
     # Agent 内部状态 (skills/retries/observations) 封装在此，不污染顶层
-    agent_outputs: Dict[str, Any]         # agent_name → AgentResult (dict)
-    artifact_map: Dict[str, List[str]]    # phase → 产物文件路径列表
+    agent_outputs: Annotated[Dict[str, Any], _merge_agent_outputs]  # agent_name → AgentResult (dict)
+    artifact_map: Annotated[Dict[str, List[str]], _merge_dict]  # phase → 产物文件路径列表
     skill_observations: Annotated[List[Dict[str, Any]], _bounded_skill_obs]
 
     # ── Bug-analysis 自动循环 ──
     bug_cycle_count: int
     bug_cycle_max: int
-    fix_approved: Optional[bool]          # None=等待中, True=已批准, False=已拒绝
+    fix_approved: Annotated[Optional[bool], _pick_last_bool]  # None=等待中, True=已批准, False=已拒绝
 
     # ── Human-in-the-loop ──
     interrupt_requested: bool
-    human_input: Optional[str]
+    human_input: Annotated[Optional[str], _pick_last]
 
     # ── HITL 扩展 (P1-3): 自动化策略 + 测试用例审批 ──
-    auto_strategy_approved: Optional[bool]   # None=等待中/未检查, True=已批准, False=已拒绝
-    test_cases_approved: Optional[bool]      # None=未检查/等待中, True=已批准, False=已拒绝
+    auto_strategy_approved: Annotated[Optional[bool], _pick_last_bool]  # None=等待中/未检查, True=已批准, False=已拒绝
+    test_cases_approved: Annotated[Optional[bool], _pick_last_bool]  # None=未检查/等待中, True=已批准, False=已拒绝
+
+    # ── 质量门禁重试 ──
+    force_retry_phase: Optional[str]          # 非 None 时强制路由到指定 phase（绕过 operator.add 只增不减限制）
 
     # ── 门禁检查 ──
     gate_results: Annotated[List[Dict[str, Any]], _bounded_gate_results]
@@ -310,6 +422,7 @@ def create_initial_state(
         "skip_phases": MODE_SKIP_MAP.get(mode, []),
 
         "current_page_index": 0,
+        "bsc_retry_count": 0,
         "per_page_results": [],
 
         "agent_outputs": {},
@@ -325,6 +438,8 @@ def create_initial_state(
 
         "auto_strategy_approved": None,      # P1-3 HITL: None=等待审批
         "test_cases_approved": None,         # P1-3 HITL: None=未检查
+
+        "force_retry_phase": None,           # 质量门禁重试: None=无重试, str=目标 phase
 
         "gate_results": [],
 

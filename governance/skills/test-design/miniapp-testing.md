@@ -95,3 +95,8 @@
 - [ ] 用例格式与Web端保持一致
 - [ ] 标注了不可自动化场景及原因
 - [ ] 给出了 Web-小程序联动测试点
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **0.1-exp** | experimental | test-design | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

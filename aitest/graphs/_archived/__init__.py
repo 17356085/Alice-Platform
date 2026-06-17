@@ -16,7 +16,7 @@ LangGraph 仅做顶层 Phase 编排，通过 make_agent_loop_node() 调用 Agent
 # 阻止意外导入 — 这些模块不应再被直接引用
 raise ImportError(
     "P0-1: 此 SubGraph 已归档。"
-    "Skill 链执行已统一到 AgentLoop (aitest.agent_runner.AgentLoop)。"
+    "Skill 链执行已统一到 AgentLoop (aitest.agents.agent_runner.AgentLoop)。"
     "LangGraph 通过 make_agent_loop_node() 调用 AgentLoop。"
     "如需恢复，请将文件移回 ../ 目录。"
 )

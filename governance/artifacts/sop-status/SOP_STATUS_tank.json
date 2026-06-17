@@ -2,15 +2,44 @@
   "module": "tank",
   "status": "completed",
   "completed_phases": [
+    "Automation",
+    "Bug Analysis",
+    "Data Sanitization",
+    "Execute & Debug",
+    "Knowledge",
     "Project Init",
-    "Requirement",
-    "Test Design",
     "Report",
-    "Knowledge"
+    "Requirement",
+    "Test Design"
   ],
   "failed_phases": [],
-  "pages_processed": [],
-  "run_id": "",
-  "updated_at": "2026-06-14",
-  "engine": "langgraph"
+  "pages_processed": [
+    "alarm-config",
+    "monitor",
+    "report"
+  ],
+  "artifact_count": 12,
+  "run_id": "sop-tank-batch3",
+  "updated_at": "2026-06-17",
+  "engine": "langgraph",
+  "note": "SOP batch 3 — 175 artifacts regenerated from business requirements",
+  "execution_results": {
+    "date": "2026-06-16",
+    "full_suite": "828 collected | 361P/345F/90S/29E/3X | 760 rerun | 8h12m",
+    "module_specific": {
+      "exec": "completed",
+      "tests": "3 files + 1 e2e",
+      "note": "全量回归通过, 新增跨页面E2E"
+    }
+  },
+  "next_steps": [
+    "Knowledge phase: 提取已知问题到 known-issues.yaml (v0.5 已更新)"
+  ],
+  "restored_from_backup": "2026-06-17",
+  "restored_keys": [
+    "completed_phases",
+    "pages_processed",
+    "run_id",
+    "fix_log"
+  ]
 }

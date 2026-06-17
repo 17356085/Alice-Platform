@@ -1,229 +1,190 @@
-interface: page-to-automation
-version: "1.0"
-source_agent: test-design-agent
-target_agent: automation-agent
-generated_at: "2026-06-13 12:15"
+好的，作为Web端测试工程师，我将开始对 **personnel** 模块的 **employee** 页面进行分析。虽然你没有提供截图或HTML源码，但我会基于通用的员工管理页面模式，结合 Vue 3 + Element Plus 的最佳实践，为你生成标准化的文档。
 
-meta:
-  module: "personnel"
-  page_name: "EmployeeManage"
-  page_slug: "employee"
-  page_url: "/personnel/employee"
-  vue_components:
-    - component: el-input
-      count: 2
-      risk_flags: []
-    - component: el-select
-      count: 1
-      risk_flags: ["dynamic_options"]
-    - component: el-button
-      count: 4
-      risk_flags: []
-    - component: el-table
-      count: 1
-      risk_flags: []
-    - component: el-pagination
-      count: 1
-      risk_flags: []
-    - component: el-dialog
-      count: 1
-      risk_flags: ["可能动态加载"]
+我会严格按照 pipeline 优先级：先输出模块架构建议（若尚不存在），再产出页面分析。
 
-elements:
-  - name: "员工姓名搜索框"
-    selector: "input[placeholder*='员工姓名']"
-    selector_type: CSS_SELECTOR
-    element_type: input
-    el_component: el-input
-    interaction: input
-    wait_strategy: wait_vue_stable
-    locator_notes: "搜索区第一个输入框"
-    risk_level: low
-    risk_reason: "基础交互，无特殊依赖"
-  - name: "工号搜索框"
-    selector: "input[placeholder*='工号']"
-    selector_type: CSS_SELECTOR
-    element_type: input
-    el_component: el-input
-    interaction: input
-    wait_strategy: wait_vue_stable
-    locator_notes: "搜索区第二个输入框"
-    risk_level: low
-    risk_reason: ""
-  - name: "部门下拉框"
-    selector: ".el-select--search-department"
-    selector_type: CSS_SELECTOR
-    element_type: select
-    el_component: el-select
-    interaction: select
-    wait_strategy: wait_vue_stable
-    locator_notes: "通过类名定位，具体实现可能不同"
-    risk_level: medium
-    risk_reason: "选项根据用户权限动态过滤，可能影响定位"
-  - name: "搜索按钮"
-    selector: "button.el-button:has-text('搜索')"
-    selector_type: CSS_SELECTOR
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_loading_gone
-    locator_notes: "文本精确匹配"
-    risk_level: low
-    risk_reason: ""
-  - name: "重置按钮"
-    selector: "button.el-button:has-text('重置')"
-    selector_type: CSS_SELECTOR
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: ""
-    risk_level: low
-    risk_reason: ""
-  - name: "员工表格"
-    selector: ".el-table"
-    selector_type: CSS_SELECTOR
-    element_type: table
-    el_component: el-table
-    interaction: wait
-    wait_strategy: wait_loading_gone
-    locator_notes: "表格主体区域"
-    risk_level: low
-    risk_reason: ""
-  - name: "查看详情按钮"
-    selector: ".el-table .el-button--detail"
-    selector_type: CSS_SELECTOR
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "行内操作按钮，可能通过文本'查看详情'定位"
-    risk_level: low
-    risk_reason: ""
-  - name: "编辑按钮"
-    selector: ".el-table .el-button--edit"
-    selector_type: CSS_SELECTOR
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "需有编辑权限时可见"
-    risk_level: medium
-    risk_reason: "依赖权限动态显示"
-  - name: "分页器"
-    selector: ".el-pagination"
-    selector_type: CSS_SELECTOR
-    element_type: pagination
-    el_component: el-pagination
-    interaction: click
-    wait_strategy: wait_loading_gone
-    locator_notes: "支持点击页码或下一页"
-    risk_level: low
-    risk_reason: ""
+---
 
-test_scenarios:
-  - id: TC-EMP-001
-    title: "页面正常加载"
-    priority: P0
-    type: smoke
-    preconditions: []
-    steps_summary: "navigate → wait_table_loaded"
-    expected: "表格+搜索区+分页可见"
-    relates_to_elements:
-      - "员工表格"
-      - "员工姓名搜索框"
-      - "部门下拉框"
-      - "搜索按钮"
-      - "分页器"
-  - id: TC-EMP-002
-    title: "表头完整性"
-    priority: P0
-    type: positive
-    preconditions: []
-    steps_summary: "get_table_headers() 对比预期列标题"
-    expected: "列标题正确（工号、姓名、部门、岗位、联系方式）"
-    relates_to_elements:
-      - "员工表格"
-  - id: TC-EMP-003
-    title: "姓名搜索"
-    priority: P1
-    type: positive
-    preconditions: ["已知存在某员工姓名"]
-    steps_summary: "输入姓名 → 点击搜索 → 等待表格刷新"
-    expected: "表格仅显示匹配该姓名的结果"
-    relates_to_elements:
-      - "员工姓名搜索框"
-      - "搜索按钮"
-      - "员工表格"
-  - id: TC-EMP-004
-    title: "部门筛选"
-    priority: P1
-    type: positive
-    preconditions: ["存在多个部门数据"]
-    steps_summary: "选择部门 → 点击搜索 → 等待表格刷新"
-    expected: "表格仅显示所选部门的员工"
-    relates_to_elements:
-      - "部门下拉框"
-      - "搜索按钮"
-      - "员工表格"
-  - id: TC-EMP-005
-    title: "分页翻页"
-    priority: P1
-    type: positive
-    preconditions: ["数据超过一页"]
-    steps_summary: "点击分页器下一页 → 确认表格数据变化"
-    expected: "表格显示下一页数据"
-    relates_to_elements:
-      - "分页器"
-      - "员工表格"
-  - id: TC-EMP-006
-    title: "查看详情"
-    priority: P1
-    type: positive
-    preconditions: []
-    steps_summary: "点击行内『查看详情』按钮 → 等待弹窗/跳转"
-    expected: "弹出详情弹窗或跳转到详情页"
-    relates_to_elements:
-      - "查看详情按钮"
-  - id: TC-EMP-007
-    title: "部门主管权限"
-    priority: P1
-    type: boundary
-    preconditions: ["以部门主管身份登录"]
-    steps_summary: "进入员工管理页面 → 查看表格数据"
-    expected: "仅显示本部门员工，无越权数据"
-    relates_to_elements:
-      - "员工表格"
-  - id: TC-EMP-008
-    title: "URL直接访问（无权限）"
-    priority: P1
-    type: negative
-    preconditions: ["用无权限角色登录"]
-    steps_summary: "直接访问 #/personnel/employee 路由"
-    expected: "页面拦截或无数据显示"
-    relates_to_elements:
-      - "员工表格"
+### Step 1: 模块建模检查 (MODULE_CONTEXT.md)
 
-page_behaviors:
-  - behavior: "表格数据异步加载+loading"
-    triggers:
-      - "页面首次加载"
-      - "点击搜索/重置后"
-      - "切换分页"
-    wait_required: true
-    wait_suggestion: "wait_loading_gone 或 wait_vue_stable"
-  - behavior: "部门下拉选项动态过滤"
-    triggers:
-      - "页面加载后"
-    wait_required: true
-    wait_suggestion: "wait_vue_stable，等待选项渲染完毕"
-  - behavior: "详情弹窗/跳转"
-    triggers:
-      - "点击『查看详情』按钮"
-    wait_required: true
-    wait_suggestion: "等待弹窗出现（el-dialog）或路由变化"
-  - behavior: "编辑按钮权限控制"
-    triggers:
-      - "用户角色为admin或本部门主管"
-    wait_required: false
-    wait_suggestion: "无需额外等待，注意按钮可见性"
+为了确保页面分析的上下文正确，首先需要对 `personnel` 模块进行建模。如果该模块的 `MODULE_CONTEXT.md` 尚不存在，建议按以下结构创建。
+
+```markdown
+# MODULE_CONTEXT.md - personnel
+
+## 模块定义
+- **模块名称**：人事管理 (personnel)
+- **模块URL基路径**：/personnel
+- **模块功能**：管理员工信息（增删改查）、组织架构、角色权限分配的基础模块。
+
+## 关联页面
+| 页面名称 | 页面URL (相对路径) | 功能简述 |
+| :--- | :--- | :--- |
+| employee | /personnel/employee | 员工列表及管理 |
+| (其他页面...) | (其他URL...) | (其他功能...) |
+
+## 模块内共享资源
+- **公共定位器**: TODO (根据是否有公共组件决定)
+- **测试数据模板**: `testData/personnel/employee/employee_data.py`
+- **Mock服务**: TODO
+```
+
+*(如果 MODULE_CONTEXT.md 已存在，请忽略此步骤)*
+
+---
+
+### Step 2: 页面分析 (PAGE_CONTEXT.md & PAGE_ELEMENT_POSITION.md)
+
+由于缺乏具体输入，我将基于一个标准的企业级员工管理页面结构进行推测。这通常包括“搜索区”、“表格列表”、“分页”、“新增/编辑弹窗”。我会输出一个模板，你后续提供具体截图或HTML后，我可以直接填充。
+
+#### 产出物 1: PAGE_CONTEXT.md
+
+```markdown
+# PAGE_CONTEXT.md - personnel > employee
+
+## 1. 页面整体布局
+- **顶部**: 页面标题 `员工管理`
+- **主内容区**:
+  - **搜索/筛选区**: 位于页面顶部，包含姓名、部门、状态等筛选字段。
+  - **操作工具栏**: 位于搜索区下方，包含 `新增员工` 等按钮。
+  - **数据表格区**: 展示员工列表。
+  - **分页组件**: 位于表格底部。
+
+## 2. 搜索/筛选区元素清单
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| search_employee_name | 员工姓名/工号搜索 | el-input | 搜索区 | 输入关键字搜索 |
+| search_department | 部门筛选 | el-select | 搜索区 | 下拉选择框 |
+| search_status | 状态筛选 | el-select | 搜索区 | 下拉选择框，如“在职、离职” |
+| search_btn | 查询按钮 | el-button | 搜索区 | 触发搜索 |
+| reset_btn | 重置按钮 | el-button | 搜索区 | 重置所有筛选条件 |
+
+## 3. 操作工具栏元素清单
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| add_employee_btn | 新增员工按钮 | el-button | 工具栏 | 打开新增弹窗 |
+| export_btn | 导出excel按钮 | el-button | 工具栏 | (假设存在) |
+
+## 4. 数据表格元素清单
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| table | 员工列表主表格 | el-table | 表格区 | - |
+| col_checkbox | 多选列 | el-table-column | 表格区 | 类型为 selection |
+| col_index | 序号 | el-table-column | 表格区 | 类型为 index |
+| col_name | 姓名/工号 | el-table-column | 表格区 | 文本显示 |
+| col_department | 部门 | el-table-column | 表格区 | 文本显示 |
+| col_position | 职位 | el-table-column | 表格区 | 文本显示 |
+| col_status | 状态 | el-table-column | 表格区 | 标签显示 |
+| col_action | 操作 | el-table-column | 表格区 | 包含编辑/删除/详情按钮 |
+
+## 5. 表格操作列按钮
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| view_btn | 查看详情 | el-button | 操作列 | 每行一个 |
+| edit_btn | 编辑按钮 | el-button | 操作列 | 每行一个 |
+| delete_btn | 删除按钮 | el-button | 操作列 | 每行一个 |
+
+## 6. 分页区元素清单
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| pagination | 分页组件 | el-pagination | 分页区 | 包含总条数、页数、跳转 |
+
+## 7. 弹窗/对话框
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| add_dialog | 新增员工弹窗 | el-dialog | 弹窗 | 标题为“新增员工” |
+| edit_dialog | 编辑员工弹窗 | el-dialog | 弹窗 | 标题为“编辑员工” |
+| form_name | 姓名输入框 | el-input | 增/改弹窗 | 必填项 |
+| form_phone | 手机号输入框 | el-input | 增/改弹窗 | 必填项 |
+| save_btn | 保存按钮 | el-button | 弹窗 | 提交表单 |
+| cancel_btn | 取消按钮 | el-button | 弹窗 | 关闭弹窗 |
+
+## 8. 页面状态与权限
+- **空数据**: 表格展示“暂无数据”
+- **权限点**:
+  - `add_employee_btn`: 需要“新增员工”权限
+  - `delete_btn`: 需要“删除员工”权限
+- **加载状态**: 表格数据加载时显示骨架屏或loading动画。
+
+```
+
+#### 产出物 1.5: PAGE_INTERFACE.yaml (自动生成)
+
+根据 `tools/generate_page_interface.py`, 上一步的 `PAGE_CONTEXT.md` 将自动生成精简的YAML，供自动化框架消费。
+
+```yaml
+# PAGE_INTERFACE.yaml - personnel > employee
+# 自动生成，用于减少AI tokens消耗
+
+module: personnel
+page: employee
+
+search_elements:
+  - element_id: "search_employee_name"
+    locator: "input[placeholder*='姓名']" # 举例
+    type: "input"
+
+table_elements:
+  - element_id: "edit_btn"
+    locator: "button:contains('编辑')"
+    action: "click"
+
+dialogs:
+  - element_id: "add_dialog"
+    locator: ".el-dialog[aria-label='新增员工']"
+```
+
+---
+
+#### 产出物 2: PAGE_ELEMENT_POSITION.md (定位器设计)
+
+基于以上页面元素，提供定位器设计草案。
+
+```markdown
+# PAGE_ELEMENT_POSITION.md - personnel > employee
+
+**注意**: 以下定位器均为基于标准 Element Plus 组件的推测，实际定位需要结合真实HTML源码。
+
+## A级定位器 (优先使用)
+| 元素ID | 定位策略 | 定位值 |
+| :--- | :--- | :--- |
+| `search_employee_name` | `PLACEHOLDER` | `employeeName` (假设标签或placeholder明确) |
+| `add_employee_btn` | `TEXT` | `新增员工` |
+| `save_btn` | `TEXT` | `确 定` |
+
+## B级定位器 (CSS Selector)
+| 元素ID | 定位策略 | 定位值 |
+| :--- | :--- | :--- |
+| `table` | `CSS_SELECTOR` | `#app .el-table` |
+| `edit_btn` | `CSS_SELECTOR` | `.el-table__body-wrapper .el-button--primary.el-button--small:first-of-type` |
+| `delete_btn` | `CSS_SELECTOR` | `.el-table__body-wrapper .el-button--danger.el-button--small` |
+| `pagination` | `CSS_SELECTOR` | `.el-pagination` |
+
+## C级定位器 (XPath - 保底)
+| 元素ID | 定位策略 | 定位值 |
+| :--- | :--- | :--- |
+| `search_employee_name` | `XPATH` | `//input[@placeholder='请输入姓名或工号']` |
+| `delete_btn` | `XPATH` | `//button[contains(text(), '删除')]` |
+| `add_dialog` | `XPATH` | `//div[@class='el-dialog' and .//span[text()='新增员工']]` |
+
+## 等待策略
+| 元素ID | 等待条件 |
+| :--- | :--- |
+| `table` | `presence_of_element_located` (等待表格渲染) |
+| `add_dialog` | `visibility_of_element_located` (等待弹窗动画完成) |
+
+```
+
+---
+
+### 解释与后续步骤
+
+1.  **当前输出的局限性**：没有你的截图或HTML，以上产出物是基于“人事-员工管理页”这个概念的**占位符**。定位器可能不准确。
+2.  **你可以做什么**：
+    - **提供截图**：我最推荐的方式。截取全屏（包含搜索区、表格、弹窗）。一句话说明“这是点击新增按钮后的弹窗”。
+    - **提供HTML源码**：在浏览器中打开页面，按F12，右键 `<body>` 元素 -> Copy -> Copy element，然后粘贴给我。
+3.  **下一步**：一旦你提供了具体输入，我可以立即优化：
+    - 修正 `PAGE_CONTEXT.md` 中的实际列名和布局。
+    - 为 `PAGE_ELEMENT_POSITION.md` 生成 100% 准确的定位器。
+    - 识别出是否存在 `data-testid` 等标准属性，升级定位器等级。
+
+请提供页面截图或HTML，让我为你完成精确分析。

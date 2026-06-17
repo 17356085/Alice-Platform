@@ -188,7 +188,7 @@ async def list_workflows():
                 "steps": len(wf_data.get("steps", [])),
             })
         except Exception as e:
-            from aitest.error_logger import log_error
+            from aitest.infra.error_logger import log_error
             log_error("workflows_api.list", "parse_yaml", e, {"file": str(wf_path)})
             workflows.append({
                 "id": wf_path.stem,
@@ -219,7 +219,7 @@ async def list_runs(limit: int = 20):
                 "updated_at": r.get("updated_at", ""),
             })
     except Exception as e:
-        from aitest.error_logger import log_error
+        from aitest.infra.error_logger import log_error
         log_error("workflows_api.status", "list_runs", e)
 
     # 旧版 workflow runs
@@ -240,7 +240,7 @@ async def list_runs(limit: int = 20):
                     "updated_at": run_path.stat().st_mtime,
                 })
             except Exception as e:
-                from aitest.error_logger import log_error
+                from aitest.infra.error_logger import log_error
                 log_error("workflows_api.status", "parse_run", e, {"run": str(run_path)})
 
     return {"runs": runs[:limit], "total": len(runs)}

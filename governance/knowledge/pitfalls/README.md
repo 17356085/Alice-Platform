@@ -9,7 +9,7 @@
 |------|------|
 | [element-plus/](element-plus/) | Element Plus 组件踩坑 |
 | [selenium/](selenium/) | Selenium 通用踩坑 |
-| [project-specific/](project-specific/) | 本系统特有坑位 |
+| project-specific/ | 本系统特有坑位 (待创建 — tank UI 框架差异, contractor nest-menu 导航等) |
 
 ## 格式规范
 

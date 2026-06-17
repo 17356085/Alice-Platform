@@ -103,3 +103,23 @@
 - [x] **结构纠正 (2026-06-15)** — system-management 降级为 system 模块下的页面组概念，system-user 页面回归 system 模块
 - [x] **模块拆分 (2026-06-15)** — workflow（5页面）+ system-role（1页面）独立为顶层模块
 - [ ] 其余 7 页面独立建模 — 按优先级逐步推进
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-stats -->
+<!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
+## 自动统计数据 (更新于 2026-06-17 16:53)
+
+| 指标 | 数值 |
+|------|:---:|
+| 测试文件 | 16 (script/system/test_*.py) |
+| Page Object | 15 (page/system_page/*.py) |
+| 治理文档 | 32 .md 文件 |
+| TECH_ANALYSIS | 3 |
+| AUTO_STRATEGY | 3 |
+| RISK_MODEL | 5 |
+| PAGE_CONTEXT | 6 |
+| SOP 状态 | completed |
+| Phase 完成 | Automation, Bug Analysis, Data Sanitization, Execute & Debug, Knowledge, Project Init, Report, Requirement, Test Design |
+
+> 此段由 sync_progress.py 自动更新。手动编辑会被覆盖。
+<!-- ⚠️ AUTO-GENERATED SECTION END: module-stats -->

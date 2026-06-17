@@ -35,3 +35,8 @@
 ## 输出
 完整的 crud/*.py，含 paginate, create, get, update, delete。
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | backend | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

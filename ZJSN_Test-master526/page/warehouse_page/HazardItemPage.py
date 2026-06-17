@@ -37,3 +37,46 @@ class HazardItemPage(BasePage):
         self.click(self.BTN_ADD)
         self.wait_dialog_open()
 
+    # ── 新增弹窗表单操作 ────────────────────────────────────
+    def _fill_dialog_by_placeholder(self, placeholder_contains, value):
+        """弹窗内按 placeholder 查找输入框并填写（JS方式，避免xpath编码问题）"""
+        script = """
+            var placeholder = arguments[0];
+            var value = arguments[1];
+            var dlgs = document.querySelectorAll('.el-dialog');
+            for (var i = 0; i < dlgs.length; i++) {
+                if (dlgs[i].offsetParent === null) continue;
+                var inputs = dlgs[i].querySelectorAll('input:not([type="hidden"])');
+                for (var j = 0; j < inputs.length; j++) {
+                    var ph = inputs[j].getAttribute('placeholder') || '';
+                    if (ph.indexOf(placeholder) >= 0) {
+                        inputs[j].focus();
+                        inputs[j].value = '';
+                        inputs[j].value = value;
+                        inputs[j].dispatchEvent(new Event('input', {bubbles: true}));
+                        inputs[j].dispatchEvent(new Event('change', {bubbles: true}));
+                        return ph;
+                    }
+                }
+            }
+            return '';
+        """
+        result = self.driver.execute_script(script, placeholder_contains, value)
+        if not result:
+            logger.warning("未找到 placeholder 包含 '%s' 的弹窗输入框", placeholder_contains)
+        self.wait_vue_stable()
+
+    def fill_item_name(self, name):
+        """在新增弹窗中填写危废品名称"""
+        self._fill_dialog_by_placeholder("危废品名称", name)
+
+    def click_search(self):
+        """点击查询按钮"""
+        self.click(self.BTN_QUERY)
+        self.wait_vue_stable()
+
+    def delete_item_by_name(self, name):
+        """搜索并删除指定物品"""
+        self.search_by_item_name(name)
+        self.click_row_button(name, "删除")
+        self.confirm_message_box()

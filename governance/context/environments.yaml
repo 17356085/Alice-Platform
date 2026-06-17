@@ -17,7 +17,7 @@ web-automation:
       note: 测试环境，用于自动化执行
     staging:
       base_url: https://aiwechatminidemo.cimc-digital.com/
-      note: 预发布环境（如有差异请更新）
+      note: 单一部署环境 — dev/test/staging 指向同一实例
 
   ci:
     tool: Jenkins

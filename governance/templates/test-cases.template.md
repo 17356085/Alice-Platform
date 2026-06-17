@@ -34,3 +34,10 @@
 | TC-ALARM-020 | 删除报警-确认删除 | P0 | 1.点击第1行删除 2.确认弹窗 3.点确定 | — | toast"删除成功"+记录消失 | ✅ |
 | TC-ALARM-021 | 删除报警-取消删除 | P1 | 1.点击第1行删除 2.确认弹窗 3.点取消 | — | 弹窗关闭，记录不变 | ✅ |
 | TC-ALARM-030 | 操作工不可操作 | P0 | 1.操作工登录 2.导航到报警配置页 | 操作工账号 | 表格可见，新增/编辑/删除按钮不可见 | 🔄 |
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: template-meta -->
+> last_verified: 2026-06-17 16:53 | sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: template-meta -->

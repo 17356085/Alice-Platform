@@ -1,0 +1,42 @@
+{
+  "module": "warehouse",
+  "audit_time": "2026-06-17T16:09:10.853444",
+  "period": "7d",
+  "overall_compliance": 0.0,
+  "total_violations": 2,
+  "error_count": 0,
+  "warning_count": 2,
+  "violations": [
+    {
+      "check_type": "baseline_check",
+      "severity": "warning",
+      "violation_type": "thin_coverage_tech",
+      "detail": "模块 warehouse: TECH_ANALYSIS 仅覆盖 0/17 页面 (<50%)",
+      "run_id": "",
+      "evidence": {
+        "tech_coverage": "0/17"
+      },
+      "suggestion": "为未覆盖页面生成 TECH_ANALYSIS.md"
+    },
+    {
+      "check_type": "baseline_check",
+      "severity": "warning",
+      "violation_type": "thin_coverage_auto",
+      "detail": "模块 warehouse: AUTO_STRATEGY 仅覆盖 0/17 页面 (<30%)",
+      "run_id": "",
+      "evidence": {
+        "auto_coverage": "0/17"
+      },
+      "suggestion": "为未覆盖页面生成 AUTO_STRATEGY.md"
+    }
+  ],
+  "checks": {
+    "baseline_check": {
+      "total": 2,
+      "errors": 0,
+      "warnings": 2,
+      "infos": 0,
+      "ok": false
+    }
+  }
+}

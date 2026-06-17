@@ -60,10 +60,10 @@ class TestApprovalTodo:
 
     def test_sy_todo_02_search_by_title(self, driver_setup):
         page = ApprovalTodoPage(driver_setup)
-        case("SY-TODO-02", "按标题搜索")
+        case("SY-TODO-02", "按工厂代码搜索")
         step("点击重置")
         page.click_reset()
-        step("输入标题关键词")
+        step("输入工厂代码关键词")
         page.input_title("test")
         step("点击搜索")
         page.click_search()

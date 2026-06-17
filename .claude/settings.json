@@ -3,6 +3,9 @@
     "SessionStart": [
       {
         "command": "echo 'TOKEN_SAVER: ①Grep>Read(省~1800tok) ②25轮收尾+交接状态 ③一件一事 ④大文件offset+limit分段 ⑤PAGE_INTERFACE.yaml优先(~200tok)而非PAGE_CONTEXT(~2000tok) ⑥避免重复Read同一文件'"
+      },
+      {
+        "command": "python -m aitest.governance.review_trigger --list 2>/dev/null | python -c \"import sys,json; q=json.load(sys.stdin); [print(f'⚠️ Pending review: {t[\\\"mode\\\"]} ({t[\\\"urgency\\\"]}) — {t[\\\"reason\\\"]}') for t in q] if q else None\""
       }
     ],
     "PreToolUse": [

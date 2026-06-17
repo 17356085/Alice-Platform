@@ -1,0 +1,24 @@
+{
+  "module": "lab",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation"
+  ],
+  "failed_phases": [],
+  "pages_processed": [
+    "gas-analysis-report",
+    "gas-compare",
+    "gas-indicator",
+    "water-compare",
+    "water-indicator",
+    "water-report"
+  ],
+  "artifact_count": 24,
+  "run_id": "sop-lab-batch3",
+  "updated_at": "2026-06-17",
+  "engine": "langgraph",
+  "note": "SOP batch 3 — 175 artifacts regenerated from business requirements"
+}

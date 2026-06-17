@@ -1,0 +1,16 @@
+{
+  "id": "reviewcompleted-862ea068",
+  "type": "ReviewCompleted",
+  "timestamp": 1781621170.317788,
+  "data": {
+    "review_type": "quick",
+    "module": "system",
+    "overall_score": 0,
+    "critical_count": 2,
+    "warning_count": 0,
+    "report_path": "D:\\Desktop\\WorkStudy\\governance\\artifacts\\reviews\\system\\SYNTHESIS_REVIEW-20260616.md"
+  },
+  "processed": false,
+  "processed_at": 0.0,
+  "result": ""
+}

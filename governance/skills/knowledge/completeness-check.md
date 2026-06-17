@@ -90,3 +90,8 @@
 - [ ] 补充建议标注了获取方式（可推断/需浏览器/需实际页面）
 - [ ] 自动化代码与文档的对应关系已检查
 - [ ] 不完整文档的具体缺口已标注
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | knowledge | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

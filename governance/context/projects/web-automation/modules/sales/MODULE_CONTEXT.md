@@ -65,3 +65,23 @@
 - 本文件由 module-modeling Skill 在 2026-06-11 产出
 - 旧 contexts/销仓管理/ 目录为空，此为首次建模
 - 代码从 `sidebar_navigator.py` 路由 "销售管理" 确认
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-stats -->
+<!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
+## 自动统计数据 (更新于 2026-06-17 16:53)
+
+| 指标 | 数值 |
+|------|:---:|
+| 测试文件 | 20 (script/sales/test_*.py) |
+| Page Object | 4 (page/sales_page/*.py) |
+| 治理文档 | 29 .md 文件 |
+| TECH_ANALYSIS | 4 |
+| AUTO_STRATEGY | 4 |
+| RISK_MODEL | 4 |
+| PAGE_CONTEXT | 5 |
+| SOP 状态 | completed |
+| Phase 完成 | Automation, Bug Analysis, Data Sanitization, Execute & Debug, Knowledge, Project Init, Report, Requirement, Test Design |
+
+> 此段由 sync_progress.py 自动更新。手动编辑会被覆盖。
+<!-- ⚠️ AUTO-GENERATED SECTION END: module-stats -->

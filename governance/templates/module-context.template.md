@@ -100,3 +100,10 @@
 - 页面上下文：modules/equipment/pages/*/PAGE_CONTEXT.md
 - 自动化脚本：page/equipment_page/*.py
 ```
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: template-meta -->
+> last_verified: 2026-06-17 16:53 | sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: template-meta -->

@@ -547,13 +547,7 @@ class UnitManagePage(BasePage):
     # ==================================================================
     #  分页
     # ==================================================================
-    def get_total_count(self):
-        """获取分页器显示的总条数（数字）"""
-        try:
-            text = self.get_text(self.PAGE_TOTAL, timeout=3)
-            return int(''.join(filter(str.isdigit, text)))
-        except (ValueError, TypeError, TimeoutException):
-            return 0
+    # get_total_count() 继承自 BasePage (含 JS 兜底)
 
     def get_current_page(self):
         """获取当前激活的页码"""
@@ -591,7 +585,11 @@ class UnitManagePage(BasePage):
         Args:
             size: 10 | 20 | 50 | 100
         """
-        self.click(self.PAGE_SIZE_SELECT)
+        # 分页器可能被表格 body 遮挡，JS scroll+click 更可靠
+        el = self.find(self.PAGE_SIZE_SELECT)
+        self._scroll_into_view(el)
+        self.wait_vue_stable()
+        self._js_click_el(el)
         self.wait_vue_stable()
         self._select_option(str(size))
         self._wait_table_ready()
@@ -729,9 +727,12 @@ class UnitManagePage(BasePage):
     # ==================================================================
     #  详情弹窗
     # ==================================================================
-    def wait_detail_dialog_open(self):
-        """等待详情弹窗打开"""
-        self.wait_dialog_open()
+    def wait_detail_dialog_open(self, timeout=20):
+        """等待详情弹窗打开
+
+        装置详情涉及关联设备/参数查询，服务端响应可能较慢。
+        """
+        self.wait_dialog_open(timeout)
         self.wait_vue_stable()
 
     def get_detail_value(self, label_text):

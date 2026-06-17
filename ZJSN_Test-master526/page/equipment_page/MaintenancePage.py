@@ -304,10 +304,15 @@ class MaintenancePage(BasePage):
             self.wait_vue_stable()
         return []
     def get_table_row_count(self):
-        """获取当前页行数（排除不可见行）"""
+        """获取当前页行数 (仅第一个 el-table = 维保计划, 排除登录日志/设备状态干扰)"""
         self._wait_table_ready()
-        rows = self.find_all(self.TABLE_ROWS)
-        return sum(1 for r in rows if r.is_displayed())
+        count = self.driver.execute_script("""
+            var tables = document.querySelectorAll('.el-table');
+            if (!tables.length) return 0;
+            var rows = tables[0].querySelectorAll('tbody tr.el-table__row');
+            return rows.length;
+        """)
+        return count
 
     def get_column_data(self, col_index):
         """获取指定列（1-based）所有行数据"""
@@ -398,13 +403,7 @@ class MaintenancePage(BasePage):
     #  分页
     # ==================================================================
 
-    def get_total_count(self):
-        """获取分页器显示的总条数（数字）"""
-        try:
-            text = self.get_text(self.PAGE_TOTAL, timeout=3)
-            return int(''.join(filter(str.isdigit, text)))
-        except (ValueError, TypeError, TimeoutException):
-            return 0
+    # get_total_count() 继承自 BasePage (含 JS 兜底)
 
     def get_current_page(self):
         """获取当前激活的页码"""

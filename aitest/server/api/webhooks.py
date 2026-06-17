@@ -27,7 +27,7 @@ async def jenkins_webhook(request: Request):
       - SUCCESS  → 自动入队 report-agent 任务（生成测试总结）
       - UNSTABLE → 入队 bug-analysis-agent（存在不稳定用例）
     """
-    from aitest.task_queue import get_queue
+    from aitest.infra.task_queue import get_queue
 
     payload = await request.json()
     build_status = payload.get("build_status", "UNKNOWN")
@@ -76,7 +76,7 @@ async def jenkins_webhook(request: Request):
 @webhooks_router.get("/health")
 async def webhook_health():
     """Webhook 端点健康检查。"""
-    from aitest.task_queue import get_queue
+    from aitest.infra.task_queue import get_queue
     queue = get_queue()
     counts = queue.count_by_status()
     return {

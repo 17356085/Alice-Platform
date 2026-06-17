@@ -220,7 +220,7 @@ def get_ready_steps(steps: list[WorkflowStep], completed: set[str]) -> list[Work
                     if not eval(s.condition, {"completed": completed}):
                         continue
                 except Exception as e:
-                    from aitest.error_logger import log_error
+                    from aitest.infra.error_logger import log_error
                     log_error("workflow_engine.get_ready_steps", "eval_condition", e, {"condition": s.condition, "step": s.id})
             ready.append(s)
     return ready
@@ -339,7 +339,7 @@ class WorkflowRunner:
 
         # 调用 AgentLoop 执行
         try:
-            from aitest.agent_runner import AgentLoop
+            from aitest.agents.agent_runner import AgentLoop
             agent = AgentLoop(
                 agent_name,
                 module=module,

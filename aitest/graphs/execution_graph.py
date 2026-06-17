@@ -35,7 +35,7 @@ def exec_entry(state: SOPState) -> dict:
 
 def exec_act(state: SOPState) -> dict:
     """运行 pytest 测试。使用 AgentLoop 因为需要管理子进程。"""
-    from aitest.agent_runner import AgentLoop
+    from aitest.agents.agent_runner import AgentLoop
 
     page = _get_page(state)
     agent = AgentLoop(
@@ -103,7 +103,7 @@ REPORT_SKILLS = ["reporting/report-generator", "reporting/excel-exporter"]
 
 def _single_skill_act(state: dict, skill_id: str) -> dict:
     """单 Skill 执行（无循环，report 和 knowledge 各 1-2 个 skill）。"""
-    from aitest.agent_runner import run_skill
+    from aitest.agents.agent_runner import run_skill
 
     module = state["module"]
     page = _get_page(state)
@@ -173,11 +173,11 @@ def knowledge_act(state: SOPState) -> dict:
 
     # 处理事件总线积压
     try:
-        from aitest.event_bus import process_pending
+        from aitest.governance.event_bus import process_pending
         processed = process_pending()
         result["agent_outputs"]["events_processed"] = len(processed)
     except Exception as e:
-        from aitest.error_logger import log_error
+        from aitest.infra.error_logger import log_error
         log_error("execution_graph.knowledge", "event_bus_process", e, {"module": state["module"]})
 
     # P2-8: RAG 索引增量更新 — 仅变更时重建，避免每次全量重索引
@@ -186,7 +186,7 @@ def knowledge_act(state: SOPState) -> dict:
     module = state["module"]
     indexed = {}
     try:
-        from aitest.rag_engine import (
+        from aitest.knowledge.rag_engine import (
             _ensure_known_issues_synced,
             _ensure_tech_analysis_synced,
             _ensure_page_context_synced,
@@ -195,7 +195,7 @@ def knowledge_act(state: SOPState) -> dict:
         indexed["tech_analysis_updated"] = _ensure_tech_analysis_synced()
         indexed["page_context_updated"] = _ensure_page_context_synced()
     except Exception as e:
-        from aitest.error_logger import log_error
+        from aitest.infra.error_logger import log_error
         log_error("execution_graph.knowledge", "rag_index", e, {"module": state["module"]})
 
     if indexed:

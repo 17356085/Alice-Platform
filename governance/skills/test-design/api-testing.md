@@ -73,3 +73,8 @@ class TestAlarmAPI:
 - [ ] 分页边界覆盖 page=0, page=-1, size=0, size=10000
 - [ ] Token校验3种场景（无/过期/伪造）
 - [ ] 安全测试含SQL注入和XSS字符
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **0.1-exp** | experimental | test-design | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

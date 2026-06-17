@@ -29,3 +29,15 @@
 ## 完成标准
 - 新 AI 能在一次会话内定位项目入口
 - 新 AI 能说明模块树与旧资产映射关系
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: workflow-check -->
+## Dependency Check (2026-06-17 16:53)
+
+- [OK] No deprecated skill references
+- [OK] Validated 2026-06-17 16:53
+
+> sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: workflow-check -->

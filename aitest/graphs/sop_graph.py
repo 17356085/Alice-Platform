@@ -40,9 +40,13 @@ from aitest.graphs.state import (
     SOPMode,
     PhaseName,
     AgentName,
+    GateResult,
+    GateLevel,
     CANONICAL_PHASES,
     MODE_SKIP_MAP,
     AGENT_PHASE_MAP,
+    get_module_dir,
+    get_page_dir,
 )
 from aitest.graphs.nodes import make_agent_loop_node
 
@@ -79,7 +83,7 @@ def _get_max_mtime(module: str) -> float:
     """
     max_mtime = 0.0
     dirs_to_check = [
-        CONTEXT_MODULES / module,
+        get_module_dir(module),
         GOVERNANCE / "context" / "projects" / "web-automation",
     ]
     code_dirs = [
@@ -177,13 +181,13 @@ def preflight_node(state: SOPState) -> dict:
         artifact_map["Project Init"] = [str(project_context)]
 
     # ── 检查 MODULE_CONTEXT ──
-    module_context = CONTEXT_MODULES / module / "MODULE_CONTEXT.md"
+    module_context = get_module_dir(module) / "MODULE_CONTEXT.md"
     if module_context.exists() and module_context.stat().st_size > 0:
         if mode != "from-requirement":  # from-requirement 只跳过 Project Init
             pass  # 存在不代表 Project Init 完成，只是 prereq
 
     # ── 检查 Requirement phase 产物 ──
-    requirement_artifact = CONTEXT_MODULES / module / "MODULE_CONTEXT.md"
+    requirement_artifact = get_module_dir(module) / "MODULE_CONTEXT.md"
     if requirement_artifact.exists() and requirement_artifact.stat().st_size > 0:
         # MODULE_CONTEXT.md 存在 → Requirement phase 至少部分完成
         pass
@@ -277,7 +281,7 @@ def preflight_node(state: SOPState) -> dict:
     # ── 发现页面 ──
     if not pages:
         # 自动发现模块下的所有页面
-        pages_dir = CONTEXT_MODULES / module / "pages"
+        pages_dir = get_module_dir(module) / "pages"
         if pages_dir.exists():
             discovered = [
                 d.name for d in pages_dir.iterdir()
@@ -288,7 +292,7 @@ def preflight_node(state: SOPState) -> dict:
     # ── 检查每个页面的产物 ──
     per_page_results = []
     for page_slug in pages:
-        page_dir = CONTEXT_MODULES / module / "pages" / page_slug
+        page_dir = get_page_dir(module, page_slug)
         page_info = {
             "page_slug": page_slug,
             "has_page_context": (page_dir / "PAGE_CONTEXT.md").exists(),
@@ -342,7 +346,7 @@ def preflight_node(state: SOPState) -> dict:
                     has_failures = True
                     break
         except Exception as e:
-            from aitest.error_logger import log_error
+            from aitest.infra.error_logger import log_error
             log_error("sop_graph.preflight", "allure_scan", e, {"module": module})
 
     # 推荐模式 — 默认走完整流水线，只有显式 status 才跳过
@@ -457,6 +461,7 @@ def exit_node(state: SOPState) -> dict:
                    "skills_completed": len(a.get("completed_skills", [])),
                    "termination": a.get("termination_reason", "")}
             for name, a in state.get("agent_outputs", {}).items()
+            if isinstance(a, dict)
         },
         "run_id": state.get("run_id", ""),
         "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
@@ -466,25 +471,25 @@ def exit_node(state: SOPState) -> dict:
         with open(status_file, "w", encoding="utf-8") as f:
             json.dump(status_payload, f, ensure_ascii=False, indent=2)
     except Exception as e:
-        from aitest.error_logger import log_error
+        from aitest.infra.error_logger import log_error
         log_error("sop_graph.exit", "write_status_json", e, {"module": module, "file": str(status_file)})
 
     # 发射 CycleEnd 事件
     try:
-        from aitest.event_bus import emit
+        from aitest.governance.event_bus import emit
         emit("CycleEnd", module=module, status=final_status, engine="langgraph")
     except Exception as e:
-        from aitest.error_logger import log_error
+        from aitest.infra.error_logger import log_error
         log_error("sop_graph.exit", "emit_cycle_end", e, {"module": module, "status": final_status})
 
     # P0-2: 在 CycleEnd 后自动运行 State Auditor (全量 S/C/Q/T Check)
     try:
-        from aitest.state_auditor import StateAuditor
+        from aitest.governance.state_auditor import StateAuditor
         auditor = StateAuditor()
         audit_report = auditor.audit(module, auto_repair=False)
         if audit_report["drift_count"] > 0:
             # 发现漂移 → 发射 StateDrift 事件
-            from aitest.event_bus import emit as _emit2
+            from aitest.governance.event_bus import emit as _emit2
             try:
                 _emit2("StateDrift",
                        module=module,
@@ -494,19 +499,19 @@ def exit_node(state: SOPState) -> dict:
                        warning_count=audit_report["warning_count"],
                        overall_status=audit_report["overall_status"])
             except Exception as e:
-                from aitest.error_logger import log_error
+                from aitest.infra.error_logger import log_error
                 log_error("sop_graph.exit", "emit_StateDrift", e, {"module": module})
     except Exception as e:
-        from aitest.error_logger import log_error
+        from aitest.infra.error_logger import log_error
         log_error("sop_graph.exit", "state_auditor", e, {"module": module})
 
     # P1-2: SOP Auditor — 全量 6 维检查 (P0-FIX 2026-06-15: 从 3 维扩展到 6 维)
     try:
-        from aitest.sop_auditor import SOPAuditor
+        from aitest.governance.sop_auditor import SOPAuditor
         sop_auditor = SOPAuditor()
         sop_report = sop_auditor.audit(module, days=1)  # 默认全部 6 维: p/s/g/h/b/l
         if sop_report["total_violations"] > 0:
-            from aitest.event_bus import emit as _emit3
+            from aitest.governance.event_bus import emit as _emit3
             try:
                 _emit3("SOPViolation",
                        module=module,
@@ -514,10 +519,10 @@ def exit_node(state: SOPState) -> dict:
                        violation_type="cycle_end_audit",
                        detail=f"SOP 审计发现 {sop_report['total_violations']} 个违规")
             except Exception as e2:
-                from aitest.error_logger import log_error
+                from aitest.infra.error_logger import log_error
                 log_error("sop_graph.exit", "emit_SOPViolation", e2, {"module": module})
     except Exception as e:
-        from aitest.error_logger import log_error
+        from aitest.infra.error_logger import log_error
         log_error("sop_graph.exit", "sop_auditor", e, {"module": module})
 
     return {
@@ -578,10 +583,7 @@ def automation_strategy_approval_node(state: SOPState) -> dict:
     """
     page = _get_current_page(state)
 
-    strategy_path = (
-        GOVERNANCE / "context" / "projects" / "web-automation" / "modules"
-        / state["module"] / "pages" / page / "AUTO_STRATEGY.md"
-    )
+    strategy_path = get_page_dir(state["module"], page) / "AUTO_STRATEGY.md"
 
     if not strategy_path.exists():
         # 无策略文件，自动通过
@@ -630,10 +632,7 @@ def testcase_approval_node(state: SOPState) -> dict:
     if state["module"] not in p0_modules:
         return {"test_cases_approved": True}
 
-    test_cases_path = (
-        GOVERNANCE / "context" / "projects" / "web-automation" / "modules"
-        / state["module"] / "pages" / page / "TEST_CASES.md"
-    )
+    test_cases_path = get_page_dir(state["module"], page) / "TEST_CASES.md"
 
     if not test_cases_path.exists():
         return {"test_cases_approved": True}
@@ -675,6 +674,258 @@ def testcase_approval_node(state: SOPState) -> dict:
 
 
 # ══════════════════════════════════════════════════════════════════════════
+#  P2-5 业务覆盖质量门禁节点: TESTCASE_QUALITY_GATE (L3 Validator)
+# ══════════════════════════════════════════════════════════════════════════
+
+# BSC 评分阈值
+BSC_PASS_THRESHOLD = 60       # 最低通过分
+BSC_HITL_THRESHOLD = 40       # 低于此分强制 HITL
+BSC_MAX_RETRY_ROUNDS = 2      # 最多打回重做轮次
+
+
+def _get_bsc_retry_count(state: SOPState) -> int:
+    """获取当前页面 BSC 打回重试次数（从独立 state 字段读取，不会被 agent loop 覆盖）。"""
+    return state.get("bsc_retry_count", 0)
+
+
+def testcase_quality_gate_node(state: SOPState) -> dict:
+    """
+    P2-5 L3 Validator: 业务场景覆盖质量门禁。
+
+    在 Test Design 完成后、Automation 开始前运行。
+    检查 BUSINESS_SCENARIOS.md → TEST_DESIGN.md → TEST_CASES.md 的
+    业务覆盖链是否完整。
+
+    评分规则:
+      - score ≥ 60 → PASS → 进入 Automation
+      - score 40-59 → WARN → P0 模块 HITL，非 P0 放行
+      - score < 40 → BLOCK → 打回 Test Design 重做 (max 2 rounds)
+
+    发射事件:
+      - BusinessCoverageInsufficient (score < threshold)
+      - WorkflowCoverageInsufficient (cross_page=0 且 pages≥2)
+    """
+    import re as _re
+
+    page = _get_current_page(state)
+    module = state.get("module", "")
+    pages = state.get("pages", [])
+
+    bsc_retry = _get_bsc_retry_count(state)
+
+    # 定位产物文件
+    page_dir = get_page_dir(module, page)
+    bs_path = page_dir / "BUSINESS_SCENARIOS.md"
+    td_path = page_dir / "TEST_DESIGN.md"
+    tc_path = page_dir / "TEST_CASES.md"
+
+    # ── 计算 BSC Score ──
+    score = 0
+    bs_content = bs_path.read_text(encoding="utf-8") if bs_path.exists() else ""
+    td_content = td_path.read_text(encoding="utf-8") if td_path.exists() else ""
+    tc_content = tc_path.read_text(encoding="utf-8") if tc_path.exists() else ""
+
+    # Layer 1: 产物存在性 (30分)
+    if bs_path.exists():
+        score += 10
+    else:
+        score -= 5
+    if td_path.exists():
+        score += 10
+    else:
+        score -= 5
+    if tc_path.exists():
+        score += 10
+    else:
+        score -= 5
+
+    # Layer 2: 业务维度覆盖 (50分)
+    bs_dimensions = {
+        "业务目标": ["业务目标", "Business Goal", "核心业务目标"],
+        "角色": ["角色", "Role", "角色与旅程"],
+        "流程": ["流程", "Workflow", "业务流程", "Happy Path", "Alternative Path"],
+        "业务规则": ["业务规则", "Business Rule", "状态流转", "触发规则", "计算规则"],
+        "数据流": ["数据流", "Data Flow", "数据来源", "数据消费"],
+        "风险映射": ["风险", "场景映射", "Risk-to-Scenario", "关联风险"],
+    }
+    for keywords in bs_dimensions.values():
+        if any(kw.lower() in bs_content.lower() for kw in keywords):
+            score += 8
+        elif any(kw.lower() in td_content.lower() for kw in keywords):
+            score += 4
+
+    # 第 9 维检测
+    bs_dim9_markers = [
+        "业务场景验证", "业务场景", "端到端业务流程", "角色协作",
+        "BS-", "跨页面", "数据流完整性", "状态机验证",
+    ]
+    bs_dim9_hits = sum(1 for m in bs_dim9_markers if m.lower() in td_content.lower())
+    if bs_dim9_hits >= 3:
+        score += 8
+    elif bs_dim9_hits >= 1:
+        score += 4
+
+    # Layer 3: 用例质量标记 (20分)
+    bs_id_count = len(_re.findall(r'BS-\w+-\d{3}', tc_content))
+    if bs_id_count >= 5:
+        score += 10
+    elif bs_id_count >= 1:
+        score += 5
+    if "P0" in tc_content or "阻塞" in tc_content:
+        score += 5
+    placeholder_patterns = ["输入XXX", "输入用户名", "输入密码", "输入数据", "输入值"]
+    if not any(p in tc_content for p in placeholder_patterns):
+        score += 5
+
+    score = max(0, min(100, score))
+
+    # 跨页面覆盖检查
+    cross_page_markers = [
+        "跨页面", "cross-page", "跨模块", "cross-module",
+        "page-a", "page-b", "→", "流转到",
+    ]
+    has_cross_page = any(
+        _re.search(m, bs_content, _re.IGNORECASE) for m in cross_page_markers
+    ) if bs_content else False
+
+    # ── 判定 ──
+    p0_modules = _load_p0_modules()
+    is_p0 = module in p0_modules
+
+    gate_result = {
+        "gate": "TESTCASE_QUALITY_GATE",
+        "level": "L3_VALIDATOR",
+        "phase": "Test Design",
+        "page": page,
+        "score": score,
+        "bs_dim9_hits": bs_dim9_hits,
+        "bs_id_count": bs_id_count,
+        "has_cross_page": has_cross_page,
+        "has_bs_file": bs_path.exists(),
+        "bsc_retry_count": bsc_retry,
+    }
+
+    if score >= BSC_PASS_THRESHOLD:
+        gate_result["ok"] = True
+        gate_result["action"] = "pass"
+        updates = {
+            "gate_results": [gate_result],
+            "test_cases_approved": True,  # 质量门禁通过，等同于审批通过
+            "force_retry_phase": None,    # ★ 清除重试标记
+        }
+
+    elif score >= BSC_HITL_THRESHOLD:
+        if is_p0:
+            # P0 模块: 警告级 → HITL
+            gate_result["ok"] = False
+            gate_result["action"] = "hitl_warn"
+            decision = interrupt({
+                "type": "business_coverage_warning",
+                "module": module,
+                "page": page,
+                "score": score,
+                "threshold": BSC_PASS_THRESHOLD,
+                "gate_result": gate_result,
+                "options": ["approve", "retry"],
+                "hint": (
+                    f"业务覆盖评分 {score} < {BSC_PASS_THRESHOLD} (阈值 {BSC_PASS_THRESHOLD})。"
+                    "approve=接受当前覆盖继续; retry=打回 Test Design 重做"
+                ),
+            })
+            if decision == "approve":
+                gate_result["ok"] = True
+                gate_result["action"] = "hitl_approved"
+                updates = {
+                    "gate_results": [gate_result],
+                    "test_cases_approved": True,
+                    "force_retry_phase": None,
+                }
+            else:
+                gate_result["action"] = "retry"
+                updates = {
+                    "gate_results": [gate_result],
+                    "test_cases_approved": False,
+                    "force_retry_phase": "Test Design",
+                    "human_feedback": str(decision) if isinstance(decision, str) else "",
+                }
+        else:
+            # 非 P0: 警告但放行
+            gate_result["ok"] = True
+            gate_result["action"] = "warn_pass"
+            updates = {
+                "gate_results": [gate_result],
+                "test_cases_approved": True,
+                "force_retry_phase": None,
+            }
+
+    else:
+        # score < 40: 硬阻断
+        if bsc_retry < BSC_MAX_RETRY_ROUNDS:
+            gate_result["ok"] = False
+            gate_result["action"] = "retry"
+            updates = {
+                "gate_results": [gate_result],
+                "bsc_retry_count": bsc_retry + 1,
+                "test_cases_approved": False,
+                "force_retry_phase": "Test Design",
+            }
+        else:
+            # 超过最大重试次数 → HITL
+            gate_result["ok"] = False
+            gate_result["action"] = "hitl_block"
+            decision = interrupt({
+                "type": "business_coverage_blocked",
+                "module": module,
+                "page": page,
+                "score": score,
+                "threshold": BSC_HITL_THRESHOLD,
+                "retry_count": bsc_retry,
+                "gate_result": gate_result,
+                "options": ["force_continue", "abort"],
+                "hint": (
+                    f"业务覆盖评分 {score} < {BSC_HITL_THRESHOLD}，"
+                    f"已重试 {bsc_retry} 次仍不达标。"
+                    "force_continue=强制继续; abort=终止流程"
+                ),
+            })
+            if decision == "force_continue":
+                gate_result["ok"] = True
+                gate_result["action"] = "force_continue"
+                updates = {
+                    "gate_results": [gate_result],
+                    "test_cases_approved": True,
+                    "force_retry_phase": None,
+                }
+            else:
+                updates = {
+                    "gate_results": [gate_result],
+                    "test_cases_approved": False,
+                    "force_retry_phase": None,
+                    "fatal_error": f"业务覆盖质量门禁阻断: score={score} < {BSC_HITL_THRESHOLD}",
+                }
+
+    # ── 发射事件 ──
+    try:
+        from aitest.governance.event_bus import emit
+        if score < BSC_PASS_THRESHOLD:
+            emit("BusinessCoverageInsufficient",
+                 module=module, page=page,
+                 score=score, threshold=BSC_PASS_THRESHOLD,
+                 dimensions_detail=str(gate_result))
+        if not has_cross_page and len(pages) >= 2:
+            emit("WorkflowCoverageInsufficient",
+                 module=module, page_count=len(pages),
+                 cross_page_scenarios=0)
+    except Exception as e:
+        import logging
+        logging.getLogger("aitest.graph").warning(
+            f"testcase_quality_gate: event emission failed: {e}")
+
+
+    return updates
+
+
+# ══════════════════════════════════════════════════════════════════════════
 #  数据清理节点: 离线扫描并清理测试残留数据
 # ══════════════════════════════════════════════════════════════════════════
 
@@ -698,6 +949,7 @@ def data_sanitization_node(state: SOPState) -> dict:
     updates: dict = {
         "agent_outputs": {**state.get("agent_outputs", {})},
         "gate_results": list(state.get("gate_results", [])),
+        "completed_phases": ["Data Sanitization"],
     }
 
     if not scan_script.exists():
@@ -749,7 +1001,7 @@ def data_sanitization_node(state: SOPState) -> dict:
         ).to_dict())
 
         if threshold_exceeded:
-            from aitest.error_logger import log_error
+            from aitest.infra.error_logger import log_error
             log_error(
                 "sop_graph.data_sanitization", "threshold_exceeded",
                 Exception(f"残留数据 {residual_count} 超过阈值 {threshold}"),
@@ -757,7 +1009,7 @@ def data_sanitization_node(state: SOPState) -> dict:
             )
 
     except Exception as e:
-        from aitest.error_logger import log_error
+        from aitest.infra.error_logger import log_error
         log_error("sop_graph.data_sanitization", "script_error", e, {"module": module})
         updates["agent_outputs"]["data-sanitization"] = {
             "residual_count": 0, "cleaned_count": 0,
@@ -765,6 +1017,27 @@ def data_sanitization_node(state: SOPState) -> dict:
         }
 
     return updates
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  页面迭代节点
+# ══════════════════════════════════════════════════════════════════════════
+
+def page_advance_node(state: SOPState) -> dict:
+    """Automation 完成后推进页面索引，支持跨页迭代。"""
+    pages = state.get("pages", [])
+    idx = state.get("current_page_index", 0)
+    next_idx = min(idx + 1, len(pages))
+    return {"current_page_index": next_idx}
+
+
+def _route_after_page_advance(state: SOPState) -> str:
+    """页面推进后：有下页→回 test_design_agent 重新走测试设计+自动化，无→继续下一个 Phase。"""
+    pages = state.get("pages", [])
+    idx = state.get("current_page_index", 0)
+    if idx < len(pages):
+        return "test_design_agent"
+    return route_next_phase(state)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -784,12 +1057,20 @@ PHASE_TO_NODE: dict[PhaseName, str] = {
     "Knowledge": "knowledge_agent",
 }
 
-# 所有可能的 agent 节点名（含 HITL 中断节点 + 清理节点）
+# 所有可能的 agent 节点名（含 HITL 中断节点 + 清理节点 + 质量门禁）
 ALL_AGENT_NODES = list(PHASE_TO_NODE.values()) + [
+    "automation_agent_post",
+]
+# ★ 这些节点有自定义边，不在通用循环中添加条件边
+_CUSTOM_EDGE_NODES = {
+    "automation_agent_pre",
     "automation_strategy_approval",
     "automation_agent_post",
     "testcase_approval",
-]
+    "testcase_quality_gate",
+    "test_design_agent",
+    "page_advance",
+}
 
 
 def route_next_phase(state: SOPState) -> str:
@@ -812,6 +1093,13 @@ def route_next_phase(state: SOPState) -> str:
     # Status 模式 → preflight 后直接退出
     if state.get("mode") == "status":
         return "exit"
+
+    # 质量门禁强制重试：force_retry_phase 不为 None 时优先路由
+    force_retry = state.get("force_retry_phase")
+    if force_retry:
+        node_name = PHASE_TO_NODE.get(force_retry)
+        if node_name:
+            return node_name
 
     completed = set(state.get("completed_phases", []))
     skipped = set(state.get("skip_phases", []))
@@ -897,6 +1185,12 @@ def build_sop_graph() -> StateGraph:
     # P1-3 HITL: P0 模块测试用例审批节点
     builder.add_node("testcase_approval", testcase_approval_node)
 
+    # P2-5: 业务覆盖质量门禁 (L3 Validator)
+    builder.add_node("testcase_quality_gate", testcase_quality_gate_node)
+
+    # ★ 页面迭代节点：automation_agent_post 完成后推进 current_page_index
+    builder.add_node("page_advance", page_advance_node)
+
     # execution / report / knowledge → 保留 execution_graph
     from aitest.graphs.execution_graph import (
         build_execution_subgraph,
@@ -921,15 +1215,17 @@ def build_sop_graph() -> StateGraph:
     builder.add_edge("entry", "preflight")
 
     # 条件路由映射
-    route_map = {name: name for name in ALL_AGENT_NODES}
+    all_routable_nodes = list(ALL_AGENT_NODES) + list(_CUSTOM_EDGE_NODES) + ["page_advance"]
+    route_map = {name: name for name in all_routable_nodes}
     route_map["exit"] = "exit"
 
     # preflight → 条件路由
     builder.add_conditional_edges("preflight", route_next_phase, route_map)
 
-    # 每个 Agent 完成后 → 条件路由（先添加通用路由）
+    # 每个 Agent 完成后 → 条件路由（跳过有自定义边的节点）
     for node_name in ALL_AGENT_NODES:
-        builder.add_conditional_edges(node_name, route_next_phase, route_map)
+        if node_name not in _CUSTOM_EDGE_NODES:
+            builder.add_conditional_edges(node_name, route_next_phase, route_map)
 
     # ── P1-3 HITL: 定制边覆盖（后添加 → 优先）──
     # automation-agent 内部管线: pre → approval → post
@@ -945,6 +1241,33 @@ def build_sop_graph() -> StateGraph:
         "testcase_approval",
         lambda s: "automation_agent_pre" if s.get("test_cases_approved") else "exit",
         {"automation_agent_pre": "automation_agent_pre", "exit": "exit"},
+    )
+
+    # ★ 页面迭代路由: automation_agent_post → page_advance → next page or next phase
+    builder.add_edge("automation_agent_post", "page_advance")
+    builder.add_conditional_edges(
+        "page_advance",
+        _route_after_page_advance,
+        {**route_map, "automation_agent_pre": "automation_agent_pre"},
+    )
+
+    # ── P2-5 业务覆盖质量门禁路由 ──
+    # test_design_agent → testcase_quality_gate（优先于通用条件的定制边）
+    builder.add_edge("test_design_agent", "testcase_quality_gate")
+    # quality_gate → automation_agent_pre（有页面未处理）/ route_next_phase（通过）/ test_design_agent（打回重做）
+    def _route_quality_gate(state):
+        if "Test Design" not in state.get("completed_phases", []) or state.get("force_retry_phase") == "Test Design":
+            return "test_design_agent"
+        # 如果还有页面未自动化，直接进 automation_agent_pre（跳过 phase 检查）
+        pages = state.get("pages", [])
+        idx = state.get("current_page_index", 0)
+        if idx < len(pages):
+            return "automation_agent_pre"
+        return route_next_phase(state)
+    builder.add_conditional_edges(
+        "testcase_quality_gate",
+        _route_quality_gate,
+        {**route_map, "test_design_agent": "test_design_agent", "automation_agent_pre": "automation_agent_pre"},
     )
 
     # exit → END

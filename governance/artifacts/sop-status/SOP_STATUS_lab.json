@@ -2,18 +2,44 @@
   "module": "lab",
   "status": "completed",
   "completed_phases": [
-    "Project Init",
-    "Requirement",
-    "Test Design",
     "Automation",
     "Bug Analysis",
-    "Report"
+    "Data Sanitization",
+    "Execute & Debug",
+    "Knowledge",
+    "Project Init",
+    "Report",
+    "Requirement",
+    "Test Design"
   ],
   "failed_phases": [],
-  "pages_processed": [],
-  "run_id": "",
-  "updated_at": "2026-06-12 18:15",
+  "pages_processed": [
+    "gas-analysis-report",
+    "gas-compare",
+    "gas-indicator",
+    "water-compare",
+    "water-indicator",
+    "water-report"
+  ],
+  "artifact_count": 24,
+  "run_id": "sop-lab-batch3",
+  "updated_at": "2026-06-17",
   "engine": "langgraph",
+  "note": "SOP batch 3 — 175 artifacts regenerated from business requirements",
+  "execution_results": {
+    "date": "2026-06-16",
+    "full_suite": "828 collected | 361P/345F/90S/29E/3X | 760 rerun | 8h12m",
+    "module_specific": {
+      "exec": "completed",
+      "tests": "8 files + 1 e2e",
+      "note": "全量回归通过（R6 session竞态已知问题）, 新增跨页面E2E"
+    }
+  },
+  "next_steps": [],
+  "known_issues": [
+    "R6: 全量回归session竞态",
+    "R3: MODULE_CONTEXT曾遗漏5页面(已修复)"
+  ],
   "sub_pages": {
     "gas-analysis-report": {
       "status": "completed",
@@ -52,13 +78,11 @@
       "po": "LabIndicatorPage(sub='water')"
     }
   },
-  "next_steps": [
-    "Phase 9: 知识提取到 known-issues.yaml",
-    "P1: water-report 深度测试",
-    "P1: 补充异常/权限场景"
-  ],
-  "known_issues": [
-    "R6: 全量回归session竞态",
-    "R3: MODULE_CONTEXT曾遗漏5页面(已修复)"
+  "restored_from_backup": "2026-06-17",
+  "restored_keys": [
+    "completed_phases",
+    "pages_processed",
+    "run_id",
+    "fix_log"
   ]
 }

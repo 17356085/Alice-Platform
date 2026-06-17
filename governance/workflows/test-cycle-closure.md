@@ -50,9 +50,21 @@
 |------|----------|----------|
 | 1. 生成测试摘要 | `TEST_SUMMARY.md` | 调用 `allure-report-analyzer` 解析 Allure JSON |
 | 2. 坑位批量沉淀 | `PROJECT_CONTEXT.md` | 调用 `knowledge-extractor` 批量提取周期内 Bug 的通用坑位 |
-| 3. 生成 Excel 成果 | `reports/执行结果-*.xlsx` | 调用 `excel-exporter`（场景 B），从 Allure JSON 导出带 PASS/FAIL 配色的 Excel |
+| 3. 生成 Excel 成果 | `governance/kpi/reports/{模块}/测试报告-{模块}.xlsx` | 调用 `excel-exporter`（场景 C），从 Allure JSON + TEST_CASES.md 合并导出，覆盖式 |
 | 4. 更新模块状态 | 各 `MODULE_CONTEXT.md` | 根据执行结果刷新页面/模块状态（✅/🔄/⏳） |
 | 5. 更新进度追踪 | `测试进度追踪.md` | 更新所有模块的自动化覆盖数、用例数、Bug 数 |
 | 6. 产出下一周期计划 | `测试进度追踪.md` | 标记下一周期重点模块和建议 |
 
-**执行方式**：`allure-report-analyzer` → `excel-exporter`（场景 B）→ `knowledge-extractor` → `context-sync`。
+**执行方式**：`allure-report-analyzer` → `excel-exporter`（场景 C）→ `knowledge-extractor` → `context-sync`。
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: workflow-check -->
+## Dependency Check (2026-06-17 16:53)
+
+- [OK] No deprecated skill references
+- [OK] Validated 2026-06-17 16:53
+
+> sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: workflow-check -->

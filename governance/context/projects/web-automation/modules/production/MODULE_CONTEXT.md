@@ -79,3 +79,23 @@ shift-report:       —      (前端未实现)
 3. ⏭️ shift-report — 前端未实现
 4. ✅ shift-team-config — 完成
 5. ✅ business-type-config — 完成
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-stats -->
+<!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
+## 自动统计数据 (更新于 2026-06-17 16:53)
+
+| 指标 | 数值 |
+|------|:---:|
+| 测试文件 | 5 (script/production/test_*.py) |
+| Page Object | 4 (page/production_page/*.py) |
+| 治理文档 | 27 .md 文件 |
+| TECH_ANALYSIS | 4 |
+| AUTO_STRATEGY | 4 |
+| RISK_MODEL | 4 |
+| PAGE_CONTEXT | 5 |
+| SOP 状态 | completed |
+| Phase 完成 | Automation, Bug Analysis, Data Sanitization, Execute & Debug, Knowledge, Project Init, Report, Requirement, Test Design |
+
+> 此段由 sync_progress.py 自动更新。手动编辑会被覆盖。
+<!-- ⚠️ AUTO-GENERATED SECTION END: module-stats -->

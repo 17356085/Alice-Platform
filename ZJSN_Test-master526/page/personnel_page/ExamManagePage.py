@@ -25,16 +25,20 @@ class ExamManagePage(BasePage):
     # 不再使用绝对 XPath，通过 self.navigate_to("人员管理", "培训管理", "考试管理")
 
     # ==================== 搜索区域 ====================
+    # 注: 搜索区使用 search-item 容器，无 el-form-item/label，用 placeholder 区分下拉框
     SEARCH_NAME_INPUT = (By.XPATH, '//input[contains(@placeholder, "考试名称")]')
     SEARCH_STATUS_SELECT = (
         By.XPATH,
-        '//div[contains(@class,"el-form-item")][.//label[contains(.,"状态")]]'
-        '//div[contains(@class,"el-select")]',
+        '//div[contains(@class,"search-item")]'
+        '//div[contains(@class,"el-select")]'
+        '[.//div[contains(@class,"el-select__placeholder")]'
+        '[contains(.,"状态") and not(contains(.,"发布"))]]',
     )
     PUBLISH_STATUS_SELECT = (
         By.XPATH,
-        '//div[contains(@class,"el-form-item")][.//label[contains(.,"发布状态")]]'
-        '//div[contains(@class,"el-select")]',
+        '//div[contains(@class,"search-item")]'
+        '//div[contains(@class,"el-select")]'
+        '[.//div[contains(@class,"el-select__placeholder")][contains(.,"发布状态")]]',
     )
     DATE_RANGE_INPUT = (
         By.XPATH,
@@ -463,13 +467,16 @@ class ExamManagePage(BasePage):
                 self.driver.execute_script("arguments[0].value = '';", input_el)
 
             if value:
-                formatted_value = value.replace('/', '-')
+                # Element Plus datetime 需要 ISO 格式 T 分隔符
+                formatted_value = value.replace('/', '-').replace(' ', 'T')
                 input_el.send_keys(formatted_value)
                 self.wait_vue_stable()
-                # 触发事件
+                # 触发 Vue v-model 绑定: input → change → blur
                 self.driver.execute_script(
                     "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));"
-                    "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));",
+                    "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));"
+                    "arguments[0].dispatchEvent(new Event('blur', {bubbles:true}));"
+                    "arguments[0].dispatchEvent(new KeyboardEvent('keyup', {bubbles:true}));",
                     input_el,
                 )
             logger.info("成功输入日期时间: %s = %s", label_text, value)

@@ -1,6 +1,7 @@
 # AI自动化测试平台 V2 架构复审报告
 
-**复审日期**: 2026-06-13  
+**复审日期**: 2026-06-13
+**勘误日期**: 2026-06-17 — 本文档中的 Skill/Agent 计数反映 6/13 快照。当前实际: 25 active Skills (+2 deprecated, +2 experimental), 9 test agents + 11 dev/meta。详见 GOVERNANCE_FULL_AUDIT-2026-06-17。
 **复审标准**: 架构评审委员会  
 **复审范围**: Context → Workflow → Skill → Agent → LangGraph 全链路  
 **复审人**: AI 系统架构师（Claude）

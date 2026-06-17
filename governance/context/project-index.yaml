@@ -1,5 +1,5 @@
-version: 0.3
-# Project Index — 2026-06-15 更新：9模块（system 结构纠正，system-user/system-management 回归 system 模块）
+version: 0.4
+# Project Index — 2026-06-17 auto-sync: 12 modules
 projects:
   - id: web-automation
     name: Web 自动化测试项目
@@ -8,16 +8,18 @@ projects:
     status: active
     module_strategy: by-test-module
     current_modules:
-      - equipment
       - dcs
+      - equipment
       - lab
       - personnel
       - production
       - sales
-      - system
+      - system-management
       - system-role
+      - system-user
       - tank
       - warehouse
+      - workflow
     context:
       project_context: governance/context/projects/web-automation/PROJECT_CONTEXT.md
       module_index: governance/context/projects/web-automation/MODULE_INDEX.md
@@ -34,7 +36,7 @@ projects:
 
 # Agent 体系 (v2.0)
 agents:
-  version: "2.0"
+  version: 0.4
   deprecated:
     - id: analysis-agent
       replaced_by: [project-agent, requirement-agent, test-design-agent]
@@ -72,7 +74,7 @@ agents:
 
 # Skill 体系 (v0.2 — 7分类)
 skills:
-  version: "0.2"
+  version: 0.4
   categories:
     project: 2
     requirements: 2

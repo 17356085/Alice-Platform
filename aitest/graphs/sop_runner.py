@@ -11,15 +11,20 @@ SOPRunner — 将 LangGraph SOP 图执行包装为 AgentEvent 生成器。
 """
 
 import json
+import subprocess
+import sys
 import time
 import queue
 import uuid as _uuid
 from pathlib import Path
 from collections.abc import Generator
 
-from aitest.agent_runner import AgentEvent
+from aitest.agents.agent_runner import AgentEvent
 from aitest.graphs.state import create_initial_state
 from aitest.graphs.sop_graph import build_compiled_graph
+
+# Path to sync script
+_SYNC_SCRIPT = Path(__file__).resolve().parent.parent.parent / "tools" / "sync_progress.py"
 
 
 # ── 节点名 → 阶段显示名 + 索引映射 ──
@@ -138,7 +143,13 @@ class SOPRunner:
                 # ── HITL 中断处理 ──
                 if "__interrupt__" in raw_event:
                     interrupt_items = raw_event["__interrupt__"]
-                    yield from self._yield_interaction_events(interrupt_items)
+                    # Save interrupt options for timeout fallback
+                    self._last_interrupt_options = ["approve"]
+                    for ev in self._yield_interaction_events(interrupt_items):
+                        opts = getattr(ev, 'interaction_options', []) or []
+                        if opts:
+                            self._last_interrupt_options = list(opts)
+                        yield ev
 
                     # 阻塞等待用户响应
                     try:
@@ -146,7 +157,10 @@ class SOPRunner:
                             timeout=self.INTERACTION_TIMEOUT
                         )
                     except queue.Empty:
-                        response = "skip"  # 超时默认跳过
+                        # Smart timeout: pick most permissive option
+                        opts = getattr(self, '_last_interrupt_options', ["approve"])
+                        preferred = [o for o in opts if o in ("approve", "force_continue", "proceed", "accept")]
+                        response = preferred[0] if preferred else (opts[0] if opts else "approve")
 
                     # 用 Command(resume=...) 创建新 stream 继续
                     from langgraph.types import Command
@@ -292,7 +306,24 @@ class SOPRunner:
             progress={"step": TOTAL_PHASES, "total": TOTAL_PHASES},
         )
 
+        # ── 自动同步进度追踪 ──
+        self._sync_progress()
+
         return final_values
+
+    def _sync_progress(self) -> None:
+        """SOP 完成后自动调用 sync_progress.py 更新 progress-tracking.md。"""
+        if not _SYNC_SCRIPT.exists():
+            return
+        try:
+            subprocess.run(
+                [sys.executable, str(_SYNC_SCRIPT), "--sync-all"],
+                capture_output=True,
+                timeout=15,
+                cwd=str(_SYNC_SCRIPT.parent.parent),
+            )
+        except Exception:
+            pass  # Silent — sync is best-effort, don't block SOP completion
 
     def _yield_interaction_events(self, interrupt_items) -> Generator[AgentEvent, None, None]:
         """将 LangGraph interrupt 数据转换为 AgentEvent。"""

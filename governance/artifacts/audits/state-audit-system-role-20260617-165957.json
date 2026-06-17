@@ -1,0 +1,145 @@
+{
+  "module": "system-role",
+  "audit_time": "2026-06-17T16:59:57.908762",
+  "overall_status": "error",
+  "drift_count": 10,
+  "error_count": 4,
+  "warning_count": 3,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'role-list' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system-role\\pages\\role-list\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Data Sanitization",
+      "description": "Phase 'Data Sanitization' 已完成，但模块级产物缺失: DATA_QUALITY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system-role\\DATA_QUALITY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Data Sanitization 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Project Init",
+      "description": "Phase 'Project Init' 已完成，但模块级产物缺失: PROJECT_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system-role\\PROJECT_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Project Init 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Report",
+      "description": "Phase 'Report' 已完成，但模块级产物缺失: TEST_SUMMARY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system-role\\TEST_SUMMARY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Report 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'role-list' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system-role\\pages\\role-list\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "orphan",
+      "severity": "info",
+      "phase": "",
+      "description": "发现非标准产物文件: CURRENT_TASK.md",
+      "expected": "标准产物 (PAGE_CONTEXT, RISK_MODEL, TEST_DESIGN, TEST_CASES, TECH_ANALYSIS, AUTO_STRATEGY)",
+      "actual": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system-role\\CURRENT_TASK.md",
+      "suggestion": "确认文件用途后归档到 governance/artifacts/archive/ 或删除"
+    },
+    {
+      "check_type": "orphan",
+      "severity": "info",
+      "phase": "",
+      "description": "发现非标准产物文件: RBAC_TEST_PLAN.md",
+      "expected": "标准产物 (PAGE_CONTEXT, RISK_MODEL, TEST_DESIGN, TEST_CASES, TECH_ANALYSIS, AUTO_STRATEGY)",
+      "actual": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system-role\\RBAC_TEST_PLAN.md",
+      "suggestion": "确认文件用途后归档到 governance/artifacts/archive/ 或删除"
+    },
+    {
+      "check_type": "orphan",
+      "severity": "info",
+      "phase": "",
+      "description": "发现非标准产物文件: TEST_ANALYSIS.md",
+      "expected": "标准产物 (PAGE_CONTEXT, RISK_MODEL, TEST_DESIGN, TEST_CASES, TECH_ANALYSIS, AUTO_STRATEGY)",
+      "actual": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\system-role\\TEST_ANALYSIS.md",
+      "suggestion": "确认文件用途后归档到 governance/artifacts/archive/ 或删除"
+    },
+    {
+      "check_type": "c_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "SOP_STATUS JSON 中有但 checkpoint 中无: {'Bug Analysis'}",
+      "expected": "JSON 和 checkpoint 一致",
+      "actual": "JSON: ['Automation', 'Bug Analysis', 'Data Sanitization', 'Execute & Debug', 'Knowledge', 'Project Init', 'Report', 'Requirement', 'Test Design'], SQLite: ['Automation', 'Data Sanitization', 'Execute & Debug', 'Knowledge', 'Project Init', 'Report', 'Requirement', 'Test Design']",
+      "suggestion": "以 SQLite checkpoint 为准，重新导出 SOP_STATUS JSON"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'role-list' 业务场景覆盖评分 43 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=43",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 5,
+      "errors": 3,
+      "warnings": 2,
+      "ok": false
+    },
+    "r_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "o_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "orphan_check": {
+      "total": 3,
+      "errors": 0,
+      "warnings": 0,
+      "ok": false
+    },
+    "c_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "q_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "t_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    }
+  }
+}

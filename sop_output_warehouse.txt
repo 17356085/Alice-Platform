@@ -1,0 +1,24 @@
+SOP: warehouse | mode=from-requirement | pages=(auto-discover)
+Output: D:\Desktop\WorkStudy\sop_output_warehouse.txt
+================================================================================
+
+[START] 🚀 SOP 流水线启动: warehouse
+  [RUN] [==       ] 运行中: 需求分析
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [RUN] [===      ] 运行中: 测试设计
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [RUN] [====     ] 运行中: 自动化(策略分析)
+  [PASS] [====     ] ✅ 自动化: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+
+[HITL] 
+  -> auto-response: 'approve' (options: ['approve', 'reject', 'edit'])

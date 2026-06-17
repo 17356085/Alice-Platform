@@ -41,3 +41,15 @@
 2. 逐项确认上述 8 个检查项
 3. 输出：①上下文更新建议 ②产物归档建议 ③下次会话入口
 ```
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: workflow-check -->
+## Dependency Check (2026-06-17 16:53)
+
+- [OK] No deprecated skill references
+- [OK] Validated 2026-06-17 16:53
+
+> sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: workflow-check -->

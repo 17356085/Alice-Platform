@@ -25,3 +25,23 @@
 ## 映射状态
 - role-list 已完成 PAGE_CONTEXT、ANALYSIS 映射
 - RBAC_TEST_PLAN 已完成模块级映射
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-stats -->
+<!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
+## 自动统计数据 (更新于 2026-06-17 16:53)
+
+| 指标 | 数值 |
+|------|:---:|
+| 测试文件 | 6 (script/system-role/test_*.py) |
+| Page Object | 1 (page/system-role_page/*.py) |
+| 治理文档 | 15 .md 文件 |
+| TECH_ANALYSIS | 1 |
+| AUTO_STRATEGY | 1 |
+| RISK_MODEL | 2 |
+| PAGE_CONTEXT | 3 |
+| SOP 状态 | completed |
+| Phase 完成 | Automation, Bug Analysis, Data Sanitization, Execute & Debug, Knowledge, Project Init, Report, Requirement, Test Design |
+
+> 此段由 sync_progress.py 自动更新。手动编辑会被覆盖。
+<!-- ⚠️ AUTO-GENERATED SECTION END: module-stats -->

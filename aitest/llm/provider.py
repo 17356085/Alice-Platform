@@ -992,7 +992,7 @@ def get_provider(name: str = "claude", **kwargs) -> LLMProvider:
     # P1-1: 用 tracer 装饰器包装 complete() 方法
     # 装饰器应用在工厂中，不修改 Provider 类定义，零影响子类化和测试 mock
     try:
-        from aitest.trace import _trace_llm_call
+        from aitest.infra.trace import _trace_llm_call
         instance.complete = _trace_llm_call(instance.complete)
     except Exception:
         pass  # 追踪包装失败不影响 LLM 调用

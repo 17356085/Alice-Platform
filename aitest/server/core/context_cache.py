@@ -72,12 +72,12 @@ class ContextCache:
                 return ""
             query = parts[1]  # heading 作为查询
 
-            from aitest.rag_engine import search_context
+            from aitest.knowledge.rag_engine import search_context
             results = search_context(query, "project_context", n_results=1)
             if results and results[0].get("distance", 999) < 0.3:
                 return results[0].get("document", "")
         except Exception as e:
-            from aitest.error_logger import log_error
+            from aitest.infra.error_logger import log_error
             log_error("context_cache.get", "rag_search", e, {"query": query[:100]})
         return ""
 
@@ -100,7 +100,7 @@ class ContextCache:
         try:
             content = file_path.read_text(encoding="utf-8")
         except Exception as e:
-            from aitest.error_logger import log_error
+            from aitest.infra.error_logger import log_error
             log_error("context_cache._read_file", "read", e, {"file": str(file_path)})
             return ""
 

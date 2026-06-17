@@ -98,7 +98,7 @@ def get_latest_state(run_id: str) -> Optional[dict]:
         if state and state.values:
             return state.values
     except Exception as e:
-        from aitest.error_logger import log_error
+        from aitest.infra.error_logger import log_error
         log_error("checkpoint.get_latest_state", "get_state", e, {"run_id": run_id})
     return None
 

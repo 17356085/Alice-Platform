@@ -1,0 +1,19 @@
+{
+  "module": "tank",
+  "audit_time": "2026-06-17T16:09:11.030926",
+  "period": "7d",
+  "overall_compliance": 1.0,
+  "total_violations": 0,
+  "error_count": 0,
+  "warning_count": 0,
+  "violations": [],
+  "checks": {
+    "baseline_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    }
+  }
+}

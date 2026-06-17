@@ -1,0 +1,156 @@
+{
+  "module": "system-role",
+  "audit_time": "2026-06-17T17:19:03.616029",
+  "period": "1d",
+  "overall_compliance": 0.875,
+  "total_violations": 4,
+  "error_count": 3,
+  "warning_count": 1,
+  "violations": [
+    {
+      "check_type": "p_check",
+      "severity": "error",
+      "violation_type": "phase_order",
+      "detail": "Phase 'Automation' 已完成但前驱 'Test Design' 未完成",
+      "run_id": "",
+      "evidence": {
+        "completed": [
+          "Automation",
+          "Bug Analysis",
+          "Data Sanitization",
+          "Execute & Debug",
+          "Knowledge",
+          "Project Init",
+          "Report",
+          "Requirement",
+          "Test Design"
+        ],
+        "missing_prereq": "Test Design"
+      },
+      "suggestion": "Phase 顺序异常。先运行 Test Design 再运行 Automation。"
+    },
+    {
+      "check_type": "p_check",
+      "severity": "error",
+      "violation_type": "phase_order",
+      "detail": "Phase 'Bug Analysis' 已完成但前驱 'Execute & Debug' 未完成",
+      "run_id": "",
+      "evidence": {
+        "completed": [
+          "Automation",
+          "Bug Analysis",
+          "Data Sanitization",
+          "Execute & Debug",
+          "Knowledge",
+          "Project Init",
+          "Report",
+          "Requirement",
+          "Test Design"
+        ],
+        "missing_prereq": "Execute & Debug"
+      },
+      "suggestion": "Phase 顺序异常。先运行 Execute & Debug 再运行 Bug Analysis。"
+    },
+    {
+      "check_type": "p_check",
+      "severity": "error",
+      "violation_type": "phase_order",
+      "detail": "Phase 'Data Sanitization' 已完成但前驱 'Execute & Debug' 未完成",
+      "run_id": "",
+      "evidence": {
+        "completed": [
+          "Automation",
+          "Bug Analysis",
+          "Data Sanitization",
+          "Execute & Debug",
+          "Knowledge",
+          "Project Init",
+          "Report",
+          "Requirement",
+          "Test Design"
+        ],
+        "missing_prereq": "Execute & Debug"
+      },
+      "suggestion": "Phase 顺序异常。先运行 Execute & Debug 再运行 Data Sanitization。"
+    },
+    {
+      "check_type": "p_check",
+      "severity": "warning",
+      "violation_type": "phase_reversal",
+      "detail": "Phase 顺序异常: Data Sanitization → Execute & Debug",
+      "run_id": "",
+      "evidence": {
+        "completed": [
+          "Automation",
+          "Bug Analysis",
+          "Data Sanitization",
+          "Execute & Debug",
+          "Knowledge",
+          "Project Init",
+          "Report",
+          "Requirement",
+          "Test Design"
+        ]
+      },
+      "suggestion": "检查是否手动修改了 SOP_STATUS 或使用了非标准 skip 路径"
+    }
+  ],
+  "checks": {
+    "baseline_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "p_check": {
+      "total": 4,
+      "errors": 3,
+      "warnings": 1,
+      "infos": 0,
+      "ok": false
+    },
+    "s_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "g_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "h_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "b_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "l_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "x_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    }
+  }
+}

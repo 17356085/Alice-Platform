@@ -105,7 +105,7 @@ def check_provider_available(provider_name: str) -> tuple[bool, str]:
 def estimate_cost(provider: str, model: str, input_tokens: int, output_tokens: int) -> float:
     """估算 LLM 调用成本（美元）。"""
     try:
-        from aitest.trace import MODEL_PRICING
+        from aitest.infra.trace import MODEL_PRICING
     except ImportError:
         return 0.0
 

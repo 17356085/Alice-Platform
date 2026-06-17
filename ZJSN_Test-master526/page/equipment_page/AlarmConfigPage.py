@@ -241,3 +241,124 @@ class AlarmConfigPage(BasePage):
             return self.is_visible(self.TABLE_EMPTY, timeout=3)
         except Exception:
             return self.get_table_row_count() == 0
+
+    # ══════════════════════════════════════════════════════════════════
+    #  弹窗操作 — teleport-safe el-select
+    # ══════════════════════════════════════════════════════════════════
+
+    def _select_dialog_option(self, label, option_text):
+        """在弹窗中选择指定 label 的 el-select 下拉选项（teleport 安全）
+
+        原理: Element Plus 2.x filterable el-select 下拉列表 teleport 到 body，
+        Selenium is_displayed() 对其失效。改用 WebDriverWait + element_to_be_clickable
+        在 body 下直接定位下拉列表项。
+        """
+        # 1. 定位弹窗内对应 label 的 el-select 容器并点击展开
+        select_xpath = (
+            '//div[contains(@class,"el-dialog") and not(contains(@style,"display: none"))]'
+            f'//label[contains(.,"{label}")]/following-sibling::div'
+            '//div[contains(@class,"el-select")]'
+        )
+        select_el = WebDriverWait(self.driver, 8).until(
+            EC.element_to_be_clickable((By.XPATH, select_xpath))
+        )
+        self.driver.execute_script("arguments[0].click();", select_el)
+        self.wait_vue_stable()
+
+        # 2. 在 body 下定位下拉列表项（teleport 渲染），点击匹配项
+        option_xpath = (
+            '//div[contains(@class,"el-select-dropdown") and not(contains(@style,"display: none"))]'
+            f'//li[contains(@class,"el-select-dropdown__item")]//span[contains(.,"{option_text}")]'
+        )
+        try:
+            option = WebDriverWait(self.driver, 5).until(
+                EC.element_to_be_clickable((By.XPATH, option_xpath))
+            )
+            self.driver.execute_script("arguments[0].click();", option)
+            self.wait_vue_stable()
+        except TimeoutException:
+            logger.warning("下拉选项 '%s' → '%s' 未找到，重新抛出", label, option_text)
+            raise TimeoutException(f"dropdown option not found: label='{label}', option='{option_text}'")
+
+    def _fill_dialog_input(self, label, value):
+        """在弹窗中填写指定 label 的 input 字段"""
+        input_xpath = (
+            '//div[contains(@class,"el-dialog") and not(contains(@style,"display: none"))]'
+            f'//label[contains(.,"{label}")]/following-sibling::div//input'
+        )
+        inp = WebDriverWait(self.driver, 5).until(
+            EC.element_to_be_clickable((By.XPATH, input_xpath))
+        )
+        inp.clear()
+        inp.send_keys(value)
+
+    def click_add_config(self):
+        """点击新增配置按钮，等待弹窗出现"""
+        self.click(self.BTN_ADD)
+        self.wait_dialog_open()
+
+    def fill_alarm_name(self, name):
+        """填写报警名称"""
+        self._fill_dialog_input("报警名称", name)
+
+    def select_alarm_type(self, type_name):
+        """选择报警类型（teleport-safe）"""
+        self._select_dialog_option("报警类型", type_name)
+
+    def select_alarm_level(self, level):
+        """选择报警级别（teleport-safe）"""
+        self._select_dialog_option("报警级别", level)
+
+    def select_device(self, device_name):
+        """选择关联设备"""
+        self._select_dialog_option("关联设备", device_name)
+
+    def select_notify_mode(self, mode):
+        """选择通知方式"""
+        self._select_dialog_option("通知方式", mode)
+
+    def click_dialog_confirm(self):
+        """点击弹窗确定按钮，等待弹窗关闭"""
+        self.click(self.DIALOG_SAVE_BTN)
+        self.wait_dialog_close()
+
+    def click_dialog_cancel(self):
+        """点击弹窗取消按钮"""
+        self.click(self.DIALOG_CANCEL_BTN)
+        self.wait_dialog_close()
+
+    # ── 行级操作 ────────────────────────────────────────────
+
+    def click_row_edit(self, row_index=0):
+        """点击指定行的编辑按钮"""
+        rows = self.find_all(self.TABLE_ROWS)
+        edit_btns = rows[row_index].find_elements(
+            By.XPATH, './/button[contains(.,"编辑")]')
+        if edit_btns:
+            self.driver.execute_script("arguments[0].click();", edit_btns[0])
+        self.wait_dialog_open()
+
+    def click_row_delete(self, row_index=0):
+        """点击指定行的删除按钮"""
+        rows = self.find_all(self.TABLE_ROWS)
+        del_btns = rows[row_index].find_elements(
+            By.XPATH, './/button[contains(.,"删除")]')
+        if del_btns:
+            self.driver.execute_script("arguments[0].click();", del_btns[0])
+        self.wait_vue_stable()
+
+    def click_row_view(self, row_index=0):
+        """点击指定行的查看按钮"""
+        rows = self.find_all(self.TABLE_ROWS)
+        view_btns = rows[row_index].find_elements(
+            By.XPATH, './/button[contains(.,"查看")]')
+        if view_btns:
+            self.driver.execute_script("arguments[0].click();", view_btns[0])
+        self.wait_dialog_open()
+
+    def click_status_toggle(self, row_index=0):
+        """点击指定行的状态开关（el-switch）"""
+        rows = self.find_all(self.TABLE_ROWS)
+        switch = rows[row_index].find_element(By.CSS_SELECTOR, '.el-switch')
+        self.driver.execute_script("arguments[0].click();", switch)
+        self.wait_vue_stable()

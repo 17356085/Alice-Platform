@@ -60,3 +60,10 @@
 - alarm-config 弹窗中"报警类型"下拉框是否远程搜索？（待确认）
 - camera 页面实时视频流自动化方案待定
 ```
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: template-meta -->
+> last_verified: 2026-06-17 16:53 | sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: template-meta -->

@@ -29,3 +29,8 @@
 |--------|------|------|----------|
 | Sprint 1 | ... | task-1, task-2 | 5d |
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | plan | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

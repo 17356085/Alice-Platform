@@ -40,3 +40,8 @@
 ## 输出
 每个漏洞: 严重程度 / 文件:行号 / 类型 / 描述 / 修复建议
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | code-review | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

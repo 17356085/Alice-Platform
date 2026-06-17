@@ -11,7 +11,7 @@
 #   contains:     必须包含的关键词列表（不区分大小写）
 #   not_contains: 禁止出现的关键词列表
 
-version: "0.3"  # P2 expansion 2026-06-15: 5 → 15 cases
+version: "0.5"  # P1 2026-06-16: 15 → 35 cases (+20: 15 cross-module + 5 review)
 test_cases:
   # ════════════════════════════════════════════════════════════════════
   #  test-design/ skills
@@ -218,3 +218,283 @@ test_cases:
       min_length: 100
       contains: ["知识", "沉淀"]
     tags: ["smoke", "knowledge"]
+
+  # ════════════════════════════════════════════════════════════════════
+  #  review/ skills (P1: Architecture Review Agent — 5 core)
+  # ════════════════════════════════════════════════════════════════════
+  - id: "architecture-assessment-basic"
+    skill_id: "review/architecture-assessment"
+    description: "架构评审——应输出6维度评分卡和ADR"
+    input: "评估 AITest Platform 当前系统架构，输出6维度评分和改进建议"
+    context:
+      module: "system"
+    expected:
+      min_length: 500
+      contains: ["Score", "Critical", "Recommendation", "Dimension"]
+      not_contains: ["[SKILL ERROR]"]
+    tags: ["smoke", "review"]
+
+  - id: "token-efficiency-basic"
+    skill_id: "review/token-efficiency"
+    description: "Token效率评审——应输出浪费热点和优化建议"
+    input: "分析 AITest Platform 的 Token 使用效率，输出优化建议"
+    context:
+      module: "system"
+    expected:
+      min_length: 300
+      contains: ["Efficiency", "Optimization", "Token"]
+      not_contains: ["[SKILL ERROR]"]
+    tags: ["smoke", "review"]
+
+  - id: "governance-coverage-basic"
+    skill_id: "review/governance-coverage"
+    description: "治理覆盖评审——应输出覆盖矩阵和盲区清单"
+    input: "评估 AITest Platform 治理体系覆盖完整性"
+    context:
+      module: "system"
+    expected:
+      min_length: 400
+      contains: ["Coverage", "Blind", "Governance"]
+      not_contains: ["[SKILL ERROR]"]
+    tags: ["smoke", "review"]
+
+  - id: "prompt-engineering-basic"
+    skill_id: "review/prompt-engineering"
+    description: "Prompt工程评审——应输出结构评分和改进建议"
+    input: "评审 review/architecture-assessment 的 Skill Prompt 质量"
+    context:
+      module: "system"
+    expected:
+      min_length: 300
+      contains: ["Score", "Improvement", "Structure", "Clarity"]
+      not_contains: ["[SKILL ERROR]"]
+    tags: ["smoke", "review"]
+
+  - id: "production-readiness-basic"
+    skill_id: "review/production-readiness"
+    description: "生产就绪评审——应输出Go/No-Go建议和阻断项清单"
+    input: "评估 AITest Platform 生产就绪度"
+    context:
+      module: "system"
+    expected:
+      min_length: 300
+      contains: ["Go", "Blocker", "Readiness", "Score"]
+      not_contains: ["[SKILL ERROR]"]
+    tags: ["smoke", "review"]
+
+  # ════════════════════════════════════════════════════════════════════
+  #  Cross-module smoke tests (P1: governance gap fix)
+  #  已知缺口: 仅 equipment + system 有回归覆盖。
+  #  tank/warehouse/personnel/production/sales/lab/system-management/
+  #  system-role/workflow 共 9 个模块零覆盖。
+  #  以下为 tank 模块代表例——tank 使用自定义 UI 框架，
+  #  BasePage 通用定位器不可用，是最高风险模块。
+  # ════════════════════════════════════════════════════════════════════
+  - id: "page-analysis-tank"
+    skill_id: "test-design/page-analysis"
+    description: "页面分析(tank)——自定义UI框架模块，应输出元素清单"
+    input: "分析 tank/storage-monitor 页面，提取所有可见元素和定位器"
+    context:
+      module: "tank"
+      page: "storage-monitor"
+    expected:
+      min_length: 200
+      contains: ["元素", "定位"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "test-design", "cross-module"]
+
+  - id: "tech-analysis-tank"
+    skill_id: "automation/tech-analysis"
+    description: "技术分析(tank)——自定义UI框架模块，应识别定位策略"
+    input: "分析 tank/storage-monitor 页面HTML，设计稳定定位器"
+    context:
+      module: "tank"
+      page: "storage-monitor"
+    expected:
+      min_length: 200
+      contains: ["定位"]
+      not_contains: ["time.sleep", "BasePage"]  # tank不能依赖BasePage通用定位器
+    tags: ["smoke", "automation", "cross-module"]
+
+  - id: "code-consistency-tank"
+    skill_id: "automation/code-consistency-checker"
+    description: "代码一致性(tank)——应检测自定义UI框架的PO同步状态"
+    input: "检查 tank/storage-monitor 的 PO 与 PAGE_CONTEXT.md 一致性"
+    context:
+      module: "tank"
+      page: "storage-monitor"
+    expected:
+      min_length: 100
+      contains: ["一致", "定位"]
+    tags: ["critical", "automation", "cross-module"]
+
+# ════════════════════════════════════════════════════════════════════
+# Module Coverage Gap (known)
+# ════════════════════════════════════════════════════════════════════
+# Covered:    equipment (15 cases), system (5 cases), tank (3 cases)
+# Uncovered:  warehouse, personnel, production, sales, lab,
+#             system-management, system-role, workflow (8 modules)
+# Risk:       Skill 可能在非 equipment 模块退化而不被检测。
+# Plan:       每个 sprint 增加 2 个模块的代表例。
+# See also:   governance/artifacts/reviews/system/GOV_COVERAGE-*.md
+
+  # ════════════════════════════════════════════════════════════════════
+  #  P0: workflow module (non-standard "工厂代码" search, high risk)
+  # ════════════════════════════════════════════════════════════════════
+  - id: "page-analysis-workflow"
+    skill_id: "test-design/page-analysis"
+    description: "页面分析(workflow)——非标准搜索字段模块"
+    input: "分析 workflow/approval-chain 页面，提取所有可见元素和定位器"
+    context:
+      module: "workflow"
+      page: "approval-chain"
+    expected:
+      min_length: 200
+      contains: ["元素", "定位"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "test-design", "cross-module"]
+
+  - id: "tech-analysis-workflow"
+    skill_id: "automation/tech-analysis"
+    description: "技术分析(workflow)——搜索字段为'工厂代码'非'标题'"
+    input: "分析 workflow/approval-chain 页面HTML，设计稳定定位器。注意：搜索字段是'工厂代码'不是'标题'"
+    context:
+      module: "workflow"
+      page: "approval-chain"
+    expected:
+      min_length: 200
+      contains: ["定位", "工厂代码"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "automation", "cross-module"]
+
+  - id: "knowledge-manager-workflow"
+    skill_id: "knowledge/knowledge-manager"
+    description: "知识管理(workflow)——非标准搜索字段模块知识沉淀"
+    input: "从 workflow 模块的 bug-analysis 和测试报告中提取可沉淀知识"
+    context:
+      module: "workflow"
+    expected:
+      min_length: 100
+      contains: ["知识", "沉淀"]
+    tags: ["smoke", "knowledge", "cross-module"]
+
+  # ════════════════════════════════════════════════════════════════════
+  #  P1: warehouse + personnel (active modules with SOP_STATUS)
+  # ════════════════════════════════════════════════════════════════════
+  - id: "page-analysis-warehouse"
+    skill_id: "test-design/page-analysis"
+    description: "页面分析(warehouse)"
+    input: "分析 warehouse/hazard-in-order 页面，提取所有可见元素和定位器"
+    context:
+      module: "warehouse"
+      page: "hazard-in-order"
+    expected:
+      min_length: 200
+      contains: ["元素", "定位"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "test-design", "cross-module"]
+
+  - id: "tech-analysis-warehouse"
+    skill_id: "automation/tech-analysis"
+    description: "技术分析(warehouse)"
+    input: "分析 warehouse/hazard-in-order 页面HTML，识别Element Plus组件，设计稳定定位器"
+    context:
+      module: "warehouse"
+      page: "hazard-in-order"
+    expected:
+      min_length: 200
+      contains: ["定位", "el-"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "automation", "cross-module"]
+
+  - id: "page-analysis-personnel"
+    skill_id: "test-design/page-analysis"
+    description: "页面分析(personnel)"
+    input: "分析 personnel/certificate 页面，提取所有可见元素和定位器"
+    context:
+      module: "personnel"
+      page: "certificate"
+    expected:
+      min_length: 200
+      contains: ["元素", "定位"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "test-design", "cross-module"]
+
+  - id: "tech-analysis-personnel"
+    skill_id: "automation/tech-analysis"
+    description: "技术分析(personnel)"
+    input: "分析 personnel/certificate 页面HTML，识别Element Plus组件，设计稳定定位器"
+    context:
+      module: "personnel"
+      page: "certificate"
+    expected:
+      min_length: 200
+      contains: ["定位", "el-"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "automation", "cross-module"]
+
+  # ════════════════════════════════════════════════════════════════════
+  #  P2: lab + production + sales + system-management + system-role
+  # ════════════════════════════════════════════════════════════════════
+  - id: "page-analysis-lab"
+    skill_id: "test-design/page-analysis"
+    description: "页面分析(lab)"
+    input: "分析 lab/gas-analysis-report 页面，提取所有可见元素和定位器"
+    context:
+      module: "lab"
+      page: "gas-analysis-report"
+    expected:
+      min_length: 200
+      contains: ["元素", "定位"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "test-design", "cross-module"]
+
+  - id: "page-analysis-production"
+    skill_id: "test-design/page-analysis"
+    description: "页面分析(production)"
+    input: "分析 production/business-type-config 页面，提取所有可见元素和定位器"
+    context:
+      module: "production"
+      page: "business-type-config"
+    expected:
+      min_length: 200
+      contains: ["元素", "定位"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "test-design", "cross-module"]
+
+  - id: "page-analysis-sales"
+    skill_id: "test-design/page-analysis"
+    description: "页面分析(sales)"
+    input: "分析 sales/contract 页面，提取所有可见元素和定位器"
+    context:
+      module: "sales"
+      page: "contract"
+    expected:
+      min_length: 200
+      contains: ["元素", "定位"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "test-design", "cross-module"]
+
+  - id: "module-modeling-system-management"
+    skill_id: "requirements/module-modeling"
+    description: "模块建模(system-management)——无独立页面目录，模块级分析"
+    input: "对 system-management 模块进行模块级建模分析"
+    context:
+      module: "system-management"
+    expected:
+      min_length: 150
+      contains: ["模块", "页面", "路由"]
+    tags: ["smoke", "requirements", "cross-module"]
+
+  - id: "page-analysis-system-role"
+    skill_id: "test-design/page-analysis"
+    description: "页面分析(system-role)"
+    input: "分析 system-role/role-list 页面，提取所有可见元素和定位器"
+    context:
+      module: "system-role"
+      page: "role-list"
+    expected:
+      min_length: 200
+      contains: ["元素", "定位"]
+      not_contains: ["time.sleep"]
+    tags: ["smoke", "test-design", "cross-module"]

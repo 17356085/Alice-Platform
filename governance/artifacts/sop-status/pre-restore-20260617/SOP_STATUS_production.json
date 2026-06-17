@@ -1,0 +1,22 @@
+{
+  "module": "production",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation"
+  ],
+  "failed_phases": [],
+  "pages_processed": [
+    "business-type-config",
+    "daily-report",
+    "monthly-report",
+    "shift-team-config"
+  ],
+  "artifact_count": 16,
+  "run_id": "sop-production-batch3",
+  "updated_at": "2026-06-17",
+  "engine": "langgraph",
+  "note": "SOP batch 3 — 175 artifacts regenerated from business requirements"
+}

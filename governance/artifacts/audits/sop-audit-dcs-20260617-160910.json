@@ -1,0 +1,35 @@
+{
+  "module": "dcs",
+  "audit_time": "2026-06-17T16:09:10.725767",
+  "period": "7d",
+  "overall_compliance": 0.0,
+  "total_violations": 1,
+  "error_count": 0,
+  "warning_count": 1,
+  "violations": [
+    {
+      "check_type": "baseline_check",
+      "severity": "warning",
+      "violation_type": "module_partial",
+      "detail": "模块 dcs 状态为 partial — 缺失 Phase: ['Requirement', 'Test Design', 'Automation']",
+      "run_id": "",
+      "evidence": {
+        "incomplete_phases": [
+          "Requirement",
+          "Test Design",
+          "Automation"
+        ]
+      },
+      "suggestion": "补齐 3 个 Phase 后重新标记为 completed"
+    }
+  ],
+  "checks": {
+    "baseline_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "infos": 0,
+      "ok": false
+    }
+  }
+}

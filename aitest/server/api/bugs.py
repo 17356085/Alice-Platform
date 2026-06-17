@@ -31,7 +31,7 @@ async def list_bugs(
 ):
     """列出 Bug 记录（支持按模块/严重度/状态筛选）。"""
     try:
-        from aitest.bug_history import list_bugs as _list
+        from aitest.testing.bug_history import list_bugs as _list
         bugs = _list(
             module=module or None,
             severity=severity or None,
@@ -49,7 +49,7 @@ async def list_bugs(
 async def add_bug(req: BugAddRequest):
     """新增一条 Bug 记录。"""
     try:
-        from aitest.bug_history import add_bug
+        from aitest.testing.bug_history import add_bug
         bug_id = add_bug(
             module=req.module,
             page=req.page,
@@ -68,7 +68,7 @@ async def add_bug(req: BugAddRequest):
 async def bug_trends(module: str = ""):
     """Bug 趋势统计。"""
     try:
-        from aitest.bug_history import get_trends
+        from aitest.testing.bug_history import get_trends
         trends = get_trends(module or None)
         return {"module": module or "all", "trends": trends}
     except Exception as e:

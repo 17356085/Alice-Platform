@@ -103,3 +103,50 @@ class SpareRequisitionPage(BasePage):
         el = self.driver.find_element(*self.TABLE_ROWS)
         tags = el.find_elements(By.CSS_SELECTOR, '.el-tag')
         return tags[0].text if tags else ""
+
+    # ── 新增弹窗表单操作 ────────────────────────────────────
+    def _fill_dialog_by_placeholder(self, placeholder_contains, value):
+        """弹窗内按 placeholder 查找输入框并填写（JS方式）"""
+        script = """
+            var placeholder = arguments[0];
+            var value = arguments[1];
+            var dlgs = document.querySelectorAll('.el-dialog');
+            for (var i = 0; i < dlgs.length; i++) {
+                if (dlgs[i].offsetParent === null) continue;
+                var inputs = dlgs[i].querySelectorAll('input:not([type="hidden"])');
+                for (var j = 0; j < inputs.length; j++) {
+                    var ph = inputs[j].getAttribute('placeholder') || '';
+                    if (ph.indexOf(placeholder) >= 0) {
+                        inputs[j].focus();
+                        inputs[j].value = '';
+                        inputs[j].value = value;
+                        inputs[j].dispatchEvent(new Event('input', {bubbles: true}));
+                        inputs[j].dispatchEvent(new Event('change', {bubbles: true}));
+                        return ph;
+                    }
+                }
+            }
+            return '';
+        """
+        result = self.driver.execute_script(script, placeholder_contains, value)
+        if not result:
+            logger.warning("未找到 placeholder 包含 '%s' 的弹窗输入框", placeholder_contains)
+        self.wait_vue_stable()
+
+    def fill_requisition_applicant(self, name):
+        """在新增弹窗中填写申请人"""
+        self._fill_dialog_by_placeholder("申请人", name)
+
+    def click_search(self):
+        """点击查询按钮"""
+        self.click(self.BTN_QUERY)
+        self.wait_vue_stable()
+
+    def delete_by_name(self, name):
+        """搜索并删除指定领用申请"""
+        self.search_by_applicant(name)
+        try:
+            self.click_row_button(name, "删除")
+            self.confirm_message_box()
+        except Exception:
+            logger.warning("无法删除领用申请: %s（可能已审批不允许删除）", name)

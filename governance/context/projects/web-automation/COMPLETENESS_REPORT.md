@@ -11,7 +11,7 @@
 |------|:---:|
 | 模块总数 | 12 (含空模块 system) |
 | 页面总数 | ~78 |
-| 文档总数 | ~350 |
+| 文档总数 | ~300 (2026-06-17 校正：原 ~350，实际 web-automation context ~250 + skills/templates ~50) |
 | 模块覆盖率 (有 MODULE_CONTEXT) | 11/12 (92%) |
 | 页面覆盖率 (有 PAGE_CONTEXT) | ~55/78 (71%) |
 | SOP Phase 完整闭环模块 | 3 (lab, sales, equipment/alarm-config+camera) |
@@ -120,8 +120,9 @@
 | **contractor-unit** | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | 50% 🟡 |
 | **entry-approval** | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | 50% 🟡 |
 | **entry-record** | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | 50% 🟡 |
+| **entry-confirm** | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | 50% 🟡 |
 
-> ⚠️ contractor/entry 4 页面缺 RISK_MODEL + PAGE_ELEMENT_POSITION + AUTO_STRATEGY + PAGE_INTERFACE (P1)
+> ⚠️ contractor/entry 5 页面缺 RISK_MODEL + PAGE_ELEMENT_POSITION + AUTO_STRATEGY + PAGE_INTERFACE (P1)。entry-confirm 为 2026-06-15 新增页面，含 5 治理文档。
 
 ---
 
@@ -208,16 +209,26 @@
 
 ---
 
-### 10. system — 系统管理（空模块）🔴
+### 10. system — 系统管理 (5 pages) 🟡
+
+> 2026-06-17 更新：system 模块非空 — 包含 user-list, user-form, menu-management, api-management, monitor-management 5 pages + 32 治理文档。
+
+| 页面 | PAGE_CONTEXT | PAGE_INTERFACE | RISK_MODEL | TEST_DESIGN | TEST_CASES | TECH_ANALYSIS | PEP | AUTO_STRATEGY | 完成度 |
+|------|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| user-list | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 100% 🟢 |
+| user-form | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | 38% 🟡 |
+| menu-management | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | 50% 🟡 |
+| api-management | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | 38% 🟡 |
+| monitor-management | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | 38% 🟡 |
 
 | 指标 | 状态 |
 |------|:---:|
-| MODULE_CONTEXT | ❌ |
-| 任何页面文档 | ❌ |
+| MODULE_CONTEXT | ✅ (含 RISK_MODEL + TEST_DESIGN) |
+| 测试文件 | 16 个 test_*.py (system 聚合) |
+| Page Object | 17 个 (system_page/) |
+| 治理文档 | 32 个 .md (module-level 4 + pages 28) |
 
-> 🔴 **严重**: ZJSN_Test-master526 有 `script/system/` 25 个测试文件 + `page/system_page/` 17 个 Page Object，但治理层 `modules/system/` 目录为空。这是一个**治理缺口** — 自动化代码已存在但上下文文档完全缺失。
->
-> **说明**: system-user, system-role, system-management 已作为独立模块拆分到治理层，但 ZJSN 中它们共享 `system/` 脚本目录。`system/` 模块目录本身可能用作未拆分的剩余页面的容器。
+> **说明**: system-user (user-list, user-form) 和 system-management (menu/api/monitor) 页面在治理层归属 system 模块，但脚本层共享 `script/system/` 目录。system-role 独立为单独模块。
 
 ---
 
@@ -323,3 +334,33 @@
 ---
 
 > **下次检查**: 有新模块加入或重大 Phase 推进时。建议每 2 周自动触发 completeness-check。
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: completeness-stats -->
+## Auto Stats (2026-06-17 16:53)
+
+| Modules | 100% | Tests | Docs | Overall |
+|:---:|:---:|:---:|:---:|:---:|
+| 12 | 2 | 116 | 354 | 81% |
+
+### Per-Module
+
+| Module | SOP | Tests | Docs | TECH | AUTO | RISK | Progress |
+|--------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| system-user | completed | 16 | 32 | 3 | 3 | 5 | 89% |
+| system-role | completed | 6 | 15 | 1 | 1 | 2 | 89% |
+| system-management | pending | 1 | 0 | 0 | 0 | 0 | 0% |
+| equipment | completed | 8 | 30 | 4 | 4 | 4 | 89% |
+| tank | completed | 6 | 21 | 3 | 3 | 3 | **100%** |
+| personnel | completed | 18 | 99 | 16 | 12 | 11 | 89% |
+| sales | completed | 20 | 29 | 4 | 4 | 4 | 89% |
+| lab | completed | 9 | 40 | 5 | 5 | 5 | **100%** |
+| production | completed | 5 | 27 | 4 | 4 | 4 | 89% |
+| dcs | partial | 5 | 11 | 5 | 5 | 0 | 56% |
+| warehouse | completed | 16 | 29 | 3 | 2 | 4 | 89% |
+| workflow | completed | 6 | 21 | 2 | 2 | 3 | 89% |
+
+> sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: completeness-stats -->

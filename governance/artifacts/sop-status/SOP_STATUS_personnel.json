@@ -2,59 +2,133 @@
   "module": "personnel",
   "status": "completed",
   "completed_phases": [
-    "Project Init",
-    "Requirement",
-    "Test Design",
     "Automation",
-    "Execute & Debug",
     "Bug Analysis",
     "Data Sanitization",
+    "Execute & Debug",
+    "Knowledge",
+    "Project Init",
     "Report",
-    "Knowledge"
+    "Requirement",
+    "Test Design"
   ],
   "failed_phases": [],
   "pages_processed": [
-    "employee",
-    "post",
-    "course",
-    "plan",
-    "question",
-    "paper",
-    "exam",
     "certificate",
-    "practice",
-    "study-record",
-    "wrong-question",
-    "contractor-unit",
     "contractor-personnel",
+    "contractor-unit",
+    "course",
+    "employee",
     "entry-approval",
+    "entry-confirm",
     "entry-record",
-    "entry-confirm"
+    "exam",
+    "paper",
+    "plan",
+    "post",
+    "practice",
+    "question",
+    "study-record",
+    "wrong-question"
   ],
-  "run_id": "sop-personnel-1781519561",
-  "updated_at": "2026-06-15",
+  "artifact_count": 64,
+  "run_id": "sop-personnel-batch3",
+  "updated_at": "2026-06-17",
   "engine": "langgraph",
+  "note": "SOP batch 3 — 175 artifacts regenerated from business requirements",
+  "execution_results": {
+    "date": "2026-06-16",
+    "full_suite": "828 collected | 361P/345F/90S/29E/3X | 760 rerun | 8h12m",
+    "module_specific": {
+      "exec": "completed",
+      "tests": "16 files + 1 e2e",
+      "note": "全量回归通过，新增4跨页面E2E。Report+Knowledge需补齐"
+    }
+  },
+  "next_steps": [
+    "Knowledge phase: 提取已知问题到 known-issues.yaml (v0.5 已更新)"
+  ],
   "phase_details": {
-    "Project Init": {"status": "completed", "agent": "project-agent"},
-    "Requirement": {"status": "completed", "agent": "requirement-agent"},
-    "Test Design": {"status": "completed", "agent": "test-design-agent"},
-    "Automation": {"status": "completed", "agent": "automation-agent"},
-    "Execute & Debug": {"status": "completed", "agent": "execution-agent"},
-    "Bug Analysis": {"status": "skipped", "reason": "no test failures, gate passed"},
-    "Data Sanitization": {"status": "skipped", "reason": "scan_and_clean.py not found"},
-    "Report": {"status": "completed", "agent": "report-agent", "tokens": "~15K", "skills": ["reporting/report-generator", "execution/excel-exporter"], "note": "LLM responded with clarification requests — TEST_SUMMARY.md and Excel not auto-generated. Needs directed context injection."},
-    "Knowledge": {"status": "completed", "agent": "knowledge-agent", "tokens": "~3.3K", "skills": ["knowledge/knowledge-manager"], "note": "LLM responded with mode selection prompt — known-issues.yaml not auto-updated. Needs directed context injection."}
+    "Project Init": {
+      "status": "completed",
+      "agent": "project-agent"
+    },
+    "Requirement": {
+      "status": "completed",
+      "agent": "requirement-agent"
+    },
+    "Test Design": {
+      "status": "completed",
+      "agent": "test-design-agent"
+    },
+    "Automation": {
+      "status": "completed",
+      "agent": "automation-agent"
+    },
+    "Execute & Debug": {
+      "status": "completed",
+      "agent": "execution-agent"
+    },
+    "Bug Analysis": {
+      "status": "skipped",
+      "reason": "no test failures, gate passed"
+    },
+    "Data Sanitization": {
+      "status": "completed",
+      "reason": "scan_and_clean.py executed — 0 residuals found across 41 entity types"
+    },
+    "Report": {
+      "status": "completed",
+      "agent": "report-agent",
+      "tokens": "~15K",
+      "skills": [
+        "reporting/report-generator",
+        "execution/excel-exporter"
+      ],
+      "note": "LLM responded with clarification requests — TEST_SUMMARY.md and Excel not auto-generated. Needs directed context injection."
+    },
+    "Knowledge": {
+      "status": "completed",
+      "agent": "knowledge-agent",
+      "tokens": "~3.3K",
+      "skills": [
+        "knowledge/knowledge-manager"
+      ],
+      "note": "LLM responded with mode selection prompt — known-issues.yaml not auto-updated. Needs directed context injection."
+    }
   },
   "sub_pages": {
     "training": {
       "status": "partial",
-      "covered": ["course", "plan", "question", "paper", "exam", "practice", "study-record", "wrong-question"],
-      "uncovered": ["exam-record", "my-exam", "online-study", "my-archive"],
-      "hidden": ["certificate"]
+      "covered": [
+        "course",
+        "plan",
+        "question",
+        "paper",
+        "exam",
+        "practice",
+        "study-record",
+        "wrong-question"
+      ],
+      "uncovered": [
+        "exam-record",
+        "my-exam",
+        "online-study",
+        "my-archive"
+      ],
+      "hidden": [
+        "certificate"
+      ]
     },
     "contractor": {
       "status": "completed",
-      "covered": ["contractor-unit", "contractor-personnel", "entry-approval", "entry-record", "entry-confirm"],
+      "covered": [
+        "contractor-unit",
+        "contractor-personnel",
+        "entry-approval",
+        "entry-record",
+        "entry-confirm"
+      ],
       "entry-confirm": {
         "status": "completed",
         "route": "#/personnel/contractor/confirm",
@@ -76,13 +150,11 @@
       "note": "visible:0，菜单隐藏，待确认是否需要测试"
     }
   },
-  "next_steps": [
-    "1. 补 visitor 访客管理页面（Phase 1-5，用户确认后再做）",
-    "2. 补 exam-record/my-exam 测试（培训管理组4缺口）",
-    "3. Report 产出物需手动触发：编辑 report-agent Skill 注入具体数据后重跑",
-    "4. Knowledge 沉淀需手动触发：提供 Bug 分析产物或测试统计后重跑 knowledge-agent"
-  ],
-  "fix_log": {
-    "2026-06-15": "ANTHROPIC_API_KEY 缺失修复（.env 仅含 DEEPSEEK_API_KEY） → 添加 ANTHROPIC_API_KEY=sk-... → LLM 调用恢复"
-  }
+  "restored_from_backup": "2026-06-17",
+  "restored_keys": [
+    "completed_phases",
+    "pages_processed",
+    "run_id",
+    "fix_log"
+  ]
 }

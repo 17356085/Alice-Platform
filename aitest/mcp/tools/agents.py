@@ -1,7 +1,7 @@
 """Tools: run_test_design_agent + run_automation_agent。"""
 from aitest.mcp.config import CONTEXT_MODULES, ZJSN_TEST
 from aitest.mcp.error_taxonomy import ErrorCode, error_response, success_response
-from aitest.agent_runner import AgentLoop
+from aitest.agents.agent_runner import AgentLoop
 
 
 def _check_agent_preconditions(agent_name: str, module: str, page: str = "") -> dict:

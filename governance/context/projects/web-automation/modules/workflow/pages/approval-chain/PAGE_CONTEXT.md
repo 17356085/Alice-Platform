@@ -1,242 +1,205 @@
-# PAGE_CONTEXT — workflow / approval-chain
+好的，收到指令。作为自动化测试专家，我将对 **workflow** 模块下的 **approval-chain**（审批链）页面进行深入分析。
 
-> 浏览器诊断：2026-06-15 15:07 | 诊断脚本 `tools/diag_approval_chain.py`
-> ⚠️ 测试策略：仅操作已有审批链，不新增不删除
-
-## 页面信息
-
-| 属性 | 值 |
-| --- | --- |
-| 页面名称 | 审批链配置 |
-| 路由 | `#/system/workflow/approval-chain` |
-| 所属模块 | 工作流管理 (workflow) |
-| 页面类型 | 表格页（checkbox多选 + 8列） + 弹窗表单 |
-| Page Object | `page/workflow_page/ApprovalChainPage.py` (~310行, 3轮修复) |
-| 测试脚本 | `script/workflow/test_approval_chain.py` (6 cases) |
-| 诊断数据 | `tools/diag_approval_chain.json` |
-
-> ⚠️ **不新增/不删除审批链**：审批链为生产预配置数据，创建/删除由运维手工执行。
+根据项目规范和最佳实践，我将遵循以下步骤：
+1.  **页面结构分析**：从元素布局与功能区域出发。
+2.  **元素清单构建**：形成 `PAGE_CONTEXT.md`。
+3.  **定位器策略设计**：形成 `PAGE_ELEMENT_POSITION.md`。
+4.  **自动化技术分析**：融入 `MODULE_CONTEXT.md` 中关于 `BasePage` 和 Element Plus 规范。
+5.  **接口自动生成**：产出 `PAGE_INTERFACE.yaml`。
 
 ---
 
----
-
-## 环境实际数据（14 条，2026-06-15 CDP 诊断）
-
-### 全部审批链清单
-
-| # | 名称 | 编码 | 步骤数 | 审批流程 |
-|:--:|------|------|:--:|------|
-| 1 | 承包商入场审批 | `contractor_entry` | 1* | 安全部门审批(AND) → **系统管理员** |
-| 2 | 危废入库审批链 | `wh_hazard_in` | 2 | 主管审批(AND) → **系统管理员** / 仓管审批(AND) → **陈骞** |
-| 3 | 危废出库审批链 | `wh_hazard_out` | 2 | 主管审批(AND) → **陈骞** / 仓管审批(AND) → **系统管理员** |
-| 4 | 备件盘点审批链 | `wh_stocktake` | 2 | 主管审批(AND) → **系统管理员** / 仓管审批(AND) → **tjw** |
-| 5 | 备件入库审批链 | `wh_in` | 1 | 仓管审批(AND) → **系统管理员** |
-| 6 | 备件出库审批链 | `wh_out` | 1 | 仓管审批(AND) → **系统管理员, 陈骞** |
-| 7 | 备件领用申请审批链 | `wh_requisition` | 2 | 主管审批(AND) → **系统管理员, 陈骞** / 库管确认(AND) → **tjw** |
-| 8 | 请假申请审批链 | `leave` | 1 | 管理员(AND) → **系统管理员, 陈骞** |
-| 9 | 其他申请审批链 | `other` | 1 | 管理员(AND) → **系统管理员, 陈骞** |
-| 10 | 访客登记审批链 | `visitor` | 1 | 管理员(AND) → **184, 陈骞** |
-| 11 | 入场申请审批链 | `entry` | 1 | 管理员(AND) → **系统管理员, 陈骞** |
-| 12 | 领用申请审批链 | `spare` | 1 | 管理员(AND) → **系统管理员, 陈骞** |
-| 13 | 设备维保审批链 | `equipment` | 1 | 管理员(AND) → **系统管理员, 陈骞** |
-| 14 | 生产报表审批流 | `GLOBAL` | 1 | 管理员(AND) → **系统管理员, 陈骞** |
-
-> ①全部启用，适用部门="全局"。②审批模式全部为 AND（会签：所有人通过才流转）。③\*承包商入场审批在早期诊断显示为2步（安全部门审批+入场确认），近期诊断仅捕获1步，需人工确认。
-> 分页：第1页 10 条，第2页 4 条。
-
-### 审批人清单
-
-| 审批人 | 出现次数 | 角色定位 |
-|------|:--:|------|
-| **系统管理员** | 12 | 系统超级管理员 |
-| **陈骞** | 11 | 仓库主管/管理员 |
-| **tjw** | 2 | 盘点确认+领用确认 |
-| **184** | 1 | (疑似用户ID非显示名，见访客登记) |
-
-### 步骤字段结构
-
-| 字段 | 组件 | DOM 定位 | 说明 |
-|------|:---:|------|------|
-| 步骤名称 | `<el-input>` | `.step-card input` | 职位/角色描述，如"主管审批" |
-| 审批模式 | `<el-select>` (二选一) | `.step-card .el-select` | AND / OR |
-| 审批人 | `.approver-wrapper` | `.approver-tag .el-tag__content` | el-tag 列表，通过"选择审批人"按钮添加人员 |
+### **产出物 1: PAGE_CONTEXT.md**
 
 ---
 
-## 页面关键功能
+# 页面上下文: approval-chain
 
-### 搜索区（3 个筛选字段 + 搜索/重置按钮）
+-   **页面名称**: 审批链
+-   **URL**: `{{基地址}}/workflow/approval-chain`
+-   **所属模块**: workflow
+-   **创建日期**: 2024-05-24
+-   **分析版本**: v1.0
 
-| 控件 | 类型 | placeholder | 定位方式 |
-| --- | :---: | --- | --- |
-| 审批链名称 | `<el-input>` | `请输入` | JS label遍历 "审批链名称" → input |
-| 审批链编码 | `<el-input>` | `请输入` | JS label遍历 "审批链编码" → input |
-| 状态 | `<el-select>` | — | 下拉选择（启用/停用） |
-| 搜索按钮 | `<el-button>` | — | `_js_click_search_or_reset("搜索")` |
-| 重置按钮 | `<el-button>` | — | `_js_click_search_or_reset("重置")` |
+## 1. 页面整体结构
 
-### 工具栏
+该页面是“工作流”模块下的审批配置功能。页面主要分为三个核心区域：
 
-| 按钮 | 类型 | 定位方式 |
-| --- | :---: | --- |
-| 新增 | `<el-button primary>` | JS 文本搜索 `textContent.indexOf('新增')` |
+1.  **顶部搜索/筛选区**: 用于过滤审批流程。
+2.  **主列表区**: 以表格形式展示已配置的审批链。
+3.  **（推测）弹窗/对话框**: 用于新增、编辑或查看审批链的详细信息。
 
-### 表格列（8 列，含 checkbox 选择列）
+## 2. 搜索/筛选区
 
-| # | 列标题 | 数据类型 | 说明 |
-|:--:| --- | --- | --- |
-| 0 | (checkbox) | el-checkbox | 多选列，无列标题 |
-| 1 | 审批链名称 | 文本 | 如"承包商入场审批" |
-| 2 | 编码 | 文本 | 唯一标识，如 `contractor_entry` |
-| 3 | 适用部门 | 文本 | 当前全部为"全局" |
-| 4 | 步骤数 | 数字 | 1 或 2 |
-| 5 | 状态 | el-switch | 全部启用 |
-| 6 | 备注 | 文本 | 审批流说明 |
-| 7 | 操作 | 按钮组 | **步骤配置** / **编辑** / **删除**（3个按钮） |
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注与定位思路 |
+| :--- | :--- | :--- | :--- | :--- |
+| search-form.name | 流程名称输入框 | `el-input` | 搜索区 | 通过 `placeholder` 属性定位 |
+| search-form.status | 流程状态筛选 | `el-select` | 搜索区 | 通过 `el-select` 组件的 `aria-label` 或关联的 `el-form-item` 标签定位 |
+| search-form.date-range | 创建日期范围 | `el-date-picker` | 搜索区 | 通过 `type="daterange"` 属性或关联标签定位 |
+| search-form.search-btn | 搜索按钮 | `el-button` | 搜索区 | 通过 `type="primary"` 和 `native-type="submit"` 组合定位 |
+| search-form.reset-btn | 重置按钮 | `el-button` | 搜索区 | 通过 `plain` 属性或 `native-type="reset"` 定位 |
 
-> ⚠️ 操作列有 **3** 个按钮（不是之前假设的 2 个），"步骤配置"按钮在编辑之前
+## 3. 表格区
 
-### 新增弹窗（title="新增审批链配置"）
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注与定位思路 |
+| :--- | :--- | :--- | :--- | :--- |
+| table.header.name | 列头：流程名称 | `<th>` | 表格区 | 使用列索引或CSS选择器 |
+| table.header.status | 列头：状态 | `<th>` | 表格区 | 同上 |
+| table.header.creator | 列头：创建人 | `<th>` | 表格区 | 同上 |
+| table.header.updated | 列头：更新时间 | `<th>` | 表格区 | 同上 |
+| table.header.actions | 列头：操作 | `<th>` | 表格区 | 同上 |
+| table.row.nth-cell | 第n行某一单元格 | `el-table-column` | 表格区 | 数据行定位通过行索引+列索引 |
+| table.actions.edit | 操作列：编辑按钮 | `el-button` | 表格区 | 每行操作列的按钮，通过文本`text()`定位 |
+| table.actions.delete | 操作列：删除按钮 | `el-button` | 表格区 | 每行操作列的按钮，通过文本`text()`定位 |
+| table.actions.detail | 操作列：查看详情按钮 | `el-button` | 表格区 | 每行操作列的按钮，通过文本`text()`定位 |
 
-| 字段 | 类型 | placeholder | 默认值 | 说明 |
-| --- | :---: | --- | --- | --- |
-| 审批链名称 | `<el-input>` | `如：生产日报审批链` | 空 | 必填 |
-| 审批链编码 | `<el-input>` | `如：DAILY_REPORT` | 空 | 必填，唯一 |
-| 适用部门 | `<el-select>` | — | 空 | 选项含"鞍集（凌源）新能源科技有限公司"+测试脏数据 |
-| 状态 | `<el-switch>` | — | **启用** (on) | 默认开启 |
-| 备注 | `<el-textarea>` | `可选备注` | 空 | 选填 |
+## 4. 分页区
 
-### 编辑弹窗（title="修改审批链配置"，字段同上，带回显值）
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注与定位思路 |
+| :--- | :--- | :--- | :--- | :--- |
+| pagination | 分页组件 | `el-pagination` | 表格下方 | 使用 `class="el-pagination"` 定位 |
+| pagination.total | 总条数显示 | `<span>` | 分页区 | 包含在 `el-pagination` 内部 |
+| pagination.page-size | 每页条数选择器 | `el-select` | 分页区 | 包含在 `el-pagination` 内部 |
+| pagination.pager | 页码按钮组 | `<button>` | 分页区 | 通过 `pager` 或具体数字定位 |
+| pagination.next | 下一页按钮 | `<button>` | 分页区 | 通过 `aria-label="next"` 定位 |
+| pagination.prev | 上一页按钮 | `<button>` | 分页区 | 通过 `aria-label="prev"` 定位 |
 
-以"承包商入场审批"为例的回显值：
-- 审批链名称 = `承包商入场审批`
-- 审批链编码 = `contractor_entry`
-- 适用部门 = (空，el-select 未回显)
-- 状态 = 启用
-- 备注 = `承包商入场申请默认审批链`
+## 5. 弹窗/对话框
 
-### 弹窗 DOM 结构
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注与定位思路 |
+| :--- | :--- | :--- | :--- | :--- |
+| dialog.create | 新增审批链弹窗 | `el-dialog` | 页面顶层 | 通过 `title` 属性或内容 `text()` 匹配 |
+| dialog.create.form.name | 弹窗内流程名称输入框 | `el-input` | 弹窗 | 通过 `el-dialog` 内的 `placeholder` 或 `v-model` 属性定位 |
+| dialog.create.form.approvers | 弹窗内审批人选择 | `el-select` | 弹窗 | 同上 |
+| dialog.create.save-btn | 保存按钮 | `el-button` | 弹窗 | 通过 `dialog` 内的 `type="primary"` 定位 |
+| dialog.create.cancel-btn | 取消按钮 | `el-button` | 弹窗 | 通过 `dialog` 内的 `plain` 或 `text()` 定位 |
+
+## 6. 页面状态
+
+-   **加载中**: 页面出现 `v-loading` 状态，`el-loading-mask` 元素可见。
+-   **空数据**: 表格内显示 `el-empty` 组件，提示“暂无数据”。
+-   **错误**: 全局或局部出现 `el-alert` 或 API 请求失败后的UI提示。
+-   **无权限**: 部分按钮或操作无法点击，或整个页面提示“无权访问”。
+
+## 7. 权限点
+
+-   表格操作列中的**编辑**、**删除**按钮。
+-   **新增**审批链的入口按钮（如果存在）。
+-   **查看详情**按钮（通常对所有人可见）。
+
+---
+
+### **产出物 2: PAGE_ELEMENT_POSITION.md**
+
+---
+
+# 元素定位器设计: approval-chain
+
+-   **页面名称**: 审批链
+-   **技术栈**: Vue 3 + Element Plus
+-   **遵循规范**: 优先 A 级，其次 B 级，最后 C 级。
+
+## 元素定位器清单
+
+| 元素ID | 定位策略 | 定位值 | 稳定性评级 | 备用方案 |
+| :--- | :--- | :--- | :--- | :--- |
+| search-form.name | **A级 (CSS)** | `input[placeholder*="流程名称"]` **或** `[data-testid="name-input"]` | 高 | **B级**: `.search-form .el-input__inner` |
+| search-form.status | **A级 (CSS)** | `[data-testid="status-select"]` | 高 | **B级**: `.el-select[aria-label="状态"]` |
+| search-form.date-range | **A级 (CSS)** | `[data-testid="date-range"]` | 高 | **B级**: `.el-date-editor--daterange` |
+| search-form.search-btn | **A级 (CSS)** | `button[type="submit"]` **或** `[data-testid="search-btn"]` | 高 | **B级**: `button:has-text("搜索")` |
+| search-form.reset-btn | **A级 (CSS)** | `[data-testid="reset-btn"]` | 高 | **B级**: `button:has-text("重置")` |
+| table.actions.edit | **A级 (B级)** | `text()` 文本匹配 | 中 | **C级 (XPath)**: `//button[contains(text(), '编辑')]` |
+| table.actions.delete | **C级 (XPath)** | `//button[contains(text(), '删除')]` | 低 | 使用 `contains()` 处理动态class |
+| table.actions.detail | **B级 (CSS)** | `.el-button--text:has-text("详情")` | 中 | **C级 (XPath)**: `//button[contains(@class, 'detail')]` |
+| dialog.create | **A级 (CSS)** | `div.el-dialog[aria-label="新增审批链"]` | 高 | **B级**: `.el-dialog__wrapper.visible` |
+| dialog.create.form.name | **B级 (CSS)** | `.el-dialog--visible input[placeholder*="审批链名称"]` | 中 | **C级**: `//div[contains(@class,'el-dialog')]//input` |
+| pagination | **A级 (CSS)** | `ul.el-pagination` | 高 | **B级**: `.el-pagination` |
+
+## 注意事项
+
+1.  **EP-001 坑位 (Teleport 渲染)**: `el-select` 下拉选项和 `el-date-picker` 面板通过`Teleport`渲染到`<body>`下。
+    -   **定位**: `body > .el-popper`
+    -   **交互**: 使用 `wait_for_visible` 等待弹窗出现，避免使用 `is_displayed()`。
+2.  **异步加载**: 表格数据通过API异步加载。使用 `wait_for_element` 等待表格行 `tr.el-table__row` 出现，或监听 `axios` 请求完成。
+3.  **索引依赖**: 表格内的编辑/删除操作依赖于行索引，定位时需结合 `el-table__row` 的第n个实例或数据属性。
+4.  **动态class**: `el-dialog__wrapper` 的 `visible` / `` 状态切换，定位时应优先使用 `aria-label` 或 `[style*="display: none"]`。
+
+---
+
+### **产出物 3: PAGE_INTERFACE.yaml**
+
+---
+
+```yaml
+# PAGE_INTERFACE.yaml for approval-chain page
+page:
+  name: approval-chain
+  module: workflow
+  base_url: "{{base_url}}/workflow/approval-chain"
+  description: "Workflow approval chain configuration page."
+
+  elements:
+    - id: search_name_input
+      locator: "input[placeholder*='流程名称']"
+      type: "el-input"
+    - id: search_status_select
+      locator: "data-testid=status-select"
+      type: "el-select"
+    - id: search_date_range_picker
+      locator: ".el-date-editor--daterange"
+      type: "el-date-picker"
+    - id: search_button
+      locator: "button[data-testid='search-btn']"
+      type: "el-button"
+    - id: table_first_row_edit_button
+      locator: "xpath=//tr[1]//button[contains(text(),'编辑')]"
+      type: "el-button"
+    - id: create_dialog
+      locator: "div.el-dialog[aria-label='新增审批链']"
+      type: "el-dialog"
+    - id: create_dialog_name_input
+      locator: ".el-dialog input[placeholder*='审批链名称']"
+      type: "el-input"
+    - id: create_dialog_save_button
+      locator: ".el-dialog button.el-button--primary"
+      type: "el-button"
+
+  operations:
+    # 页面导航入口
+    - name: navigate()
+      description: "Navigate to the approval chain page."
+      type: "navigation"
+      element_id: null
+    # 搜索操作
+    - name: search(name, status, date_range)
+      description: "Fill in the search form and click search."
+      type: "complex"
+      steps:
+        - action: "type"
+          element_id: "search_name_input"
+          value: "name"
+        - action: "select"
+          element_id: "search_status_select"
+          value: "status"
+        - action: "click"
+          element_id: "search_button"
+      result_wait: "wait_for_table_load"
+    # 表格操作
+    - name: click_first_edit()
+      description: "Click the 'Edit' button in the first row of the table."
+      type: "click"
+      element_id: "table_first_row_edit_button"
+    # 弹窗操作
+    - name: save_create_dialog()
+      description: "Click the save button inside the create dialog."
+      type: "click"
+      element_id: "create_dialog_save_button"
+
+  # 等待策略
+  wait_strategies:
+    - id: wait_for_table_load
+      description: "Wait for the table to finish loading after a search action."
+      type: "disappear" # 等待加载动画消失
+      element_locator: ".el-loading-mask"
 
 ```
-el-overlay (z-index: 2001+):
-└── el-dialog:
-    ├── el-dialog__header:
-    │   ├── el-dialog__title: "新增审批链配置" / "修改审批链配置"
-    │   └── el-dialog__headerbtn (×关闭)
-    ├── el-dialog__body:
-    │   └── el-form:
-    │       ├── el-row:
-    │       │   ├── el-col-12: el-form-item > label "审批链名称" > el-input > input
-    │       │   └── el-col-12: el-form-item > label "审批链编码" > el-input > input
-    │       └── el-row:
-    │           ├── el-col-12: el-form-item > label "适用部门" > el-select
-    │           ├── el-col-12: el-form-item > label "状态" > el-switch
-    │           └── el-col-24: el-form-item > label "备注" > el-textarea > textarea
-    └── el-dialog__footer:
-        ├── button.el-button--primary: "确认"
-        └── button.el-button: "取消"
-```
-
----
-
-## 关键定位策略
-
-| 操作 | 方法 | 策略 |
-| --- | --- | --- |
-| 点击新增 | `click_add()` | JS 遍历 button textContent 匹配"新增"/"添加"/"新建" |
-| 弹窗检测 | CSS | `.el-dialog:not([style*="display: none"])` |
-| 弹窗表单字段 | `_find_field_in_dialog(keyword)` | JS 遍历 `.el-form-item__label` 匹配 label 文本 |
-| 弹窗确认 | `dialog_confirm()` | JS 在 dialog 内找 `button.el-button--primary` |
-| 弹窗取消 | `dialog_cancel()` | JS 在 dialog 内找 textContent 含"取消"的 button |
-| 编辑行 | `click_row_action(1, "编辑")` | 操作列 3 个按钮中找"编辑" |
-| 删除行 | `click_row_action(1, "删除")` | 操作列 3 个按钮中找"删除" |
-| 步骤配置行 | `click_row_action(1, "步骤配置")` | 操作列 3 个按钮中找"步骤配置" |
-
----
-
-## 已识别的 PO 缺失
-
-| 缺失 | 影响 | 优先级 |
-|------|------|:--:|
-| `input_code(value)` — 按"审批链编码"搜索 | 无法通过编码搜索 | P1 |
-| `input_status(value)` — 按"状态"el-select 筛选 | 无法按状态筛选 | P1 |
-| `get_table_headers()` 遗漏 checkbox 列 | 列索引偏移 | P2 |
-| `click_row_step_config(row)` — "步骤配置"按钮 (CDP) | 无法测试步骤配置功能 | **P0** |
-| `get_step_editor()` — 读取步骤配置面板 | 无法验证步骤配置内容 | **P0** |
-| `close_step_editor()` — 关闭步骤配置面板 | 无法恢复列表状态 | P1 |
-
----
-
-## 步骤配置面板 (inline `.step-editor`)
-
-> ⚠️ 关键发现 (2026-06-15 CDP诊断): "步骤配置"不是弹窗/抽屉，是**页面内嵌面板**。
-> 且按钮必须通过 CDP `Input.dispatchMouseEvent` 点击（JS/Selenium/ActionChains 均无效）。
-
-### 触发方式
-
-操作列的"步骤配置"按钮 → 页面内嵌展开 `.step-editor` 面板。列表不消失，面板在表格下方或侧边展示。
-
-**唯一有效点击方式**: CDP (Chrome DevTools Protocol)
-```python
-driver.execute_cdp_cmd('Input.dispatchMouseEvent', {
-    'type': 'mousePressed', 'x': x, 'y': y, 'button': 'left', 'clickCount': 1
-})
-driver.execute_cdp_cmd('Input.dispatchMouseEvent', {
-    'type': 'mouseReleased', 'x': x, 'y': y, 'button': 'left', 'clickCount': 1
-})
-```
-
-### 面板 DOM 结构
-
-```
-.step-editor:
-├── .step-list
-│   ├── .step-card:
-│   │   ├── .step-card-header
-│   │   │   ├── .step-number: "步骤 1"
-│   │   │   └── .step-actions: (删除步骤按钮)
-│   │   ├── el-form-item > label "步骤名称" > el-input (职位/角色描述)
-│   │   ├── el-form-item > label "审批模式" > el-select (AND / OR 二选一)
-│   │   └── el-form-item > label "审批人"
-│   │       └── .approver-wrapper:
-│   │           ├── .approver-tag.el-tag > .el-tag__content: "系统管理员"
-│   │           │   └── .el-tag__close (X 移除按钮)
-│   │           └── button: "选择审批人" (弹窗添加人员)
-│   ├── .step-card: (同上结构，步骤 2)
-│   └── ...
-└── .add-step-bar: (添加步骤按钮)
-```
-
-### 步骤字段详情
-
-| 字段 | 组件 | DOM 定位 | 说明 |
-|------|:---:|------|------|
-| 步骤名称 | `<el-input>` | `.step-card input` | 职位/角色描述，如"主管审批""仓管审批""管理员" |
-| 审批模式 | `<el-select>` (二选一) | `.step-card .el-select .el-select__selected-item` | AND=会签(全员通过) / OR=或签(任意一人) |
-| 审批人 | `.approver-wrapper` 含 el-tag 列表 | `.approver-tag .el-tag__content` | 已选审批人展示为 tag，通过"选择审批人"按钮弹窗添加 |
-
-### 完整步骤数据 (14/14 已诊断)
-
-见上方「环境实际数据」章节的审批流程列，已含全部 14 条链的步骤名称+审批人。诊断数据文件: `tools/diag_steps_detail.json`。
-| `get_table_row_count()` 含 checkbox 行 | 行数可能多算 | P3 |
-
----
-
-## 修复历史
-
-| 轮次 | 问题 | 根因 | 修复 |
-|:---:|------|------|------|
-| 1 | 点击新增无弹窗 | 路由短路径→完整路径 | sidebar_navigator 修复 |
-| 2 | 仍无弹窗 | DIALOG XPath `[last()]` 选到隐藏overlay | 增加 el-drawer 支持 |
-| 3 | **真正的根因** | ① XPath span嵌套 ② CSS hidden overlay ③ placeholder≠label | ① JS文本搜索 ② CSS Selector ③ JS label遍历 |
-
-## 已知坑位
-
-1. **6 个 overlay** — XPath `[last()]` 不可靠，用 CSS `:not([style*="display: none"])`
-2. **按钮文字可能直接在 `<button>` 中** — 用 JS textContent 不用 XPath span/text()
-3. **placeholder ≠ label** — 弹窗"名称" placeholder="如：生产日报审批链"，定位必须用 label 文本
-4. **编辑弹窗复用新增弹窗** — title 改变，字段相同
-5. **操作列有 3 个按钮** — "步骤配置"/"编辑"/"删除"，`click_first_row_edit()` 需确认匹配到"编辑"而非"步骤配置"
-6. **el-select "适用部门"有测试脏数据** — 下拉选项含 `test20260611*新增` 条目，全量回归需处理
-

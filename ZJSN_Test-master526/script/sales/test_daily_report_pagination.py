@@ -18,8 +18,9 @@ import allure
 
 @pytest.fixture(autouse=True)
 def _expand_date_range(daily_report_page):
-    """每个分页测试前：扩大到全量日期范围，确保数据量足以触发分页"""
-    daily_report_page.query_date_range("2025-01-01", "2027-01-01")
+    """每个分页测试前：使用合理日期范围确保有足够数据但避免超时"""
+    # 使用最近3个月范围而非2年 — 避免超大数据集导致表格渲染超时
+    daily_report_page.query_date_range("2026-03-17", "2026-06-17")
 
 
 class TestDailyReportPagination:

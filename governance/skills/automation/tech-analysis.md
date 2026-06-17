@@ -140,3 +140,8 @@
 ## 产出物
 → `TECH_ANALYSIS.md` + `PAGE_ELEMENT_POSITION.md`，存放至对应页面目录。
 → 输出格式参见 `templates/tech-analysis.template.md`。
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | automation | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

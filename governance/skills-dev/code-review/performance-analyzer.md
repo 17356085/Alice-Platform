@@ -43,3 +43,8 @@
 ## 输出
 每个问题: 文件:行号 / 严重程度 / 描述 / 建议
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | code-review | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

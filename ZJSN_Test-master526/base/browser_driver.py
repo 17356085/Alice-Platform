@@ -55,7 +55,7 @@ class BaseDriver:
         chrome_options.add_argument("--disable-gpu")
 
         if BROWSER_CONFIG.get("headless", False):
-            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--headless=new")
 
         # ChromeDriver 路径
         chromedriver_path = os.path.join(os.getcwd(), "chromedriver.exe")

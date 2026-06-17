@@ -1,26 +1,25 @@
 # Skill: excel-exporter
 
 ## 目标
-将 TEST_CASES.md 中的测试用例与 Allure JSON 执行结果**合并**，生成一份综合的带格式中文 Excel 文件（.xlsx）。这是 SOP 最终交付物。
+将 TEST_CASES.md 中的测试用例与 Allure JSON 执行结果**合并**，生成一份综合的带格式中文 Excel 文件（.xlsx）。这是 SOP Phase 9 最终交付物。
 
 ## 输入
 - **主场景 — 场景 C（综合 Excel）⭐**：`TEST_CASES.md` + `allure-results/*-result.json`，合并输出一份 Excel
-- 场景 A（仅用例表）：`TEST_CASES.md` — 执行前的用例清单，中间过程用
 - 场景 B（仅执行结果）：`allure-results/*-result.json` — 仅结果统计，参考用
-- 模块名称、页面名称
+- 场景 A（仅用例表）：`TEST_CASES.md` — ⚠️ 已废弃（Phase 3 不生成 Excel，仅 .md）
+- 模块名称
 
 ## 输出
-- **场景 C**：`测试报告-{模块}-{日期}.xlsx` — ★ 最终交付物，含用例设计+执行结果合并
-- 场景 A：`测试用例-{模块}-{页面}.xlsx`
-- 场景 B：`执行结果-{模块}-{时间}.xlsx`
-- 所有 .xlsx 输出到 `reports/` 目录
+- **场景 C**：`测试报告-{模块}.xlsx` — ★ Phase 9 最终交付物，含用例设计+执行结果合并，覆盖式
+- 场景 B：`测试报告-{模块}.xlsx`（同上，仅无 TEST_CASES 列）
+- 所有 .xlsx 输出到 `governance/kpi/reports/{模块}/` 目录，每次 SOP 重跑直接覆写
 
 ## 规则
 - 复用项目中已验证的 Excel 样式（来自 `tools/report/generate_*.py`）
 - 微软雅黑字体、蓝色表头(#4472C4)、冻结首行、自适应列宽
 - 优先级配色：P0=红色(#FFC7CE) / P1=黄色(#FFEB9C) / P2=绿色(#C6EFCE)
 - 执行结果配色：PASS=绿色(#C6EFCE) / FAIL=红色(#FFC7CE) / SKIP=黄色(#FFEB9C) / XPASS=蓝色(#D9E2F3)
-- 文件名含模块名+日期，中文命名
+- 文件名含模块名，无日期后缀，覆盖式（每次 SOP 重跑直接覆写）
 
 ## 依赖
 - Python `openpyxl` 库（已在 `requirements.txt` 中）
@@ -40,8 +39,10 @@
 
 ### 场景 A：TEST_CASES.md → 测试用例 Excel
 
+> ⚠️ **已废弃**：Phase 3 不生成 Excel，仅产出 .md 文件。此场景保留供手动使用，不走 SOP 流程。
+
 ```text
-将以下 TEST_CASES.md 中的测试用例表格转换为格式化的 Excel 文件。
+将以下 TEST_CASES.md 中的测试用例表格转换为格式化的 Excel 文件（手动触发，非 SOP）。
 
 ## 输入
 - 模块名称：{{设备管理}}
@@ -50,7 +51,7 @@
 {{粘贴 TEST_CASES.md 中的用例表格（含所有行）}}
 
 ## 任务
-生成 Python 脚本 `reports/generate_{{module}}_testcase_excel.py`：
+生成 Python 脚本 `governance/kpi/reports/{{模块}}/generate_{{module}}_testcase_excel.py`：
 
 ```python
 """生成 {{模块}}-{{页面}} 测试用例 Excel"""
@@ -61,7 +62,9 @@ from openpyxl.utils import get_column_letter
 from datetime import datetime
 
 # ── 输出路径 ──
-OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'reports')
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # repo root
+MODULE_NAME = '{{模块}}'  # 替换为实际模块名
+OUT_DIR = os.path.join(REPO_ROOT, 'governance', 'kpi', 'reports', MODULE_NAME)
 os.makedirs(OUT_DIR, exist_ok=True)
 
 # ── 样式（复用项目已验证配色） ──
@@ -142,7 +145,7 @@ for i, w in enumerate(COL_WIDTHS, 1):
 ws.freeze_panes = 'A5'
 
 # ── 保存 ──
-filename = f'测试用例-{{module}}-{{page}}-{datetime.now().strftime("%Y%m%d")}.xlsx'
+filename = f'测试用例-{{module}}-{{page}}.xlsx'  # 覆盖式，无日期后缀
 path = os.path.join(OUT_DIR, filename)
 wb.save(path)
 print(f'✅ 已生成: {path}')
@@ -164,7 +167,7 @@ print(f'✅ 已生成: {path}')
 - {{粘贴 3-5 个典型 result.json 内容}}
 
 ## 任务
-生成 Python 脚本 `reports/generate_execution_report.py`：
+生成 Python 脚本 `governance/kpi/reports/{{模块}}/generate_execution_report.py`：
 
 ```python
 """生成自动化执行结果 Excel 报告"""
@@ -264,9 +267,11 @@ for module_name in ['{{equipment}}', '{{system}}', '{{sales}}']:
     ws.freeze_panes = 'A2'
 
 # ── 保存 ──
-OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'reports')
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+MODULE_NAME = '{{模块}}'
+OUT_DIR = os.path.join(REPO_ROOT, 'governance', 'kpi', 'testcases', MODULE_NAME)
 os.makedirs(OUT_DIR, exist_ok=True)
-filename = f'执行结果-{datetime.now().strftime("%Y%m%d_%H%M")}.xlsx'
+filename = f'测试报告-{MODULE_NAME}.xlsx'  # 覆盖式，无日期后缀
 path = os.path.join(OUT_DIR, filename)
 wb.save(path)
 print(f'✅ 已生成: {path}')
@@ -292,7 +297,7 @@ print(f'✅ 已生成: {path}')
 - allure-results/ 目录：{{ZJSN_Test-master526/allure-results/}}
 
 ## 任务
-生成 Python 脚本 `reports/generate_{{module}}_report.py`，执行后输出综合 Excel。
+生成 Python 脚本 `governance/kpi/reports/{{模块}}/generate_{{module}}_report.py`，执行后输出综合 Excel。
 
 ### 数据来源
 1. 读取 TEST_CASES.md 中的 Markdown 表格，逐行提取所有用例
@@ -330,8 +335,9 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
 # ── 路径 ──
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT_DIR = os.path.join(REPO_ROOT, 'reports')
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # repo root
+MODULE_NAME = '{{模块}}'
+OUT_DIR = os.path.join(REPO_ROOT, 'governance', 'kpi', 'testcases', MODULE_NAME)
 os.makedirs(OUT_DIR, exist_ok=True)
 
 # ── 样式（复用项目已验证配色） ──
@@ -501,7 +507,7 @@ for col_letter, width in COL_WIDTHS.items():
 ws.freeze_panes = 'A5'
 
 # ── 保存 ──
-filename = f'测试报告-{{module}}-{datetime.now().strftime("%Y%m%d_%H%M")}.xlsx'
+filename = f'测试报告-{{module}}.xlsx'  # 覆盖式，无日期后缀
 path = os.path.join(OUT_DIR, filename)
 wb.save(path)
 print(f'[DONE] 综合测试报告已生成: {path}')
@@ -513,7 +519,7 @@ print(f'[STATS] 总={total} 通过={passed} 失败={failed} 跳过={skipped} 未
 - 用例与结果匹配时，名称模糊匹配容忍括号后缀差异（如"验证搜索" vs "验证搜索(TC-EQ-AC-001)"）
 - 未匹配到的用例状态显示"未执行"（灰底），便于识别未覆盖用例
 - 错误信息截断至 200 字符
-- 文件名格式：`测试报告-{模块}-YYYYMMDD_HHMM.xlsx`
+- 文件名格式：`测试报告-{模块}.xlsx`（覆盖式，无日期后缀）
 
 ---
 
@@ -527,15 +533,15 @@ print(f'[STATS] 总={total} 通过={passed} 失败={failed} 跳过={skipped} 未
 - [ ] 优先级列：P0=红 / P1=黄 / P2=绿
 - [ ] 信息行含完整统计（总/通过/失败/跳过/未执行/通过率）
 - [ ] 冻结首行(A5) + 列宽合适
-- [ ] 文件名：`测试报告-{模块}-YYYYMMDD_HHMM.xlsx`
-- [ ] 脚本保存为 `reports/generate_{module}_report.py`（可复用）
+- [ ] 文件名：`测试报告-{模块}.xlsx`（无日期后缀，覆盖式）
+- [ ] 脚本保存为 `governance/kpi/reports/{module}/generate_{module}_report.py`（可复用）
 
 ### 场景 A（仅用例表 — 执行前用）
 - [ ] TEST_CASES.md 的所有行已完整提取
 - [ ] P0/P1/P2 配色正确
 - [ ] 自动化状态列有区分颜色
 - [ ] 冻结首行 + 列宽自适应
-- [ ] 文件名含模块名和日期
+- [ ] 文件名含模块名，无日期后缀
 
 ### 场景 B（仅执行结果 — 参考用）
 - [ ] 汇总 Sheet 的通过率计算正确
@@ -545,9 +551,14 @@ print(f'[STATS] 总={total} 通过={passed} 失败={failed} 跳过={skipped} 未
 - [ ] 冻结首行
 
 ## 产出物
-→ `reports/测试报告-{模块}-YYYYMMDD_HHMM.xlsx` ★ SOP 最终交付物
-→ `reports/测试用例-{模块}-{页面}-{日期}.xlsx`（中间过程，场景 A）
-→ `reports/执行结果-{日期}_{时间}.xlsx`（中间过程，场景 B）
+→ `governance/kpi/reports/{模块}/测试报告-{模块}.xlsx` ★ Phase 9 最终交付物（覆盖式）
+→ `governance/kpi/reports/{模块}/测试用例-{模块}-{页面}.xlsx`（手动触发，场景 A，已废弃）
+→ `governance/kpi/reports/{模块}/测试报告-{模块}.xlsx`（场景 B 同上）
 → 参考实现：
   - `ZJSN_Test-master526/tools/report/generate_customer_testcase_excel.py`
   - `ZJSN_Test-master526/tools/report/generate_excel.py`
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | execution | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

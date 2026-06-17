@@ -1,6 +1,6 @@
 """Tool: check_consistency (P1-2) — Zero-LLM 跨层一致性检查。"""
 from aitest.mcp.error_taxonomy import ErrorCode, error_response
-from aitest.consistency_checker import run_all_checks as _consistency_run_all_checks
+from aitest.testing.consistency_checker import run_all_checks as _consistency_run_all_checks
 
 
 def run_consistency_check() -> dict:

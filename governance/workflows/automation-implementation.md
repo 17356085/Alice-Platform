@@ -31,9 +31,9 @@
 - auto-strategy
 - page-object-generator（替代原 code-generation Step 1）
 - test-script-generator（替代原 code-generation Step 2）
-- conftest-generator（替代原 code-generation Step 3）
+- test-script-generator（替代原 code-generation Step 2+3 — 含 conftest 生成）
 - code-consistency-checker（新增：代码生成后必须检查）
-- element-plus-locator（按需，已合并到 tech-analysis）
+- tech-analysis（替代原 element-plus-locator — 已合并 Element Plus 定位器诊断）
 
 ## 完成标准
 - 自动化脚本可通过 pytest 执行
@@ -63,9 +63,21 @@
 |------|------|------|
 | 1. 执行自动化 | `pytest script/<module>/ -v --alluredir=allure-results` | 确保所有用例通过 |
 | 2. 生成测试摘要 | 调用 `allure-report-analyzer` | 解析 Allure JSON → `TEST_SUMMARY.md` |
-| 3. 导出 Excel 成果 | 调用 `excel-exporter`（场景 B） | Allure JSON → `reports/执行结果-*.xlsx`（PASS绿/FAIL红配色） |
+| 3. 导出 Excel 成果 | 调用 `excel-exporter`（场景 C） | Allure JSON + TEST_CASES.md → `governance/kpi/reports/{模块}/测试报告-{模块}.xlsx`（覆盖式） |
 | 4. 更新模块状态 | `MODULE_CONTEXT.md` | 标记该模块 Phase 全部完成 ✅ |
 
 > **何时导出 Excel？**
-> - 单个模块先完成 → 立即导出 Excel（场景 B），作为模块的工作成果提交
+> - 单个模块先完成 → 立即导出 Excel（场景 C），作为模块的工作成果提交
 > - 整个版本周期结束 → `test-cycle-closure` Workflow 统一导出所有模块的 Excel
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: workflow-check -->
+## Dependency Check (2026-06-17 16:53)
+
+- [WARN] Deprecated skill refs: element-plus-locator
+- [OK] Validated 2026-06-17 16:53
+
+> sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: workflow-check -->

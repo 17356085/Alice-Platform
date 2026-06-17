@@ -4,7 +4,7 @@ P0 重构 (2026-06-12): 加入 AgentLoop，从伪 Agent 升级为真 Agent 循�
 """
 __version__ = "0.2.0"
 
-from aitest.agent_runner import (
+from aitest.agents.agent_runner import (
     AgentLoop,
     AgentState,
     Observation,
@@ -20,7 +20,7 @@ from aitest.llm.provider import (
     list_providers,
 )
 # P1-1: 追踪模块
-from aitest.trace import (
+from aitest.infra.trace import (
     TraceEvent,
     TraceContext,
     write_trace_event,
@@ -28,19 +28,19 @@ from aitest.trace import (
     get_trace_summary,
 )
 # P1-2: 评估模块
-from aitest.evaluator import (
+from aitest.testing.evaluator import (
     EvalRunner,
     EvalMetric,
     EvalRun,
     _score_response,
 )
 # P1-3: A/B 测试模块
-from aitest.ab_test import (
+from aitest.agents.ab_test import (
     ABTestRunner,
     ABTestResult,
 )
 # P1-4: 回归测试模块
-from aitest.regression import (
+from aitest.testing.regression import (
     RegressionRunner,
     RegressionResult,
 )

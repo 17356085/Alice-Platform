@@ -107,3 +107,23 @@
 - 15 个子页面中 7 个已有自动化代码
 - 8 个未覆盖页面经 2026-06-12 Selenium 实机分析，**4 个需要测试**（certificate/practice/study-record/wrong-question），详细报告见 `governance/artifacts/audits/personnel-untested-pages-analysis.md`（原"纯前端展示"判断已修正）
 - TrainPlanPage 有 recovered 版本（代码恢复）
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-stats -->
+<!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
+## 自动统计数据 (更新于 2026-06-17 16:53)
+
+| 指标 | 数值 |
+|------|:---:|
+| 测试文件 | 18 (script/personnel/test_*.py) |
+| Page Object | 17 (page/personnel_page/*.py) |
+| 治理文档 | 99 .md 文件 |
+| TECH_ANALYSIS | 16 |
+| AUTO_STRATEGY | 12 |
+| RISK_MODEL | 11 |
+| PAGE_CONTEXT | 17 |
+| SOP 状态 | completed |
+| Phase 完成 | Automation, Bug Analysis, Data Sanitization, Execute & Debug, Knowledge, Project Init, Report, Requirement, Test Design |
+
+> 此段由 sync_progress.py 自动更新。手动编辑会被覆盖。
+<!-- ⚠️ AUTO-GENERATED SECTION END: module-stats -->

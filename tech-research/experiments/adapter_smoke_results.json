@@ -1,0 +1,216 @@
+{
+  "observe": {
+    "ok": true,
+    "elapsed": 181.58433859999786,
+    "data": {
+      "search_fields": [
+        {
+          "label": "危废品分类",
+          "type": "select",
+          "html_hint": "combobox dropdown, default: 全部"
+        },
+        {
+          "label": "危废品名称",
+          "type": "input",
+          "html_hint": "placeholder: 请输入危废品名称"
+        },
+        {
+          "label": "所属装置",
+          "type": "select",
+          "html_hint": "combobox dropdown, default: 全部"
+        }
+      ],
+      "action_buttons": [
+        {
+          "label": "查询",
+          "css_hint": "button with search icon"
+        },
+        {
+          "label": "重置",
+          "css_hint": "button with reset icon"
+        },
+        {
+          "label": "+ 新增",
+          "css_hint": "blue primary button"
+        },
+        {
+          "label": "导入",
+          "css_hint": "button with upload icon"
+        },
+        {
+          "label": "导出",
+          "css_hint": "button with download icon"
+        }
+      ],
+      "table_columns": [
+        "checkbox",
+        "序号",
+        "危废品分类",
+        "危废品名称",
+        "固废编号",
+        "包装方式",
+        "单位",
+        "工序/生产线",
+        "所属装置",
+        "产废周期",
+        "固废属性",
+        "危废鉴别",
+        "危险特性",
+        "核算方法",
+        "产生规律",
+        "最终去向",
+        "操作"
+      ],
+      "has_pagination": true,
+      "has_checkbox_column": true,
+      "page_title": "库管管理 / 环保危废管理 / 物品管理"
+    }
+  },
+  "po": {
+    "ok": true,
+    "elapsed": 451.10612599999877,
+    "data": {
+      "class_name": "HazardItemPage",
+      "locators": [
+        {
+          "element_name": "hazard_category_select",
+          "type": "select",
+          "label_hint": "危废品分类",
+          "css": "#el-id-3133-154",
+          "xpath": "//div[contains(@class,'el-select')][.//span[text()='危废品分类']]//input[@role='combobox']",
+          "confidence": 0.9
+        },
+        {
+          "element_name": "hazard_name_input",
+          "type": "input",
+          "label_hint": "危废品名称",
+          "css": "input[placeholder='请输入危废品名称']",
+          "xpath": "//input[@placeholder='请输入危废品名称']",
+          "confidence": 0.95
+        },
+        {
+          "element_name": "device_select",
+          "type": "select",
+          "label_hint": "所属装置",
+          "css": "#el-id-3133-156",
+          "xpath": "//div[contains(@class,'el-select')][.//span[text()='所属装置']]//input[@role='combobox']",
+          "confidence": 0.9
+        },
+        {
+          "element_name": "query_button",
+          "type": "button",
+          "label_hint": "查询",
+          "css": "button:has(> span:contains('查询')), .el-button--primary:not([type='submit']):not(.el-button--success):not(.el-button--danger):not(.el-button--warning):not(.el-button--info)",
+          "xpath": "//button[.//span[text()='查询'] or text()='查询']",
+          "confidence": 0.85
+        },
+        {
+          "element_name": "reset_button",
+          "type": "button",
+          "label_hint": "重置",
+          "css": "button:has(> span:contains('重置')), .el-button--default:not(.el-button--success):not(.el-button--danger)",
+          "xpath": "//button[.//span[text()='重置'] or text()='重置']",
+          "confidence": 0.85
+        },
+        {
+          "element_name": "add_button",
+          "type": "button",
+          "label_hint": "新增",
+          "css": ".el-button--primary:not(.is-circle):not(.is-link)",
+          "xpath": "//button[.//span[text()='新增'] or text()='新增']",
+          "confidence": 0.8
+        },
+        {
+          "element_name": "import_button",
+          "type": "button",
+          "label_hint": "导入",
+          "css": "button:has(> span:contains('导入')), .el-button--success",
+          "xpath": "//button[.//span[text()='导入'] or text()='导入']",
+          "confidence": 0.85
+        },
+        {
+          "element_name": "export_button",
+          "type": "button",
+          "label_hint": "导出",
+          "css": "button:has(> span:contains('导出')), .el-button--warning",
+          "xpath": "//button[.//span[text()='导出'] or text()='导出']",
+          "confidence": 0.85
+        },
+        {
+          "element_name": "select_all_checkbox",
+          "type": "button",
+          "label_hint": "全选复选框",
+          "css": ".el-table__header-wrapper input[type='checkbox'], .el-checkbox__input",
+          "xpath": "//thead//th[1]//label[@class='el-checkbox'] | //thead//input[@type='checkbox']",
+          "confidence": 0.8
+        },
+        {
+          "element_name": "edit_button",
+          "type": "button",
+          "label_hint": "编辑",
+          "css": "button:has(> span:contains('编辑')), .el-button--primary.is-link",
+          "xpath": "//button[.//span[text()='编辑'] or text()='编辑']",
+          "confidence": 0.9
+        },
+        {
+          "element_name": "delete_button",
+          "type": "button",
+          "label_hint": "删除",
+          "css": "button:has(> span:contains('删除')), .el-button--danger.is-link",
+          "xpath": "//button[.//span[text()='删除'] or text()='删除']",
+          "confidence": 0.9
+        },
+        {
+          "element_name": "page_size_select",
+          "type": "select",
+          "label_hint": "10条/页",
+          "css": "#el-id-3133-157",
+          "xpath": "//div[contains(@class,'el-pagination')]//div[contains(@class,'el-select')]//input[@role='combobox']",
+          "confidence": 0.9
+        },
+        {
+          "element_name": "prev_page_button",
+          "type": "button",
+          "label_hint": "上一页",
+          "css": "button[aria-label='上一页'], button:has(svg[class*='prev']), .el-pagination button:has(.el-icon-arrow-left)",
+          "xpath": "//button[@aria-label='上一页'] | //div[contains(@class,'el-pagination')]//button[contains(@class,'btn-prev')]",
+          "confidence": 0.9
+        },
+        {
+          "element_name": "next_page_button",
+          "type": "button",
+          "label_hint": "下一页",
+          "css": "button[aria-label='下一页'], button:has(svg[class*='next']), .el-pagination button:has(.el-icon-arrow-right)",
+          "xpath": "//button[@aria-label='下一页'] | //div[contains(@class,'el-pagination')]//button[contains(@class,'btn-next')]",
+          "confidence": 0.9
+        },
+        {
+          "element_name": "page_number_input",
+          "type": "input",
+          "label_hint": "前往页码输入框",
+          "css": "input[aria-label='页'], input[type='number'][min='1']",
+          "xpath": "//div[contains(@class,'el-pagination')]//input[@aria-label='页']",
+          "confidence": 0.95
+        },
+        {
+          "element_name": "page_1_button",
+          "type": "button",
+          "label_hint": "第 1 页",
+          "css": "li[aria-label='第 1 页'], .el-pager li.is-active",
+          "xpath": "//ul[contains(@class,'el-pager')]//li[text()='1'] | //li[@aria-label='第 1 页']",
+          "confidence": 0.9
+        }
+      ],
+      "total_found": 16,
+      "high_confidence": 16
+    }
+  },
+  "heal": {
+    "ok": false,
+    "elapsed": 205.4791382000003,
+    "data": {
+      "found": false,
+      "note": "JSON parse failed: AgentHistoryList(all_results=[ActionResult(is_done=False, success=None, judgement=None, error=None, attachments=None, images=None, long_term_memory='Navigated to https://aiwechatminidemo.cimc-digital."
+    }
+  }
+}

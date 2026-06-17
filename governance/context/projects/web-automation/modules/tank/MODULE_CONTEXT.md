@@ -50,3 +50,23 @@
 - 页面元素已通过浏览器实地访问确认（2026-06-11），PAGE_CONTEXT + TEST_DESIGN + AUTO_STRATEGY 全部完成
 - 自定义 UI 框架差异已沉淀到 PROJECT_CONTEXT.md § 已确认的模块 UI 框架差异（UI-001~007）
 - 旧 `contexts/储罐管理/` 目录为空，此为首次建模，已演变为完整治理目录
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-stats -->
+<!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
+## 自动统计数据 (更新于 2026-06-17 16:53)
+
+| 指标 | 数值 |
+|------|:---:|
+| 测试文件 | 6 (script/tank/test_*.py) |
+| Page Object | 4 (page/tank_page/*.py) |
+| 治理文档 | 21 .md 文件 |
+| TECH_ANALYSIS | 3 |
+| AUTO_STRATEGY | 3 |
+| RISK_MODEL | 3 |
+| PAGE_CONTEXT | 4 |
+| SOP 状态 | completed |
+| Phase 完成 | Automation, Bug Analysis, Data Sanitization, Execute & Debug, Knowledge, Project Init, Report, Requirement, Test Design |
+
+> 此段由 sync_progress.py 自动更新。手动编辑会被覆盖。
+<!-- ⚠️ AUTO-GENERATED SECTION END: module-stats -->

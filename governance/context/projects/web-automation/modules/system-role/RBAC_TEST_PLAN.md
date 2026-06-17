@@ -408,7 +408,7 @@ def extract_sidebar_top_level_menus(driver):
 | **本测试方案** | `contexts/system-role/RBAC_TEST_PLAN.md` | ✅ V1.0 |
 | **自动化测试脚本** | `script/system/test_rbac_permission.py` | ⏳ 待开发 |
 | **测试角色数据定义** | `data/fixtures/rbac_test_roles.json` | ⏳ 待开发 |
-| **执行报告模板** | `reports/rbac_test_report_template.md` | ⏳ 待开发 |
+| **执行报告模板** | `governance/kpi/reports/system-role/测试报告-system-role.xlsx` | ⏳ 待开发 |
 
 ---
 

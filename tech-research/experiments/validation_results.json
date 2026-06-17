@@ -1,0 +1,24 @@
+[
+  {
+    "name": "V1-PO-Generation",
+    "elapsed_s": 83.85908410000047,
+    "manual_po_lines": 82,
+    "manual_locators": 4,
+    "bu_parsed": false,
+    "bu_fields": [],
+    "bu_buttons": [],
+    "bu_columns": []
+  },
+  {
+    "name": "V2-Self-Healing",
+    "elapsed_s": 203.93659450000087,
+    "nl_interaction_success": true
+  },
+  {
+    "name": "V3-Tank-CustomUI",
+    "elapsed_s": 141.12008129999958,
+    "tank_selenium_po_lines": 350,
+    "bu_detected_stats": true,
+    "bu_detected_table": true
+  }
+]

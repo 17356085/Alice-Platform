@@ -1,0 +1,32 @@
+{
+  "module": "equipment",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation",
+    "Execute & Debug",
+    "Bug Analysis",
+    "Report",
+    "Knowledge",
+    "Data Sanitization"
+  ],
+  "failed_phases": [],
+  "pages_processed": [],
+  "run_id": "",
+  "updated_at": "2026-06-17",
+  "engine": "langgraph",
+  "next_steps": [
+    "Knowledge phase: 提取已知问题到 known-issues.yaml (v0.5 已更新)"
+  ],
+  "execution_results": {
+    "date": "2026-06-16",
+    "full_suite": "828 collected | 361P/345F/90S/29E/3X | 760 rerun | 8h12m",
+    "module_specific": {
+      "exec": "completed",
+      "tests": "7 files + 1 e2e, 2 FAILED (pagination, maintenance table)",
+      "note": "分页+维保表修复: BasePage.get_total_count() JS兜底, MaintenancePage 行计数限第一表。新增 test_equipment_e2e.py (4跨页场景)"
+    }
+  }
+}

@@ -31,3 +31,8 @@
 ## 输出
 pytest + httpx 测试文件，覆盖: create(201), list(200), get(200), update, delete(204), not_found(404), validation_error(422)。
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | backend | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

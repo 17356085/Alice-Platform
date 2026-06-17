@@ -53,3 +53,15 @@
 **执行方式**：调用 `context-sync` Skill，输入本轮新增文件清单。
 
 > 强制门禁：完成本 Workflow 后，只有在 `MODULE_INDEX.md`、`MODULE_CONTEXT.md`、`PAGE_CONTEXT.md`、`PAGE_ELEMENT_POSITION.md`、`RISK_MODEL.md` 都已同步到位时，才算真正完成模块入场。只完成页面分析但未同步上下文，视为未完成。
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: workflow-check -->
+## Dependency Check (2026-06-17 16:53)
+
+- [OK] No deprecated skill references
+- [OK] Validated 2026-06-17 16:53
+
+> sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: workflow-check -->

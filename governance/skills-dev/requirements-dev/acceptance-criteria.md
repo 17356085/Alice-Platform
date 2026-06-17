@@ -26,3 +26,8 @@
 ## 输出
 每个故事的详细 Given/When/Then 场景（含边界和异常）。
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | requirements-dev | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

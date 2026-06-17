@@ -1,199 +1,134 @@
-interface: page-to-automation
-version: "1.0"
-source_agent: test-design-agent
-target_agent: automation-agent
-generated_at: "2026-06-13 12:22"
+好的，遵照您的指示。作为自动化测试工程师，我将基于`page-analysis` Skill，对`sales`模块下的`contract`页面进行结构分析与定位器设计。
 
-meta:
-  module: "sales"
-  page_name: "Contract"
-  page_slug: "contract"
-  page_url: "/sales/contract"
-  vue_components:
-    - component: el-table
-      count: 1
-      risk_flags: []
-    - component: el-dialog
-      count: 1
-      risk_flags: []
-    - component: el-select
-      count: 4
-      risk_flags: []
-    - component: el-date-picker
-      count: 1
-      risk_flags: []
-    - component: el-input
-      count: 2
-      risk_flags: []
-    - component: el-button
-      count: 5
-      risk_flags: []
-    - component: el-pagination
-      count: 1
-      risk_flags: []
-    - component: el-form
-      count: 1
-      risk_flags: []
-    - component: el-tag
-      count: 1
-      risk_flags: []
-    - component: el-progress
-      count: 1
-      risk_flags: []
-    - component: el-upload
-      count: 1
-      risk_flags: []
+以下是为您生成的`PAGE_CONTEXT.md`和`PAGE_ELEMENT_POSITION.md`文件。
 
-elements:
-  - name: "search_contract_id_input"
-    selector: "//div[contains(@class,'search-form')]//input[contains(@placeholder,'合同编号')]"
-    selector_type: XPATH_RELATIVE
-    element_type: input
-    el_component: el-input
-    interaction: input
-    wait_strategy: wait_vue_stable
-    locator_notes: "合同编号搜索输入框"
-    risk_level: low
-    risk_reason: "基础输入框，风险低"
+---
 
-  - name: "search_customer_select"
-    selector: "//div[contains(@class,'search-form')]//div[contains(@class,'el-select')]//input[contains(@placeholder,'客户')]"
-    selector_type: XPATH_RELATIVE
-    element_type: select
-    el_component: el-select
-    interaction: select
-    wait_strategy: wait_vue_stable
-    locator_notes: "客户下拉搜索条件"
-    risk_level: low
-    risk_reason: "标准下拉，风险低"
+## PAGE_CONTEXT.md
 
-  - name: "search_status_select"
-    selector: "//div[contains(@class,'search-form')]//div[contains(@class,'el-select')]//input[contains(@placeholder,'状态')]"
-    selector_type: XPATH_RELATIVE
-    element_type: select
-    el_component: el-select
-    interaction: select
-    wait_strategy: wait_vue_stable
-    locator_notes: "状态下拉搜索条件"
-    risk_level: low
-    risk_reason: "标准下拉，风险低"
+### 页面名称: 合同管理 (Contract Management)
 
-  - name: "search_date_range"
-    selector: "//div[contains(@class,'search-form')]//div[contains(@class,'el-date-picker')]"
-    selector_type: XPATH_RELATIVE
-    element_type: datepicker
-    el_component: el-date-picker
-    interaction: input
-    wait_strategy: wait_vue_stable
-    locator_notes: "日期范围选择器（开始/结束）"
-    risk_level: low
-    risk_reason: "日期组件，风险低"
+### 所属模块: sales
 
-  - name: "search_button"
-    selector: "//div[contains(@class,'search-form')]//button[contains(@class,'el-button--primary') and .//text()='搜索']"
-    selector_type: XPATH_RELATIVE
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_loading_gone
-    locator_notes: "搜索按钮"
-    risk_level: low
-    risk_reason: "触发刷新，wait_loading_gone确保数据加载"
+### 页面URL: `/sales/contract`
 
-  - name: "reset_button"
-    selector: "//div[contains(@class,'search-form')]//button[contains(text(),'重置')]"
-    selector_type: XPATH_RELATIVE
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "重置搜索条件按钮"
-    risk_level: low
-    risk_reason: "重置不触发额外加载，wait_vue_stable足够"
+### 页面整体结构
 
-  - name: "contract_table"
-    selector: ".el-table"
-    selector_type: CSS_SELECTOR
-    element_type: table
-    el_component: el-table
-    interaction: wait
-    wait_strategy: wait_loading_gone
-    locator_notes: "合同列表示例，包含8列表头"
-    risk_level: medium
-    risk_reason: "表格动态加载，需等待数据就绪"
+页面采用典型后台布局：顶部为全局导航栏，左侧为模块菜单，主内容区为合同管理页面。主内容区从上到下依次为：
+1.  **搜索/筛选区**：位于页面顶部，包含输入框、下拉选择框、日期范围选择器和操作按钮。
+2.  **操作/统计区**：位于搜索区下方，包含“新建合同”按钮和“导出”按钮等。
+3.  **表格/列表区**：位于页面中部，展示合同数据列表。
+4.  **分页区**：位于表格下方，用于控制数据分页显示。
 
-  - name: "add_contract_button"
-    selector: "//button[contains(@class,'el-button--primary') and .//text()='新增合同']"
-    selector_type: XPATH_RELATIVE
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "顶部新增合同按钮"
-    risk_level: low
-    risk_reason: "权限控制可能隐藏，但UI简单"
+### 搜索/筛选区元素清单
 
-  - name: "edit_button_in_row"
-    selector: "//div[contains(@class,'el-table__row')]//button[contains(@class,'edit-button')]"
-    selector_type: XPATH_RELATIVE
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "表格行内编辑按钮（需识别具体行）"
-    risk_level: medium
-    risk_reason: "依赖表格动态行，建议通过索引定位"
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+|:---|:---|:---|:---|:---|
+| `search_contract_no` | 合同编号 | `el-input` | 搜索区 | 文本输入框 |
+| `search_contract_name` | 合同名称 | `el-input` | 搜索区 | 文本输入框 |
+| `search_customer_name` | 客户名称 | `el-input` | 搜索区 | 文本输入框 |
+| `search_status` | 合同状态 | `el-select` | 搜索区 | 下拉选择框，选项: 待签署/执行中/已完成/已终止 |
+| `search_create_date` | 创建日期 | `el-date-picker` | 搜索区 | 日期范围选择器 |
+| `search_btn` | 搜索 | `el-button` | 搜索区 | 触发列表查询 |
+| `reset_btn` | 重置 | `el-button` | 搜索区 | 重置所有搜索条件 |
 
-  - name: "delete_button_in_row"
-    selector: "//div[contains(@class,'el-table__row')]//button[contains(@class,'delete-button')]"
-    selector_type: XPATH_RELATIVE
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "表格行内删除按钮"
-    risk_level: medium
-    risk_reason: "删除可能触发确认弹窗"
+### 表格/列表区元素清单
 
-  - name: "detail_button_in_row"
-    selector: "//div[contains(@class,'el-table__row')]//button[contains(@class,'detail-button')]"
-    selector_type: XPATH_RELATIVE
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "查看详情按钮"
-    risk_level: low
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+|:---|:---|:---|:---|:---|
+| `table` | 合同列表 | `el-table` | 表格区 | 展示合同数据 |
+| `col_contract_no` | 合同编号（列） | `el-table-column` | 表格表头 | 文本类型 |
+| `col_contract_name` | 合同名称（列） | `el-table-column` | 表格表头 | 文本类型 |
+| `col_customer_name` | 客户名称（列） | `el-table-column` | 表格表头 | 文本类型 |
+| `col_total_amount` | 合同金额（列） | `el-table-column` | 表格表头 | 数字类型，带货币单位 |
+| `col_status` | 状态（列） | `el-table-column` | 表格表头 | 标签类型，使用`el-tag`展示不同状态 |
+| `col_create_date` | 创建日期（列） | `el-table-column` | 表格表头 | 日期类型 |
+| `col_action` | 操作（列） | `el-table-column` | 表格表头 | 操作按钮组 |
+| `action_view` | 查看 (行) | `el-button` (link) | 表格操作列 | 查看合同详情 |
+| `action_edit` | 编辑 (行) | `el-button` (link) | 表格操作列 | 编辑合同信息 |
+| `action_delete` | 删除 (行) | `el-button` (link) | 表格操作列 | 删除合同 |
+| `create_contract_btn` | 新建合同 | `el-button` (primary) | 操作区 | 新建合同，弹出创建弹窗 |
+| `export_contract_btn` | 导出 | `el-button` | 操作区 | 导出合同列表为Excel |
 
-  - name: "approve_button_in_row"
-    selector: "//div[contains(@class,'el-table__row')]//button[contains(@class,'approve-button')]"
-    selector_type: XPATH_RELATIVE
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: "审批按钮（仅针对指定状态）"
-    risk_level: medium
-    risk_reason: "状态限制，可能导致按钮不可用"
+### 分页区元素清单
 
-  - name: "pagination"
-    selector: ".el-pagination"
-    selector_type: CSS_SELECTOR
-    element_type: pagination
-    el_component: el-pagination
-    interaction: click
-    wait_strategy: wait_loading_gone
-    locator_notes: "底部分页器"
-    risk_level: low
-    risk_reason: "标准分页组件"
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+|:---|:---|:---|:---|:---|
+| `pagination` | 分页组件 | `el-pagination` | 分页区 | 位于表格底部 |
+| `pagination_total` | 总条数 | `el-pagination` 文本 | 分页区 | 显示"共 x 条" |
+| `page_size_selector` | 每页条数选择器 | `el-pagination__sizes` | 分页区 | 选项: 20/50/100 |
 
-  - name: "contract_dialog"
-    selector: ".el-dialog"
-    selector_type: CSS_SELECTOR
-    element_type: dialog
-    el_component: el-dialog
-    interaction: wait
-    wait_strategy: wait_loading_gone
-    locator_notes: "新增/编辑合同弹窗"
-    risk_level: medium
-   
+### 弹窗/对话框元素清单
+
+| 元素ID | 元素描述 | 控件类型 | 所在区域 | 备注 |
+|:---|:---|:---|:---|:---|
+| `create_dialog` | 新建合同弹窗 | `el-dialog` | 弹窗 | 弹窗标题为 "新建合同" |
+| `form_contract_no` | 合同编号 (表单) | `el-input` | 弹窗表单 | 必填、字符校验 |
+| `form_contract_name` | 合同名称 (表单) | `el-input` | 弹窗表单 | 必填 |
+| `form_customer_name` | 客户名称 (表单) | `el-select` | 弹窗表单 | 必填、支持搜索选择 |
+| `form_total_amount` | 合同金额 (表单) | `el-input-number` | 弹窗表单 | 必填、数字校验 |
+| `form_detail` | 合同详情 (表单) | `el-input` (textarea) | 弹窗表单 | 文本域，可选 |
+| `dialog_save_btn` | 保存 | `el-button` (primary) | 弹窗底部 | 保存合同数据 |
+| `dialog_cancel_btn` | 取消 | `el-button` | 弹窗底部 | 关闭弹窗，不保存 |
+
+### 页面状态说明
+- **加载中**：表格区域显示 `v-loading` 骨架屏效果。
+- **空数据**：表格区域显示 `el-empty` 组件，提示"暂无数据"。
+- **错误状态**：若接口错误，页面顶部出现 `el-message` 错误提示，内容为"获取合同列表失败"。
+
+### 权限点
+- **`action_delete`**：删除按钮可能受权限控制，无权限时不显示或置灰。
+- **`create_contract_btn`**：新建按钮可能受权限控制。
+- **`export_contract_btn`**：导出按钮可能受权限控制。
+
+---
+
+## PAGE_ELEMENT_POSITION.md
+
+### 搜索/筛选区定位器
+
+| 元素ID | 定位策略 (A/B/C) | 定位值 | 稳定性评级 | 备用方案 |
+|:---|:---|:---|:---|:---|
+| `search_contract_no` | A | `//input[@placeholder='合同编号']` | A | `XPath: //form[@data-testid='search-form']//input[@placeholder='请输入']` |
+| `search_contract_name` | A | `//input[@placeholder='合同名称']` | A | `XPath: //form[@data-testid='search-form']//input[@placeholder='请输入']` |
+| `search_customer_name` | A | `//input[@placeholder='客户名称']` | A | `XPath: //form[@data-testid='search-form']//input[@placeholder='请输入']` |
+| `search_status` | B | `.search-area .el-select__wrapper` | B | `XPath: (//div[contains(@class,'el-select')])[1]` |
+| `search_create_date` | B | `.search-area .el-date-editor` | B | `XPath: //form[@data-testid='search-form']//div[contains(@class, 'el-date-editor')]` |
+| `search_btn` | A | `//button[span[contains(text(),'搜索')]]` | A | `CSS: .el-button--primary` (如果有多个primary按钮，不推荐) |
+| `reset_btn` | A | `//button[span[contains(text(),'重置')]]` | A | `CSS: .el-button--default` |
+
+### 表格/操作区定位器
+
+| 元素ID | 定位策略 (A/B/C) | 定位值 | 稳定性评级 | 备用方案 |
+|:---|:---|:---|:---|:---|
+| `table` | B | `.el-table` | B | `XPath: //div[@data-testid='contract-table']` |
+| `action_view` (行) | C | `(//span[text()='查看'])[1]` (作用于第一行) | C | `B: .el-table__body-wrapper tr:first-child .el-link--primary` |
+| `action_edit` (行) | C | `(//span[text()='编辑'])[1]` | C | `B: .el-table__body-wrapper tr:first-child .el-link--default` |
+| `action_delete` (行) | C | `(//span[text()='删除'])[1]` | C | `B: .el-table__body-wrapper tr:first-child .el-button--danger` |
+| `create_contract_btn` | A | `//button[span[text()='新建合同']]` | A | `CSS: .el-button--primary` |
+| `export_contract_btn` | A | `//button[span[text()='导出']]` | A | `CSS: .el-button--default` |
+
+### 弹窗定位器
+
+| 元素ID | 定位策略 (A/B/C) | 定位值 | 稳定性评级 | 备用方案 |
+|:---|:---|:---|:---|:---|
+| `create_dialog` | B | `div[role='dialog']` (可见时) | B | `XPath: //div[@aria-label='新建合同']` |
+| `form_contract_no` | A | `//form[@data-testid='contract-form']//input[@placeholder='请输入合同编号']` | A | `XPath: (//div[@role='dialog']//input)[1]` |
+| `form_contract_name` | A | `//form[@data-testid='contract-form']//input[@placeholder='请输入合同名称']` | A | `XPath: (//div[@role='dialog']//input)[2]` |
+| `form_customer_name` | B | `(//div[@role='dialog']//div[contains(@class,'el-select')])[1]//input` | B | `XPath: //div[@role='dialog']//label[text()='客户名称']/..//input` |
+| `form_total_amount` | A | `//input[@placeholder='请输入合同金额']` | A | `XPath: (//div[@role='dialog']//input[@type='number'])[1]` |
+| `form_detail` | B | `(//div[@role='dialog']//textarea)[1]` | B | `XPath: //div[@role='dialog']//label[text()='合同详情']/..//textarea` |
+| `dialog_save_btn` | A | `(//div[@role='dialog']//button[span[text()='保 存']])[1]` | A | `B: div[role='dialog'] .el-button--primary` |
+| `dialog_cancel_btn` | A | `(//div[@role='dialog']//button[span[text()='取 消']])[1]` | A | `B: div[role='dialog'] .el-button--default` |
+
+### WebDriverWait 等待策略
+
+| 场景 | 等待条件 | 超时时间 | 说明 |
+|:---|:---|:---|:---|
+| 页面加载 | `presence_of_element_located` 表格 | 10s | 等待表格元素出现在DOM中 |
+| 搜索后刷新 | `staleness_of` + `presence_of_element_located` | 10s | 等待旧表格行消失，新数据加载 |
+| 弹窗打开 | `visibility_of_element_located` (弹窗) | 5s | 等待弹窗动画完全可见 |
+| 确认弹窗关闭 | `invisibility_of_element_located` (弹窗) | 5s | 等待弹窗消失 |
+| Toast消息 | `visibility_of_element_located` (Toast) | 5s | 等待操作结果提示出现 |
+| 下拉框选项出现 | `visibility_of_element_located` (选项列表) | 5s | 等待 `el-select-dropdown__list` 出现 |
+| 表格数据加载 | `invisibility_of_element_located` (loading图标) | 10s | 等待 `el-loading-mask` 消失 |

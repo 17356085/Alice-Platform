@@ -4,7 +4,7 @@ import yaml
 from aitest.mcp.config import KNOWN_ISSUES
 from aitest.mcp.error_taxonomy import ErrorCode, error_response
 from aitest.mcp.sampling import request_llm_sync
-from aitest.rag_engine import search_known_issues as rag_search_known_issues_raw
+from aitest.knowledge.rag_engine import search_known_issues as rag_search_known_issues_raw
 
 
 def search_known_issues(query: str = "", category: str = "", component: str = "",

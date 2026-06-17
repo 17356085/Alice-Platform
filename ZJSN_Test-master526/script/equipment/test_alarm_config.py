@@ -6,6 +6,7 @@
   P2+ - 增删改弹窗交互 (暂跳过: filterable el-select is_displayed 坑)
   API - 直调后端接口验证 CRUD (不依赖 UI 弹窗)
 """
+import time
 import logging
 import os
 import sys
@@ -22,6 +23,7 @@ from data.alarm_config_data import (
     SEARCH_KEYWORD_NOT_FOUND,
 )
 from config import BASE_URL, DEFAULT_USERNAME, DEFAULT_PASSWORD
+from base.cleanup_tracker import get_cleanup_tracker
 
 logger = logging.getLogger(__name__)
 
@@ -205,46 +207,296 @@ class TestAlarmSearch:
 
 
 # ==================================================================
-#  P2 - 弹窗交互测试 (暂跳过: filterable el-select is_displayed bug)
-#  Element Plus 2.x teleport + Selenium is_displayed 不兼容
-#  导致 _dialog_select_option 无法选中选项
-#  替换方案: 直接调用后端 API (test_ac_api_xxx)
+#  P2 - 弹窗交互测试 (teleport-safe el-select)
+#  使用 AlarmConfigPage._select_dialog_option (WebDriverWait + JS click)
+#  解决 Element Plus 2.x teleport + Selenium is_displayed 不兼容
 # ==================================================================
-@pytest.mark.skip(reason="[ALARM-KNOWN] is_displayed() 对teleport元素失效")
 class TestAlarmAdd:
-    def test_ac_09_add_required_only(self, driver_setup): pass
-    def test_ac_10_add_all_fields(self, driver_setup): pass
-    def test_ac_11_add_cancel(self, driver_setup): pass
+    """新增报警规则 — 弹窗填表+保存"""
+
+    CREATED_ALARM_NAME = None
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("新增报警规则")
+    @allure.severity(allure.severity_level.CRITICAL)
+    def test_ac_09_add_required_only(self, driver_setup):
+        """AC-09: 新增报警规则 — 仅必填字段"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-09", "新增报警规则-仅必填字段")
+        ts = str(int(time.time()))[-6:]
+        name = f"autotest_req_{ts}"
+
+        before_count = page.get_table_row_count()
+
+        step("打开新增弹窗并填写必填字段")
+        page.click_add_config()
+        page.fill_alarm_name(name)
+        page.select_alarm_type("设备报警")
+        page.select_alarm_level("一般")
+
+        step("保存")
+        page.click_dialog_confirm()
+
+        step("搜索验证新增成功")
+        page.search_keyword(name)
+        page.click_search()
+        after_count = page.get_table_row_count()
+        assert after_count >= 1, ea(f"搜索'{name}'有结果", f"{after_count}行")
+        logger.info("新增成功: %s (前%d → 后%d)", name, before_count, after_count)
+
+        TestAlarmAdd.CREATED_ALARM_NAME = name
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("新增报警规则")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_ac_10_add_all_fields(self, driver_setup):
+        """AC-10: 新增报警规则 — 填写全部字段"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-10", "新增报警规则-全字段")
+        ts = str(int(time.time()))[-6:]
+        name = f"autotest_all_{ts}"
+
+        step("打开新增弹窗填写全字段")
+        page.click_add_config()
+        page.fill_alarm_name(name)
+        page.select_alarm_type("设备报警")
+        page.select_alarm_level("紧急")
+
+        step("保存并验证")
+        page.click_dialog_confirm()
+        page.search_keyword(name)
+        page.click_search()
+        assert page.get_table_row_count() >= 1, ea(f"搜索'{name}'有结果", "无结果")
+
+        # 清理: 删除刚创建的记录
+        try:
+            page.click_row_delete(0)
+            page.confirm_message_box()
+        except Exception as e:
+            logger.warning("清理失败: %s", e)
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("新增报警规则")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_ac_11_add_cancel(self, driver_setup):
+        """AC-11: 新增报警规则 — 取消操作"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-11", "新增报警规则-取消")
+        ts = str(int(time.time()))[-6:]
+        name = f"autotest_cancel_{ts}"
+
+        before_count = page.get_table_row_count()
+
+        step("打开弹窗填写后取消")
+        page.click_add_config()
+        page.fill_alarm_name(name)
+        page.select_alarm_type("设备报警")
+        page.click_dialog_cancel()
+
+        step("验证数据未入库")
+        page.search_keyword(name)
+        page.click_search()
+        assert page.is_table_empty() or page.get_table_row_count() == 0, \
+            ea(f"取消后'{name}'不存在", "存在")
 
 
-@pytest.mark.skip(reason="[ALARM-KNOWN] 弹窗el-select交互问题")
 class TestAlarmEdit:
-    def test_ac_12_edit_rule(self, driver_setup): pass
+    """编辑报警规则"""
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("编辑报警规则")
+    @allure.severity(allure.severity_level.CRITICAL)
+    def test_ac_12_edit_rule(self, driver_setup):
+        """AC-12: 编辑报警规则 — 打开编辑弹窗并修改"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-12", "编辑报警规则")
+
+        # 使用 ac_09 创建的记录
+        name = TestAlarmAdd.CREATED_ALARM_NAME
+        if not name:
+            pytest.skip("无新增记录，跳过编辑测试")
+
+        step("搜索并编辑")
+        page.search_keyword(name)
+        page.click_search()
+        if page.get_table_row_count() == 0:
+            pytest.skip(f"未找到记录: {name}")
+
+        page.click_row_edit(0)
+
+        step("修改报警名称")
+        new_name = f"{name}_edit"
+        page.fill_alarm_name(new_name)
+        page.click_dialog_confirm()
+
+        step("验证编辑成功")
+        page.search_keyword(new_name)
+        page.click_search()
+        assert page.get_table_row_count() >= 1, ea(f"编辑后'{new_name}'存在", "无结果")
+
+        TestAlarmAdd.CREATED_ALARM_NAME = new_name
 
 
-@pytest.mark.skip(reason="[ALARM-KNOWN] 弹窗el-select交互问题")
 class TestAlarmDelete:
-    def test_ac_13_delete_confirm(self, driver_setup): pass
+    """删除报警规则"""
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("删除报警规则")
+    @allure.severity(allure.severity_level.CRITICAL)
+    def test_ac_13_delete_confirm(self, driver_setup):
+        """AC-13: 删除报警规则 — 确认删除"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-13", "删除报警规则")
+
+        name = TestAlarmAdd.CREATED_ALARM_NAME
+        if not name:
+            pytest.skip("无新增记录，跳过删除测试")
+
+        step("搜索并删除")
+        page.search_keyword(name)
+        page.click_search()
+        if page.get_table_row_count() == 0:
+            pytest.skip(f"未找到记录: {name}")
+
+        before_count = page.get_table_row_count()
+
+        try:
+            page.click_row_delete(0)
+            page.confirm_message_box()
+            page.wait_vue_stable()
+        except Exception as e:
+            logger.warning("删除失败，注册清理: %s — %s", name, e)
+            tracker = get_cleanup_tracker()
+            tracker.register_entity("alarm_config", name)
+            pytest.fail(f"删除报警规则失败: {e}")
+
+        step("验证已删除")
+        page.search_keyword(name)
+        page.click_search()
+        after_count = page.get_table_row_count()
+        assert after_count < before_count, \
+            ea(f"删除后'{name}'消失", f"仍存在({after_count}行)")
+        logger.info("删除成功: %s", name)
 
 
-@pytest.mark.skip(reason="[ALARM-KNOWN] 弹窗el-select交互问题")
 class TestAlarmDetail:
-    def test_ac_14_view_detail(self, driver_setup): pass
+    """查看报警详情"""
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("查看报警详情")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_ac_14_view_detail(self, driver_setup):
+        """AC-14: 查看报警详情 — 点击查看按钮打开详情弹窗"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-14", "查看报警详情")
+
+        if page.get_table_row_count() == 0:
+            pytest.skip("表格无数据行，跳过查看测试")
+
+        page.click_row_view(0)
+        assert page.is_dialog_visible(), "详情弹窗应可见"
+        page.click_dialog_cancel()
 
 
-@pytest.mark.skip(reason="[ALARM-KNOWN] 弹窗el-select交互问题")
 class TestAlarmStatusToggle:
-    def test_ac_15_toggle_status(self, driver_setup): pass
+    """启停用状态切换"""
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("启停用状态切换")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_ac_15_toggle_status(self, driver_setup):
+        """AC-15: 切换报警规则启停用状态"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-15", "切换启停用状态")
+
+        if page.get_table_row_count() == 0:
+            pytest.skip("表格无数据行，跳过状态切换测试")
+
+        step("点击状态开关")
+        page.click_status_toggle(0)
+        page.wait_for_toast_text()
+        logger.info("状态切换完成")
 
 
-@pytest.mark.skip(reason="[ALARM-KNOWN] 弹窗el-select交互问题")
 class TestAlarmBoundary:
-    def test_ac_16_threshold_equal(self, driver_setup): pass
+    """边界值测试"""
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("边界值测试")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_ac_16_threshold_equal(self, driver_setup):
+        """AC-16: 阈值上下限相等 — 应能保存或给出提示"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-16", "阈值上下限相等")
+        ts = str(int(time.time()))[-6:]
+        name = f"autotest_eq_{ts}"
+
+        page.click_add_config()
+        page.fill_alarm_name(name)
+        page.select_alarm_type("设备报警")
+        page.select_alarm_level("一般")
+        page.click_dialog_confirm()
+
+        # 搜索验证（边界值允许保存则应有记录，不允许则应有校验提示）
+        page.search_keyword(name)
+        page.click_search()
+        logger.info("阈值相等测试: 搜索结果=%d行", page.get_table_row_count())
 
 
-@pytest.mark.skip(reason="[ALARM-KNOWN] 弹窗el-select交互问题")
 class TestAlarmDupSubmit:
-    def test_ac_17_double_click_save(self, driver_setup): pass
+    """重复提交防护"""
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("重复提交防护")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_ac_17_double_click_save(self, driver_setup):
+        """AC-17: 双击保存 — 不应创建重复记录"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-17", "双击保存防重复")
+        ts = str(int(time.time()))[-6:]
+        name = f"autotest_dbl_{ts}"
+
+        before_count = page.get_table_row_count()
+
+        page.click_add_config()
+        page.fill_alarm_name(name)
+        page.select_alarm_type("设备报警")
+        page.select_alarm_level("一般")
+
+        # 快速双击保存
+        page.click(page.DIALOG_SAVE_BTN)
+        page.wait_vue_stable()
+        try:
+            page.click(page.DIALOG_SAVE_BTN)
+            page.wait_vue_stable()
+        except Exception:
+            pass  # 弹窗已关闭则正常
+
+        page.wait_dialog_close()
+        page.search_keyword(name)
+        page.click_search()
+        after_count = page.get_table_row_count()
+
+        # 不应创建超过1条
+        assert after_count <= before_count + 1, \
+            ea("双击保存不创建重复记录", f"前{before_count}→后{after_count}")
+
+        # 清理
+        if after_count > before_count:
+            try:
+                page.click_row_delete(0)
+                page.confirm_message_box()
+            except Exception as e:
+                logger.warning("清理删除失败: %s", e)
 
 
 # ==================================================================

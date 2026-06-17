@@ -164,3 +164,8 @@ class TestAlarmConfig:
 
 ### 产出物
 → `script/<module>/conftest.py`
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | automation | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

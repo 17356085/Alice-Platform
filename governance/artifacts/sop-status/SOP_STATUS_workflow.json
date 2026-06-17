@@ -2,19 +2,39 @@
   "module": "workflow",
   "status": "completed",
   "completed_phases": [
-    "Project Init",
-    "Requirement",
-    "Test Design",
     "Automation",
     "Bug Analysis",
-    "Report"
+    "Data Sanitization",
+    "Execute & Debug",
+    "Knowledge",
+    "Project Init",
+    "Report",
+    "Requirement",
+    "Test Design"
   ],
   "failed_phases": [],
-  "pages_processed": [],
-  "run_id": "",
-  "updated_at": "2026-06-15",
+  "pages_processed": [
+    "approval-chain",
+    "approval-history",
+    "approval-todo",
+    "my-application",
+    "sap-push-log"
+  ],
+  "artifact_count": 20,
+  "run_id": "sop-workflow-batch3",
+  "updated_at": "2026-06-17",
   "engine": "langgraph",
-  "extracted_from": "system-module",
+  "note": "SOP batch 3 — 175 artifacts regenerated from business requirements",
+  "execution_results": {
+    "date": "2026-06-16",
+    "full_suite": "828 collected | 361P/345F/90S/29E/3X | 760 rerun | 8h12m",
+    "module_specific": {
+      "exec": "completed",
+      "tests": "5 files, workflow-e2e 4P/0F/0S",
+      "note": "sap-push-log偶发click intercepted"
+    }
+  },
+  "next_steps": [],
   "sub_pages": {
     "approval-chain": {
       "status": "completed",
@@ -78,7 +98,9 @@
         "test_script": "script/workflow/test_sap_push_log.py (6 cases)"
       },
       "test_results": "4P/2F/0S (2026-06-12 — 全量回归偶发 click intercepted)",
-      "known_issues": ["element click intercepted 全量回归高发 (RM-WF-019)"]
+      "known_issues": [
+        "element click intercepted 全量回归高发 (RM-WF-019)"
+      ]
     },
     "workflow-e2e": {
       "status": "completed",
@@ -90,9 +112,12 @@
       "notes": "双浏览器: warehouse提交 → workflow审批 → 状态验证"
     }
   },
-  "governance_docs": {
-    "MODULE_CONTEXT": "governance/context/projects/web-automation/modules/workflow/MODULE_CONTEXT.md",
-    "RISK_MODEL": "governance/context/projects/web-automation/modules/workflow/RISK_MODEL.md",
-    "TEST_DESIGN": "governance/context/projects/web-automation/modules/workflow/TEST_DESIGN.md"
-  }
+  "restored_from_backup": "2026-06-17",
+  "restored_keys": [
+    "completed_phases",
+    "pages_processed",
+    "run_id",
+    "extracted_from",
+    "governance_docs"
+  ]
 }

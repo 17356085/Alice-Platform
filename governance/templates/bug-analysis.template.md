@@ -77,3 +77,10 @@
 - 回归范围：所有含搜索功能的用例
 - 风险提示：前端修复后兜底逻辑可保留
 ```
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: template-meta -->
+> last_verified: 2026-06-17 16:53 | sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: template-meta -->

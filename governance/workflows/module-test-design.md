@@ -42,3 +42,15 @@
 | 4. 标注自动化建议 | `TEST_CASES.md` | 每个用例标注 ✅🔄❌ 自动化状态 |
 
 **执行方式**：调用 `context-sync` Skill。
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: workflow-check -->
+## Dependency Check (2026-06-17 16:53)
+
+- [OK] No deprecated skill references
+- [OK] Validated 2026-06-17 16:53
+
+> sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: workflow-check -->

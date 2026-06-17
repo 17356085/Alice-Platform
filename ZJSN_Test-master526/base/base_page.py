@@ -876,11 +876,23 @@ class BasePage:
         """)
 
     def get_total_count(self):
-        """获取分页总数"""
+        """获取分页总数 (CSS 优先, JS 兜底 Element Plus 2.x)"""
         try:
             text = self.get_text(self.TOTAL_COUNT, timeout=3)
-            return int(''.join(filter(str.isdigit, text)))
+            if text:
+                return int(''.join(filter(str.isdigit, text)))
         except (ValueError, TypeError, TimeoutException):
+            pass
+        # JS 兜底: 从 .el-pagination textContent 提取第一个数字
+        try:
+            result = self.driver.execute_script("""
+                var pag = document.querySelector('.el-pagination');
+                if (!pag) return '0';
+                var nums = pag.textContent.match(/\\d+/g);
+                return nums ? nums[nums.length - 1] : '0';
+            """)
+            return int(result)
+        except (ValueError, TypeError):
             return 0
 
     def click_next_page(self):
@@ -1068,3 +1080,157 @@ class BasePage:
             """, locator[1])
         except Exception as e:
             return f'js_error: {e}'
+
+    # ==================================================================
+    #  JS 表单交互助手 — 解决 Element Plus teleport + xpath 编码问题
+    # ==================================================================
+
+    def js_fill_by_placeholder(self, placeholder_contains: str, value: str) -> bool:
+        """按 placeholder 填输入框 — JS 直接注入，绕过 xpath 中文编码 + teleport。
+
+        遍历所有未隐藏的 input，匹配 placeholder 包含指定文本的字段，
+        清空后填入 value，派发 input + change 事件（触发 Vue 数据绑定）。
+
+        Args:
+            placeholder_contains: placeholder 部分文本（如 "物品名称" 匹配 "请输入物品名称"）
+            value: 要填入的值
+
+        Returns:
+            True 如果找到并填写成功，False 如果未找到匹配输入框
+        """
+        script = """
+            var ph = arguments[0], val = arguments[1];
+            var inputs = document.querySelectorAll('input:not([type="hidden"])');
+            var dialogs = document.querySelectorAll('.el-dialog');
+            // 优先搜索弹窗内的输入框
+            var candidates = [];
+            for (var d = 0; d < dialogs.length; d++) {
+                if (dialogs[d].offsetParent === null) continue;
+                var dInputs = dialogs[d].querySelectorAll('input:not([type="hidden"])');
+                for (var i = 0; i < dInputs.length; i++) { candidates.push(dInputs[i]); }
+            }
+            // 弹窗内没找到则搜索全局
+            if (candidates.length === 0) {
+                for (var i = 0; i < inputs.length; i++) {
+                    if (inputs[i].offsetParent !== null) candidates.push(inputs[i]);
+                }
+            }
+            for (var j = 0; j < candidates.length; j++) {
+                var p = candidates[j].getAttribute('placeholder') || '';
+                if (p.indexOf(ph) >= 0) {
+                    candidates[j].focus();
+                    candidates[j].value = '';
+                    candidates[j].value = val;
+                    candidates[j].dispatchEvent(new Event('input', {bubbles: true}));
+                    candidates[j].dispatchEvent(new Event('change', {bubbles: true}));
+                    return p;
+                }
+            }
+            return '';
+        """
+        result = self.driver.execute_script(script, placeholder_contains, value)
+        self.wait_vue_stable()
+        if not result:
+            logger.warning("js_fill_by_placeholder: 未找到 placeholder 包含 '%s' 的输入框", placeholder_contains)
+            return False
+        logger.debug("js_fill_by_placeholder: '%s' → '%s'", placeholder_contains, value)
+        return True
+
+    def js_select_teleport_option(self, label: str, option_text: str) -> bool:
+        """Element Plus teleport el-select 下拉选择 — JS 绕过 Selenium is_displayed() 缺陷。
+
+        Element Plus 2.x 将 el-select 下拉列表 teleport 到 <body> 下，
+        Selenium is_displayed() 对 teleport 元素返回 False。
+        此方法用 JS 直接操作：找到弹窗内 label → 点击展开 → 在 body 下找选项并点击。
+
+        Args:
+            label: 表单项 label 文本（如 "报警类型"、"物品类型"）
+            option_text: 下拉选项文本（如 "设备报警"、"一般"）
+
+        Returns:
+            True 如果成功选择，False 如果失败
+        """
+        script = """
+            var label = arguments[0], option = arguments[1];
+            // Step 1: 找到弹窗内对应 label 的 el-select 容器并点击展开
+            var dlgs = document.querySelectorAll('.el-dialog');
+            var clicked = false;
+            for (var i = 0; i < dlgs.length; i++) {
+                if (dlgs[i].offsetParent === null) continue;
+                var labels = dlgs[i].querySelectorAll('label');
+                for (var j = 0; j < labels.length; j++) {
+                    if (labels[j].textContent.indexOf(label) >= 0) {
+                        // 找到 label 的父级 el-form-item，在其中找 el-select
+                        var formItem = labels[j].closest('.el-form-item');
+                        if (!formItem) formItem = labels[j].parentElement;
+                        var select = formItem.querySelector('.el-select');
+                        if (select) {
+                            select.click();
+                            clicked = true;
+                            break;
+                        }
+                    }
+                }
+                if (clicked) break;
+            }
+            if (!clicked) return 'no_select_found';
+            // Step 2: 等下拉列表渲染后，在 body 下找到匹配选项并点击
+            return new Promise(function(resolve) {
+                setTimeout(function() {
+                    var items = document.querySelectorAll(
+                        '.el-select-dropdown:not([style*="display: none"]) .el-select-dropdown__item'
+                    );
+                    for (var k = 0; k < items.length; k++) {
+                        if (items[k].textContent.indexOf(option) >= 0) {
+                            items[k].click();
+                            resolve('selected:' + items[k].textContent.trim());
+                            return;
+                        }
+                    }
+                    resolve('option_not_found');
+                }, 300);
+            });
+        """
+        try:
+            result = self.driver.execute_script(script, label, option_text)
+            self.wait_vue_stable()
+            if result and 'selected' in str(result):
+                logger.debug("js_select_teleport_option: '%s' → '%s'", label, option_text)
+                return True
+            logger.warning("js_select_teleport_option: '%s' → '%s' 失败: %s",
+                           label, option_text, result)
+            return False
+        except Exception as e:
+            logger.warning("js_select_teleport_option: 异常: %s", e)
+            return False
+
+    def js_click_button_in_dialog(self, button_text: str) -> bool:
+        """在可见弹窗内查找并点击指定文本的按钮（JS 方式）。
+
+        用于替代 DIALOG_SAVE/DIALOG_CANCEL 在特殊场景下失效的情况。
+
+        Args:
+            button_text: 按钮文本（如 "确定"、"取消"、"保存"）
+
+        Returns:
+            True 如果成功点击
+        """
+        script = """
+            var text = arguments[0];
+            var dlgs = document.querySelectorAll('.el-dialog');
+            for (var i = 0; i < dlgs.length; i++) {
+                if (dlgs[i].offsetParent === null) continue;
+                var btns = dlgs[i].querySelectorAll('button');
+                for (var j = 0; j < btns.length; j++) {
+                    if (btns[j].textContent.indexOf(text) >= 0 &&
+                        btns[j].offsetParent !== null) {
+                        btns[j].click();
+                        return 'clicked:' + btns[j].textContent.trim();
+                    }
+                }
+            }
+            return 'not_found';
+        """
+        result = self.driver.execute_script(script, button_text)
+        self.wait_vue_stable()
+        return 'clicked' in str(result)

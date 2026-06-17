@@ -63,3 +63,10 @@
 
 ## 结论
 - [ ] {{测试是否通过验收}}  <!-- 三选一：✅ 建议上线 / ⚠️ 有条件上线（需修复 Critical bug）/ ❌ 不建议上线 -->
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: template-meta -->
+> last_verified: 2026-06-17 16:53 | sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: template-meta -->

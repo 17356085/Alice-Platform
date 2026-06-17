@@ -1,0 +1,15 @@
+{
+  "id": "architectureriskdetected-e9543ffa",
+  "type": "ArchitectureRiskDetected",
+  "timestamp": 1781621170.318384,
+  "data": {
+    "module": "system",
+    "risk_type": "cross-review",
+    "severity": "critical",
+    "description": "Cross-review synthesis found 2 critical issues",
+    "recommendation": "Review synthesis report for prioritized action items"
+  },
+  "processed": false,
+  "processed_at": 0.0,
+  "result": ""
+}

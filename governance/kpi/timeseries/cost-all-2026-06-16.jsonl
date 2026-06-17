@@ -1,2 +1,0 @@
-{"timestamp": "2026-06-16T09:10:14.759183", "audit_type": "cost", "module": "all", "drift_count": 0, "error_count": 0, "warning_count": 0, "overall_status": "ok", "compliance_score": 1.0, "violation_count": 0, "total_cost": 0.182279, "alert_count": 0, "event_count": 7470}
-{"timestamp": "2026-06-16T16:08:14.560548", "audit_type": "cost", "module": "all", "drift_count": 0, "error_count": 0, "warning_count": 0, "overall_status": "ok", "compliance_score": 1.0, "violation_count": 0, "total_cost": 0.182279, "alert_count": 0, "event_count": 7470}

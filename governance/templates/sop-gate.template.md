@@ -31,3 +31,27 @@
 
 - **automation-agent fix 模式**: `mode=fix` 时无需 `--page` 参数，门禁检查模块级代码存在性
 - **knowledge-agent**: 横向贯穿 Agent，门禁较轻（仅验证 PROJECT_CONTEXT 存在）
+
+## 扩展检查 (可选 flag)
+
+| Flag | 检查内容 | 使用场景 |
+|------|---------|---------|
+| `--check-bu-imports` | BrowserUse: 验证 `browser_use` 依赖可导入 | BU embedding 前预检 |
+| `--check-bu-skills` | BrowserUse: 验证 3 个 BU Skill 定义文件存在 | BU Skill 注册完整性 |
+| `--check-pe-template` | Prompt Engineering: 所有 Skill prompt 遵循六段式模板 | Skill 质量审计 |
+| `--check-pe-reviewed` | Prompt Engineering: Skill 经过 PROMPT_REVIEW 评审 | 发布前检查 |
+| `--check-pe-optimized` | Prompt Engineering: Skill 经过 PE 优化 | 成本优化检查 |
+| `--check-progress-sync` | 检查 `progress-tracking.md` 与 SOP_STATUS 同步状态 | 报告生成前验证数据新鲜度 |
+
+示例:
+```
+python ZJSN_Test-master526/tools/check_sop_gate.py --check-progress-sync --json
+python ZJSN_Test-master526/tools/check_sop_gate.py --module tank --agent automation-agent --check-bu-imports --json
+```
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: template-meta -->
+> last_verified: 2026-06-17 16:53 | sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: template-meta -->

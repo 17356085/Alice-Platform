@@ -8,6 +8,7 @@
 |------|------|------|------|
 | 项目级共性 | context/projects/*/PROJECT_CONTEXT.md | PROJECT_CONTEXT*.md | 稳定事实 |
 | 模块级业务/测试事实 | context/projects/*/modules/*/ | 现有 contexts/<module>/ | 后续逐步对齐 |
+| 共享语言 | context/shared-language.md | 平台术语表 + 业务术语 + 歧义消除 | 所有 Agent 按需加载 |
 | 流程规则 | aitest/graphs/state.py (CANONICAL_PHASES) | 统一 Phase 名称 + 顺序 | 代码为唯一事实源，文档自动生成 |
 | Skill 定义 | skills/ + skill-registry.yaml | Prompt / 经验规则 | 沉淀高频能力 |
 | 模板规范 | templates/ | 模板库 / Prompt 库 | 统一输入输出 |

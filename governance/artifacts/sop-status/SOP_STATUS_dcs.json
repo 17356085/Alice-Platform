@@ -1,0 +1,87 @@
+{
+  "module": "dcs",
+  "status": "partial",
+  "completed_phases": [
+    "Project Init"
+  ],
+  "failed_phases": [],
+  "incomplete_phases": [
+    "Requirement",
+    "Test Design",
+    "Automation"
+  ],
+  "pages_processed": [
+    "all-data",
+    "common-data",
+    "monitor",
+    "point-config",
+    "upload-log"
+  ],
+  "sub_pages": {
+    "all-data": {
+      "status": "scaffold",
+      "route": "/dcs/all-data",
+      "has_page_context": false,
+      "has_risk_model": false,
+      "has_test_design": false,
+      "has_test_cases": false,
+      "has_tech_analysis": true,
+      "has_auto_strategy": true,
+      "has_po": true,
+      "has_test_script": true
+    },
+    "common-data": {
+      "status": "scaffold",
+      "route": "/dcs/common-data",
+      "has_page_context": false,
+      "has_risk_model": false,
+      "has_test_design": false,
+      "has_test_cases": false,
+      "has_tech_analysis": true,
+      "has_auto_strategy": true,
+      "has_po": true,
+      "has_test_script": true
+    },
+    "monitor": {
+      "status": "scaffold",
+      "route": "/dcs/monitor",
+      "has_page_context": false,
+      "has_risk_model": false,
+      "has_test_design": false,
+      "has_test_cases": false,
+      "has_tech_analysis": true,
+      "has_auto_strategy": true,
+      "has_po": true,
+      "has_test_script": true
+    },
+    "point-config": {
+      "status": "scaffold",
+      "route": "/dcs/point-config",
+      "has_page_context": false,
+      "has_risk_model": false,
+      "has_test_design": false,
+      "has_test_cases": false,
+      "has_tech_analysis": true,
+      "has_auto_strategy": true,
+      "has_po": true,
+      "has_test_script": true
+    },
+    "upload-log": {
+      "status": "scaffold",
+      "route": "/dcs/upload-log",
+      "has_page_context": false,
+      "has_risk_model": false,
+      "has_test_design": false,
+      "has_test_cases": false,
+      "has_tech_analysis": true,
+      "has_auto_strategy": true,
+      "has_po": true,
+      "has_test_script": true
+    }
+  },
+  "artifact_count": 11,
+  "run_id": "sop-dcs-inferred-20260617",
+  "updated_at": "2026-06-17",
+  "engine": "manual",
+  "note": "Inferred from existing governance artifacts (5 TECH_ANALYSIS + 5 AUTO_STRATEGY + 1 MODULE_CONTEXT). Needs PAGE_CONTEXT ×5, RISK_MODEL, TEST_DESIGN, TEST_CASES to reach Phase 2.5 complete."
+}

@@ -25,17 +25,38 @@ CONTEXT_MODULES = GOVERNANCE / "context" / "projects" / "web-automation" / "modu
 # 每个条目定义该 Skill 需要的上下文类型及如何获取
 
 SKILL_CONTEXT_MAP = {
+    # ── requirements (无-PRD 模式: 从代码反推) ──
+    "requirements/module-modeling": [
+        {"type": "file", "path": "{project_context_path}", "label": "项目上下文", "max_chars": 4000, "optional": True},
+        {"type": "file", "path": "{po_dir}", "label": "Page Object 目录列表（用于发现页面）", "max_chars": 3000, "optional": True},
+        {"type": "file", "path": "{test_dir}", "label": "测试脚本目录列表", "max_chars": 2000, "optional": True},
+        {"type": "rag", "collection": "project_context", "query": "{module} 模块结构"},
+    ],
+    "requirements/requirement-analysis": [
+        {"type": "file", "path": "{po_path}", "label": "Page Object 代码（真实DOM/定位器来源）", "max_chars": 8000},
+        {"type": "file", "path": "{test_path}", "label": "测试脚本（真实测试场景来源）", "max_chars": 6000},
+        {"type": "file", "path": "{module_dir}/MODULE_CONTEXT.md", "label": "模块上下文", "max_chars": 4000, "optional": True},
+        {"type": "rag", "collection": "project_context", "query": "Element Plus 定位规范 页面分析"},
+    ],
+
     # test-design
     "test-design/page-analysis": [
+        {"type": "file", "path": "{po_path}", "label": "Page Object 代码（真实定位器来源）", "max_chars": 6000},
+        {"type": "file", "path": "{module_dir}/pages/{page}/PAGE_CONTEXT.md", "label": "页面上下文（需求阶段产出）", "optional": True, "max_chars": 3000},
         {"type": "rag", "collection": "project_context", "query": "BasePage API 交互方法"},
         {"type": "rag", "collection": "project_context", "query": "Element Plus 定位规范"},
     ],
     "test-design/risk-modeling": [
+        {"type": "file", "path": "{po_path}", "label": "Page Object 代码", "max_chars": 4000, "optional": True},
+        {"type": "file", "path": "{module_dir}/pages/{page}/PAGE_CONTEXT.md", "label": "页面上下文", "optional": True, "max_chars": 3000},
         {"type": "rag", "collection": "known_issues", "query": "{module} 已知问题"},
         {"type": "rag", "collection": "project_context", "query": "Element Plus 坑位"},
     ],
     "test-design/testcase-design": [
-        {"type": "file", "path": "{module_dir}/pages/{page}/RISK_MODEL.md", "label": "风险模型"},
+        {"type": "file", "path": "{po_path}", "label": "Page Object 代码（真实方法/定位器）", "max_chars": 5000},
+        {"type": "file", "path": "{test_path}", "label": "现有测试脚本（场景参考）", "max_chars": 4000, "optional": True},
+        {"type": "file", "path": "{module_dir}/pages/{page}/PAGE_CONTEXT.md", "label": "页面上下文", "optional": True, "max_chars": 3000},
+        {"type": "file", "path": "{module_dir}/pages/{page}/RISK_MODEL.md", "label": "风险模型", "optional": True, "max_chars": 2000},
         {"type": "rag", "collection": "project_context", "query": "测试用例命名规范"},
     ],
 
@@ -258,10 +279,10 @@ class ContextInjector:
         self._rag_cache_misses += 1
 
         try:
-            from aitest.rag_engine import search_context
+            from aitest.knowledge.rag_engine import search_context
             results = search_context(query, collection, n_results=3)
         except Exception as e:
-            from aitest.error_logger import log_error
+            from aitest.infra.error_logger import log_error
             log_error("context_injector._inject_rag", "search_context", e, {"query": query[:100], "collection": collection})
             self._rag_cache[cache_key] = ""
             return ""

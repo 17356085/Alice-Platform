@@ -76,3 +76,8 @@ fix-1 → (无) → fix-2 → fix-3
 - 回归风险: ...
 ```
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | debug | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

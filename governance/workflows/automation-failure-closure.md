@@ -43,3 +43,15 @@
 | 4. 更新进度追踪 | `测试进度追踪.md` | 记录 Bug 数量、严重程度、修复状态 |
 
 **执行方式**：调用 `knowledge-extractor` Skill → 调用 `context-sync` Skill。
+
+
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: workflow-check -->
+## Dependency Check (2026-06-17 16:53)
+
+- [OK] No deprecated skill references
+- [OK] Validated 2026-06-17 16:53
+
+> sync_progress.py
+<!-- ⚠️ AUTO-GENERATED SECTION END: workflow-check -->

@@ -116,3 +116,8 @@ for fpath in Path("{{TARGET_DIR}}").rglob("*.py"):
             print(f"  ❌ {fpath.name}: {label}")
 ```
 ```
+<!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
+<!-- Source: skill-registry -->
+> **1.0** | active | backend | synced 2026-06-17 16:53
+
+<!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

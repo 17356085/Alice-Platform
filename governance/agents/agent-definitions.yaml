@@ -10,7 +10,16 @@
 # 运行 python -m aitest.check_agent_drift 检测派生文件是否过期。
 
 version: "2.0"
-last_updated: "2026-06-12"
+last_updated: "2026-06-17"
+
+# ═══════════════════════════════════════════════════════
+# 横向贯穿 Skill（所有 Agent 可用，不绑定特定 Agent）
+# ═══════════════════════════════════════════════════════
+cross_cutting_skills:
+  - id: productivity/caveman
+    description: 超压缩通信模式（~75% token 节省），三级强度 lite/full/ultra
+    trigger: 用户说 caveman/洞穴人/less tokens/be brief
+    note: 长会话（>10轮）或 token 预算紧张时建议开启 full 模式
 
 agents:
   # ═══════════════════════════════════════════════════════
@@ -41,6 +50,7 @@ agents:
       - 不生成自动化代码
       - 不分析 Bug
     context_files:
+      - shared-language
       - project-profile
       - base-api-reference
 
@@ -65,6 +75,7 @@ agents:
       - 不生成自动化代码
       - 不设计测试用例
     context_files:
+      - shared-language
       - project-profile
 
   # ═══════════════════════════════════════════════════════
@@ -74,32 +85,39 @@ agents:
     name: 测试设计 Agent
     category: test-design
     phase: "1~2.5"
-    description: 页面分析、风险建模、测试用例设计
-    system_prompt_role: 资深测试分析师 + 质量风险专家
+    description: 页面分析、风险建模、业务场景建模（P2-5）、测试用例设计（UI操作覆盖 + 业务场景覆盖双维度）
+    system_prompt_role: 资深测试分析师 + 质量风险专家 + 业务分析专家
     trigger_keywords:
       - 看看.*页面.*元素
+      - 探索.*页面
       - 设计测试用例
       - 风险建模
       - 测试设计
+      - 业务场景
     skills:
       - test-design/page-analysis       # P1-2: page-interface-generator 已合并为 page-analysis 的后处理
-      - test-design/risk-modeling
-      - test-design/testcase-design
+      - test-design/page-observe        # 🆕 BrowserUse 自动页面结构观察 (page-analysis 后处理)
+      - test-design/risk-modeling       # P2-5: 新增 BUSINESS_SCENARIOS.md 产出
+      - test-design/testcase-design     # P2-5: 新增第 9 维度（业务场景验证）
       - test-design/test-data-generation
       - test-design/api-testing
       - test-design/miniapp-testing
     output_artifacts:
       - PAGE_CONTEXT.md
+      - PAGE_STRUCTURE.json             # 🆕 page-observe 自动生成
       - RISK_MODEL.md
-      - TEST_DESIGN.md
-      - TEST_CASES.md
+      - BUSINESS_SCENARIOS.md           # P2-5: 业务场景模型（testcase-design 必选输入）
+      - TEST_DESIGN.md                  # P2-5: 需覆盖 9 个维度（含业务场景验证）
+      - TEST_CASES.md                   # P2-5: 需标注 BS-XXX-NNN 场景 ID 映射
       - PAGE_INTERFACE.yaml             # page-analysis 自动生成
     boundaries:
       - 不写代码
       - 不执行测试
       - 不分析 Bug
     context_files:
+      - shared-language
       - project-profile
+      - bu-adapter-api
 
   # ═══════════════════════════════════════════════════════
   # ④ Automation Agent — Phase 3~4
@@ -137,6 +155,7 @@ agents:
       - 不诊断失败根因
       - 不执行测试
     context_files:
+      - shared-language
       - base-api-reference
       - coding-standards
       - element-plus-pitfalls
@@ -168,6 +187,7 @@ agents:
       - 不分析失败原因
       - 不生成报告
     context_files:
+      - shared-language
       - test-data-policy
 
   # ═══════════════════════════════════════════════════════
@@ -192,10 +212,11 @@ agents:
       - 不修改代码
       - 不执行测试
     context_files:
+      - shared-language
       - element-plus-pitfalls
     modes:
       - single:
-          description: 分析单个失败用例
+          description: 分析单个失败用例，L1.0 构建反馈循环后进入 L1 深度分析
       - batch:
           description: 批量分类多个失败用例，区分可自动修复 vs 非代码问题
 
@@ -222,6 +243,7 @@ agents:
       - 不执行测试
       - 不分析 Bug
     context_files:
+      - shared-language
       - project-profile
     modes:
       - summary:
@@ -254,6 +276,7 @@ agents:
       - 不执行测试
       - 不生成代码
     context_files:
+      - shared-language
       - element-plus-pitfalls
     modes:
       - extract:
@@ -283,6 +306,13 @@ agents:
       - phase: Test Design
         agent: test-design-agent
         per_page: true
+        note: P2-5 — 产出 BUSINESS_SCENARIOS.md + 9 维度 TEST_DESIGN（含业务场景验证）
+      - phase: Testcase Quality Gate
+        agent: null
+        canonical: null
+        description: P2-5 L3 Validator — BSC Score 门禁，score<60 打回 Test Design 重做
+        gate: TESTCASE_QUALITY_GATE
+        max_rounds: 2
       - phase: Automation
         agent: automation-agent
         per_page: true

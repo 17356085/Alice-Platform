@@ -157,7 +157,8 @@ class TestExamManage:
 
     def _require_created_exam(self):
         global CREATED_EXAM_NAME
-        assert CREATED_EXAM_NAME, "未获取到新增考试名称，请先执行新增用例"
+        if not CREATED_EXAM_NAME:
+            pytest.skip("未获取到新增考试名称(前置新增用例失败)，跳过依赖测试")
         return CREATED_EXAM_NAME
 
     # ========== SY-EXAM-01：列表展示 ==========
@@ -258,12 +259,16 @@ class TestExamManage:
 
         if toast:
             step(f"操作提示: {toast}")
+            # 表单校验失败=考试未创建，直接失败而非假通过
+            if "校验失败" in toast or "失败" in toast:
+                pytest.fail(f"考试创建失败(环境限制): {toast}")
 
         step("验证列表中显示新增的考试")
         page.search_exam_by_name(exam_name)
-        row_count = page.get_table_row_count()
-        # 通过搜索结果验证创建是否成功
-        check(f"考试'{exam_name}'创建成功（搜索结果行数 > 0）", f"行数: {row_count}", row_count > 0)
+        names = page.get_column_data_by_header("考试名称")
+        check(f"考试'{exam_name}'创建成功",
+              f"搜索结果: {names}",
+              any(exam_name in n for n in names))
 
     # ========== SY-EXAM-04：新增考试（必选+非必选） ==========
 
@@ -287,12 +292,16 @@ class TestExamManage:
 
         if toast:
             step(f"操作提示: {toast}")
+            if "校验失败" in toast or "失败" in toast:
+                pytest.fail(f"考试创建失败(环境限制): {toast}")
             check("新增提示", toast, any(k in toast for k in ["成功", "新增"]))
 
         step("验证列表中显示新增的考试")
         page.search_exam_by_name(exam_name)
-        row_count = page.get_table_row_count()
-        check(f"考试'{exam_name}'出现在列表中", f"行数: {row_count}", row_count > 0)
+        names = page.get_column_data_by_header("考试名称")
+        check(f"考试'{exam_name}'出现在列表中",
+              f"搜索结果: {names}",
+              any(exam_name in n for n in names))
 
     # ========== SY-EXAM-05：按考试名称搜索 ==========
 

@@ -2,8 +2,8 @@
 # Phase 1→2: 从 11 Skill 扩展到 32 Skill
 # P0-1 (2026-06-15): 增加 Prompt Versioning — current_version + versions[] per skill
 
-version: "2.1"
-last_updated: "2026-06-15"
+version: "2.2"
+last_updated: "2026-06-17"
 
 skills:
   # ── plan (4) ──
@@ -20,7 +20,7 @@ skills:
         changelog: "初始版本"
         status: active
     dependencies: [architecture/project-scanner]
-    description: 任务分解、里程碑规划、依赖关系图
+    description: "任务分解、里程碑规划、依赖关系图"
 
   plan/progress-tracker:
     id: plan/progress-tracker
@@ -35,7 +35,7 @@ skills:
         changelog: "初始版本"
         status: active
     dependencies: [plan/create-project-plan]
-    description: 对比计划 vs 实际产物，输出进度报告
+    description: "对比计划 vs 实际产物，输出进度报告"
 
   plan/risk-analyzer:
     id: plan/risk-analyzer
@@ -50,7 +50,7 @@ skills:
         changelog: "初始版本"
         status: active
     dependencies: [plan/create-project-plan]
-    description: 风险矩阵分析，标注高等级风险缓解措施
+    description: "风险矩阵分析，标注高等级风险缓解措施"
 
   plan/sprint-planner:
     id: plan/sprint-planner
@@ -65,7 +65,7 @@ skills:
         changelog: "初始版本"
         status: active
     dependencies: [plan/create-project-plan]
-    description: Sprint 规划，任务优先级排序，工时估算
+    description: "Sprint 规划，任务优先级排序，工时估算"
 
   # ── requirements-dev (4) ──
   requirements-dev/feature-spec:
@@ -81,7 +81,7 @@ skills:
         changelog: "初始版本"
         status: active
     dependencies: []
-    description: 结构化功能规格，优先级分类，MVP 边界
+    description: "结构化功能规格，优先级分类，MVP 边界"
 
   requirements-dev/user-story-writer:
     id: requirements-dev/user-story-writer
@@ -96,7 +96,7 @@ skills:
         changelog: "初始版本"
         status: active
     dependencies: [requirements-dev/feature-spec]
-    description: As a/I want/So that 格式用户故事
+    description: "As a/I want/So that 格式用户故事"
 
   requirements-dev/acceptance-criteria:
     id: requirements-dev/acceptance-criteria
@@ -111,7 +111,7 @@ skills:
         changelog: "初始版本"
         status: active
     dependencies: [requirements-dev/user-story-writer]
-    description: Given/When/Then 验收标准，含边界和异常
+    description: "Given/When/Then 验收标准，含边界和异常"
 
   requirements-dev/data-model-spec:
     id: requirements-dev/data-model-spec
@@ -126,7 +126,7 @@ skills:
         changelog: "初始版本"
         status: active
     dependencies: [requirements-dev/feature-spec]
-    description: ERD 图 + 实体字段定义
+    description: "ERD 图 + 实体字段定义"
 
   # ── architecture (4) ──
   architecture/project-scanner:
@@ -559,3 +559,246 @@ skills:
         released: "2026-06-14"
         changelog: "初始版本"
         status: active
+
+  # ── review (5) — P0 Meta-Governance Review Skills ──
+  review/architecture-assessment:
+    id: review/architecture-assessment
+    category: review
+    status: active
+    file: governance/skills-dev/review/architecture-assessment.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/architecture-assessment.md
+        released: "2026-06-16"
+        changelog: "初始版本: 6维度架构评审 (边界/数据流/耦合/扩展性/一致性/技术债务)"
+        status: active
+    dependencies: []
+    description: "评估系统架构质量: 组件边界、数据流、耦合度、扩展性、一致性、技术债务。输出架构评分卡和 ADR。"
+
+  review/token-efficiency:
+    id: review/token-efficiency
+    category: review
+    status: active
+    file: governance/skills-dev/review/token-efficiency.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/token-efficiency.md
+        released: "2026-06-16"
+        changelog: "初始版本: Token效率分析 (上下文膨胀/Prompt效率/模型选择/调用合并/消耗热力图)"
+        status: active
+    dependencies: []
+    description: "评估Token使用效率: 上下文膨胀检测、Prompt效率分析、模型选择审计、调用合并机会、成本优化建议。"
+
+  review/governance-coverage:
+    id: review/governance-coverage
+    category: review
+    status: active
+    file: governance/skills-dev/review/governance-coverage.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/governance-coverage.md
+        released: "2026-06-16"
+        changelog: "初始版本: 治理覆盖评估 (模块/Agent/Skill/事件 × 5治理维度)"
+        status: active
+    dependencies: []
+    description: "评估治理覆盖完整性: 模块×治理维度矩阵、盲区清单、覆盖补全路线图。"
+
+  review/prompt-engineering:
+    id: review/prompt-engineering
+    category: review
+    status: active
+    file: governance/skills-dev/review/prompt-engineering.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/prompt-engineering.md
+        released: "2026-06-16"
+        changelog: "初始版本: Prompt质量评审 (结构/清晰度/示例/模板/效率/版本/生产就绪)"
+        status: active
+    dependencies: []
+    description: "评审Skill Prompt质量: 结构完整性、指令清晰度、示例质量、版本演进。含before/after改进建议。"
+
+  review/production-readiness:
+    id: review/production-readiness
+    category: review
+    status: active
+    file: governance/skills-dev/review/production-readiness.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/production-readiness.md
+        released: "2026-06-16"
+        changelog: "初始版本: 生产就绪度评估 (错误处理/可观测性/回滚/SLA/安全/配置/依赖)"
+        status: active
+    dependencies: []
+    description: "评估生产就绪度: 错误处理、可观测性、回滚能力、SLA合规、安全态势。输出Go/No-Go建议。"
+
+  # ── review (10) — P1 Expansion: remaining review skills (total review: 5 P0 + 10 P1 = 15) ──
+  review/tech-debt-inventory:
+    id: review/tech-debt-inventory
+    category: review
+    status: active
+    file: governance/skills-dev/review/tech-debt-inventory.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/tech-debt-inventory.md
+        released: "2026-06-16"
+        changelog: "初始版本: 技术债务盘点 (代码/架构/文档/测试/配置5类债务)"
+        status: active
+    dependencies: []
+    description: "盘点技术债务: 代码债务、架构债务、文档债务、测试债务、配置债务。含偿还优先级路线图。"
+
+  review/component-cohesion:
+    id: review/component-cohesion
+    category: review
+    status: active
+    file: governance/skills-dev/review/component-cohesion.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/component-cohesion.md
+        released: "2026-06-16"
+        changelog: "初始版本: 组件内聚性分析 (Agent/Skill/Module内聚评分+拆分合并建议)"
+        status: active
+    dependencies: [review/architecture-assessment]
+    description: "评估组件内聚性: Agent职责边界、Skill归属合理性、模块划分一致性、职责重叠/真空检测。"
+
+  review/quality-regression-analysis:
+    id: review/quality-regression-analysis
+    category: review
+    status: active
+    file: governance/skills-dev/review/quality-regression-analysis.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/quality-regression-analysis.md
+        released: "2026-06-16"
+        changelog: "初始版本: 质量趋势分析 (综合State+SOP+Cost审计+KPI时序)"
+        status: active
+    dependencies: []
+    description: "跨版本质量趋势: 测试基线趋势、审计事件频率、恶化加速检测、质量预测。"
+
+  review/sop-effectiveness:
+    id: review/sop-effectiveness
+    category: review
+    status: active
+    file: governance/skills-dev/review/sop-effectiveness.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/sop-effectiveness.md
+        released: "2026-06-16"
+        changelog: "初始版本: SOP有效性评估 (门禁有效性/流程瓶颈/循环效率/SOP ROI)"
+        status: active
+    dependencies: []
+    description: "评估SOP有效性: 门禁是否形同虚设、流程瓶颈识别、Bug fix循环效率、SOP投入产出比。"
+
+  review/model-selection:
+    id: review/model-selection
+    category: review
+    status: active
+    file: governance/skills-dev/review/model-selection.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/model-selection.md
+        released: "2026-06-16"
+        changelog: "初始版本: 模型选择审计 (降级候选/升级需求/路由策略/成本效益)"
+        status: active
+    dependencies: [review/token-efficiency]
+    description: "评估模型选择: 使用分布、降级候选（含节省估算）、升级需求、动态路由策略建议。"
+
+  review/observability-gap:
+    id: review/observability-gap
+    category: review
+    status: active
+    file: governance/skills-dev/review/observability-gap.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/observability-gap.md
+        released: "2026-06-16"
+        changelog: "初始版本: 可观测性差距评估 (日志/指标/追踪/告警4维覆盖矩阵)"
+        status: active
+    dependencies: []
+    description: "评估可观测性: 日志覆盖、指标暴露、追踪链路、告警配置。输出盲区清单和补全建议。"
+
+  review/security-posture:
+    id: review/security-posture
+    category: review
+    status: active
+    file: governance/skills-dev/review/security-posture.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/security-posture.md
+        released: "2026-06-16"
+        changelog: "初始版本: 安全态势评估 (密钥/依赖/权限/输入验证/数据保护)"
+        status: active
+    dependencies: []
+    description: "评估安全态势: 密钥管理、依赖漏洞、最小权限、输入验证、数据保护。"
+
+  review/skill-health:
+    id: review/skill-health
+    category: review
+    status: active
+    file: governance/skills-dev/review/skill-health.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/skill-health.md
+        released: "2026-06-16"
+        changelog: "初始版本: Skill健康度评估 (活跃度/成功率/效率/版本健康排名)"
+        status: active
+    dependencies: []
+    description: "评估Skill健康度: 使用频率、成功率、Token效率、版本状态。输出废弃/合并建议。"
+
+  review/agent-health:
+    id: review/agent-health
+    category: review
+    status: active
+    file: governance/skills-dev/review/agent-health.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/agent-health.md
+        released: "2026-06-16"
+        changelog: "初始版本: Agent健康度评估 (成功率/效率/Skill链完整性/边界合规)"
+        status: active
+    dependencies: []
+    description: "评估Agent健康度: 执行成功率、平均耗时、Token趋势、Skill链完整性、使用频率。"
+
+  review/memory-quality:
+    id: review/memory-quality
+    category: review
+    status: active
+    file: governance/skills-dev/review/memory-quality.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/review/memory-quality.md
+        released: "2026-06-16"
+        changelog: "初始版本: Memory质量评估 (过期/矛盾/冗余/链接完整性)"
+        status: active
+    dependencies: []
+    description: "评估Memory质量: 过期检测、矛盾检测、冗余检测、链接完整性、价值评估。"
+
+  # ── automation (1) — PE Expert: active prompt optimization ──
+  automation/prompt-engineering-expert:
+    id: automation/prompt-engineering-expert
+    category: automation
+    status: active
+    file: governance/skills-dev/automation/prompt-engineering-expert.md
+    current_version: "1.0"
+    versions:
+      - version: "1.0"
+        file: governance/skills-dev/automation/prompt-engineering-expert.md
+        released: "2026-06-17"
+        changelog: "初始版本: PE技术应用 (dair-ai分类法→决策树→技术选择→prompt改写). 支持17种技术, ≤3种叠加, 输出优化后prompt+报告."
+        status: active
+    dependencies: [review/prompt-engineering]
+    description: "应用Prompt Engineering技术主动优化Skill Prompt: 基于dair-ai技术分类法选择技术组合, 输出优化后prompt和before/after报告。与review/prompt-engineering互补—评审vs应用。"

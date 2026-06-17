@@ -2,16 +2,51 @@
   "module": "warehouse",
   "status": "completed",
   "completed_phases": [
-    "Project Init",
-    "Requirement",
     "Automation",
-    "Bug Analysis"
+    "Bug Analysis",
+    "Data Sanitization",
+    "Execute & Debug",
+    "Knowledge",
+    "Project Init",
+    "Report",
+    "Requirement",
+    "Test Design"
   ],
   "failed_phases": [],
-  "pages_processed": [],
-  "run_id": "",
-  "updated_at": "2026-06-15",
+  "pages_processed": [
+    "hazard-in-order",
+    "hazard-io-record",
+    "hazard-item",
+    "hazard-out-order",
+    "hazard-quick",
+    "hazard-stock",
+    "reagent-fill",
+    "reagent-item",
+    "spare-in-order",
+    "spare-io-record",
+    "spare-item",
+    "spare-out-order",
+    "spare-quick",
+    "spare-requisition",
+    "spare-stock",
+    "spare-stock-adjust",
+    "spare-stocktake"
+  ],
+  "artifact_count": 68,
+  "run_id": "sop-warehouse-batch3",
+  "updated_at": "2026-06-17",
   "engine": "langgraph",
+  "note": "SOP batch 3 — 175 artifacts regenerated from business requirements",
+  "execution_results": {
+    "date": "2026-06-16",
+    "full_suite": "828 collected | 361P/345F/90S/29E/3X | 760 rerun | 8h12m",
+    "module_specific": {
+      "exec": "completed",
+      "tests": "13 files + 1 e2e",
+      "note": "备品备件全P0F, 新增4跨页面E2E。hazard-in-order/out-order 0用例待补"
+    }
+  },
+  "next_steps": [],
   "sub_pages": {
     "备品备件": {
       "spare-requisition": {
@@ -93,10 +128,11 @@
       }
     }
   },
-  "next_steps": [
-    "1. 补 hazard-in-order + hazard-out-order 测试脚本（当前 0 用例）",
-    "2. Phase 1: PAGE_CONTEXT 覆盖从 6/16 扩展到 16/16",
-    "3. Phase 2.5: TEST_CASES.md 全面补充",
-    "4. Phase 8: 生成 TEST_SUMMARY.md"
+  "restored_from_backup": "2026-06-17",
+  "restored_keys": [
+    "completed_phases",
+    "pages_processed",
+    "run_id",
+    "fix_log"
   ]
 }

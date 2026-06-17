@@ -76,6 +76,7 @@ def _navigate_for_module(driver, module):
         "test_camera_management":      "#/equipment/camera",
         "test_key_param":              "#/equipment/key-param",
         "test_alarm_config":           "#/equipment/alarm-config",
+        "test_equipment_e2e":          None,  # e2e 测试自行导航
     }
 
     href = _MODULE_HASH_ROUTES.get(name)
