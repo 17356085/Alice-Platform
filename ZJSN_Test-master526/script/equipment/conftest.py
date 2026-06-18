@@ -235,4 +235,3 @@ def test_data_cleanup(api_client):
                 logger.debug(f"Cleaned equipment: {resource_id}")
         except Exception as e:
             logger.warning(f"Cleanup failed {resource_type}:{resource_id}: {e}")
-
