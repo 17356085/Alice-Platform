@@ -69,15 +69,29 @@ class EmployeePage(BasePage):
     TOTAL_COUNT = (By.CSS_SELECTOR, ".el-pagination .el-pagination__total")
 
     # ==================== 导航（页面入口） ====================
+    URL = "#/personnel/employee"
+
     def navigate(self):
-        """
-        通过左侧导航进入「人员管理」页面
-        :return: self
-        """
+        """通过 JS hash 导航到人员管理页面"""
         logger.info("导航到人员管理页面")
-        self.navigate_to("人事管理", "人员管理")
+        self.driver.get(f"https://aiwechatminidemo.cimc-digital.com/{self.URL}")
         self.wait_vue_stable()
         return self
+
+    def is_page_loaded(self):
+        """判断页面是否加载完成"""
+        try:
+            self.find_visible((By.XPATH, '//div[contains(@class,"el-table")]'))
+            return True
+        except Exception:
+            return False
+
+    def is_title_displayed(self):
+        """判断页面标题是否显示 — 检查面包屑或搜索区存在"""
+        try:
+            return self.is_element_present((By.XPATH, '//span[contains(text(),"员工")]'))
+        except Exception:
+            return self.is_page_loaded()
 
     # ==================== 搜索相关 ====================
     def search(self, keyword: str = None, department: str = None, status: str = None,

@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 # 测试文件 → 页面 hash 路由映射
 _MODULE_HASH_ROUTES = {
     "test_course_management": "#/personnel/training/course",
+    "test_employee": "#/personnel/employee",
     "test_employee_management": "#/personnel/employee",
     "test_question_bank": "#/personnel/training/question",
     "test_post_management": "#/personnel/post",
@@ -309,9 +310,8 @@ def test_data_cleanup(api_client):
 
 @pytest.fixture(scope="function")
 def employee_page(driver_setup):
-    """EmployeePage fixture — 侧边栏导航到人员管理"""
+    """EmployeePage fixture — conftest 已通过 JS hash 导航"""
     page = EmployeePage(driver_setup)
-    page.navigate()
     return page
 
 
@@ -319,5 +319,4 @@ def employee_page(driver_setup):
 def employee_manage_page(driver_setup):
     """EmployeeManagePage fixture"""
     page = EmployeeManagePage(driver_setup)
-    page.navigate()
     return page
