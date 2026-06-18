@@ -89,6 +89,7 @@ class AgentLoop:
         skill_subset: list = None,  # ★ P1-3 HITL: None=全部Skill, list=仅运行指定子集
         deep_review: bool = True,   # ★ #6: code-consistency-checker 通过后触发 LLM 对抗性审查（默认开启）
         focused_context: str = None,  # ContextAgent 注入的精准 context（跳过全文读取）
+        token_budget: int = None,     # ★ P2 RAG: Token 预算感知（默认 30000）
         **context,
     ):
         if agent_name not in AGENT_SKILL_MAP and agent_name not in DEV_AGENT_SKILL_MAP:
@@ -105,6 +106,7 @@ class AgentLoop:
         self._skill_subset = skill_subset  # None=全部Skill
         self.deep_review = deep_review      # ★ #6: LLM 深度审查开关
         self._focused_context = focused_context  # ContextAgent 精准 context（省 token）
+        self.token_budget = token_budget or 30000  # ★ P2 RAG: Token 预算（默认 30k）
         self._review_triggered = False      # 防止重复触发
         self._interaction_queue: queue.Queue = queue.Queue()  # 交互式模式暂停通信
 
@@ -266,6 +268,13 @@ class AgentLoop:
         # ContextAgent 精准 context —— 优先级高于 SKILL_CONTEXT_MAP 文件读取
         if self._focused_context:
             vars_["focused_context"] = self._focused_context
+
+        # ★ P2 RAG: Token 预算估算
+        # 粗估：已使用 token 从 trace 中获取，或用步数估算
+        # 简单做法：根据 step 预估已消耗（每 step ~2k token）
+        estimated_used = self.state.step * 2000
+        estimated_remaining = max(1000, self.token_budget - estimated_used)
+        vars_["token_budget_remaining"] = estimated_remaining
 
         if extra:
             vars_.update(extra)

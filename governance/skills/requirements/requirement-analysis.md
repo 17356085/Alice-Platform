@@ -185,5 +185,6 @@ elements:
 → `PAGE_CONTEXT.md` + `PAGE_INTERFACE.yaml`，存放至 `governance/context/projects/web-automation/modules/<module>/pages/<page>/`。
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.1** | active | requirements | synced 2026-06-17
+> **1.0** | active | requirements | synced 2026-06-17 21:52
+
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

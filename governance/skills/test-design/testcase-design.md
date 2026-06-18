@@ -167,6 +167,6 @@ TEST_DESIGN：{{粘贴 TEST_DESIGN.md}}
 → 输出格式参见 `templates/test-design.template.md` 和 `templates/test-cases.template.md`。
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | test-design | synced 2026-06-17 16:53
+> **1.0** | active | test-design | synced 2026-06-17 21:52
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

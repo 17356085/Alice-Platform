@@ -35,8 +35,11 @@ CLI:
 """
 
 import json
+import logging
 import time
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -393,7 +396,7 @@ class StateAuditor:
     # P1-FIX (2026-06-15): O-Check - Agent output consistency
 
     PLACEHOLDER_PATTERNS = [
-        (r"(?i)(TODO|TBD|FIXME|XXX|HACK)", "placeholder"),
+        (r"(?i)(?:TODO|TBD|FIXME|HACK)|(?<!\w)(XXX)(?!\w)", "placeholder"),
         (r"(?i)(to be (determined|defined|decided|filled|written))", "TBD"),
         (r"(?i)(待补充|待完善|待填写|暂缺|暂无)", "CN-placeholder"),
     ]
@@ -935,7 +938,8 @@ class StateAuditor:
             score += 10
             try:
                 bs_content = bs_path.read_text(encoding="utf-8")
-            except OSError:
+            except OSError as e:
+                logger.warning("_compute_bsc_score: cannot read %s: %s", bs_path, e)
                 bs_content = ""
         else:
             bs_content = ""

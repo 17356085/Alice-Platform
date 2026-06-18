@@ -18,6 +18,10 @@ from typing import Optional
 import chromadb
 from chromadb.config import Settings
 
+# ── 距离阈值 ──────────────────────────────────────────────────────────
+# 向量距离超过此值的结果被过滤（ChromaDB L2 distance，越小越相关）
+RAG_DISTANCE_THRESHOLD = 1.5
+
 # ── 路径配置 ──────────────────────────────────────────────────────────
 WORKSTUDY = Path(__file__).resolve().parent.parent.parent
 GOVERNANCE = WORKSTUDY / "governance"
@@ -192,6 +196,8 @@ def index_known_issues(client: chromadb.PersistentClient = None) -> int:
         metadata={"description": "Element Plus 坑位 + 失败模式 + 环境问题"}
     )
 
+    yaml_mtime = int(KNOWN_ISSUES.stat().st_mtime) if KNOWN_ISSUES.exists() else 0
+
     docs, ids, metadatas = [], [], []
     for issue in issues:
         # 构造可检索文本：标题 + 症状 + 根因 + 解决方案
@@ -214,7 +220,8 @@ def index_known_issues(client: chromadb.PersistentClient = None) -> int:
             "status": issue.get("status", ""),
             "reproduce_rate": issue.get("reproduce_rate", 0),
             "occurrence_count": issue.get("occurrence_count", 0),
-            "type": "known_issue"
+            "type": "known_issue",
+            "update_time": yaml_mtime,
         })
 
     collection.add(documents=docs, ids=ids, metadatas=metadatas)
@@ -293,6 +300,7 @@ def index_tech_analysis(client: chromadb.PersistentClient = None) -> int:
         parts = ta_file.relative_to(MODULES_DIR).parts
         module_name = parts[0] if len(parts) > 0 else "unknown"
         page_name = parts[2] if len(parts) > 2 and parts[1] == "pages" else "unknown"
+        file_mtime = int(ta_file.stat().st_mtime)
 
         # 添加模块/页面元数据到头信息
         meta = {
@@ -300,7 +308,8 @@ def index_tech_analysis(client: chromadb.PersistentClient = None) -> int:
             "type": "tech_analysis",
             "module": module_name,
             "page": page_name,
-            "title": f"TECH_ANALYSIS — {module_name}/{page_name}"
+            "title": f"TECH_ANALYSIS — {module_name}/{page_name}",
+            "update_time": file_mtime,
         }
 
         chunks = chunk_markdown_by_headings(text, meta)
@@ -313,7 +322,8 @@ def index_tech_analysis(client: chromadb.PersistentClient = None) -> int:
                 "module": module_name,
                 "page": page_name,
                 "heading": chunk["heading"],
-                "chunk_index": idx
+                "chunk_index": idx,
+                "update_time": file_mtime,
             })
             idx += 1
 
@@ -348,13 +358,15 @@ def index_page_context(client: chromadb.PersistentClient = None) -> int:
         parts = pc_file.relative_to(MODULES_DIR).parts
         module_name = parts[0]
         page_name = parts[2] if len(parts) > 2 and parts[1] == "pages" else "unknown"
+        file_mtime = int(pc_file.stat().st_mtime)
 
         meta = {
             "source": str(pc_file.relative_to(GOVERNANCE)),
             "type": "page_context",
             "module": module_name,
             "page": page_name,
-            "title": f"PAGE_CONTEXT — {module_name}/{page_name}"
+            "title": f"PAGE_CONTEXT — {module_name}/{page_name}",
+            "update_time": file_mtime,
         }
 
         chunks = chunk_markdown_by_headings(text, meta)
@@ -367,7 +379,8 @@ def index_page_context(client: chromadb.PersistentClient = None) -> int:
                 "module": module_name,
                 "page": page_name,
                 "heading": chunk["heading"],
-                "chunk_index": idx
+                "chunk_index": idx,
+                "update_time": file_mtime,
             })
             idx += 1
 
@@ -425,6 +438,7 @@ def index_page_objects(client: chromadb.PersistentClient = None) -> int:
             "file": po_file.name,
             "methods": ", ".join(methods[:20]),
             "locator_count": len(locators),
+            "update_time": int(po_file.stat().st_mtime),
         })
         idx += 1
 
@@ -543,7 +557,7 @@ def recommend_test_patterns(page_description: str, n_results: int = 5) -> list[d
 
 def search_context(query: str, collection_name: str = "tech_analysis",
                    module: str = None, n_results: int = 5,
-                   client = None) -> list[dict]:
+                   client = None, max_chars: int = None) -> list[dict]:
     """搜索上下文文档。
 
     参数:
@@ -552,6 +566,8 @@ def search_context(query: str, collection_name: str = "tech_analysis",
         module: 按模块筛选
         n_results: 返回结果数
         client: P0-2: 可选 ChromaDB PersistentClient（复用避免重复创建连接）
+        max_chars: Token 预算感知截断 — 按段落截断每条文档到指定字符数。
+                   None = 沿用现有 500 字符截断。
     """
     if client is None:
         client = get_chroma_client()
@@ -585,11 +601,23 @@ def search_context(query: str, collection_name: str = "tech_analysis",
     output = []
     if results["ids"] and results["ids"][0]:
         for i, doc_id in enumerate(results["ids"][0]):
+            raw_doc = results["documents"][0][i] if results["documents"] else ""
+            # max_chars: 按段落智能截断（不是盲目字符截断）
+            if max_chars and len(raw_doc) > max_chars:
+                # 尝试按段落边界截断
+                paragraphs = raw_doc.split("\n\n")
+                truncated = ""
+                for para in paragraphs:
+                    if len(truncated) + len(para) + 2 > max_chars:
+                        break
+                    truncated = (truncated + "\n\n" + para).lstrip("\n")
+                raw_doc = truncated or raw_doc[:max_chars]
+            else:
+                raw_doc = raw_doc[:500]  # 沿用现有截断
+
             output.append({
                 "id": doc_id,
-                "document": results["documents"][0][i][:500] if results["documents"] else "",  # 截断
-
-# ... (search_known_issues continues)
+                "document": raw_doc,
                 "metadata": results["metadatas"][0][i] if results["metadatas"] else {},
                 "distance": results["distances"][0][i] if results["distances"] else None
             })

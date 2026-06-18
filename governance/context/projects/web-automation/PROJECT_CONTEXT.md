@@ -42,7 +42,7 @@
 项目目标、技术边界、模块划分原则、协作约束。页面级细节、风险分析、测试设计、Bug 分析不在本文件维护范围。
 <!-- ⚠️ AUTO-GENERATED SECTION BEGIN: project-stats -->
 <!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
-## 项目统计数据 (更新于 2026-06-17 16:53)
+## 项目统计数据 (更新于 2026-06-17 21:52)
 
 | 指标 | 数值 |
 |------|:---:|
@@ -52,8 +52,8 @@
 | Pending/重置 | 1 |
 | 测试文件总数 | 116 |
 | Page Object 总数 | 85 |
-| 治理文档总数 | 354 |
+| 治理文档总数 | 351 |
 | 总体进度 | 81% |
 
-> 此段由 sync_progress.py 自动更新。2026-06-17 16:53
+> 此段由 sync_progress.py 自动更新。2026-06-17 21:52
 <!-- ⚠️ AUTO-GENERATED SECTION END: project-stats -->

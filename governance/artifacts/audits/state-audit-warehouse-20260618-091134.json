@@ -1,0 +1,1648 @@
+{
+  "module": "warehouse",
+  "audit_time": "2026-06-18T09:11:34.053177",
+  "overall_status": "error",
+  "drift_count": 177,
+  "error_count": 20,
+  "warning_count": 157,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'hazard-in-order' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-in-order\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'hazard-io-record' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-io-record\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'hazard-item' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-item\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'hazard-out-order' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-out-order\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'hazard-quick' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-quick\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'hazard-quick' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-quick\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'hazard-quick' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-quick\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'hazard-quick' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-quick\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'hazard-stock' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-stock\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'hazard-stock' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-stock\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'hazard-stock' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-stock\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'hazard-stock' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-stock\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'reagent-fill' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-fill\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'reagent-fill' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-fill\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'reagent-fill' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-fill\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'reagent-fill' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-fill\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'reagent-item' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-item\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'reagent-item' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-item\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'reagent-item' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-item\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'reagent-item' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-item\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-in-order' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-in-order\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-in-order' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-in-order\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-in-order' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-in-order\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-in-order' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-in-order\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-io-record' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-io-record\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-io-record' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-io-record\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-io-record' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-io-record\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-io-record' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-io-record\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-item' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-item\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-out-order' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-out-order\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-out-order' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-out-order\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-out-order' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-out-order\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-out-order' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-out-order\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-quick' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-quick\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-quick' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-quick\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-quick' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-quick\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-quick' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-quick\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-requisition' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-requisition\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-requisition' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-requisition\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-requisition' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-requisition\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-requisition' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-requisition\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-stock' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-stock' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-stock' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-stock' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-stock-adjust' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock-adjust\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-stock-adjust' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock-adjust\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-stock-adjust' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock-adjust\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-stock-adjust' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock-adjust\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-stocktake' 缺失: TECH_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stocktake\\TECH_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-stocktake' 缺失: AUTO_STRATEGY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stocktake\\AUTO_STRATEGY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-stocktake' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stocktake\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'spare-stocktake' 缺失: PAGE_INTERFACE.yaml",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stocktake\\PAGE_INTERFACE.yaml",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'hazard-in-order' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-in-order\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'hazard-io-record' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-io-record\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'hazard-item' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-item\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'hazard-out-order' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-out-order\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'hazard-quick' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-quick\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'hazard-stock' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-stock\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'reagent-fill' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-fill\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'reagent-item' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-item\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'spare-in-order' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-in-order\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'spare-io-record' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-io-record\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'spare-item' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-item\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'spare-out-order' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-out-order\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'spare-quick' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-quick\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'spare-requisition' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-requisition\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'spare-stock' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'spare-stock-adjust' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock-adjust\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'spare-stocktake' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stocktake\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Data Sanitization",
+      "description": "Phase 'Data Sanitization' 已完成，但模块级产物缺失: DATA_QUALITY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\DATA_QUALITY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Data Sanitization 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Project Init",
+      "description": "Phase 'Project Init' 已完成，但模块级产物缺失: PROJECT_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\PROJECT_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Project Init 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Report",
+      "description": "Phase 'Report' 已完成，但模块级产物缺失: TEST_SUMMARY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\TEST_SUMMARY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Report 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-in-order' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-in-order\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-in-order' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-in-order\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-io-record' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-io-record\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-io-record' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-io-record\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-item' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-item\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-item' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-item\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-out-order' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-out-order\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-out-order' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-out-order\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-quick' 缺失: PAGE_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-quick\\PAGE_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-quick' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-quick\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-quick' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-quick\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-quick' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-quick\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-quick' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-quick\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-stock' 缺失: PAGE_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-stock\\PAGE_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-stock' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-stock\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-stock' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-stock\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-stock' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-stock\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'hazard-stock' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-stock\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'reagent-fill' 缺失: PAGE_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-fill\\PAGE_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'reagent-fill' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-fill\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'reagent-fill' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-fill\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'reagent-fill' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-fill\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'reagent-fill' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-fill\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'reagent-item' 缺失: PAGE_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-item\\PAGE_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'reagent-item' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-item\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'reagent-item' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-item\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'reagent-item' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-item\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'reagent-item' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\reagent-item\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-in-order' 缺失: PAGE_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-in-order\\PAGE_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-in-order' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-in-order\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-in-order' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-in-order\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-in-order' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-in-order\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-in-order' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-in-order\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-io-record' 缺失: PAGE_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-io-record\\PAGE_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-io-record' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-io-record\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-io-record' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-io-record\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-io-record' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-io-record\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-io-record' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-io-record\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-item' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-item\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-item' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-item\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-out-order' 缺失: PAGE_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-out-order\\PAGE_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-out-order' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-out-order\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-out-order' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-out-order\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-out-order' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-out-order\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-out-order' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-out-order\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-quick' 缺失: PAGE_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-quick\\PAGE_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-quick' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-quick\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-quick' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-quick\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-quick' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-quick\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-quick' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-quick\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-requisition' 缺失: PAGE_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-requisition\\PAGE_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-requisition' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-requisition\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-requisition' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-requisition\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-requisition' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-requisition\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-requisition' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-requisition\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stock' 缺失: PAGE_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock\\PAGE_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stock' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stock' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stock' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stock' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stock-adjust' 缺失: PAGE_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock-adjust\\PAGE_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stock-adjust' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock-adjust\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stock-adjust' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock-adjust\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stock-adjust' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock-adjust\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stock-adjust' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stock-adjust\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stocktake' 缺失: PAGE_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stocktake\\PAGE_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stocktake' 缺失: RISK_MODEL.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stocktake\\RISK_MODEL.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stocktake' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stocktake\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stocktake' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stocktake\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'spare-stocktake' 缺失: TEST_CASES.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\spare-stocktake\\TEST_CASES.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'hazard-in-order' 业务场景覆盖评分 10 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=10",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'hazard-in-order' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'hazard-io-record' 业务场景覆盖评分 20 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=20",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'hazard-io-record' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'hazard-item' 业务场景覆盖评分 10 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=10",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'hazard-item' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'hazard-out-order' 业务场景覆盖评分 10 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=10",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'hazard-out-order' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'hazard-quick' 业务场景覆盖评分 0 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=0",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'hazard-quick' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'hazard-stock' 业务场景覆盖评分 0 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=0",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'hazard-stock' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'reagent-fill' 业务场景覆盖评分 0 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=0",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'reagent-fill' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'reagent-item' 业务场景覆盖评分 0 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=0",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'reagent-item' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'spare-in-order' 业务场景覆盖评分 0 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=0",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'spare-in-order' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'spare-io-record' 业务场景覆盖评分 0 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=0",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'spare-io-record' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'spare-item' 业务场景覆盖评分 20 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=20",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'spare-item' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'spare-out-order' 业务场景覆盖评分 0 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=0",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'spare-out-order' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'spare-quick' 业务场景覆盖评分 0 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=0",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'spare-quick' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'spare-requisition' 业务场景覆盖评分 0 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=0",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'spare-requisition' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'spare-stock' 业务场景覆盖评分 0 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=0",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'spare-stock' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'spare-stock-adjust' 业务场景覆盖评分 0 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=0",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'spare-stock-adjust' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'spare-stocktake' 业务场景覆盖评分 0 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=0",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'warehouse' 有 17 个页面，但页面 'spare-stocktake' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 143,
+      "errors": 3,
+      "warnings": 140,
+      "ok": false
+    },
+    "r_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "o_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "orphan_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "c_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "q_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "t_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "module": "warehouse",
+  "status": "completed",
+  "completed_phases": [
+    "Requirement",
+    "Test Design",
+    "Automation",
+    "Execute & Debug",
+    "Bug Analysis",
+    "Data Sanitization",
+    "Report",
+    "Knowledge",
+    "Project Init"
+  ],
+  "failed_phases": [],
+  "pages_processed": [
+    "hazard-item"
+  ],
+  "per_page_results": [
+    {
+      "page_slug": "hazard-item",
+      "status": "?",
+      "artifacts": [
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-item\\PAGE_CONTEXT.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-item\\TEST_CASES.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-item\\TECH_ANALYSIS.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\warehouse\\pages\\hazard-item\\AUTO_STRATEGY.md"
+      ]
+    }
+  ],
+  "agent_summary": {
+    "preflight_auto_detect": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": ""
+    }
+  },
+  "run_id": "sop-warehouse-1781745582",
+  "updated_at": "2026-06-18T09:19:42",
+  "engine": "langgraph"
+}

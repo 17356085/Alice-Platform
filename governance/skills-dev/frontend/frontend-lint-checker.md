@@ -74,6 +74,6 @@ done
 ```
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | frontend | synced 2026-06-17 16:53
+> **1.0** | active | frontend | synced 2026-06-17 21:52
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

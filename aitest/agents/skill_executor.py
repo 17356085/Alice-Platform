@@ -158,8 +158,16 @@ def run_skill(
     except Exception:
         pass
 
+    # ★ P2 RAG: Token 预算感知 — 计算 max_chars 以确保不超预算
+    token_budget_remaining = context_vars.get("token_budget_remaining", 8000)
+    # RAG 结果最多消耗 token_budget_remaining 的 30%，保留 70% 给 LLM 输出
+    max_rag_chars = max(500, int(token_budget_remaining * 0.3 * 4))  # chars ≈ tokens * 4
+
     system_prompt = _shared_injector.inject(skill_id, system_prompt, context_vars)
     inject_stats = getattr(_shared_injector, '_last_inject_stats', {})
+    # 记录 token 预算限制
+    if "token_budget_remaining" in context_vars:
+        inject_stats["max_rag_chars_limit"] = max_rag_chars
     system_prompt = _shared_adapter.adapt(system_prompt, provider)
 
     compat = check_provider_compatibility(skill_id, provider)

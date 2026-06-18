@@ -1,0 +1,2 @@
+{"timestamp": "2026-06-18T09:11:34.055177", "audit_type": "state", "module": "warehouse", "drift_count": 177, "error_count": 20, "warning_count": 157, "overall_status": "error", "compliance_score": 1.0, "violation_count": 0, "total_cost": 0.0, "alert_count": 0, "event_count": 0}
+{"timestamp": "2026-06-18T09:19:43.021605", "audit_type": "state", "module": "warehouse", "drift_count": 177, "error_count": 20, "warning_count": 157, "overall_status": "error", "compliance_score": 1.0, "violation_count": 0, "total_cost": 0.0, "alert_count": 0, "event_count": 0}

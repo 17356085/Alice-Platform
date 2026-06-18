@@ -62,6 +62,6 @@
 - [ ] 修复建议具体可操作
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | diagnosis | synced 2026-06-17 16:53
+> **1.0** | active | diagnosis | synced 2026-06-17 21:52
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

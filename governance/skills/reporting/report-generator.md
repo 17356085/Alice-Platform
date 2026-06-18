@@ -166,6 +166,6 @@
 | C | `governance/kpi/reports/{模块}/测试报告-{模块}.xlsx`（覆盖式） |
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | reporting | synced 2026-06-17 16:53
+> **1.0** | active | reporting | synced 2026-06-17 21:52
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

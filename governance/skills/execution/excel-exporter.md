@@ -559,6 +559,6 @@ print(f'[STATS] 总={total} 通过={passed} 失败={failed} 跳过={skipped} 未
   - `ZJSN_Test-master526/tools/report/generate_excel.py`
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | execution | synced 2026-06-17 16:53
+> **1.0** | active | execution | synced 2026-06-17 21:52
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

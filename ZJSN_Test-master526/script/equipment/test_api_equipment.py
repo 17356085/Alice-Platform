@@ -6,6 +6,10 @@ SOP: 与 UI 用例并行
   - API: script/equipment/test_api_equipment.py (接口验证)
 
 覆盖: CRUD + 列表筛选 + 批量操作
+
+Fixture:
+  api_client（来自 conftest.py，module 级）：已认证 API 客户端
+  created_equipment（function 级）：创建测试设备 + 自动清理
 """
 import os
 import sys
@@ -17,22 +21,6 @@ from typing import Dict, Any
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from base.api_base import AJSystemAPI
-
-
-@pytest.fixture(scope="module")
-def api_client():
-    """API 客户端（带登录）。"""
-    api = AJSystemAPI(
-        base_url=os.getenv("TEST_API_BASE_URL", "https://aiwechatminidemo.cimc-digital.com/api"),
-        verify_ssl=False,
-    )
-    # 登录
-    api.login(
-        username=os.getenv("TEST_USER", "admin"),
-        password=os.getenv("TEST_PASSWORD", "password"),
-    )
-    yield api
-    api.close()
 
 
 @pytest.fixture(scope="function")

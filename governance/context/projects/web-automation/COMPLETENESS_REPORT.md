@@ -338,12 +338,14 @@
 
 
 
+
+
 <!-- ⚠️ AUTO-GENERATED SECTION BEGIN: completeness-stats -->
-## Auto Stats (2026-06-17 16:53)
+## Auto Stats (2026-06-17 21:52)
 
 | Modules | 100% | Tests | Docs | Overall |
 |:---:|:---:|:---:|:---:|:---:|
-| 12 | 2 | 116 | 354 | 81% |
+| 12 | 2 | 116 | 351 | 81% |
 
 ### Per-Module
 
@@ -359,7 +361,7 @@
 | lab | completed | 9 | 40 | 5 | 5 | 5 | **100%** |
 | production | completed | 5 | 27 | 4 | 4 | 4 | 89% |
 | dcs | partial | 5 | 11 | 5 | 5 | 0 | 56% |
-| warehouse | completed | 16 | 29 | 3 | 2 | 4 | 89% |
+| warehouse | completed | 16 | 26 | 5 | 5 | 5 | 89% |
 | workflow | completed | 6 | 21 | 2 | 2 | 3 | 89% |
 
 > sync_progress.py

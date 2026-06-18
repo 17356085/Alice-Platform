@@ -157,6 +157,6 @@ python tools/generate_page_interface.py --module {{module}} --page {{page}}
 → `PAGE_INTERFACE.yaml`，存放至对应页面目录。
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.1** | active | test-design | synced 2026-06-17 16:53
+> **1.1** | active | test-design | synced 2026-06-17 21:52
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

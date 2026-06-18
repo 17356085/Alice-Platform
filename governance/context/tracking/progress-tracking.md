@@ -6,7 +6,7 @@
 <!-- ⚠️ AUTO-GENERATED SECTION BEGIN: progress-table -->
 <!-- Source: governance/artifacts/sop-status/SOP_STATUS_*.json + script/ test file counts -->
 <!-- Regenerate: python tools/sync_progress.py -->
-> 最后更新：2026-06-17 16:53 (auto-sync)
+> 最后更新：2026-06-17 21:52 (auto-sync)
 
 ---
 
@@ -45,7 +45,7 @@
 | lab | 9 | 9 | 40 | TECH=5; AUTO=5; RISK=5; gas/water 全覆盖 |
 | production | 5 | 4 | 27 | TECH=4; AUTO=4; RISK=4; daily/monthly/business/shift |
 | dcs | 5 | 5 | 11 | TECH=5; AUTO=5; all-data/common-data/monitor/point-config/upload-log; 无 SOP_STATUS |
-| warehouse | 16 | 14 | 29 | TECH=3; AUTO=2; RISK=4; hazard/spare/reagent 系列 |
+| warehouse | 16 | 14 | 26 | TECH=5; AUTO=5; RISK=5; hazard/spare/reagent 系列 |
 | workflow | 6 | 5 | 21 | TECH=2; AUTO=2; RISK=3; approval-chain/history/todo/my-application/sap-push-log |
 
 <!-- ⚠️ AUTO-GENERATED SECTION END: test-stats -->
@@ -117,4 +117,4 @@
 - 自动：每次 `aitest graph run` 完成时调用 (SOP runner post-hook)
 - 门禁：`check_sop_gate.py --check-progress-sync` 检测过期
 
-<!-- FOOTER: last_sync=2026-06-17T16:53:40+0800 sync_source=auto -->
+<!-- FOOTER: last_sync=2026-06-17T21:52:20+0800 sync_source=auto -->

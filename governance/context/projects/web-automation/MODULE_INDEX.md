@@ -85,7 +85,7 @@
 
 <!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-table -->
 <!-- Source: tools/sync_progress.py -->
-## 模块状态表 (自动生成 — 更新于 2026-06-17 16:53)
+## 模块状态表 (自动生成 — 更新于 2026-06-17 21:52)
 
 | 模块ID | 模块名称 | SOP状态 | 页面数 | PO | 测试 | 治理文档 | TECH | AUTO | RISK | 进度 |
 |------|------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -100,7 +100,7 @@
 | lab | 化验室取样 | ✅ completed | 6 | 9 | 9 | 40 | 5 | 5 | 5 | **100%** |
 | production | 生产管理 | ✅ completed | 4 | 4 | 5 | 27 | 4 | 4 | 4 | 89% |
 | dcs | DCS数据管理 | ⚠️ partial | 5 | 5 | 5 | 11 | 5 | 5 | 0 | 56% |
-| warehouse | 库管管理 | ✅ completed | 17 | 14 | 16 | 29 | 3 | 2 | 4 | 89% |
+| warehouse | 库管管理 | ✅ completed | 17 | 14 | 16 | 26 | 5 | 5 | 5 | 89% |
 | workflow | 工作流管理 | ✅ completed | 5 | 5 | 6 | 21 | 2 | 2 | 3 | 89% |
 
 > 图例：✅ completed | ⚠️ partial | ⏳ pending | ❌ no SOP_STATUS

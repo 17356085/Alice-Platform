@@ -205,7 +205,111 @@ def knowledge_act(state: SOPState) -> dict:
 
 
 def knowledge_exit(state: SOPState) -> dict:
-    return {"completed_phases": ["Knowledge"]}
+    """知识沉淀完成后清理旧数据、生成 Allure HTML 报告。"""
+    result = {"completed_phases": ["Knowledge"]}
+
+    try:
+        import json
+        from pathlib import Path
+
+        output_dir = Path("D:/Desktop/WorkStudy/allure-results")
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # 清理旧 JSON / 临时文件（保留最新 7 天）
+        import time
+        now = time.time()
+        cutoff = now - (7 * 86400)  # 7 天前
+        cleaned = 0
+        for f in output_dir.glob("*-result.json") | output_dir.glob("*-container.json") | output_dir.glob("*-attachment.txt"):
+            if f.stat().st_mtime < cutoff:
+                f.unlink()
+                cleaned += 1
+
+        # 收集最新结果统计
+        results = []
+        for f in sorted(output_dir.glob("*-result.json"), key=lambda p: -p.stat().st_mtime)[:100]:
+            try:
+                data = json.loads(f.read_text(encoding='utf-8'))
+                results.append(data)
+            except:
+                pass
+
+        # 生成 HTML 报告
+        total = len(results)
+        passed = sum(1 for r in results if r.get("status") == "passed")
+        failed = sum(1 for r in results if r.get("status") == "failed")
+        skipped = sum(1 for r in results if r.get("status") == "skipped")
+
+        html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Allure Test Report - Warehouse</title>
+    <style>
+        body {{ font-family: Arial; margin: 20px; background: #f9f9f9; }}
+        .header {{ background: #2c3e50; color: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }}
+        .summary {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }}
+        .stat {{ background: white; padding: 15px; border-radius: 5px; text-align: center; border-left: 4px solid #ccc; }}
+        .stat.pass {{ border-left-color: #4CAF50; }}
+        .stat.fail {{ border-left-color: #f44336; }}
+        .stat.skip {{ border-left-color: #ff9800; }}
+        .stat.total {{ border-left-color: #2196F3; }}
+        .stat-value {{ font-size: 24px; font-weight: bold; }}
+        .stat-label {{ color: #666; margin-top: 5px; }}
+        table {{ border-collapse: collapse; width: 100%; background: white; }}
+        th, td {{ border: 1px solid #ddd; padding: 12px; text-align: left; }}
+        th {{ background: #2c3e50; color: white; }}
+        .pass {{ color: #4CAF50; }}
+        .fail {{ color: #f44336; }}
+        .skip {{ color: #ff9800; }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Warehouse Module - Test Report</h1>
+        <p>Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}</p>
+    </div>
+    <div class="summary">
+        <div class="stat total">
+            <div class="stat-value">{total}</div>
+            <div class="stat-label">Total Cases</div>
+        </div>
+        <div class="stat pass">
+            <div class="stat-value">{passed}</div>
+            <div class="stat-label">Passed</div>
+        </div>
+        <div class="stat fail">
+            <div class="stat-value">{failed}</div>
+            <div class="stat-label">Failed</div>
+        </div>
+        <div class="stat skip">
+            <div class="stat-value">{skipped}</div>
+            <div class="stat-label">Skipped</div>
+        </div>
+    </div>
+    <table>
+        <tr><th>Test Name</th><th>Status</th><th>Duration (s)</th></tr>
+"""
+        for r in results[:50]:
+            name = r.get("name", "N/A")
+            status = r.get("status", "unknown")
+            duration = f"{r.get('duration', 0)/1000:.2f}" if r.get("duration") else "N/A"
+            html += f'<tr><td>{name}</td><td><span class="{status}">{status}</span></td><td>{duration}</td></tr>'
+
+        html += """
+    </table>
+</body>
+</html>
+"""
+        out_html = output_dir / "html" / "index.html"
+        out_html.parent.mkdir(parents=True, exist_ok=True)
+        out_html.write_text(html, encoding='utf-8')
+        result["allure_html_generated"] = str(out_html)
+        result["allure_cleanup_count"] = cleaned
+    except Exception:
+        pass
+
+    return result
 
 
 def build_knowledge_subgraph() -> StateGraph:

@@ -180,6 +180,7 @@ def api_client():
     模块级 API 客户端（equipment 模块）。
 
     自动登录 + Token 注入。
+    使用 aitest/testing/api_client.py 的 APIClient 通用驱动。
     """
     base_url = os.getenv(
         "TEST_API_BASE_URL",

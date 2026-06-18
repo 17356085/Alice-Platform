@@ -22,3 +22,320 @@ Output: D:\Desktop\WorkStudy\sop_output_warehouse.txt
 
 [HITL] 
   -> auto-response: 'approve' (options: ['approve', 'reject', 'edit'])
+  [RUN] [=====    ] 运行中: 自动化(代码生成)
+  [PASS] [====     ] ✅ 自动化: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [====     ] ✅ 自动化: 完成
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [====     ] ✅ 自动化: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+
+[HITL] 
+  -> auto-response: 'approve' (options: ['approve', 'reject', 'edit'])
+  [PASS] [====     ] ✅ 自动化: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [====     ] ✅ 自动化: 完成
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [====     ] ✅ 自动化: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+
+[HITL] 
+  -> auto-response: 'approve' (options: ['approve', 'reject', 'edit'])
+  [PASS] [====     ] ✅ 自动化: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [====     ] ✅ 自动化: 完成
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [====     ] ✅ 自动化: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+
+[HITL] 
+  -> auto-response: 'approve' (options: ['approve', 'reject', 'edit'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+
+[HITL] 
+  -> auto-response: 'approve' (options: ['approve', 'reject', 'edit'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+
+[HITL] 
+  -> auto-response: 'force_continue' (options: ['force_continue', 'abort'])
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [RUN] [======   ] 运行中: 执行与调试
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [PASS] [====     ] ✅ 自动化: 完成
+  [PASS] [=====    ] ✅ 执行与调试: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [=====    ] ❌ 执行与调试: 失败
+  [MSG] ⚠️ 测试执行存在失败，将触发 Bug 分析阶段
+
+[HITL] 
+  -> auto-response: 'approve' (options: ['approve', 'reject', 'skip'])
+
+[HITL] 
+  -> auto-response: 'approve' (options: ['approve', 'reject', 'skip'])
+
+[HITL] 
+  -> auto-response: 'approve' (options: ['approve', 'reject', 'skip'])
+  [RUN] [=======  ] 运行中: Bug分析
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [PASS] [====     ] ✅ 自动化: 完成
+  [PASS] [=====    ] ✅ 执行与调试: 完成
+  [PASS] [======   ] ✅ Bug分析: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [=====    ] ❌ 执行与调试: 失败
+  [MSG] ⚠️ 测试执行存在失败，将触发 Bug 分析阶段
+  [PASS] [         ] ✅ Data Sanitization: 完成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [=====    ] ❌ 执行与调试: 失败
+  [MSG] ⚠️ 测试执行存在失败，将触发 Bug 分析阶段
+  [RUN] [======== ] 运行中: 报告生成
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [PASS] [====     ] ✅ 自动化: 完成
+  [PASS] [=====    ] ✅ 执行与调试: 完成
+  [PASS] [======   ] ✅ Bug分析: 完成
+  [PASS] [         ] ✅ Data Sanitization: 完成
+  [PASS] [=======  ] ✅ 报告生成: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [=====    ] ❌ 执行与调试: 失败
+  [MSG] ⚠️ 测试执行存在失败，将触发 Bug 分析阶段
+  [RUN] [=========] 运行中: 知识沉淀
+  [PASS] [==       ] ✅ 需求分析: 完成
+  [PASS] [===      ] ✅ 测试设计: 完成
+  [PASS] [====     ] ✅ 自动化: 完成
+  [PASS] [=====    ] ✅ 执行与调试: 完成
+  [PASS] [======   ] ✅ Bug分析: 完成
+  [PASS] [         ] ✅ Data Sanitization: 完成
+  [PASS] [=======  ] ✅ 报告生成: 完成
+  [PASS] [======== ] ✅ 知识沉淀: 完成
+  [FAIL] [====     ] ❌ 自动化: 失败
+  [FAIL] [===      ] ❌ 测试设计: 失败
+  [FAIL] [=====    ] ❌ 执行与调试: 失败
+  [MSG] ⚠️ 测试执行存在失败，将触发 Bug 分析阶段
+
+================================================================================
+[DONE] SOP FAIL: 🏁 SOP 流水线完成: 8 成功 / 2 失败
+✅ 需求分析: 完成
+✅ 测试设计: 完成
+✅ 需求分析: 完成
+✅ 测试设计: 完成
+✅ 需求分析: 完成
+✅ 测试设计: 完成
+✅ 需求分析: 完成
+✅ 自动化: 完成
+✅ 需求分析: 完成
+✅ 测试设计: 完成
+✅ 自动化: 完成
+✅ 需求分析: 完成
+✅ 测试设计: 完成
+✅ 测试设计: 完成
+✅ 需求分析: 完成
+✅ 自动化: 完成
+✅ 自动化: 完成
+✅ 需求分析: 完成
+✅ 测试设计: 完成
+✅ 自动化: 完成
+✅ 需求分析: 完成
+✅ 测试设计: 完成
+✅ 测试设计: 完成
+✅ 需求分析: 完成
+✅ 自动化: 完成
+✅ 自动化: 完成
+✅ 需求分析: 完成
+✅ 测试设计: 完成
+✅ 自动化: 完成
+✅ 需求分析: 完成
+✅ 测试设计: 完成
+✅ 测试设计: 完成
+✅ 需求分析: 完成
+✅ 自动化: 完成
+✅ 自动化: 完成
+✅ 需求分析: 完成
+✅ 测试设计: 完成
+✅ 需求分析: 完成
+✅ 测试设计: 完成
+❌ 自动化: 失败
+✅ 需求分析: 完成
+❌ 测试设计: 失败
+❌ 自动化: 失败
+✅ 需求分析: 完成
+❌ 自
+
+Done.

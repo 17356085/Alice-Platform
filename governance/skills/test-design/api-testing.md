@@ -75,6 +75,6 @@ class TestAlarmAPI:
 - [ ] 安全测试含SQL注入和XSS字符
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **0.1-exp** | experimental | test-design | synced 2026-06-17 16:53
+> **0.1-exp** | experimental | test-design | synced 2026-06-17 21:52
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

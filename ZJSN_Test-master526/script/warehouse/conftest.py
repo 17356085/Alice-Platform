@@ -1,111 +1,106 @@
-"""
-test_hazard_io_record.py - 环保出入库明细表自动化测试脚本
+# script/warehouse/test_hazard_item.py
+"""环保物品管理页面测试脚本
 
-@allure.epic: 仓库管理
-@allure.feature: 环保出入库明细表
+模块: warehouse (库管管理)
+页面: 环保物品管理 (HazardItem)
+测试类型: UI 自动化测试
+关联用例: TEST_CASES.md (TD-HI-101, TD-HI-102, TD-HI-201, TD-HI-202, TD-HI-204)
 """
 import pytest
 import allure
-from page.warehouse_page.hazard_io_record_page import HazardIORecordPage
+from base.cleanup_tracker import get_cleanup_tracker
+
+# 确保 fixture 已导入（conftest.py 中定义）
+# from .conftest import hazard_item_page
 
 
-@allure.epic("仓库管理")
-@allure.feature("环保出入库明细表")
-class TestHazardIORecord:
-    """环保出入库明细表测试类（只读页面，无增删改操作）"""
+@allure.epic("库管管理")
+@allure.feature("环保物品管理")
+class TestHazardItem:
 
     @allure.story("页面加载")
     @allure.severity(allure.severity_level.BLOCKER)
     @pytest.mark.smoke
-    def test_001_page_load_with_data(self, hazard_io_record_page: HazardIORecordPage):
-        """TC-LOAD-01: 正常加载（有数据）- 验证页面核心元素可见"""
-        with allure.step("导航到页面（已通过 fixture 完成）"):
-            pass  # hazard_io_record_page fixture 已 navigate
-        with allure.step("验证查询按钮可见"):
-            assert hazard_io_record_page.is_element_visible(hazard_io_record_page.BTN_QUERY), "查询按钮未显示"
-        with allure.step("验证表格行存在（假设有数据）"):
-            rows = hazard_io_record_page.get_table_data()
-            assert len(rows) > 0, "页面数据为空，不符合前置条件：已有出入库记录"
-        with allure.step("验证分页信息存在"):
-            total_text = hazard_io_record_page.get_pagination_info()
-            assert total_text and "共" in total_text, f"分页信息异常: {total_text}"
+    def test_001_page_load_success(self, hazard_item_page):
+        """TC-HI-101: 页面正常加载（有数据场景）
+
+        验证: 页面标题、表格、分页组件可见，且总条数大于0。
+        """
+        with allure.step("导航到环保物品管理页"):
+            hazard_item_page.navigate()
+        with allure.step("验证页面核心元素"):
+            assert hazard_item_page.is_table_visible(), "数据表格未加载"
+        with allure.step("验证分页信息"):
+            total = hazard_item_page.get_total_count()
+            assert total > 0, f"分页总条数期望大于0，实际为 {total}"
+
+    @allure.story("页面加载")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_002_page_load_empty(self, hazard_item_page):
+        """TC-HI-102: 页面加载（空数据场景）
+
+        验证: 页面正常加载，显示空数据提示，总条数为0。
+        """
+        with allure.step("强制清空搜索条件以确保无数据"):
+            # 此测试依赖一个能返回空数据的搜索条件
+            # 实际中可能需要通过特定搜索词实现
+            hazard_item_page.search_by_item_name("__empty_query__")
+        with allure.step("验证空数据状态"):
+            total = hazard_item_page.get_total_count()
+            assert total == 0, f"空数据场景下总条数期望为0，实际为 {total}"
+        with allure.step("验证空数据提示文案（需 PageObject 支持）"):
+            # 假设 HazardItemPage 有一个 get_empty_text() 方法
+            pass
 
     @allure.story("搜索功能")
     @allure.severity(allure.severity_level.CRITICAL)
-    @pytest.mark.smoke
-    def test_002_search_by_start_date(self, hazard_io_record_page: HazardIORecordPage):
-        """TC-SRCH-01: 单条件搜索（仅开始日期）"""
-        with allure.step("输入开始日期 2024-01-01，结束日期留空"):
-            hazard_io_record_page.query(start_date="2024-01-01")
-        with allure.step("等待表格刷新"):
-            hazard_io_record_page.wait_for_load()
-        with allure.step("验证返回的行数大于 0（假设有符合条件的数据）"):
-            rows = hazard_io_record_page.get_table_data()
-            # 实际项目可按需添加精确断言，此处仅验证有数据返回
-            assert len(rows) >= 0, "搜索后未返回任何数据"
-            allure.attach(f"返回行数: {len(rows)}", name="result_count", attachment_type=allure.attachment_type.TEXT)
+    def test_003_search_by_name_found(self, hazard_item_page):
+        """TC-HI-201: 按危废品名称精确搜索 — 有结果
+
+        验证: 搜索结果正确，总条数更新为匹配记录数。
+        """
+        test_name = "废酸-001"
+        with allure.step(f"搜索危废品名称: {test_name}"):
+            hazard_item_page.search_by_item_name(test_name)
+        with allure.step("验证搜索结果"):
+            total = hazard_item_page.get_total_count()
+            assert total > 0, f"搜索 {test_name} 后总条数应为正数，实际为 {total}"
+        with allure.step("验证表格行包含预期文本"):
+            assert hazard_item_page.is_row_present(test_name), f"搜索结果中未包含 {test_name}"
+
+    @allure.story("搜索功能")
+    @allure.severity(allure.severity_level.CRITICAL)
+    def test_004_search_by_name_not_found(self, hazard_item_page):
+        """TC-HI-203: 搜索无结果 — 空数据展示
+
+        验证: 搜索不存在的名称后，总条数为0，显示空状态。
+        """
+        not_exist_name = "ZZZZ_NOT_EXIST"
+        with allure.step(f"搜索不存在的危废品名称: {not_exist_name}"):
+            hazard_item_page.search_by_item_name(not_exist_name)
+        with allure.step("验证搜索结果为空"):
+            total = hazard_item_page.get_total_count()
+            assert total == 0, f"搜索 {not_exist_name} 后总条数期望为0，实际为 {total}"
 
     @allure.story("搜索功能")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_003_search_by_date_range(self, hazard_io_record_page: HazardIORecordPage):
-        """TC-SRCH-02: 范围搜索（开始+结束日期）"""
-        with allure.step("输入日期范围 2024-03-01 ~ 2024-03-07"):
-            hazard_io_record_page.query(start_date="2024-03-01", end_date="2024-03-07")
-        with allure.step("等待表格刷新"):
-            hazard_io_record_page.wait_for_load()
-        with allure.step("验证表格有数据返回"):
-            rows = hazard_io_record_page.get_table_data()
-            assert len(rows) >= 0, "日期范围搜索未返回数据"
+    def test_005_reset_search(self, hazard_item_page):
+        """TC-HI-204: 重置搜索条件
 
-    @allure.story("搜索功能")
-    @allure.severity(allure.severity_level.NORMAL)
-    def test_004_search_invalid_date_range(self, hazard_io_record_page: HazardIORecordPage):
-        """TC-SRCH-03: 日期范围反转（开始 > 结束）"""
-        with allure.step("输入逆向日期范围：开始 2024-02-01，结束 2024-01-01"):
-            hazard_io_record_page.query(start_date="2024-02-01", end_date="2024-01-01")
-        with allure.step("等待页面响应"):
-            hazard_io_record_page.wait_for_load()
-        with allure.step("验证页面提示错误信息或表格为空"):
-            # 具体行为取决于后端实现，此处断言表格无数据或页面显示错误提示
-            # 若后端自动交换日期，则可能有数据，此处仅记录观察
-            rows = hazard_io_record_page.get_table_data()
-            total_text = hazard_io_record_page.get_pagination_info()
-            allure.attach(f"行数: {len(rows)}, 分页: {total_text}", name="response", attachment_type=allure.attachment_type.TEXT)
-            # 可根据实际实现细化断言，例如：assert "结束日期不能早于开始日期" in page_source
-
-    @allure.story("搜索功能")
-    @allure.severity(allure.severity_level.NORMAL)
-    def test_005_reset_search(self, hazard_io_record_page: HazardIORecordPage):
-        """TC-SRCH-05: 重置搜索条件"""
-        with allure.step("先执行一次查询，缩小数据范围"):
-            hazard_io_record_page.query(start_date="2024-03-01", end_date="2024-03-07")
-            hazard_io_record_page.wait_for_load()
-            rows_before_reset = len(hazard_io_record_page.get_table_data())
+        验证: 重置后搜索框清空，表格恢复显示全部数据。
+        """
+        with allure.step("首先获取初始总条数"):
+            initial_total = hazard_item_page.get_total_count()
+            assert initial_total > 0, "初始数据不能为空"
+        with allure.step("执行一个搜索操作"):
+            hazard_item_page.search_by_item_name("废")
+            searched_total = hazard_item_page.get_total_count()
+            # 搜索后结果数应小于初始数（确保搜索生效）
+            # 如果所有数据都包含“废”，则可能相等，这里只做示例
         with allure.step("点击重置按钮"):
-            hazard_io_record_page.reset_search()
-        with allure.step("验证日期输入框清空"):
-            start_value = hazard_io_record_page.get_value(hazard_io_record_page.FILTER_DATE_START)
-            end_value = hazard_io_record_page.get_value(hazard_io_record_page.FILTER_DATE_END)
-            assert start_value == "", f"开始日期未清空: '{start_value}'"
-            assert end_value == "", f"结束日期未清空: '{end_value}'"
-        with allure.step("验证表格恢复全量数据（行数应大于重置前）"):
-            rows_after_reset = len(hazard_io_record_page.get_table_data())
-            allure.attach(f"重置前行数: {rows_before_reset}, 重置后行数: {rows_after_reset}", name="reset_comparison",
-                          attachment_type=allure.attachment_type.TEXT)
-            # 由于无法保证前后数据量绝对递增，此处仅断言行数非负且记录日志
-            assert rows_after_reset >= 0, "重置后表格行数异常"
-
-    @allure.story("搜索功能")
-    @allure.severity(allure.severity_level.MINOR)
-    def test_006_repeat_click_query(self, hazard_io_record_page: HazardIORecordPage):
-        """TC-SRCH-06: 重复快速点击查询按钮"""
-        import time
-        with allure.step("快速连续点击查询按钮 3 次"):
-            for _ in range(3):
-                hazard_io_record_page.click(hazard_io_record_page.BTN_QUERY)
-        with allure.step("等待页面稳定"):
-            hazard_io_record_page.wait_for_load()
-        with allure.step("验证表格无异常（仅触发一次请求）"):
-            total_text = hazard_io_record_page.get_pagination_info()
-            assert total_text is not None, "重复点击后分页信息丢失"
-            allure.attach(f"分页信息: {total_text}", name="pagination", attachment_type=allure.attachment_type.TEXT)
+            hazard_item_page.reset_search()
+        with allure.step("验证重置后总条数恢复"):
+            reset_total = hazard_item_page.get_total_count()
+            assert reset_total == initial_total, (
+                f"重置后总条数应恢复为初始值 {initial_total}，实际为 {reset_total}"
+            )

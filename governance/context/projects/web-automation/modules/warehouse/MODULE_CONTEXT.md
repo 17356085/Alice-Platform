@@ -84,3 +84,23 @@ graph TD
 | **风险发现能力** | 3 | 当前测试可以捕获页面渲染和基础功能的中断性缺陷，但深层次的逻辑和业务联动缺陷较难发现。 |
 
 **总体评价**：该子页面的自动化程度处于“**基础功能覆盖**”阶段。可以高效地作为集成测试中的烟雾测试，验证核心模块是否正常。如需提升自动化价值，需要在**数据构造与清理**、**复杂业务路径**（特别是审批流）上投入更多资源。
+
+
+<!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-stats -->
+<!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
+## 自动统计数据 (更新于 2026-06-17 21:52)
+
+| 指标 | 数值 |
+|------|:---:|
+| 测试文件 | 16 (script/warehouse/test_*.py) |
+| Page Object | 14 (page/warehouse_page/*.py) |
+| 治理文档 | 26 .md 文件 |
+| TECH_ANALYSIS | 5 |
+| AUTO_STRATEGY | 5 |
+| RISK_MODEL | 5 |
+| PAGE_CONTEXT | 6 |
+| SOP 状态 | completed |
+| Phase 完成 | Automation, Bug Analysis, Data Sanitization, Execute & Debug, Knowledge, Project Init, Report, Requirement, Test Design |
+
+> 此段由 sync_progress.py 自动更新。手动编辑会被覆盖。
+<!-- ⚠️ AUTO-GENERATED SECTION END: module-stats -->
