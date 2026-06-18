@@ -20,6 +20,8 @@ from base.base_page import BasePage
 from base.api_base import AJSystemAPI
 from page.personnel_page.PostManagePage import PostManagePage
 from page.personnel_page.ExamManagePage import ExamManagePage
+from page.personnel_page.EmployeePage import EmployeePage
+from page.personnel_page.EmployeeManagePage import EmployeeManagePage
 
 logger = logging.getLogger(__name__)
 
@@ -76,40 +78,46 @@ def _navigate_for_module(driver, module):
         logger.info("导航: %s → %s", name, route)
         nav = SidebarNavigator(driver)
         nav._navigate_by_js_hash(route, name)
-        # 承包商人员需要先展开侧边栏再点击（无独立路由，与单位共用）
-        if name == "test_contractor_personnel":
+
+        # ── 承包商子页面 nest-menu 切换 ──
+        _NEST_MENU_CONFIG = {
+            "test_contractor_personnel": {"text": "承包商人员", "verify": "身份证"},
+            "test_entry_approval":       {"text": "入场审批", "verify": "申请人"},
+            "test_entry_confirm":        {"text": "入场确认", "verify": "确认人"},
+            "test_entry_record":         {"text": "入场记录", "verify": "记录"},
+        }
+        if name in _NEST_MENU_CONFIG:
+            cfg = _NEST_MENU_CONFIG[name]
             try:
-                logger.info("承包商人员: JS 点击 nest-menu 切换视图")
-                # JS原生事件触发Vue组件切换 + 等待内容渲染
-                clicked = driver.execute_script("""
+                logger.info("%s: JS 点击 nest-menu 切换视图 → '%s'", name, cfg["text"])
+                clicked = driver.execute_script(f"""
                     var items = document.querySelectorAll('.el-menu-item, .nest-menu .el-menu-item, li[role="menuitem"]');
-                    for (var i = 0; i < items.length; i++) {
-                        if (items[i].textContent.indexOf('承包商人员') !== -1) {
-                            items[i].dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
+                    for (var i = 0; i < items.length; i++) {{
+                        if (items[i].textContent.indexOf('{cfg["text"]}') !== -1) {{
+                            items[i].dispatchEvent(new MouseEvent('click', {{bubbles: true, cancelable: true}}));
                             return true;
-                        }
-                    }
+                        }}
+                    }}
                     return false;
                 """)
                 if clicked:
-                    logger.info("承包商人员: nest-menu 切换成功，等待渲染")
-                    time.sleep(1.5)  # 等待Vue组件切换+Ajax
+                    logger.info("%s: nest-menu 切换成功，等待渲染", name)
+                    time.sleep(1.5)
                     BasePage(driver).wait_vue_stable()
-                    # 验证切换：检查表格列头是否包含"身份证号"（承包商人员独有列）
-                    verify = driver.execute_script("""
+                    verify = driver.execute_script(f"""
                         var cells = document.querySelectorAll('.el-table__header-wrapper th .cell');
-                        for (var i = 0; i < cells.length; i++) {
-                            if (cells[i].textContent.indexOf('身份证') !== -1) return true;
-                        }
+                        for (var i = 0; i < cells.length; i++) {{
+                            if (cells[i].textContent.indexOf('{cfg["verify"]}') !== -1) return true;
+                        }}
                         return false;
                     """)
-                    logger.info("承包商人员: 页面验证 %s", "通过" if verify else "未通过(可能仍在单位视图)")
+                    logger.info("%s: 页面验证 %s", name, "通过" if verify else "未通过(可能仍在上一视图)")
                 else:
-                    logger.warning("承包商人员: 未找到 nest-menu 项，尝试侧边栏导航")
-                    nav.navigate_to("人员管理", "承包商管理", "承包商人员")
+                    logger.warning("%s: 未找到 nest-menu 项 '%s'，尝试侧边栏导航", name, cfg["text"])
+                    nav.navigate_to("人员管理", "承包商管理", cfg["text"])
                     BasePage(driver).wait_vue_stable()
             except Exception as e:
-                logger.warning("侧边栏承包商人员导航失败: %s", e)
+                logger.warning("%s: nest-menu 切换失败: %s", name, e)
     else:
         logger.warning("未配置导航: %s", name)
 
@@ -297,3 +305,19 @@ def test_data_cleanup(api_client):
                 logger.debug(f"Cleaned post: {resource_id}")
         except Exception as e:
             logger.warning(f"Cleanup failed {resource_type}:{resource_id}: {e}")
+
+
+@pytest.fixture(scope="function")
+def employee_page(driver_setup):
+    """EmployeePage fixture — 侧边栏导航到人员管理"""
+    page = EmployeePage(driver_setup)
+    page.navigate()
+    return page
+
+
+@pytest.fixture(scope="function")
+def employee_manage_page(driver_setup):
+    """EmployeeManagePage fixture"""
+    page = EmployeeManagePage(driver_setup)
+    page.navigate()
+    return page

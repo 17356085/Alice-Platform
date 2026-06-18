@@ -5,8 +5,11 @@
 # 技术栈: Vue3 + Element Plus
 # =====================================================================
 
+import logging
 from base.base_page import BasePage
 from selenium.webdriver.common.by import By
+
+logger = logging.getLogger(__name__)
 
 
 class EmployeePage(BasePage):
@@ -71,7 +74,7 @@ class EmployeePage(BasePage):
         通过左侧导航进入「人员管理」页面
         :return: self
         """
-        self.logger.info("导航到人员管理页面")
+        logger.info("导航到人员管理页面")
         self.navigate_to("人事管理", "人员管理")
         self.wait_vue_stable()
         return self
@@ -87,7 +90,7 @@ class EmployeePage(BasePage):
         :param date_range: 入职日期范围 (start_date, end_date)，格式 'YYYY-MM-DD'
         :return: self
         """
-        self.logger.info(f"搜索条件: 姓名={keyword}, 部门={department}, 状态={status}, 日期范围={date_range}")
+        logger.info(f"搜索条件: 姓名={keyword}, 部门={department}, 状态={status}, 日期范围={date_range}")
         if keyword is not None:
             self.fill_element(self.SEARCH_NAME_INPUT, keyword)
         if department is not None:
@@ -117,7 +120,7 @@ class EmployeePage(BasePage):
         重置所有搜索条件
         :return: self
         """
-        self.logger.info("重置搜索条件")
+        logger.info("重置搜索条件")
         self.click(self.RESET_BTN)
         self.wait_vue_stable()
         return self
@@ -128,7 +131,7 @@ class EmployeePage(BasePage):
         获取表格当前页所有行数据（文本形式）
         :return: list of dict，每个 dict 包含列名-文本
         """
-        self.logger.info("获取表格数据")
+        logger.info("获取表格数据")
         # 等待表格行出现
         self.wait_for_visible(self.TABLE_ROW)
         rows = self.find_elements(self.TABLE_ROW)
@@ -154,7 +157,7 @@ class EmployeePage(BasePage):
         点击「新增员工」按钮
         :return: self
         """
-        self.logger.info("点击新增员工按钮")
+        logger.info("点击新增员工按钮")
         self.click_with_wait(self.ADD_BTN)
         self.wait_for_visible(self.DIALOG)
         return self
@@ -165,7 +168,7 @@ class EmployeePage(BasePage):
         :param data: 字段名-值字典，支持键: name, gender, phone, department, position, status, hire_date
         :return: self
         """
-        self.logger.info(f"填写表单: {data}")
+        logger.info(f"填写表单: {data}")
         if "name" in data:
             self.fill_element(self.DIALOG_NAME_INPUT, data["name"])
         if "gender" in data:
@@ -199,7 +202,7 @@ class EmployeePage(BasePage):
         点击弹窗确定按钮（保存）
         :return: self
         """
-        self.logger.info("确认弹窗")
+        logger.info("确认弹窗")
         self.click_with_wait(self.DIALOG_SAVE)
         self.wait_for_invisible(self.DIALOG)  # 等待弹窗关闭
         return self
@@ -209,7 +212,7 @@ class EmployeePage(BasePage):
         点击弹窗取消按钮
         :return: self
         """
-        self.logger.info("取消弹窗")
+        logger.info("取消弹窗")
         self.click_with_wait(self.DIALOG_CANCEL)
         self.wait_for_invisible(self.DIALOG)
         return self
@@ -221,11 +224,11 @@ class EmployeePage(BasePage):
         :param row_index: 行索引
         :return: self
         """
-        self.logger.info(f"点击第 {row_index} 行的编辑按钮")
+        logger.info(f"点击第 {row_index} 行的编辑按钮")
         # 先定位到对应行
         rows = self.find_elements(self.TABLE_ROW)
         if row_index >= len(rows):
-            self.logger.error(f"行索引 {row_index} 超出范围，总行数 {len(rows)}")
+            logger.error(f"行索引 {row_index} 超出范围，总行数 {len(rows)}")
             raise IndexError(f"Row index {row_index} out of range, total rows: {len(rows)}")
         edit_btn = rows[row_index].find_element(*self.EDIT_BTN_IN_ROW)
         self.click_with_wait(edit_btn)
@@ -238,10 +241,10 @@ class EmployeePage(BasePage):
         :param row_index: 行索引
         :return: self
         """
-        self.logger.info(f"点击第 {row_index} 行的删除按钮")
+        logger.info(f"点击第 {row_index} 行的删除按钮")
         rows = self.find_elements(self.TABLE_ROW)
         if row_index >= len(rows):
-            self.logger.error(f"行索引 {row_index} 超出范围，总行数 {len(rows)}")
+            logger.error(f"行索引 {row_index} 超出范围，总行数 {len(rows)}")
             raise IndexError(f"Row index {row_index} out of range, total rows: {len(rows)}")
         delete_btn = rows[row_index].find_element(*self.DELETE_BTN_IN_ROW)
         self.click_with_wait(delete_btn)
@@ -254,7 +257,7 @@ class EmployeePage(BasePage):
         获取分页信息：当前页、每页条数、总记录数
         :return: dict {"current_page": int, "page_size": int, "total": int}
         """
-        self.logger.info("获取分页信息")
+        logger.info("获取分页信息")
         self.wait_for_visible(self.PAGINATION)
         current_page_text = self.get_attribute(self.CURRENT_PAGE_INPUT, "value")
         page_size_text = self.get_text(self.PAGE_SIZE_DROPDOWN)  # 可能需调整
