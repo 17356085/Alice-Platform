@@ -473,15 +473,20 @@ class BasePage:
             f'[.//label[contains(normalize-space(.),"{label_text}")]]',
             # 策略4：任意 label 的父容器
             f'.//label[contains(normalize-space(.),"{label_text}")]/..',
+            # 策略5（新增）：包含文本的 span / div（可能无 label 标签）
+            f'.//*[contains(normalize-space(.),"{label_text}")]//ancestor::div[contains(@class,"el-form-item")]',
         ]
-        for xp in xpaths:
+        for idx, xp in enumerate(xpaths):
             try:
                 item = WebDriverWait(self.driver, timeout).until(
                     lambda d: self._get_visible_dialog().find_element(By.XPATH, xp)
                 )
                 if item.is_displayed():
+                    self._scroll_into_view(item)
+                    logger.debug(f"✓ 表单项「{label_text}」定位成功 (策略 {idx+1})")
                     return item
-            except Exception:
+            except Exception as e:
+                logger.debug(f"✗ 策略 {idx+1} 失败: {e}")
                 continue
         raise Exception(f"未找到弹窗表单项: {label_text}")
 
@@ -664,20 +669,29 @@ class BasePage:
         except TimeoutException:
             return ''
 
-    def wait_for_toast_text(self, timeout=6):
+    def wait_for_toast_text(self, timeout=10, max_attempts=3):
         """轮询等待 Toast 消息出现并返回文本
 
-        Vue 异步渲染可能导致 Toast 延迟出现，此方法轮询检测。
+        改进: 多轮重试 + 自适应等待
+
+        Args:
+            timeout: 单轮超时时间（秒）
+            max_attempts: 最多尝试轮数
 
         Returns:
             str: Toast 消息文本，超时返回空字符串
         """
-        deadline = time.time() + timeout
-        while time.time() < deadline:
-            text = self.get_toast()
-            if text:
-                return text
-            time.sleep(TIMEOUT_CONFIG["animate_wait"])
+        for attempt in range(max_attempts):
+            deadline = time.time() + timeout
+            while time.time() < deadline:
+                text = self.get_toast()
+                if text:
+                    logger.info(f"✓ 第 {attempt+1} 轮获取 Toast: {text}")
+                    return text
+                time.sleep(TIMEOUT_CONFIG["animate_wait"])  # 0.5s 轮询
+            logger.warning(f"✗ 第 {attempt+1} 轮超时（{timeout}s），准备重试...")
+            time.sleep(0.3)
+        logger.warning(f"✗ 所有 {max_attempts} 轮重试均无 Toast，返回空字符串")
         return ''
 
     def get_form_error(self, timeout=3):
@@ -787,15 +801,33 @@ class BasePage:
         except Exception:
             return ''
 
-    def click_row_button(self, row_identifier, button_text):
-        """在表格中查找包含指定文本的行，点击行内按钮"""
-        xpath = (
-            f'//tr[contains(@class,"el-table__row")]'
-            f'[.//td[contains(normalize-space(.),"{row_identifier}")]]'
-            f'//button[contains(.,"{button_text}")]'
-        )
-        self.click((By.XPATH, xpath))
-        self.wait_vue_stable()
+    def click_row_button(self, row_identifier, button_text, max_retries=3):
+        """在表格中查找包含指定文本的行，点击行内按钮
+
+        改进: 增重试、更强的 XPath、强制滚动
+        """
+        for attempt in range(max_retries):
+            try:
+                xpath = (
+                    f'//tr[contains(@class,"el-table__row")]'
+                    f'[.//td[contains(translate(normalize-space(.), " ", ""), translate("{row_identifier}", " ", ""))]]'
+                    f'//button[contains(.,"{button_text}")]'
+                )
+                btn = WebDriverWait(self.driver, 15).until(
+                    EC.element_to_be_clickable((By.XPATH, xpath))
+                )
+                self._scroll_into_view(btn)
+                time.sleep(TIMEOUT_CONFIG["micro_wait"])
+                self.driver.execute_script("arguments[0].click();", btn)
+                self.wait_vue_stable()
+                logger.info(f"已点击行「{row_identifier}」的【{button_text}】按钮 (尝试 {attempt+1})")
+                return
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    logger.error(f"第 {attempt+1} 次尝试失败，row_id={row_identifier}, btn={button_text}: {e}")
+                    raise Exception(f"未找到表格行「{row_identifier}」中的按钮【{button_text}】: {e}")
+                logger.warning(f"第 {attempt+1} 次尝试失败，准备重试... ({e})")
+                time.sleep(0.5)
 
     def is_row_present(self, text):
         """判断表格中是否存在包含指定文本的行"""
