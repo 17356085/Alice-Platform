@@ -39,8 +39,8 @@ _MODULE_HASH_ROUTES = {
     "test_practice": "#/personnel/training/practice",
     "test_study_record": "#/personnel/training/studyRecord",
     "test_wrong_question": "#/personnel/training/wrongQuestion",
-    "test_contractor_unit": "#/personnel/contractor",
-    "test_contractor_personnel": "#/personnel/contractor",
+    "test_contractor_unit": "#/personnel/contractor/unit",
+    "test_contractor_personnel": "#/personnel/contractor/person",
     "test_entry_approval": "#/personnel/contractor/approval",
     "test_entry_record": "#/personnel/contractor/record",
     "test_entry_confirm": "#/personnel/contractor/confirm",
@@ -82,7 +82,6 @@ def _navigate_for_module(driver, module):
 
         # ── 承包商子页面 nest-menu 切换 ──
         _NEST_MENU_CONFIG = {
-            "test_contractor_personnel": {"text": "承包商人员", "verify": "身份证"},
             "test_entry_approval":       {"text": "入场审批", "verify": "申请人"},
             "test_entry_confirm":        {"text": "入场确认", "verify": "确认人"},
             "test_entry_record":         {"text": "入场记录", "verify": "记录"},
