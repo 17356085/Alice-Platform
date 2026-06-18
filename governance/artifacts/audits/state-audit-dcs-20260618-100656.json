@@ -1,0 +1,172 @@
+{
+  "module": "dcs",
+  "audit_time": "2026-06-18T10:06:56.508938",
+  "overall_status": "error",
+  "drift_count": 13,
+  "error_count": 2,
+  "warning_count": 11,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Project Init",
+      "description": "Phase 'Project Init' 已完成，但模块级产物缺失: PROJECT_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\dcs\\PROJECT_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Project Init 相关 Agent"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Requirement",
+      "description": "产物 'MODULE_CONTEXT.md' 存在但 Phase 'Requirement' 未在 completed_phases 中",
+      "expected": "Phase 'Requirement' 在 completed_phases 中",
+      "actual": "Phase 'Requirement' 不在 completed_phases 中，但 MODULE_CONTEXT.md 已存在",
+      "suggestion": "更新 SOP_STATUS 将 'Requirement' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'TECH_ANALYSIS.md' 在页面 'all-data' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'AUTO_STRATEGY.md' 在页面 'all-data' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'TECH_ANALYSIS.md' 在页面 'common-data' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'AUTO_STRATEGY.md' 在页面 'common-data' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'TECH_ANALYSIS.md' 在页面 'monitor' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'AUTO_STRATEGY.md' 在页面 'monitor' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'TECH_ANALYSIS.md' 在页面 'point-config' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'AUTO_STRATEGY.md' 在页面 'point-config' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'TECH_ANALYSIS.md' 在页面 'upload-log' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "产物 'AUTO_STRATEGY.md' 在页面 'upload-log' 存在但 Phase 'Automation' 未完成",
+      "expected": "Phase 'Automation' 在 completed_phases 中",
+      "actual": "Phase 'Automation' 不在 completed_phases 中",
+      "suggestion": "更新 SOP_STATUS 将 'Automation' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "c_check",
+      "severity": "error",
+      "phase": "",
+      "description": "Checkpoint 中有但 SOP_STATUS JSON 中无: {'Requirement'}",
+      "expected": "JSON 和 checkpoint 一致",
+      "actual": "JSON: ['Project Init'], SQLite: ['Project Init', 'Requirement']",
+      "suggestion": "从 SQLite checkpoint 恢复并重新生成 SOP_STATUS JSON。JSON 快照可能未正常写入。"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 1,
+      "errors": 1,
+      "warnings": 0,
+      "ok": false
+    },
+    "r_check": {
+      "total": 11,
+      "errors": 0,
+      "warnings": 11,
+      "ok": false
+    },
+    "o_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "orphan_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "c_check": {
+      "total": 1,
+      "errors": 1,
+      "warnings": 0,
+      "ok": false
+    },
+    "q_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "t_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    }
+  }
+}

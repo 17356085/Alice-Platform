@@ -1,0 +1,217 @@
+{
+  "module": "tank",
+  "audit_time": "2026-06-18T10:06:58.103891",
+  "overall_status": "error",
+  "drift_count": 18,
+  "error_count": 5,
+  "warning_count": 13,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Automation",
+      "description": "Phase 'Automation' 已完成，但页面 'alarm-config' 缺失: PAGE_ELEMENT_POSITION.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\pages\\alarm-config\\PAGE_ELEMENT_POSITION.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Automation 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'alarm-config' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\pages\\alarm-config\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'monitor' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\pages\\monitor\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'report' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\pages\\report\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Data Sanitization",
+      "description": "Phase 'Data Sanitization' 已完成，但模块级产物缺失: DATA_QUALITY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\DATA_QUALITY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Data Sanitization 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Project Init",
+      "description": "Phase 'Project Init' 已完成，但模块级产物缺失: PROJECT_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\PROJECT_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Project Init 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'alarm-config' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\pages\\alarm-config\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'alarm-config' 缺失: TEST_DESIGN.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\pages\\alarm-config\\TEST_DESIGN.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'monitor' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\pages\\monitor\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'report' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\tank\\pages\\report\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "PAGE_CONTEXT.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=49, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "c_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "SOP_STATUS JSON 中有但 checkpoint 中无: {'Knowledge', 'Bug Analysis', 'Report', 'Data Sanitization'}",
+      "expected": "JSON 和 checkpoint 一致",
+      "actual": "JSON: ['Automation', 'Bug Analysis', 'Data Sanitization', 'Execute & Debug', 'Knowledge', 'Project Init', 'Report', 'Requirement', 'Test Design'], SQLite: ['Automation', 'Execute & Debug', 'Project Init', 'Requirement', 'Test Design']",
+      "suggestion": "以 SQLite checkpoint 为准，重新导出 SOP_STATUS JSON"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'alarm-config' 业务场景覆盖评分 20 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=20",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'tank' 有 3 个页面，但页面 'alarm-config' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'monitor' 业务场景覆盖评分 33 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=33",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'tank' 有 3 个页面，但页面 'monitor' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'report' 业务场景覆盖评分 29 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=29",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'tank' 有 3 个页面，但页面 'report' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 10,
+      "errors": 2,
+      "warnings": 8,
+      "ok": false
+    },
+    "r_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "o_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "orphan_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "c_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "q_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "t_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    }
+  }
+}

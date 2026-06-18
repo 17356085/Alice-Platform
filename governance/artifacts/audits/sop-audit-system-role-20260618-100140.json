@@ -1,0 +1,181 @@
+{
+  "module": "system-role",
+  "audit_time": "2026-06-18T10:01:40.837445",
+  "period": "7d",
+  "overall_compliance": 0.75,
+  "total_violations": 6,
+  "error_count": 3,
+  "warning_count": 3,
+  "violations": [
+    {
+      "check_type": "p_check",
+      "severity": "error",
+      "violation_type": "phase_order",
+      "detail": "Phase 'Automation' 已完成但前驱 'Test Design' 未完成",
+      "run_id": "",
+      "evidence": {
+        "completed": [
+          "Automation",
+          "Bug Analysis",
+          "Data Sanitization",
+          "Execute & Debug",
+          "Knowledge",
+          "Project Init",
+          "Report",
+          "Requirement",
+          "Test Design"
+        ],
+        "missing_prereq": "Test Design"
+      },
+      "suggestion": "Phase 顺序异常。先运行 Test Design 再运行 Automation。"
+    },
+    {
+      "check_type": "p_check",
+      "severity": "error",
+      "violation_type": "phase_order",
+      "detail": "Phase 'Bug Analysis' 已完成但前驱 'Execute & Debug' 未完成",
+      "run_id": "",
+      "evidence": {
+        "completed": [
+          "Automation",
+          "Bug Analysis",
+          "Data Sanitization",
+          "Execute & Debug",
+          "Knowledge",
+          "Project Init",
+          "Report",
+          "Requirement",
+          "Test Design"
+        ],
+        "missing_prereq": "Execute & Debug"
+      },
+      "suggestion": "Phase 顺序异常。先运行 Execute & Debug 再运行 Bug Analysis。"
+    },
+    {
+      "check_type": "p_check",
+      "severity": "error",
+      "violation_type": "phase_order",
+      "detail": "Phase 'Data Sanitization' 已完成但前驱 'Execute & Debug' 未完成",
+      "run_id": "",
+      "evidence": {
+        "completed": [
+          "Automation",
+          "Bug Analysis",
+          "Data Sanitization",
+          "Execute & Debug",
+          "Knowledge",
+          "Project Init",
+          "Report",
+          "Requirement",
+          "Test Design"
+        ],
+        "missing_prereq": "Execute & Debug"
+      },
+      "suggestion": "Phase 顺序异常。先运行 Execute & Debug 再运行 Data Sanitization。"
+    },
+    {
+      "check_type": "p_check",
+      "severity": "warning",
+      "violation_type": "phase_reversal",
+      "detail": "Phase 顺序异常: Data Sanitization → Execute & Debug",
+      "run_id": "",
+      "evidence": {
+        "completed": [
+          "Automation",
+          "Bug Analysis",
+          "Data Sanitization",
+          "Execute & Debug",
+          "Knowledge",
+          "Project Init",
+          "Report",
+          "Requirement",
+          "Test Design"
+        ]
+      },
+      "suggestion": "检查是否手动修改了 SOP_STATUS 或使用了非标准 skip 路径"
+    },
+    {
+      "check_type": "l_check",
+      "severity": "warning",
+      "violation_type": "loop_exhaustion",
+      "detail": "Bug fix 循环耗尽率 100% (1/1)，平均循环 3.0 次，首次修复率 0%",
+      "run_id": "",
+      "evidence": {
+        "total_incidents": 1,
+        "avg_cycles": 3.0,
+        "first_fix_rate": 0.0,
+        "exhausted_count": 1
+      },
+      "suggestion": "建议升级 debug-agent 的修复策略或增加已知问题库覆盖"
+    },
+    {
+      "check_type": "l_check",
+      "severity": "info",
+      "violation_type": "loop_inefficiency",
+      "detail": "Bug fix 平均需要 3.0 次循环",
+      "run_id": "",
+      "evidence": {
+        "avg_cycles": 3.0
+      },
+      "suggestion": "考虑在首次修复失败后增加更详细的错误分析指导"
+    }
+  ],
+  "checks": {
+    "baseline_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "p_check": {
+      "total": 4,
+      "errors": 3,
+      "warnings": 1,
+      "infos": 0,
+      "ok": false
+    },
+    "s_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "g_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "h_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "b_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "l_check": {
+      "total": 2,
+      "errors": 0,
+      "warnings": 1,
+      "infos": 1,
+      "ok": false
+    },
+    "x_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    }
+  }
+}

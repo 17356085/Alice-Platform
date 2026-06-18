@@ -1,106 +1,167 @@
-# script/warehouse/test_hazard_item.py
-"""环保物品管理页面测试脚本
+"""库管管理模块共享 fixtures
 
-模块: warehouse (库管管理)
-页面: 环保物品管理 (HazardItem)
-测试类型: UI 自动化测试
-关联用例: TEST_CASES.md (TD-HI-101, TD-HI-102, TD-HI-201, TD-HI-202, TD-HI-204)
+driver_setup（module 级）：
+  - 每个 test_*.py 文件独立浏览器实例
+  - 使用 JS hash 导航（window.location.hash）直接跳转目标路由
+
+使用方式：
+    def test_xxx(self, driver_setup):
+        page = HazardItemPage(driver_setup)
 """
+import logging
+import time
+
 import pytest
-import allure
-from base.cleanup_tracker import get_cleanup_tracker
 
-# 确保 fixture 已导入（conftest.py 中定义）
-# from .conftest import hazard_item_page
+from base.browser_driver import BaseDriver, ensure_logged_in
+from base.base_page import BasePage
+from base.sidebar_navigator import SidebarNavigator
+from page.warehouse_page.HazardItemPage import HazardItemPage
+from page.warehouse_page.HazardIORecordPage import HazardIORecordPage
+from page.warehouse_page.HazardInOrderPage import HazardInOrderPage
+from page.warehouse_page.HazardStockPage import HazardStockPage
+from page.warehouse_page.ReagentItemPage import ReagentItemPage
+from page.warehouse_page.ReagentFillPage import ReagentFillPage
+from page.warehouse_page.SpareItemPage import SpareItemPage
+from page.warehouse_page.SpareIORecordPage import SpareIORecordPage
+from page.warehouse_page.SpareInOrderPage import SpareInOrderPage
+from page.warehouse_page.SpareOutOrderPage import SpareOutOrderPage
+from page.warehouse_page.SpareRequisitionPage import SpareRequisitionPage
+from page.warehouse_page.SpareStockPage import SpareStockPage
+from page.warehouse_page.SpareStocktakePage import SpareStocktakePage
+from page.warehouse_page.SpareStockAdjustPage import SpareStockAdjustPage
+
+logger = logging.getLogger(__name__)
+
+# 测试文件 → 页面 hash 路由映射
+_MODULE_HASH_ROUTES = {
+    "test_hazard_in_order": "#/warehouse/hazard/in_order",
+    "test_hazard_io_record": "#/warehouse/hazard/io_record",
+    "test_hazard_item": "#/warehouse/hazard/item",
+    "test_hazard_stock": "#/warehouse/hazard/stock",
+    "test_reagent_fill": "#/warehouse/reagent/fill",
+    "test_reagent_item": "#/warehouse/reagent/item",
+    "test_spare_in_order": "#/warehouse/spare/in_order",
+    "test_spare_io_record": "#/warehouse/spare/io_record",
+    "test_spare_item": "#/warehouse/spare/item",
+    "test_spare_out_order": "#/warehouse/spare/out_order",
+    "test_spare_requisition": "#/warehouse/spare/requisition",
+    "test_spare_stock": "#/warehouse/spare/stock",
+    "test_spare_stock_adjust": "#/warehouse/spare/stock_adjust",
+    "test_spare_stocktake": "#/warehouse/spare/stocktake",
+    "test_warehouse_e2e": "#/warehouse",
+    "test_warehouse_workflow_e2e": "#/warehouse",
+}
 
 
-@allure.epic("库管管理")
-@allure.feature("环保物品管理")
-class TestHazardItem:
+@pytest.fixture(scope="module")
+def driver_setup(request):
+    """模块级浏览器实例，自动导航到测试路由"""
+    driver = BaseDriver().driver
+    ensure_logged_in(driver)
 
-    @allure.story("页面加载")
-    @allure.severity(allure.severity_level.BLOCKER)
-    @pytest.mark.smoke
-    def test_001_page_load_success(self, hazard_item_page):
-        """TC-HI-101: 页面正常加载（有数据场景）
+    try:
+        _navigate_for_module(driver, request.module)
+    except Exception as e:
+        logger.error("导航失败: %s", e)
+        driver.quit()
+        raise
 
-        验证: 页面标题、表格、分页组件可见，且总条数大于0。
-        """
-        with allure.step("导航到环保物品管理页"):
-            hazard_item_page.navigate()
-        with allure.step("验证页面核心元素"):
-            assert hazard_item_page.is_table_visible(), "数据表格未加载"
-        with allure.step("验证分页信息"):
-            total = hazard_item_page.get_total_count()
-            assert total > 0, f"分页总条数期望大于0，实际为 {total}"
+    yield driver
 
-    @allure.story("页面加载")
-    @allure.severity(allure.severity_level.NORMAL)
-    def test_002_page_load_empty(self, hazard_item_page):
-        """TC-HI-102: 页面加载（空数据场景）
+    try:
+        _teardown_for_module(driver, request.module)
+    except Exception as e:
+        logger.warning("后置清理失败: %s", e)
 
-        验证: 页面正常加载，显示空数据提示，总条数为0。
-        """
-        with allure.step("强制清空搜索条件以确保无数据"):
-            # 此测试依赖一个能返回空数据的搜索条件
-            # 实际中可能需要通过特定搜索词实现
-            hazard_item_page.search_by_item_name("__empty_query__")
-        with allure.step("验证空数据状态"):
-            total = hazard_item_page.get_total_count()
-            assert total == 0, f"空数据场景下总条数期望为0，实际为 {total}"
-        with allure.step("验证空数据提示文案（需 PageObject 支持）"):
-            # 假设 HazardItemPage 有一个 get_empty_text() 方法
-            pass
+    driver.quit()
 
-    @allure.story("搜索功能")
-    @allure.severity(allure.severity_level.CRITICAL)
-    def test_003_search_by_name_found(self, hazard_item_page):
-        """TC-HI-201: 按危废品名称精确搜索 — 有结果
 
-        验证: 搜索结果正确，总条数更新为匹配记录数。
-        """
-        test_name = "废酸-001"
-        with allure.step(f"搜索危废品名称: {test_name}"):
-            hazard_item_page.search_by_item_name(test_name)
-        with allure.step("验证搜索结果"):
-            total = hazard_item_page.get_total_count()
-            assert total > 0, f"搜索 {test_name} 后总条数应为正数，实际为 {total}"
-        with allure.step("验证表格行包含预期文本"):
-            assert hazard_item_page.is_row_present(test_name), f"搜索结果中未包含 {test_name}"
+def _navigate_for_module(driver, module):
+    """使用 JS hash 导航到目标路由"""
+    name = module.__name__.split(".")[-1]
+    route = _MODULE_HASH_ROUTES.get(name)
 
-    @allure.story("搜索功能")
-    @allure.severity(allure.severity_level.CRITICAL)
-    def test_004_search_by_name_not_found(self, hazard_item_page):
-        """TC-HI-203: 搜索无结果 — 空数据展示
+    if route:
+        logger.info("导航: %s → %s", name, route)
+        nav = SidebarNavigator(driver)
+        nav._navigate_by_js_hash(route, name)
+        BasePage(driver).wait_vue_stable()
+    else:
+        logger.warning("未配置导航: %s", name)
 
-        验证: 搜索不存在的名称后，总条数为0，显示空状态。
-        """
-        not_exist_name = "ZZZZ_NOT_EXIST"
-        with allure.step(f"搜索不存在的危废品名称: {not_exist_name}"):
-            hazard_item_page.search_by_item_name(not_exist_name)
-        with allure.step("验证搜索结果为空"):
-            total = hazard_item_page.get_total_count()
-            assert total == 0, f"搜索 {not_exist_name} 后总条数期望为0，实际为 {total}"
 
-    @allure.story("搜索功能")
-    @allure.severity(allure.severity_level.NORMAL)
-    def test_005_reset_search(self, hazard_item_page):
-        """TC-HI-204: 重置搜索条件
+def _teardown_for_module(driver, module):
+    """模块结束时的数据清理"""
+    pass
 
-        验证: 重置后搜索框清空，表格恢复显示全部数据。
-        """
-        with allure.step("首先获取初始总条数"):
-            initial_total = hazard_item_page.get_total_count()
-            assert initial_total > 0, "初始数据不能为空"
-        with allure.step("执行一个搜索操作"):
-            hazard_item_page.search_by_item_name("废")
-            searched_total = hazard_item_page.get_total_count()
-            # 搜索后结果数应小于初始数（确保搜索生效）
-            # 如果所有数据都包含“废”，则可能相等，这里只做示例
-        with allure.step("点击重置按钮"):
-            hazard_item_page.reset_search()
-        with allure.step("验证重置后总条数恢复"):
-            reset_total = hazard_item_page.get_total_count()
-            assert reset_total == initial_total, (
-                f"重置后总条数应恢复为初始值 {initial_total}，实际为 {reset_total}"
-            )
+
+# PageObject fixtures — 每个页面一个 fixture
+@pytest.fixture
+def hazard_item_page(driver_setup):
+    return HazardItemPage(driver_setup)
+
+
+@pytest.fixture
+def hazard_io_record_page(driver_setup):
+    return HazardIORecordPage(driver_setup)
+
+
+@pytest.fixture
+def hazard_in_order_page(driver_setup):
+    return HazardInOrderPage(driver_setup)
+
+
+@pytest.fixture
+def hazard_stock_page(driver_setup):
+    return HazardStockPage(driver_setup)
+
+
+@pytest.fixture
+def reagent_item_page(driver_setup):
+    return ReagentItemPage(driver_setup)
+
+
+@pytest.fixture
+def reagent_fill_page(driver_setup):
+    return ReagentFillPage(driver_setup)
+
+
+@pytest.fixture
+def spare_item_page(driver_setup):
+    return SpareItemPage(driver_setup)
+
+
+@pytest.fixture
+def spare_io_record_page(driver_setup):
+    return SpareIORecordPage(driver_setup)
+
+
+@pytest.fixture
+def spare_in_order_page(driver_setup):
+    return SpareInOrderPage(driver_setup)
+
+
+@pytest.fixture
+def spare_out_order_page(driver_setup):
+    return SpareOutOrderPage(driver_setup)
+
+
+@pytest.fixture
+def spare_requisition_page(driver_setup):
+    return SpareRequisitionPage(driver_setup)
+
+
+@pytest.fixture
+def spare_stock_page(driver_setup):
+    return SpareStockPage(driver_setup)
+
+
+@pytest.fixture
+def spare_stocktake_page(driver_setup):
+    return SpareStocktakePage(driver_setup)
+
+
+@pytest.fixture
+def spare_stock_adjust_page(driver_setup):
+    return SpareStockAdjustPage(driver_setup)

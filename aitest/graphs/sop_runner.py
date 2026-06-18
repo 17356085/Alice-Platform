@@ -5,7 +5,7 @@ SOPRunner — 将 LangGraph SOP 图执行包装为 AgentEvent 生成器。
 可直接被 chat.py 的现有 asyncio.Queue + SSE 桥接复用。
 
 用法:
-    runner = SOPRunner(module="equipment", pages=["alarm-config"])
+    runner = SOPRunner(module="equipment", pages=["alarm-config", "camera", "key-param", "maintenance"])
     for event in runner.run_interactive():
         print(event.type, event.content)
 """

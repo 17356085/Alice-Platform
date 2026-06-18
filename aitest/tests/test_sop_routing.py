@@ -32,40 +32,40 @@ class TestRouteNextPhase:
     """条件路由逻辑 — route_next_phase() 所有路径。"""
 
     def test_full_mode_starts_at_project_init(self):
-        state = create_initial_state("equipment", ["alarm-config"], mode="full")
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="full")
         assert route_next_phase(state) == "project_agent"
 
     def test_status_mode_goes_to_exit(self):
-        state = create_initial_state("equipment", ["alarm-config"], mode="status")
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="status")
         assert route_next_phase(state) == "exit"
 
     def test_fatal_error_goes_to_exit(self):
-        state = create_initial_state("equipment", ["alarm-config"], mode="full")
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="full")
         state["fatal_error"] = "test error"
         assert route_next_phase(state) == "exit"
 
     def test_skips_completed_phases(self):
-        state = create_initial_state("equipment", ["alarm-config"], mode="full")
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="full")
         state["completed_phases"] = ["Project Init", "Requirement"]
         assert route_next_phase(state) == "test_design_agent"
 
     def test_from_requirement_skips_project_init(self):
-        state = create_initial_state("equipment", ["alarm-config"], mode="from-requirement")
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="from-requirement")
         assert route_next_phase(state) == "requirement_agent"
 
     def test_from_test_design_skips_first_two(self):
-        state = create_initial_state("equipment", ["alarm-config"], mode="from-test-design")
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="from-test-design")
         assert route_next_phase(state) == "test_design_agent"
 
     def test_from_automation_skips_first_three(self):
-        state = create_initial_state("equipment", ["alarm-config"], mode="from-automation")
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="from-automation")
         # P1-3 HITL: equipment 在 P0 模块白名单中时，需要先走 testcase_approval
         # 设置 test_cases_approved 绕过审批直接进入 automation
         state["test_cases_approved"] = True
         assert route_next_phase(state) == "automation_agent_pre"
 
     def test_execution_failed_triggers_bug_analysis(self):
-        state = create_initial_state("equipment", ["alarm-config"], mode="full")
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="full")
         state["completed_phases"] = [
             "Project Init", "Requirement", "Test Design", "Automation", "Execute & Debug"
         ]
@@ -73,7 +73,7 @@ class TestRouteNextPhase:
         assert route_next_phase(state) == "bug_analysis_agent"
 
     def test_execution_passed_skips_bug_analysis(self):
-        state = create_initial_state("equipment", ["alarm-config"], mode="full")
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="full")
         state["completed_phases"] = [
             "Project Init", "Requirement", "Test Design", "Automation", "Execute & Debug"
         ]
@@ -82,7 +82,7 @@ class TestRouteNextPhase:
 
     def test_agent_result_execution_failed_triggers_bug_analysis(self):
         """P2-4: AgentResult.execution_failed 标志。"""
-        state = create_initial_state("equipment", ["alarm-config"], mode="full")
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="full")
         state["completed_phases"] = [
             "Project Init", "Requirement", "Test Design", "Automation", "Execute & Debug"
         ]
@@ -94,7 +94,7 @@ class TestRouteNextPhase:
         assert route_next_phase(state) == "bug_analysis_agent"
 
     def test_all_completed_goes_to_exit(self):
-        state = create_initial_state("equipment", ["alarm-config"], mode="full")
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="full")
         state["completed_phases"] = list(CANONICAL_PHASES)
         assert route_next_phase(state) == "exit"
 
@@ -153,12 +153,12 @@ class TestState:
     """状态对象。"""
 
     def test_create_initial_state_has_required_fields(self):
-        state = create_initial_state("equipment", ["alarm-config"])
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"])
         required = ["module", "pages", "mode", "provider", "run_id", "status"]
         for field in required:
             assert field in state, f"Missing field: {field}"
         assert state["module"] == "equipment"
-        assert state["pages"] == ["alarm-config"]
+        assert state["pages"] == ["alarm-config", "camera", "key-param", "maintenance"]
         assert state["mode"] == "full"
         assert state["status"] == "running"
 
@@ -201,7 +201,7 @@ class TestPreflight:
 
     def test_preflight_recommends_mode(self):
         from aitest.graphs.sop_graph import preflight_node
-        state = create_initial_state("equipment", ["alarm-config"], mode="full")
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="full")
         result = preflight_node(state)
         auto = result["agent_outputs"]["preflight_auto_detect"]
         assert "recommended_mode" in auto
@@ -211,7 +211,7 @@ class TestPreflight:
     def test_preflight_never_recommends_status(self):
         """preflight 不应自动推荐 status 模式——只有用户显式指定才用。"""
         from aitest.graphs.sop_graph import preflight_node
-        state = create_initial_state("equipment", ["alarm-config"], mode="full")
+        state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="full")
         result = preflight_node(state)
         auto = result["agent_outputs"]["preflight_auto_detect"]
         assert auto["recommended_mode"] != "status", (

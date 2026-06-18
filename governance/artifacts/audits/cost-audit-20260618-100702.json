@@ -1,0 +1,295 @@
+{
+  "period": "7d",
+  "audit_time": "2026-06-18T10:07:02.776265",
+  "total_cost": 15.316827,
+  "total_events": 22136,
+  "alert_count": 17,
+  "alerts": [
+    {
+      "severity": "high",
+      "rule": "token_spike",
+      "finding": "Skill 'knowledge/completeness-check' 最近一次消耗 4458 tokens (均值 1806, σ=708, z=3.7)",
+      "suggestion": "检查是否: 1) 新页面元素过多 2) Prompt 未正确截断 3) RAG 检索过多条目",
+      "evidence": {
+        "skill_id": "knowledge/completeness-check",
+        "mean": 1806.0,
+        "std_dev": 708.0,
+        "latest": 4458,
+        "z_score": 3.75,
+        "sample_count": 66
+      }
+    },
+    {
+      "severity": "high",
+      "rule": "token_spike",
+      "finding": "Skill 'test-design/page-analysis' 最近一次消耗 13206 tokens (均值 3354, σ=1608, z=6.1)",
+      "suggestion": "检查是否: 1) 新页面元素过多 2) Prompt 未正确截断 3) RAG 检索过多条目",
+      "evidence": {
+        "skill_id": "test-design/page-analysis",
+        "mean": 3354.0,
+        "std_dev": 1608.0,
+        "latest": 13206,
+        "z_score": 6.13,
+        "sample_count": 240
+      }
+    },
+    {
+      "severity": "high",
+      "rule": "token_spike",
+      "finding": "Skill 'test-design/risk-modeling' 最近一次消耗 9717 tokens (均值 4015, σ=1571, z=3.6)",
+      "suggestion": "检查是否: 1) 新页面元素过多 2) Prompt 未正确截断 3) RAG 检索过多条目",
+      "evidence": {
+        "skill_id": "test-design/risk-modeling",
+        "mean": 4015.0,
+        "std_dev": 1571.0,
+        "latest": 9717,
+        "z_score": 3.63,
+        "sample_count": 232
+      }
+    },
+    {
+      "severity": "high",
+      "rule": "token_spike",
+      "finding": "Skill 'requirements/module-modeling' 最近一次消耗 12875 tokens (均值 2575, σ=1491, z=6.9)",
+      "suggestion": "检查是否: 1) 新页面元素过多 2) Prompt 未正确截断 3) RAG 检索过多条目",
+      "evidence": {
+        "skill_id": "requirements/module-modeling",
+        "mean": 2575.0,
+        "std_dev": 1491.0,
+        "latest": 12875,
+        "z_score": 6.91,
+        "sample_count": 71
+      }
+    },
+    {
+      "severity": "high",
+      "rule": "token_spike",
+      "finding": "Skill 'requirements/requirement-analysis' 最近一次消耗 14268 tokens (均值 2710, σ=2589, z=4.5)",
+      "suggestion": "检查是否: 1) 新页面元素过多 2) Prompt 未正确截断 3) RAG 检索过多条目",
+      "evidence": {
+        "skill_id": "requirements/requirement-analysis",
+        "mean": 2710.0,
+        "std_dev": 2589.0,
+        "latest": 14268,
+        "z_score": 4.46,
+        "sample_count": 71
+      }
+    },
+    {
+      "severity": "high",
+      "rule": "token_spike",
+      "finding": "Skill 'project/hygiene-check' 最近一次消耗 11320 tokens (均值 1651, σ=1863, z=5.2)",
+      "suggestion": "检查是否: 1) 新页面元素过多 2) Prompt 未正确截断 3) RAG 检索过多条目",
+      "evidence": {
+        "skill_id": "project/hygiene-check",
+        "mean": 1651.0,
+        "std_dev": 1863.0,
+        "latest": 11320,
+        "z_score": 5.19,
+        "sample_count": 59
+      }
+    },
+    {
+      "severity": "high",
+      "rule": "token_spike",
+      "finding": "Skill 'test-design/test-data-generation' 最近一次消耗 6682 tokens (均值 2595, σ=977, z=4.2)",
+      "suggestion": "检查是否: 1) 新页面元素过多 2) Prompt 未正确截断 3) RAG 检索过多条目",
+      "evidence": {
+        "skill_id": "test-design/test-data-generation",
+        "mean": 2595.0,
+        "std_dev": 977.0,
+        "latest": 6682,
+        "z_score": 4.18,
+        "sample_count": 221
+      }
+    },
+    {
+      "severity": "high",
+      "rule": "token_spike",
+      "finding": "Skill 'test-design/miniapp-testing' 最近一次消耗 6332 tokens (均值 3312, σ=830, z=3.6)",
+      "suggestion": "检查是否: 1) 新页面元素过多 2) Prompt 未正确截断 3) RAG 检索过多条目",
+      "evidence": {
+        "skill_id": "test-design/miniapp-testing",
+        "mean": 3312.0,
+        "std_dev": 830.0,
+        "latest": 6332,
+        "z_score": 3.64,
+        "sample_count": 211
+      }
+    },
+    {
+      "severity": "medium",
+      "rule": "token_spike",
+      "finding": "Skill 'project/project-context-manager' 最近一次 token 偏高 (z=2.5)",
+      "suggestion": "轻微异常，持续观察。如持续出现则需排查。",
+      "evidence": {
+        "skill_id": "project/project-context-manager",
+        "z_score": 2.51
+      }
+    },
+    {
+      "severity": "medium",
+      "rule": "token_spike",
+      "finding": "Skill 'project/context-sync' 最近一次 token 偏高 (z=2.0)",
+      "suggestion": "轻微异常，持续观察。如持续出现则需排查。",
+      "evidence": {
+        "skill_id": "project/context-sync",
+        "z_score": 2.01
+      }
+    },
+    {
+      "severity": "medium",
+      "rule": "token_spike",
+      "finding": "Skill 'test-design/testcase-design' 最近一次 token 偏高 (z=2.2)",
+      "suggestion": "轻微异常，持续观察。如持续出现则需排查。",
+      "evidence": {
+        "skill_id": "test-design/testcase-design",
+        "z_score": 2.24
+      }
+    },
+    {
+      "severity": "medium",
+      "rule": "token_spike",
+      "finding": "Skill 'test-design/api-testing' 最近一次 token 偏高 (z=2.2)",
+      "suggestion": "轻微异常，持续观察。如持续出现则需排查。",
+      "evidence": {
+        "skill_id": "test-design/api-testing",
+        "z_score": 2.2
+      }
+    },
+    {
+      "severity": "medium",
+      "rule": "context_bloat",
+      "finding": "Skill 'requirements/requirement-analysis' 平均注入上下文 12284 chars",
+      "suggestion": "检查该 Skill 的 context 映射: 1) PAGE_INTERFACE.yaml 是否可用 (替代全量 PAGE_CONTEXT) 2) RAG 检索是否返回过多条目 3) 是否注入了不必要的知识库条目",
+      "evidence": {
+        "skill_id": "requirements/requirement-analysis",
+        "avg_context_chars": 12284.0,
+        "sample_count": 7,
+        "max": 13681,
+        "min": 7638
+      }
+    },
+    {
+      "severity": "low",
+      "rule": "context_bloat_trend",
+      "finding": "Skill 'test-design/risk-modeling' context 有膨胀趋势: 1502 → 5982 chars (+298%)",
+      "suggestion": "检查最近 3 次运行的 context 增量来源。可能是模块 Context 文档膨胀。",
+      "evidence": {
+        "skill_id": "test-design/risk-modeling",
+        "older_avg": 1502.0,
+        "recent_avg": 5982.0,
+        "inflate_ratio": 3.98
+      }
+    },
+    {
+      "severity": "low",
+      "rule": "context_bloat_trend",
+      "finding": "Skill 'test-design/testcase-design' context 有膨胀趋势: 4121 → 9066 chars (+120%)",
+      "suggestion": "检查最近 3 次运行的 context 增量来源。可能是模块 Context 文档膨胀。",
+      "evidence": {
+        "skill_id": "test-design/testcase-design",
+        "older_avg": 4121.0,
+        "recent_avg": 9066.0,
+        "inflate_ratio": 2.2
+      }
+    },
+    {
+      "severity": "low",
+      "rule": "context_bloat_trend",
+      "finding": "Skill 'automation/page-object-generator' context 有膨胀趋势: 3214 → 6039 chars (+88%)",
+      "suggestion": "检查最近 3 次运行的 context 增量来源。可能是模块 Context 文档膨胀。",
+      "evidence": {
+        "skill_id": "automation/page-object-generator",
+        "older_avg": 3214.0,
+        "recent_avg": 6039.0,
+        "inflate_ratio": 1.88
+      }
+    },
+    {
+      "severity": "low",
+      "rule": "model_downgrade",
+      "finding": "knowledge-manager 使用了 claude-sonnet-4-6，可降级到 haiku 节省 ~60% 成本",
+      "suggestion": "knowledge-manager 任务复杂度低，claude-haiku-4-5 足以胜任",
+      "evidence": {
+        "skill_id": "knowledge/knowledge-manager",
+        "current_model": "claude-sonnet-4-6"
+      }
+    }
+  ],
+  "trends": [
+    {
+      "skill_id": "test-design/testcase-design",
+      "calls": 226,
+      "avg_tokens": 7220,
+      "total_cost": 1.6316
+    },
+    {
+      "skill_id": "test-design/risk-modeling",
+      "calls": 232,
+      "avg_tokens": 4015,
+      "total_cost": 0.981693
+    },
+    {
+      "skill_id": "test-design/page-analysis",
+      "calls": 434,
+      "avg_tokens": 1855,
+      "total_cost": 0.964036
+    },
+    {
+      "skill_id": "test-design/miniapp-testing",
+      "calls": 211,
+      "avg_tokens": 3312,
+      "total_cost": 0.750183
+    },
+    {
+      "skill_id": "test-design/api-testing",
+      "calls": 216,
+      "avg_tokens": 2787,
+      "total_cost": 0.637486
+    },
+    {
+      "skill_id": "test-design/test-data-generation",
+      "calls": 221,
+      "avg_tokens": 2595,
+      "total_cost": 0.599091
+    },
+    {
+      "skill_id": "project/hygiene-check",
+      "calls": 59,
+      "avg_tokens": 1651,
+      "total_cost": 0.324606
+    },
+    {
+      "skill_id": "requirements/module-modeling",
+      "calls": 73,
+      "avg_tokens": 2505,
+      "total_cost": 0.303327
+    },
+    {
+      "skill_id": "requirements/requirement-analysis",
+      "calls": 71,
+      "avg_tokens": 2710,
+      "total_cost": 0.291039
+    },
+    {
+      "skill_id": "project/project-context-manager",
+      "calls": 6929,
+      "avg_tokens": 18,
+      "total_cost": 0.286797
+    }
+  ],
+  "optimizations": [
+    {
+      "type": "model_selection",
+      "action": "增加 haiku 使用比例",
+      "current_haiku_ratio": 0.0,
+      "est_saving": "~40-60% for low-complexity skills",
+      "applicable_skills": [
+        "knowledge/knowledge-manager",
+        "project/context-sync",
+        "execution/excel-exporter"
+      ]
+    }
+  ]
+}

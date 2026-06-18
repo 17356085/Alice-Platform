@@ -22,7 +22,7 @@ SOPGraph — 顶层 LangGraph 编排器。
   graph = build_sop_graph()
   compiled = graph.compile(checkpointer=get_checkpointer())
   result = compiled.invoke(
-      create_initial_state("equipment", ["alarm-config"]),
+      create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"]),
       {"configurable": {"thread_id": "my-run"}}
   )
 """

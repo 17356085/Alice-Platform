@@ -1,0 +1,109 @@
+{
+  "module": "dcs",
+  "audit_time": "2026-06-18T10:01:38.540666",
+  "period": "7d",
+  "overall_compliance": 0.75,
+  "total_violations": 3,
+  "error_count": 0,
+  "warning_count": 3,
+  "violations": [
+    {
+      "check_type": "baseline_check",
+      "severity": "warning",
+      "violation_type": "module_partial",
+      "detail": "模块 dcs 状态为 partial — 缺失 Phase: ['Requirement', 'Test Design', 'Automation']",
+      "run_id": "",
+      "evidence": {
+        "incomplete_phases": [
+          "Requirement",
+          "Test Design",
+          "Automation"
+        ]
+      },
+      "suggestion": "补齐 3 个 Phase 后重新标记为 completed"
+    },
+    {
+      "check_type": "l_check",
+      "severity": "warning",
+      "violation_type": "loop_exhaustion",
+      "detail": "Bug fix 循环耗尽率 100% (1/1)，平均循环 3.0 次，首次修复率 0%",
+      "run_id": "",
+      "evidence": {
+        "total_incidents": 1,
+        "avg_cycles": 3.0,
+        "first_fix_rate": 0.0,
+        "exhausted_count": 1
+      },
+      "suggestion": "建议升级 debug-agent 的修复策略或增加已知问题库覆盖"
+    },
+    {
+      "check_type": "l_check",
+      "severity": "info",
+      "violation_type": "loop_inefficiency",
+      "detail": "Bug fix 平均需要 3.0 次循环",
+      "run_id": "",
+      "evidence": {
+        "avg_cycles": 3.0
+      },
+      "suggestion": "考虑在首次修复失败后增加更详细的错误分析指导"
+    }
+  ],
+  "checks": {
+    "baseline_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "infos": 0,
+      "ok": false
+    },
+    "p_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "s_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "g_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "h_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "b_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "l_check": {
+      "total": 2,
+      "errors": 0,
+      "warnings": 1,
+      "infos": 1,
+      "ok": false
+    },
+    "x_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    }
+  }
+}

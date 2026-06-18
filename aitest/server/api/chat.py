@@ -154,7 +154,7 @@ async def delete_session(session_id: str):
 
 
 @chat_router.post("/sessions/{session_id}/messages")
-async def send_message(session_id: str, body: dict):
+async def send_message(session_id: str, request: Request):
     """
     发送消息，返回 stream_url。
 
@@ -163,6 +163,11 @@ async def send_message(session_id: str, body: dict):
     s = sessions.get(session_id)
     if not s:
         raise HTTPException(status_code=404, detail="Session not found")
+
+    try:
+        body = await request.json()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON: {str(e)}")
 
     content = body.get("content", "").strip()
     if not content:
@@ -187,7 +192,7 @@ async def send_message(session_id: str, body: dict):
 
 
 @chat_router.post("/sessions/{session_id}/interact")
-async def interact(session_id: str, body: dict):
+async def interact(session_id: str, request: Request):
     """
     用户交互响应 — 向暂停中的 Agent 发送指令。
 
@@ -198,6 +203,11 @@ async def interact(session_id: str, body: dict):
         raise HTTPException(status_code=404, detail="Session not found")
     if not s.agent:
         raise HTTPException(status_code=400, detail="No active agent in this session")
+
+    try:
+        body = await request.json()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON: {str(e)}")
 
     response = body.get("response", "").strip()
     if not response:
@@ -305,6 +315,7 @@ async def stream_response(session_id: str, message_id: str, request: Request):
             module=intent.get("module", ""),
             pages=[intent.get("page", "")] if intent.get("page") else [],
             provider=_DEFAULT_PROVIDER,
+            mode="from-requirement",  # 跳过 Project Init，已有文档基础
         )
     elif intent["type"] == "status":
         s.agent = None

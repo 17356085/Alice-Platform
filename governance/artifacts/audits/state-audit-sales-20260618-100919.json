@@ -1,0 +1,244 @@
+{
+  "module": "sales",
+  "audit_time": "2026-06-18T10:09:19.368678",
+  "overall_status": "error",
+  "drift_count": 21,
+  "error_count": 7,
+  "warning_count": 14,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'contract' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\sales\\pages\\contract\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'customer' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\sales\\pages\\customer\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'daily-report' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\sales\\pages\\daily-report\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'sales-order' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\sales\\pages\\sales-order\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Data Sanitization",
+      "description": "Phase 'Data Sanitization' 已完成，但模块级产物缺失: DATA_QUALITY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\sales\\DATA_QUALITY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Data Sanitization 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Project Init",
+      "description": "Phase 'Project Init' 已完成，但模块级产物缺失: PROJECT_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\sales\\PROJECT_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Project Init 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Report",
+      "description": "Phase 'Report' 已完成，但模块级产物缺失: TEST_SUMMARY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\sales\\TEST_SUMMARY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Report 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'contract' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\sales\\pages\\contract\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'customer' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\sales\\pages\\customer\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'daily-report' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\sales\\pages\\daily-report\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'sales-order' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\sales\\pages\\sales-order\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "o_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "RISK_MODEL.md output suspect: test-design artifact lacks test terms",
+      "expected": "valid non-placeholder phase-matching output",
+      "actual": "lines=31, pl_ratio=0%",
+      "suggestion": "Re-run Test Design Agent"
+    },
+    {
+      "check_type": "c_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "SOP_STATUS JSON 存在但 SQLite checkpoint 无数据 — 可能是 dry-run 或 checkpoint 写入失败",
+      "expected": "checkpoint 中包含 completed_phases",
+      "actual": "checkpoint 为空",
+      "suggestion": "运行一次完整的 SOP Graph (确保 checkpointer 正确编译) 以生成 checkpoint"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'contract' 业务场景覆盖评分 41 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=41",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'sales' 有 4 个页面，但页面 'contract' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'customer' 业务场景覆盖评分 37 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=37",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'sales' 有 4 个页面，但页面 'customer' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'daily-report' 业务场景覆盖评分 33 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=33",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'sales' 有 4 个页面，但页面 'daily-report' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'sales-order' 业务场景覆盖评分 33 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=33",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'sales' 有 4 个页面，但页面 'sales-order' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 11,
+      "errors": 3,
+      "warnings": 8,
+      "ok": false
+    },
+    "r_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "o_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "orphan_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "c_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "q_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "t_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    }
+  }
+}
