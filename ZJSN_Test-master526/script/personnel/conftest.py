@@ -10,12 +10,14 @@ driver_setup（module 级）：
         page = CourseManagePage(driver_setup)
 """
 import logging
+import os
 import time
 
 import pytest
 
 from base.browser_driver import BaseDriver, ensure_logged_in
 from base.base_page import BasePage
+from base.api_base import AJSystemAPI
 from page.personnel_page.PostManagePage import PostManagePage
 from page.personnel_page.ExamManagePage import ExamManagePage
 
@@ -233,3 +235,65 @@ def driver_setup(request):
     finally:
         _teardown_for_module(driver, request.module)
         base.close_browser()
+
+
+# ==================================================================
+#  API fixtures（personnel 模块）
+# ==================================================================
+
+@pytest.fixture(scope="module")
+def api_client():
+    """
+    模块级 API 客户端（personnel 模块）。
+
+    自动登录 + Token 注入。
+    """
+    base_url = os.getenv(
+        "TEST_API_BASE_URL",
+        "https://aiwechatminidemo.cimc-digital.com/api",
+    )
+    username = os.getenv("TEST_USER", "admin")
+    password = os.getenv("TEST_PASSWORD", "password")
+
+    logger.info(f"Creating API client: {base_url}")
+
+    api = AJSystemAPI(
+        base_url=base_url,
+        timeout=30,
+        verify_ssl=False,
+    )
+
+    try:
+        api.login(username=username, password=password)
+        logger.info(f"Login successful: {username}")
+    except Exception as e:
+        logger.error(f"Login failed: {e}")
+        api.close()
+        raise
+
+    yield api
+    api.close()
+    logger.info("API client closed")
+
+
+@pytest.fixture(scope="function")
+def test_data_cleanup(api_client):
+    """用例级自动清理。"""
+    cleanup_list = []
+
+    class Cleanup:
+        def add(self, resource_type: str, resource_id: str):
+            cleanup_list.append((resource_type, resource_id))
+
+    yield Cleanup()
+
+    for resource_type, resource_id in reversed(cleanup_list):
+        try:
+            if resource_type == "employee":
+                api_client.delete_employee(resource_id)
+                logger.debug(f"Cleaned employee: {resource_id}")
+            elif resource_type == "post":
+                api_client.delete_post(resource_id)
+                logger.debug(f"Cleaned post: {resource_id}")
+        except Exception as e:
+            logger.warning(f"Cleanup failed {resource_type}:{resource_id}: {e}")

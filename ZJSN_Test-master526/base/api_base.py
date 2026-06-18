@@ -383,6 +383,141 @@ class AJSystemAPI:
         return resp
 
     # ────────────────────────────────────────────────────────────────────
+    # 人员管理端点
+    # ────────────────────────────────────────────────────────────────────
+
+    def get_employees(
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        search: Optional[str] = None,
+    ) -> ListResponse:
+        """获取员工列表。"""
+        params = {
+            "page": page,
+            "pageSize": page_size,
+        }
+        if search:
+            params["search"] = search
+
+        resp = self.client.get("/api/v1/employees", params=params)
+
+        if not resp.is_ok():
+            logger.error(f"Get employees failed: {resp.status_code}")
+            raise Exception(f"Get employees API error: {resp.status_code}")
+
+        return ListResponse.from_json(resp.json())
+
+    def get_employee(self, employee_id: str) -> Dict[str, Any]:
+        """获取员工详情。"""
+        resp = self.client.get(f"/api/v1/employees/{employee_id}")
+
+        if not resp.is_ok():
+            logger.error(f"Get employee {employee_id} failed: {resp.status_code}")
+            raise Exception(f"Get employee API error: {resp.status_code}")
+
+        return resp.json().get("data", {})
+
+    def create_employee(
+        self,
+        name: str,
+        post_id: str,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """创建员工。"""
+        payload = {
+            "name": name,
+            "post_id": post_id,
+            **kwargs,
+        }
+        resp = self.client.post("/api/v1/employees", json=payload)
+
+        if not resp.is_ok():
+            logger.error(f"Create employee failed: {resp.status_code} | {resp.body}")
+            raise Exception(f"Create employee API error: {resp.status_code}")
+
+        return resp.json().get("data", {})
+
+    def update_employee(self, employee_id: str, **kwargs) -> Dict[str, Any]:
+        """更新员工。"""
+        resp = self.client.put(f"/api/v1/employees/{employee_id}", json=kwargs)
+
+        if not resp.is_ok():
+            logger.error(f"Update employee {employee_id} failed: {resp.status_code}")
+            raise Exception(f"Update employee API error: {resp.status_code}")
+
+        return resp.json().get("data", {})
+
+    def delete_employee(self, employee_id: str) -> APIResponse:
+        """删除员工。"""
+        resp = self.client.delete(f"/api/v1/employees/{employee_id}")
+
+        if not resp.is_ok():
+            logger.error(f"Delete employee {employee_id} failed: {resp.status_code}")
+            raise Exception(f"Delete employee API error: {resp.status_code}")
+
+        return resp
+
+    def get_posts(
+        self,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> ListResponse:
+        """获取岗位列表。"""
+        params = {
+            "page": page,
+            "pageSize": page_size,
+        }
+        resp = self.client.get("/api/v1/posts", params=params)
+
+        if not resp.is_ok():
+            logger.error(f"Get posts failed: {resp.status_code}")
+            raise Exception(f"Get posts API error: {resp.status_code}")
+
+        return ListResponse.from_json(resp.json())
+
+    def get_post(self, post_id: str) -> Dict[str, Any]:
+        """获取岗位详情。"""
+        resp = self.client.get(f"/api/v1/posts/{post_id}")
+
+        if not resp.is_ok():
+            logger.error(f"Get post {post_id} failed: {resp.status_code}")
+            raise Exception(f"Get post API error: {resp.status_code}")
+
+        return resp.json().get("data", {})
+
+    def create_post(self, name: str, **kwargs) -> Dict[str, Any]:
+        """创建岗位。"""
+        payload = {"name": name, **kwargs}
+        resp = self.client.post("/api/v1/posts", json=payload)
+
+        if not resp.is_ok():
+            logger.error(f"Create post failed: {resp.status_code} | {resp.body}")
+            raise Exception(f"Create post API error: {resp.status_code}")
+
+        return resp.json().get("data", {})
+
+    def update_post(self, post_id: str, **kwargs) -> Dict[str, Any]:
+        """更新岗位。"""
+        resp = self.client.put(f"/api/v1/posts/{post_id}", json=kwargs)
+
+        if not resp.is_ok():
+            logger.error(f"Update post {post_id} failed: {resp.status_code}")
+            raise Exception(f"Update post API error: {resp.status_code}")
+
+        return resp.json().get("data", {})
+
+    def delete_post(self, post_id: str) -> APIResponse:
+        """删除岗位。"""
+        resp = self.client.delete(f"/api/v1/posts/{post_id}")
+
+        if not resp.is_ok():
+            logger.error(f"Delete post {post_id} failed: {resp.status_code}")
+            raise Exception(f"Delete post API error: {resp.status_code}")
+
+        return resp
+
+    # ────────────────────────────────────────────────────────────────────
     # 其他端点占位（按需扩展）
     # ────────────────────────────────────────────────────────────────────
 
