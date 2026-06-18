@@ -1,168 +1,248 @@
-好的，遵照您的指令。作为负责“技术分析”的AI Agent，我将基于提供 `PAGE_CONTEXT.md` 中的描述，结合Vue 3 + Element Plus的通用实现规范，对“personnel”模块的 “my-archive” 页面进行技术分析，生成 `TECH_ANALYSIS.md`。
+好的，遵照您的指令。作为负责“技术分析”的AI Agent (`automation-agent`)，我将基于您提供的 `PAGE_CONTEXT.md` 内容，对“personnel”模块的“my-archive”页面（我的档案）进行前端技术分析。
 
-由于缺乏实际的页面截图和HTML源码，本次分析将基于合理的推断。所有定位器均为通用模板，在实际实施时需要根据真实HTML进行调整。
-
-以下是产出的技术分析文件。
+由于 `PAGE_CONTEXT.md` 是基于推断生成的，未提供真实 HTML 源码和截图，我将结合 Element Plus 的典型 DOM 结构和 Vue 3 的常见模式进行分析。若将来您提供了真实的页面源码，请通知我进行校准。
 
 ---
 
-### TECH_ANALYSIS.md
+## TECH_ANALYSIS.md: personnel / my-archive (我的档案)
 
-```markdown
-# TECH_ANALYSIS: personnel / my-archive (我的档案)
+> **版本**: 1.0 | **最后更新**: 2026-06-18 | **维护者**: automation-agent  
+> **分析基础**: `PAGE_CONTEXT.md` v1.0 + Element Plus 通用规范  
+> **技术栈**: Vue 3 + Element Plus + Selenium 4.15.2
 
-> **版本**: 1.0 | **最后更新**: 2026-06-18 | **维护者**: automation-agent
-> **分析依据**: PAGE_CONTEXT.md (版本 1.0) + Element Plus 通用组件规范
-> **页面URL**: `/personnel/my-archive`
+---
 
 ## 1. Element Plus 组件识别
 
-| 组件名称 | 标签名 | 用途说明 | 对应元素ID (来自PAGE_CONTEXT) |
-|---|---|---|---|
-| `el-tabs` | `div.el-tabs` | Tab 切换容器 | `basic-info-tab`, `archive-tab` (子元素) |
-| `el-tab-pane` | `div.el-tab-pane` | Tab页签，控制内容切换 | `basic-info-tab`, `archive-tab` |
-| `el-form` | `form.el-form` | 表单容器，用于数据展示和编辑 | `basic-info-form`, 弹窗内表单 |
-| `el-form-item` | `div.el-form-item` | 表单行，包裹标签和控件 | 包含 `field-employee-name` 等 |
-| `el-input` | `input` (包裹于 `div.el-input`) | 文本输入/展示框 | `field-employee-name`, `dialog-name-input` |
-| `el-select` | `div.el-select` | 下拉选择器 | `change-type-select`, `dialog-department-select` |
-| `el-date-picker` | `input` (包裹于 `div.el-date-editor`) | 日期范围选择器 | `change-date-picker` |
-| `el-button` | `button.el-button` | 按钮 | `search-btn`, `reset-btn`, `dialog-save-btn` |
-| `el-table` | `div.el-table` | 表格容器 | `change-table` |
-| `el-table-column` | `div.el-table__body-wrapper` (内容) | 表格列 | `col-change-field` 等 (通常是列v-for渲染) |
-| `el-pagination` | `div.el-pagination` | 分页组件 | `pagination` |
-| `el-dialog` | `div.el-dialog__wrapper` | 弹窗 | `edit-info-dialog`, `password-dialog` |
-| `el-tag` | `span.el-tag` | 状态标签 | 顶部“在职”状态标签 (PAGE_CONTEXT提到但未给ID) |
-
-## 2. DOM 结构分析 (推断)
-
-### 2.1 关键节点层级 (档案变更记录 Tab)
-```
-div .main-container                          // 页面主容器
-├── div .page-header                         // 顶部标题区
-│   └── span .page-title                     // 标题文字 "我的档案"
-├── div .content-wrapper                     // 主内容区
-│   ├── div .left-sidebar                    // 左侧个人头像与快捷操作
-│   └── div .right-content                   // 右侧内容区
-│       ├── div .el-tabs                     // Tab切换
-│       │   ├── div.el-tabs__header          // Tab导航栏
-│       │   │   ├── div#tab-basic-info       // 基本信息 Tab
-│       │   │   └── div#tab-archive          // 档案变更记录 Tab
-│       │   └── div.el-tabs__content         // Tab内容区
-│       │       └── div#pane-archive         // 档案变更记录面板
-│       │           ├── div .search-area     // 筛选区
-│       │           │   ├── div.el-select    // 变更类型选择器
-│       │           │   ├── div.el-date-editor  // 日期范围选择器
-│       │           │   ├── button.el-button--primary  // 查询按钮
-│       │           │   └── button.el-button--default   // 重置按钮
-│       │           ├── div.el-table         // 变更记录表格
-│       │           │   ├── div.el-table__body-wrapper
-│       │           │   └── div.el-table__empty-text  // 空数据提示
-│       │           └── div.el-pagination    // 分页
-```
-
-### 2.2 关键节点层级 (编辑基本信息弹窗)
-```
-div.el-dialog__wrapper                       // 弹窗遮罩
-└── div.el-dialog                            // 弹窗主体
-    ├── div.el-dialog__header                // 弹窗头部
-    │   └── span                            // 标题 "编辑基本信息"
-    └── div.el-dialog__body                  // 弹窗内容体
-        └── form.el-form                     // 编辑表单
-            ├── div.el-form-item             // 姓名
-            │   └── div.el-input
-            ├── div.el-form-item             // 部门
-            │   └── div.el-select
-            ├── div.el-form-item             // 职位
-            │   └── div.el-input
-            ├── div.el-form-item             // 手机号
-            │   └── div.el-input
-            └── div.el-form-item             // 邮箱
-                └── div.el-input
-    └── div.el-dialog__footer                // 弹窗底部
-        ├── button.el-button--default        // 取消按钮
-        └── button.el-button--primary        // 保存按钮
-```
-
-### 2.3 稳定属性与动态属性分析
-- **稳定属性**: `aria-label`, `placeholder`, 按钮文本 (`span`), `role` 属性 (`tab`, `dialog`)，Element Plus 组件的 `class` 前缀 (如 `.el-select`, `.el-dialog`)
-- **动态属性**: `<div id="tab-archive">` 中的 `id` 可能是固定的，但Vue项目可能使用动态ID。`el-dialog__wrapper` 的 `id` 不建议依赖。具体 `el-select` 等组件的内部 `input` 的 `id`。
-
-| 元素 | 稳定属性 | 动态属性 | 风险等级 |
-|---|---|---|---|
-| Tab切换按钮 | `role="tab"`, `aria-controls` | `id` (可能动态生成) | **低** (推荐依赖role) |
-| 弹窗 | `role="dialog"`, `aria-label` 或 `aria-labelledby` | `id`, `style` | **低** (推荐依赖role) |
-| 表格 | `class="el-table"`, `cellspacing` 等 | `id`, `data-v-*` | **低** |
-| 输入框 | `placeholder`, `aria-label` | `id` (可能动态), `class` 中的哈希 | **中** (优先placeholder) |
-| el-select | `aria-label`, `placeholder` | 内部 `<input>` 的 `id` | **低** (推荐通过组件标签定位) |
-
-## 3. 定位器设计表 (A/B/C 三级)
-
-### 3.1 基础定位器 (从PAGE_CONTEXT映射)
-
-| 元素ID (功能名) | 推荐定位策略 | 定位值 | 稳定性 | 备注 |
-|---|---|---|---|---|
-| `basic-info-tab` (基本信息Tab) | **A** | `el-tabs` 内根据aria-controls定位 | `//div[contains(@class,'el-tabs')]//div[@role='tab' and @aria-controls='pane-basic-info']` | **A** | 依赖 `aria-controls` 属性，稳定 |
-| `archive-tab` (档案变更记录Tab) | **A** | XPATH + role | `//div[@role='tab' and contains(text(),'档案变更记录')]` | **A** | 依赖按钮文本，稳定 |
-| `change-type-select` (变更类型选择) | **B** | CSS (El-Specific) | `div.search-area div.el-select` | **B** | 依赖 `.search-area` 上下文，可能随布局变化 |
-| `change-date-picker` (日期范围) | **B** | CSS + placeholder | `div.search-area input.el-range-input[placeholder*='开始日期']` | **B** | 需要确认日期输入框的具体placeholder |
-| `search-btn` (查询) | **A** | XPATH + 按钮文本 | `//div[contains(@class,'search-area')]//button[.//span[text()='查询']]` | **A** | 文本稳定 |
-| `reset-btn` (重置) | **A** | XPATH + 按钮文本 | `//div[contains(@class,'search-area')]//button[.//span[text()='重置']]` | **A** | 文本稳定 |
-| `change-table` (表格) | **A** | CSS | `div.el-table` | **A** | 页面唯一的表格 |
-| `pagination` (分页) | **A** | CSS | `div.el-pagination` | **A** | 稳定class |
-
-### 3.2 弹窗内定位器
-
-| 元素ID (功能名) | 推荐定位策略 | 定位值 | 稳定性 | 备注 |
-|---|---|---|---|---|
-| `edit-info-dialog` (弹窗) | **A** | XPATH + role | `//div[@role='dialog' and .//span[contains(text(),'编辑基本信息')]]` | **A** | 依赖 `role` 和标题文本，最稳定 |
-| `dialog-name-input` (姓名) | **B** | CSS (在弹窗上下文中) | `//div[@role='dialog' and .//span[contains(text(),'编辑基本信息')]]//div[contains(@class,'el-form-item') and .//label[text()='姓名']]//input` | **B** | 复杂XPath，依赖label |
-|  | **C** | XPATH + label (兜底) | `//div[@role='dialog' and .//span[contains(text(),'编辑基本信息')]]//input[@placeholder='请输入姓名']` | **B** | 如果存在placeholder，更稳定 |
-| `dialog-save-btn` (保存) | **A** | XPATH + 按钮文本 | `//div[@role='dialog' and .//span[contains(text(),'编辑基本信息')]]//button[.//span[text()='保存']]` | **A** | 文本稳定 |
-| `dialog-cancel-btn` (取消) | **A** | XPATH + 按钮文本 | `//div[@role='dialog' and .//span[contains(text(),'编辑基本信息')]]//button[.//span[text()='取消']]` | **A** | 文本稳定 |
-
-## 4. Vue 异步等待策略
-
-| 场景 | 等待条件 (WebDriverWait) | 示例代码 (简化) |
-|---|---|---|
-| **页面加载** | 等待 `el-tabs` 出现 (即页面主内容渲染) | `wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.el-tabs")))` |
-| **Tab切换** | 等待新Tab对应的 `el-tab-pane` 的 `v-show` 变为 `true` (或CSS类 `is-active`) | `wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@role='tabpanel' and contains(@class, 'is-active') and contains(@id, 'pane-archive')]")))` |
-| **表格刷新** | **方式1**: 等待表格body区的数据加载完成后 `.el-table__body-wrapper` 出现 | `wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.el-table__body-wrapper tr.el-table__row")))` |
-|  | **方式2**: 等待“暂无数据”或 `.el-table__empty-text` 消失 (如果之前有数据) | `wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "div.el-table__empty-text")))` |
-| **弹窗打开** | 等待 `el-dialog` 出现且可见 | `wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@role='dialog' and .//span[contains(text(),'编辑基本信息')]]")))` |
-| **弹窗关闭** | 等待 `el-dialog` 不可见 | `wait.until(EC.invisibility_of_element_located((By.XPATH, "//div[@role='dialog' and .//span[contains(text(),'编辑基本信息')]]")))` |
-| **Loading消失** | 等待 `el-loading-mask` (或 `v-loading` 绑定的元素) 不可见 | `wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "div.el-loading-mask")))` |
-| **el-select下拉打开** | 等待 `el-select-dropdown` 出现且可见 (渲染在body层) | `wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "body > .el-select-dropdown:not(.is-disabled)")))` |
-
-## 5. 自动化风险点及规避策略
-
-### 5.1 动态ID与Class哈希
-- **风险**: Vue 3 项目中，部分元素的 `class` 属性可能包含Vue生成的哈希值 (如 `data-v-7b3c2f1f`)，导致CSS Class选择器不稳定。
-- **规避**: **优先使用** `role`、`aria-label`、`placeholder`、文本内容等属性选择器。**禁止使用**包含哈希值的完整CSS Class。
-
-### 5.2 el-select下拉选项渲染在body层
-- **风险**: Element Plus 的 `el-select` 下拉菜单 (`el-select-dropdown`) 默认使用 `Teleport` 渲染在 `<body>` 标签下，而不是选择器所在的 `div`。这使得在父容器内查找子元素的方式失效。
-- **规避**: 所有 `el-select` 的选项都 `body` 层级定位。定位器应使用 `(By.CSS_SELECTOR, "body > .el-select-dropdown ...")` 或全局XPath。
-
-### 5.3 权限控制下的元素缺失
-- **风险**: 如果当前用户没有“编辑资料”或“修改密码”的权限，这些按钮 (`el-button`) 可能不会渲染。若测试用例直接定位，将导致 `NoSuchElementException`。
-- **规避**: 在获取元素前，使用 `EC.presence_of_element_located` 进行条件检查。在测试逻辑中，对可选功能点进行前置判断。
-
-### 5.4 Tab切换动画
-- **风险**: `el-tabs` 切换时可能有滑动动画，动画开始时 `el-tab-pane` 不可见，导致后续元素定位失败。
-- **规避**: 切换Tab后，始终等待目标 `el-tab-pane` 确实变为可见 (`visibility_of_element_located`)，而不只是存在 (`presence_of_element_located`)。
-
-### 5.5 只读字段
-- **风险**: 页面上的 `el-input` 用于数据展示 (如“手机号”) 时，处于只读或禁用状态，无法交互。若使用 `input_text` 方法尝试输入会失败。
-- **规避**: **明确区分**“只读展示”与“可编辑输入”的 `el-input`。只读元素直接在PO中作为 `read-only` 属性使用 `get_attribute('value')` 获取值。
+| 组件类型 | 用途说明 | 关联元素ID（来自 PAGE_CONTEXT） | 备注 |
+|----------|----------|-----------------------------------|------|
+| `el-tabs` / `el-tab-pane` | 实现右侧内容区的Tab切换 | `basic-info-tab`, `archive-tab` | 默认激活基本信息Tab |
+| `el-form` / `el-form-item` | 基本信息展示及弹窗编辑表单 | `basic-info-form`, `edit-info-dialog`内表单 | 只读模式与编辑模式共享 |
+| `el-input` | 文本输入/展示 | `field-employee-name`, `dialog-name-input` | 部分为`readonly`或`disabled` |
+| `el-select` | 下拉选择（部门、变更类型） | `dialog-department-select`, `change-type-select` | 支持搜索，选项渲染在`body`层 |
+| `el-date-picker` | 日期范围选择（变更记录筛选） | `change-date-picker` | 类型为`daterange` |
+| `el-table` / `el-table-column` | 展示档案变更记录 | `change-table`, `col-change-field`等 | 绑定`changeRecords`数据 |
+| `el-pagination` | 变更记录分页 | `pagination` | 默认每页10条 |
+| `el-dialog` | 编辑基本信息、修改密码弹窗 | `edit-info-dialog`, `password-dialog` | 标题决定唯一性 |
+| `el-button` | 查询/重置/编辑/保存/取消等操作 | `search-btn`, `edit-basic-info-btn` | 通过按钮文本区分 |
+| `el-avatar` / `el-image` | 个人头像展示 | 头像区域 | 可能使用`el-avatar` |
+| `el-tag` | 个人状态标签（在职/试用期） | 顶部区域 | 颜色区分状态 |
 
 ---
 
-## 结论与建议
+## 2. DOM 结构分析（推断）
 
-1.  **优先A级**：所有能够使用 `role`、`aria-*` 或通过文本内容定位的元素，都应作为**首选A级定位器**。本分析中大部分按钮和弹窗都满足条件。
-2.  **复合定位**：对于表单域等复杂控件，**最推荐方案**是 `role='dialog'` 或 `role='tabpanel'` (上下文) + `label` 或 `placeholder` 组合定位，既稳定又易维护。
-3.  **留意 `el-select` 的特殊性**：所有 `el-select` 的操作，务必记住下拉选项在是 `body` 层，PO中需要专门的处理逻辑。
-4.  **等待策略要全面**：除常规的页面加载和弹窗等待，必须加上 **`el-select` 下拉动画**、**Tab切换** 以及 **表格数据加载** 的显式等待。
-5.  **自动化实现建议**：建议在 `ElementPlusHelper` 中为 `my-archive` 页面新增一个专门的辅助方法，如 `select_archive_change_type`，封装了点击el-select、等待下拉渲染、选择指定选项的全过程。
+基于 Element Plus 标准结构推断，实际以F12调试为准。
 
-*分析完成。此文档应与 `PAGE_ELEMENT_POSITION.md` 配合使用，以实现具体的页面对象。*
+```html
+<!-- 页面容器 -->
+<div id="app">
+  <div class="my-archive-page">
+    <!-- 顶部：标题 + 状态标签 -->
+    <div class="page-header">
+      <h2>我的档案</h2>
+      <el-tag type="success">在职</el-tag>
+    </div>
+
+    <!-- 主内容区：左侧个人 + 右侧Tab -->
+    <div class="main-content">
+      <!-- 左侧 -->
+      <aside class="profile-sidebar">
+        <el-avatar :size="80" src="..."></el-avatar>
+        <el-button plain @click="openEditDialog">编辑资料</el-button>
+        <el-button plain @click="openPasswordDialog">修改密码</el-button>
+      </aside>
+
+      <!-- 右侧 -->
+      <section class="profile-content">
+        <el-tabs v-model="activeTab">
+          <!-- Tab 1: 基本信息（默认） -->
+          <el-tab-pane label="基本信息" name="basic-info">
+            <el-form label-width="80px" class="profile-form">
+              <el-form-item label="姓名"><el-input :model-value="user.name" readonly></el-form-item>
+              <!-- ... 其他表单项 ... -->
+            </el-form>
+          </el-tab-pane>
+
+          <!-- Tab 2: 档案变更记录 -->
+          <el-tab-pane label="档案变更记录" name="archive">
+            <!-- 筛选区 -->
+            <div class="filter-bar" v-if="activeTab === 'archive'">
+              <el-select v-model="filter.type" placeholder="变更类型" ...></el-select>
+              <el-date-picker v-model="filter.date" type="daterange" ...></el-date-picker>
+              <el-button type="primary">查询</el-button>
+              <el-button>重置</el-button>
+            </div>
+            <!-- 表格 -->
+            <el-table :data="changeRecords" v-loading="loading">
+              <el-table-column prop="changeField" label="变更字段"></el-table-column>
+              <!-- ... -->
+            </el-table>
+            <!-- 分页 -->
+            <el-pagination v-show="total > 0" :total="total"></el-pagination>
+          </el-tab-pane>
+        </el-tabs>
+      </section>
+    </div>
+  </div>
+</div>
+```
+
+### 关键节点层级
+
+- `#app > .my-archive-page > .main-content > .profile-content > .el-tabs`
+- `.el-tabs` 的子节点 `.el-tabs__content` 中包含两个 `.el-tab-pane`
+- 弹窗 `el-dialog` 默认挂载在 `#app` 下或 `body` 下（取决于 `append-to-body` 属性）
+
+### 稳定属性 vs 动态属性
+
+| 属性类型 | 稳定属性 | 动态属性 |
+|----------|----------|----------|
+| **稳定** | `aria-label`, `placeholder`, `class="el-tabs"`, `class="el-table"`, `class="el-dialog"` | - |
+| **可能动态** | `name`, `prop` 绑定 | `__BVID__123`, `el-select--123`, `el-table__body-wrapper tbody` 内动态行ID |
+| **依赖文本** | 按钮文字、表单项 `label`、Tab 标签 | - |
+| **依赖数据** | - | 表格行数、分页总条数、select 选项列表 |
+
+---
+
+## 3. 定位器设计表（A/B/C 三级）
+
+> **A级**：基于稳定属性（`aria-label`, `placeholder`, `text`, `name`, `data-testid`）  
+> **B级**：基于稳定的CSS Class组合或父子关系  
+> **C级**：基于XPath或动态Class（易碎，仅作备用）
+
+### 3.1 Tab 切换
+
+| 元素 | 等级 | 策略 | 定位值 | 备注 |
+|------|------|------|--------|------|
+| 基本信息 Tab | A | CSS | `.el-tabs__item[aria-controls="tab-basic-info"]` | 若 `name="basic-info"` |
+| 档案变更记录 Tab | A | XPath | `//div[contains(@class,'el-tabs__item') and .//span[text()='档案变更记录']]` | 依赖文本，稳定 |
+| 基本信息 Tab (备份) | B | CSS | `.el-tabs__item:first-child` | 前提：顺序固定 |
+| 档案变更记录 Tab (备份) | B | CSS | `.el-tabs__item:nth-child(2)` | 前提：顺序固定 |
+
+### 3.2 筛选区（档案变更记录 Tab 内）
+
+| 元素 | 等级 | 策略 | 定位值 | 备注 |
+|------|------|------|--------|------|
+| 变更类型下拉框 | A | CSS | `input[placeholder="变更类型"]` | 依赖 `placeholder` 文本 |
+| 变更日期范围选择器 | A | CSS | `input[placeholder*="开始日期"]` | Element Plus daterange 有两个 input |
+| 查询按钮 | A | XPath | `//button[.//span[text()='查询']]` | 依赖按钮文本 |
+| 查询按钮 (备份) | B | CSS | `.filter-bar .el-button--primary` | 依赖Class和位置 |
+| 重置按钮 | A | XPath | `//button[.//span[text()='重置']]` | 依赖按钮文本 |
+| 重置按钮 (备份) | B | CSS | `.filter-bar .el-button:not(.el-button--primary)` | 排除主要按钮 |
+
+### 3.3 表格区
+
+| 元素 | 等级 | 策略 | 定位值 | 备注 |
+|------|------|------|--------|------|
+| 变更记录表格容器 | A | CSS | `table.el-table__body` | 数据行所在 |
+| 所有数据行 | B | CSS | `.el-table__body-wrapper tbody .el-table__row` | 动态行 |
+| 第一行数据 | B | CSS | `.el-table__body-wrapper tbody .el-table__row:first-child` | 用于取首个 |
+| 指定行（第N行） | B | CSS | `.el-table__body-wrapper tbody .el-table__row:nth-child(N)` | N从1开始 |
+| 分页组件 | A | CSS | `.el-pagination` | — |
+| 分页组件 (备份) | A | XPath | `//div[contains(@class,'el-pagination')]` | — |
+
+### 3.4 弹窗（编辑基本信息对话框）
+
+| 元素 | 等级 | 策略 | 定位值 | 备注 |
+|------|------|------|--------|------|
+| 弹窗容器 | A | XPath | `//div[contains(@class,'el-dialog') and .//span[text()='编辑基本信息']]` | 标题定位 |
+| 弹窗容器 (备份) | B | CSS | `div.el-dialog[aria-label="编辑基本信息"]` | 若设置了 `aria-label` |
+| 姓名输入框 | A | CSS | `.el-dialog:has(.el-dialog__header span:last-child:contains("编辑基本信息")) input[placeholder='请输入姓名']` | (复杂) — 见下 |
+| 姓名输入框 (备份) | B | XPath | `(//div[contains(@class,'el-dialog') and .//span[text()='编辑基本信息']])//label[text()='姓名']/following-sibling::div//input` | 依赖 `label` |
+| 保存按钮 | A | XPath | `//div[contains(@class,'el-dialog')]//button[.//span[text()='保 存']]` | 注意空格 |
+| 保存按钮 (备份) | B | CSS | `.el-dialog:has(.el-dialog__header span:last-child:contains("编辑基本信息")) .el-button--primary` | 依赖 CSS |
+| 取消按钮 | A | XPath | `//div[contains(@class,'el-dialog')]//button[.//span[text()='取 消']]` | 注意空格 |
+
+> **C级备用**：若弹窗ID动态，使用 XPath `//div[contains(@class,"el-dialog")][.//div[@class="el-dialog__title" and text()="编辑基本信息"]]`
+
+---
+
+## 4. Vue 异步等待策略
+
+基于 `BasePage` 已封装的 `wait_*` 方法。
+
+| 场景 | 等待条件 | Selenium 实现示例 | 备注 |
+|------|----------|-------------------|------|
+| 页面加载 | 页面标题可见 + 表格/表单可见 | `wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".el-tabs")))` | 确保Vue挂载完成 |
+| Tab切换 | 目标Tab激活且内容可见 | `wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".el-tab-pane[aria-hidden='false']")))` | 或等待筛选区元素出现 |
+| 筛选/查询（表格刷新） | `.el-table__body-wrapper` 出现且无 `v-loading` | `wait.until(lambda d: table_loaded(d, TABLE_BODY))` | 自定义 `wait_table_loaded` |
+| Loading 消失 | `.el-loading-mask` 不可见 | `wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, ".el-loading-mask")))` | Element Plus 加载覆盖层 |
+| 弹窗打开 | 弹窗口见 + 标题正确 | `wait.until(EC.visibility_of_element_located(DIALOG_LOCATOR))` | `wait_dialog_visible("编辑基本信息")` |
+| 弹窗关闭 | 弹窗不可见 | `wait.until(EC.invisibility_of_element_located(DIALOG_LOCATOR))` | `wait_dialog_closed("编辑基本信息")` |
+| Select 下拉选项打开 | 下拉面板可见 | `wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".el-select-dropdown__item")))` | 选项在 `body` 层 |
+| DatePicker 面板打开 | 日期面板可见 | `wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".el-picker-panel")))` | — |
+| 分页切换（重新加载表格） | 同表格刷新 | — | — |
+
+---
+
+## 5. 自动化风险点
+
+1. **动态 ID 和 Class**  
+   - Element Plus 生成的 `el-select` 内部 ID（如 `el-select-1234`）每次渲染不同，禁止使用。  
+   - 表格行 `el-table__row` 有动态顺序，但 Class 是稳定的。
+
+2. **下拉选项渲染在 `body` 层**  
+   - `el-select`、`el-date-picker` 的下拉面板默认 `append-to-body="true"`，定位时需在 `body` 下找，不在表单内。  
+   - 示例 XPath：`//body//div[contains(@class,'el-select-dropdown') and contains(@style,'display: none')]`（等待 `display: none` 变可见）。
+
+3. **Tab 切换导致的元素加载变化（v-if）**  
+   - 档案变更记录 Tab 内的筛选区可能是 `v-if="activeTab === 'archive'"`，切换前元素不存在 DOM 中。  
+   - 必须先点击 Tab，再等待元素出现。**避免**在 Tab 切换前定位内部元素。
+
+4. **弹窗挂载位置**  
+   - `el-dialog` 默认挂载在 `#app` 下，但可通过 `append-to-body` 配置。  
+   - 定位时使用相对宽松的 `//div[contains(@class,'el-dialog')]` 避免绑定到特定父容器。
+
+5. **只读输入框 (`readonly`)**  
+   - 基本信息 Tab 中的 `el-input` 有 `readonly` 属性，对这类元素可进行 `get_attribute('value')`，但无法 `send_keys`。  
+   - 若要编辑，需点击编辑按钮进入弹窗。
+
+6. **分页状态（v-show vs v-if）**  
+   - `el-pagination` 可能使用 `v-show="total > 0"`，元素始终在 DOM 中但可能隐藏。  
+   - 等待可见性时用 `visibility_of_element_located`。
+
+7. **数据渲染延迟**  
+   - 表格数据通过 API 异步获取，Vue 的 `v-loading` 覆盖层可能短暂出现。  
+   - 使用 `wait_table_loaded` 方法，内部等待 `.el-loading-mask` 消失 + 行数变化。
+
+---
+
+## 6. 合并 PAGE_ELEMENT_POSITION.md（关键定位器速查表）
+
+| 元素描述 | 推荐定位器 | 稳定性 |
+|----------|------------|--------|
+| 档案变更记录 Tab | `//div[contains(@class,'el-tabs__item') and .//span[text()='档案变更记录']]` | ✅ A |
+| 变更类型下拉框 | `(By.CSS_SELECTOR, "input[placeholder='变更类型']")` | ✅ A |
+| 变更日期范围选择器 | `(By.CSS_SELECTOR, "input[placeholder*='开始日期']")` | ✅ A |
+| 查询按钮 | `(By.XPATH, "//button[.//span[text()='查询']]")` | ✅ A |
+| 表格容器 | `(By.CSS_SELECTOR, "table.el-table__body")` | ✅ A |
+| 所有表格数据行 | `(By.CSS_SELECTOR, ".el-table__body-wrapper tbody .el-table__row")` | ✅ B |
+| 分页组件 | `(By.CSS_SELECTOR, ".el-pagination")` | ✅ A |
+| 编辑基本信息弹窗 | `(By.XPATH, "//div[contains(@class,'el-dialog') and .//span[text()='编辑基本信息']]")` | ✅ A |
+| 弹窗内保存按钮 | `(By.XPATH, "//div[contains(@class,'el-dialog')]//button[.//span[text()='保 存']]")` | ✅ A |
+| Loading 覆盖层 | `(By.CSS_SELECTOR, ".el-loading-mask")` | ✅ A (用于等待不可见) |
+
+---
+
+## 附录：建议的 BasePage 扩展方法
+
+```python
+# ElementPlusHelper 扩展
+def wait_select_option_visible(self, option_text: str, timeout: int = 10):
+    """等待下拉选项可见"""
+    return self.wait.until(
+        EC.visibility_of_element_located(
+            (By.XPATH, f"//body//div[contains(@class,'el-select-dropdown')]//span[text()='{option_text}']")
+        )
+    )
+
+def wait_dialog_by_title(self, title: str, timeout: int = 10):
+    """通过标题等待弹窗口见"""
+    locator = (By.XPATH, f"//div[contains(@class,'el-dialog') and .//span[text()='{title}']]")
+    return self.wait.until(EC.visibility_of_element_located(locator), timeout)
+```
+
+---
+
+> **下一步建议**: 提供真实 HTML 源码或截图，可对本分析进行精确校准。

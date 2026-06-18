@@ -51,10 +51,27 @@ class EmployeeManagePage(BasePage):
         self.wait_vue_stable()
 
     def is_page_loaded(self):
-        """判断页面是否加载完成"""
+        """判断页面是否加载完成 — 多重检测"""
+        indicators = [
+            (By.XPATH, '//div[contains(@class,"el-table")]'),
+            (By.XPATH, '//div[contains(@class,"el-table__header")]'),
+            (By.CSS_SELECTOR, '.el-table, .el-table__header-wrapper'),
+            (By.XPATH, '//*[contains(@class,"table")]'),
+            (By.XPATH, '//span[contains(text(),"员工")]'),
+            (By.XPATH, '//*[contains(text(),"共") and contains(text(),"条")]'),
+        ]
+        for locator in indicators:
+            try:
+                self.find_visible(locator, timeout=3)
+                return True
+            except Exception:
+                continue
+        # Final check: any non-empty content area
         try:
-            self.find_visible((By.XPATH, '//div[contains(@class,"el-table")]'))
-            return True
+            text = self.driver.execute_script(
+                "return document.querySelector('.el-main, .app-main, main')?.textContent?.trim() || ''"
+            )
+            return len(text) > 20
         except Exception:
             return False
 

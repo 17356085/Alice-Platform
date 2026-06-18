@@ -22,6 +22,12 @@ from page.personnel_page.PostManagePage import PostManagePage
 from page.personnel_page.ExamManagePage import ExamManagePage
 from page.personnel_page.EmployeePage import EmployeePage
 from page.personnel_page.EmployeeManagePage import EmployeeManagePage
+from page.personnel_page.QualificationPage import QualificationManagePage
+from page.personnel_page.VisitorPage import VisitorPage
+from page.personnel_page.ExamRecordPage import ExamRecordPage
+from page.personnel_page.MyExamPage import MyExamPage
+from page.personnel_page.OnlineStudyPage import OnlineStudyPage
+from page.personnel_page.MyArchivePage import MyArchivePage
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +50,12 @@ _MODULE_HASH_ROUTES = {
     "test_entry_approval": "#/personnel/contractor/approval",
     "test_entry_record": "#/personnel/contractor/record",
     "test_entry_confirm": "#/personnel/contractor/confirm",
+    "test_qualification": "#/personnel/qualification",
+    "test_visitor": "#/personnel/visitor",
+    "test_exam_record": "#/personnel/training/examRecord",
+    "test_my_exam": "#/personnel/training/my-exam",
+    "test_online_study": "#/personnel/training/onlineStudy",
+    "test_my_archive": "#/personnel/training/my-archive",
 }
 
 
@@ -318,4 +330,53 @@ def employee_page(driver_setup):
 def employee_manage_page(driver_setup):
     """EmployeeManagePage fixture"""
     page = EmployeeManagePage(driver_setup)
+    return page
+
+
+@pytest.fixture(scope="function")
+def qualification_manage_page(driver_setup):
+    """QualificationManagePage fixture"""
+    page = QualificationManagePage(driver_setup)
+    return page
+
+
+@pytest.fixture(scope="function")
+def visitor_page(driver_setup):
+    """VisitorPage fixture"""
+    page = VisitorPage(driver_setup)
+    return page
+
+
+@pytest.fixture(scope="function")
+def exam_record_page(driver_setup):
+    """ExamRecordPage fixture"""
+    page = ExamRecordPage(driver_setup)
+    return page
+
+
+@pytest.fixture(scope="function")
+def my_exam_page(driver_setup):
+    """MyExamPage fixture"""
+    page = MyExamPage(driver_setup)
+    return page
+
+
+@pytest.fixture(scope="function")
+def online_study_page(driver_setup):
+    """OnlineStudyPage fixture"""
+    page = OnlineStudyPage(driver_setup)
+    return page
+
+
+@pytest.fixture(scope="function")
+def my_archive_page(driver_setup):
+    """MyArchivePage fixture"""
+    page = MyArchivePage(driver_setup)
+    return page
+
+
+@pytest.fixture(scope="function")
+def qualification_manage_page(driver_setup):
+    """QualificationManagePage fixture — conftest 已通过 JS hash 导航"""
+    page = QualificationManagePage(driver_setup)
     return page

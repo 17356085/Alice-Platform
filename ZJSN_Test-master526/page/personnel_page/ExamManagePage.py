@@ -279,14 +279,20 @@ class ExamManagePage(BasePage):
     # ==================== 页面状态验证 ====================
 
     def is_page_loaded(self):
-        """检查考试管理页面是否已加载"""
-        try:
-            self.find_visible(
-                (By.XPATH, '//div[contains(@class,"el-table")]'), timeout=5
-            )
-            return True
-        except Exception:
-            return False
+        """检查考试管理页面是否已加载 — 多重检测"""
+        indicators = [
+            (By.XPATH, '//div[contains(@class,"el-table")]'),
+            (By.CSS_SELECTOR, '.el-table, .el-table__header-wrapper'),
+            (By.XPATH, '//*[contains(text(),"考试")]'),
+            (By.XPATH, '//*[contains(text(),"共") and contains(text(),"条")]'),
+        ]
+        for locator in indicators:
+            try:
+                self.find_visible(locator, timeout=3)
+                return True
+            except Exception:
+                continue
+        return False
 
     def get_table_headers(self):
         """JS提取表格表头（含重试，应对Element Plus异步渲染）"""

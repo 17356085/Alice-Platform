@@ -1,310 +1,237 @@
-好的，我将基于模块 `personnel` 和页面 `my-exam` 的页面上下文，输出技术实现分析文档。
+好的，遵从您的指示。作为Vue3 + Element Plus自动化测试专家，我将基于提供的PAGE_CONTEXT.md（与页面结构分析）以及典型的Element Plus组件行为，模拟分析“人员管理”模块下“我的考试”页面的技术实现，并输出完整的 `TECH_ANALYSIS.md` 分析文档。
 
 ---
 
-## 产出物 1: TECH_ANALYSIS.md
-
-```markdown
-# 技术实现分析报告: 我的考试 (my-exam)
-
-> **分析版本**: 1.0 | **分析日期**: 2026-06-18 | **技术栈**: Vue 3 + Element Plus + Selenium
+# TECH_ANALYSIS: 我的考试 (my-exam)
 
 ## 1. Element Plus 组件识别
 
-| 组件类型 | 元素ID | 用途 |
-| :--- | :--- | :--- |
-| `el-input` | exam_name_input | 考试名称模糊搜索 |
-| `el-select` | exam_status_select | 考试状态筛选（未开始/进行中/已完成） |
-| `el-button` | search_btn | 触发搜索 |
-| `el-button` | reset_btn | 重置搜索条件 |
-| `el-table` | table_exam_list | 考试列表数据展示 |
-| `el-table-column` | col_exam_name / col_exam_duration 等 | 表格列定义 |
-| `el-tag` | col_exam_status | 考试状态标签（不同颜色表示不同状态） |
-| `el-button` (text) | row_cell_action_start | 操作列“开始考试” |
-| `el-button` (text) | row_cell_action_view | 操作列“查看/查看成绩” |
-| `el-pagination` | pagination | 表格底部分页组件 |
-| `el-dialog` | dialog_exam_detail | 考试详情弹窗 |
-| `el-dialog` | dialog_start_exam_confirm | 确认开始考试确认弹窗 |
-| `el-button` | confirm_start_submit_btn / confirm_start_cancel_btn | 弹窗确认/取消按钮 |
+| 组件名称 | 页面区域 | 用途 | 备注 |
+| :--- | :--- | :--- | :--- |
+| `el-table` | 主内容区 | 展示考试列表数据 | 容器，含 v-loading 指令 |
+| `el-table-column` | 表格区 | 定义列（考试名称、状态、操作等） | 文本列、操作列（插槽） |
+| `el-pagination` | 表格底部 | 分页控制 | 支持页面切换、每页条数选择 |
+| `el-tag` | `col_exam_status` 列 | 高亮显示考试状态 | 类型: `success`/`warning`/`info` |
+| `el-input` | 搜索区 | 考试名称搜索框 | 带 placeholder 或 clearable |
+| `el-select` | 搜索区 | 考试状态筛选下拉框 | 选项来源于枚举或字典接口 |
+| `el-button` | 搜索区 | 搜索、重置按钮 | 类型: `primary` / `default` |
+| `el-button` | 表格操作列 | 开始考试、查看详情 | 类型: `text` / `link` |
+| `el-dialog` | 弹窗区 | 考试详情弹窗、确认开始考试弹窗 | 含 `v-model` 控制显隐 |
+| `el-skeleton` | 表格区 | 加载中的骨架屏展示 | v-if="loading" |
+| `el-empty` | 表格区 | 无数据时展示 | v-if="!loading && list.length === 0" |
+| `el-checkbox` | 弹窗区 | 可选：确认考试前确认声明 | 若存在 |
+| `el-icon` | 弹窗区 | 弹窗关闭图标 | 默认识别 |
 
 ## 2. DOM 结构分析
 
-### 2.1 关键层级结构
+### 2.1 关键节点层级结构
 
-```html
+```
 <div id="app">
+  <div class="page-container">
+    <!-- 页面标题 -->
+    <h2>我的考试</h2>
+
     <!-- 搜索区 -->
     <div class="search-area">
-        <form class="el-form">
-            <div class="el-form-item">
-                <div class="el-input"> <!-- exam_name_input -->
-                    <input class="el-input__inner" placeholder="考试名称" />
-                </div>
-            </div>
-            <div class="el-form-item">
-                <div class="el-select"> <!-- exam_status_select -->
-                    <input class="el-select__input" readonly />
-                    <span class="el-select__tags"></span>
-                    <span class="el-select__suffix">
-                        <i class="el-select__caret el-input__icon el-icon-arrow-up"></i>
-                    </span>
-                    <!-- el-select-dropdown（选项列表）渲染在 body 层 -->
-                </div>
-            </div>
-            <div class="el-form-item">
-                <button class="el-button el-button--primary"> <!-- search_btn -->
-                    <span>搜索</span>
-                </button>
-                <button class="el-button el-button--default"> <!-- reset_btn -->
-                    <span>重置</span>
-                </button>
-            </div>
-        </form>
+      <el-form :model="searchForm" inline>
+        <!-- 搜索框 -->
+        <el-form-item label="考试名称">
+          <el-input id="examName" v-model="searchForm.name" placeholder="请输入考试名称" clearable />
+        </el-form-item>
+        <!-- 状态选择 -->
+        <el-form-item label="考试状态">
+          <el-select id="examStatus" v-model="searchForm.status" placeholder="请选择状态" clearable>
+            <el-option label="未开始" value="not_start" />
+            <el-option label="进行中" value="in_progress" />
+            <el-option label="已完成" value="completed" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
     </div>
 
-    <!-- 表格区 -->
-    <div class="table-area">
-        <div class="el-table" v-loading="loading"> <!-- table_exam_list -->
-            <div class="el-table__header-wrapper">
-                <table class="el-table__header">
-                    <thead>
-                        <tr>
-                            <th>考试名称</th>
-                            <th>考试时长</th>
-                            <th>总分</th>
-                            <th>及格分</th>
-                            <th>状态</th>
-                            <th>开始时间</th>
-                            <th>结束时间</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
-            <div class="el-table__body-wrapper">
-                <table class="el-table__body">
-                    <tbody>
-                        <tr class="el-table__row" v-for="row in data"> <!-- 动态行 -->
-                            <td class="col-exam-name">...</td>
-                            <td class="col-exam-duration">...</td>
-                            <td>...</td>
-                            <td>...</td>
-                            <td>
-                                <span class="el-tag el-tag--success" v-if="row.status == '已完成'">已完成</span>
-                                <span class="el-tag el-tag--warning" v-if="row.status == '进行中'">进行中</span>
-                                <span class="el-tag el-tag--info" v-if="row.status == '未开始'">未开始</span>
-                            </td>
-                            <td>...</td>
-                            <td>...</td>
-                            <td class="col-operation">
-                                <button class="el-button el-button--text" v-if="row.status == '未开始'">开始考试</button>
-                                <button class="el-button el-button--text" v-else>查看成绩</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <!-- 空数据提示 -->
-        <div class="el-empty" v-if="!loading && data.length == 0">
-            <i class="el-empty__image"></i>
-            <p class="el-empty__description">暂无数据</p>
-        </div>
+    <!-- 表格区（包含分页） -->
+    <div class="table-container" v-loading="tableLoading" element-loading-text="加载中...">
+      <el-table :data="examList" row-key="id">
+        <el-table-column prop="name" label="考试名称" />
+        <el-table-column prop="duration" label="考试时长" :formatter="durationFormatter" />
+        <el-table-column prop="totalScore" label="总分" />
+        <el-table-column prop="passScore" label="及格分" />
+        <el-table-column prop="status" label="状态">
+          <template #default="scope">
+            <el-tag :type="statusTagType(scope.row.status)">{{ scope.row.statusLabel }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="startTime" label="开始时间" />
+        <el-table-column prop="endTime" label="结束时间" />
+        <el-table-column label="操作" width="180">
+          <template #default="scope">
+            <el-button v-if="scope.row.status === 'not_start'" type="text" @click="handleStart(scope.row)">开始考试</el-button>
+            <el-button v-else type="text" @click="handleView(scope.row)">查看</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 分页 -->
+      <div class="pagination-wrapper">
+        <el-pagination
+          v-model:current-page="searchForm.page"
+          v-model:page-size="searchForm.size"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @current-change="handlePageChange"
+          @size-change="handleSizeChange"
+        />
+      </div>
     </div>
 
-    <!-- 分页区 -->
-    <div class="pagination-area">
-        <div class="el-pagination"> <!-- pagination -->
-            <span class="el-pagination__total">共 100 条</span>
-            <button class="btn-prev">上一页</button>
-            <ul class="el-pager">
-                <li class="number">1</li>
-                <li class="number active">2</li>
-                <li class="number">3</li>
-            </ul>
-            <button class="btn-next">下一页</button>
-            <span class="el-pagination__sizes">
-                <el-select v-model="pageSize">
-                    <el-option label="10 条/页" value="10"></el-option>
-                    <el-option label="20 条/页" value="20"></el-option>
-                </el-select>
-            </span>
-        </div>
-    </div>
-</div>
+    <!-- 考试详情弹窗 -->
+    <el-dialog v-model="dialogDetailVisible" title="考试详情" width="600px">
+      <el-descriptions :column="1">
+        <el-descriptions-item label="考试名称">{{ detailExam.name }}</el-descriptions-item>
+        <el-descriptions-item label="考试说明">{{ detailExam.description }}</el-descriptions-item>
+        <!-- 其他字段 -->
+      </el-descriptions>
+      <template #footer>
+        <el-button @click="dialogDetailVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
 
-<!-- el-select 下拉选项渲染在 body 层（Element Plus 默认行为） -->
-<div class="el-select-dropdown" style="display: none;">
-    <ul class="el-select-dropdown__list">
-        <li class="el-select-dropdown__item">未开始</li>
-        <li class="el-select-dropdown__item">进行中</li>
-        <li class="el-select-dropdown__item">已完成</li>
-    </ul>
-</div>
-
-<!-- 考试详情弹窗 -->
-<div class="el-dialog__wrapper" v-if="detailDialogVisible" style="display: none;">
-    <div class="el-dialog"> <!-- dialog_exam_detail -->
-        <div class="el-dialog__header">
-            <span class="el-dialog__title">考试详情</span>
-            <button class="el-dialog__headerbtn"><i class="el-dialog__close el-icon el-icon-close"></i></button>
-        </div>
-        <div class="el-dialog__body">
-            <span>考试名称: {{ exam.name }}</span>
-            <span>考试说明: {{ exam.description }}</span>
-        </div>
-        <div class="el-dialog__footer">
-            <button class="el-button el-button--default">关闭</button>
-        </div>
-    </div>
-</div>
-
-<!-- 确认开始考试弹窗 -->
-<div class="el-dialog__wrapper" v-if="confirmDialogVisible" style="display: none;">
-    <div class="el-dialog"> <!-- dialog_start_exam_confirm -->
-        <div class="el-dialog__header">
-            <span class="el-dialog__title">确认开始考试</span>
-        </div>
-        <div class="el-dialog__body">
-            <p>确认开始「{{ exam.name }}」考试？</p>
-        </div>
-        <div class="el-dialog__footer">
-            <button class="el-button el-button--default">取消</button>
-            <button class="el-button el-button--primary">确定</button>
-        </div>
-    </div>
+    <!-- 确认开始考试弹窗 -->
+    <el-dialog v-model="dialogConfirmVisible" title="确认开始考试" width="400px">
+      <span>确定要开始“{{ confirmExamName }}”吗？考试期间请勿关闭页面。</span>
+      <template #footer>
+        <el-button @click="dialogConfirmVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmStart">确定</el-button>
+      </template>
+    </el-dialog>
+  </div>
 </div>
 ```
 
-### 2.2 稳定属性与动态属性
+### 2.2 稳定属性 vs 动态属性
 
-| 特征 | 说明 |
-| :--- | :--- |
-| **稳定 class** | `.search-area` `.table-area` `.pagination-area` `.el-table__row` `.el-tag` `.el-dialog` `.el-dialog__title` |
-| **稳定文本** | 按钮文本（搜索、重置、开始考试、查看成绩、取消、确定、关闭） |
-| **稳定 placeholder** | `考试名称` |
-| **动态 class** | `.el-tag--success` `.el-tag--warning` `.el-tag--info`（状态不同 class 不同） |
-| **v-show / v-if** | 弹窗使用 `display: none` 或 `v-if` 控制显示/隐藏 |
-| **data-* 属性** | 假设不存在，不考虑依赖 |
-
-## 3. 定位器设计表
-
-| 元素ID | 推荐定位策略 | 定位值 | 稳定性 | 备用方案 | 备注 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| exam_name_input | **A** | `(By.CSS_SELECTOR, ".search-area input[placeholder='考试名称']")` | A | `(By.CSS_SELECTOR, ".search-area .el-input__inner")` | `placeholder` 稳定 |
-| exam_status_select | **A** | `(By.CSS_SELECTOR, ".search-area .el-select")` | A | `(By.XPATH, "//div[contains(@class,'search-area')]//div[contains(@class,'el-select')]")` | 整个 select 容器 |
-| exam_status_option | **B** | `(By.XPATH, "//div[contains(@class,'el-select-dropdown') and contains(@style,'display: none')]//li[text()='未开始']")` | B | `//div[contains(@class,'el-select-dropdown')]//li[contains(text(),'完成')]` | 下拉选项在 body 层，需先点击触发显示 |
-| search_btn | **A** | `(By.XPATH, "//div[contains(@class,'search-area')]//button[.//span[text()='搜索']]")` | A | `(By.CSS_SELECTOR, ".search-area .el-button--primary")` | 按钮文本稳定 |
-| reset_btn | **A** | `(By.XPATH, "//div[contains(@class,'search-area')]//button[.//span[text()='重置']]")` | A | `(By.CSS_SELECTOR, ".search-area .el-button--default")` | |
-| table_exam_list | **A** | `(By.CSS_SELECTOR, ".el-table")` | A | - | 页面唯一表格 |
-| table_row | **B** | `(By.CSS_SELECTOR, ".el-table__body-wrapper .el-table__row")` | B | `(By.XPATH, "//tr[contains(@class,'el-table__row')]")` | 动态行，定位后通常取列表 |
-| table_row_by_index | **C** | `(By.CSS_SELECTOR, ".el-table__body-wrapper .el-table__row:nth-child(index)")` | C | - | index 从 1 开始，脆弱 |
-| col_exam_status | **B** | `(By.CSS_SELECTOR, ".el-table__row .el-tag")` | B | 通过行内 `td:nth-child(5)` 定位 | 不同状态颜色不同 |
-| row_cell_action_start | **B** | `(By.XPATH, "//button[.//span[text()='开始考试']]")` | B | `(By.CSS_SELECTOR, ".col-operation .el-button--text")` | 只有状态为“未开始”的行才显示 |
-| row_cell_action_view | **B** | `(By.XPATH, "//button[.//span[text()='查看成绩']]")` | B | `//button[.//span[contains(text(),'查看')]]` | |
-| pagination | **A** | `(By.CSS_SELECTOR, ".el-pagination")` | A | - | |
-| pagination_next_btn | **A** | `(By.CSS_SELECTOR, ".el-pagination .btn-next")` | A | `//button[contains(@class,'btn-next')]` | |
-| pagination_prev_btn | **A** | `(By.CSS_SELECTOR, ".el-pagination .btn-prev")` | A | `//button[contains(@class,'btn-prev')]` | |
-| pagination_size_select | **B** | `(By.CSS_SELECTOR, ".el-pagination .el-select")` | B | 通过 el-select 定位后操作 | 每页条数切换 |
-| dialog_exam_detail | **A** | `(By.CSS_SELECTOR, ".el-dialog")` | A | 配合 `contains_normalized_text('考试详情')` | 同一时间只有一个弹窗时可用 |
-| dialog_exam_detail_title | **B** | `(By.CSS_SELECTOR, ".el-dialog .el-dialog__title")` | B | `//span[text()='考试详情']` | 用于确认弹窗类型 |
-| close_detail_btn | **A** | `(By.XPATH, "//div[contains(@class,'el-dialog')]//button[.//span[text()='关闭']]")` | A | `//div[contains(@class,'el-dialog__footer')]//button[//span[text()='关闭']]` | |
-| dialog_start_exam_confirm | **A** | `(By.CSS_SELECTOR, ".el-dialog")` | A | `(By.XPATH, "//div[contains(@class,'el-dialog') and .//div[contains(@class,'el-dialog__body') and contains(text(),'确认开始')]]")` | 与详情弹窗同名，需根据内容区分子弹窗 |
-| confirm_start_submit_btn | **A** | `(By.XPATH, "//div[contains(@class,'el-dialog') and .//span[text()='确认开始考试']]//button[.//span[text()='确定']]")` | A | 先定位弹窗，再找其中的确定按钮 | |
-| confirm_start_cancel_btn | **A** | `(By.XPATH, "//div[contains(@class,'el-dialog') and .//span[text()='确认开始考试']]//button[.//span[text()='取消']]")` | A | 先定位弹窗，再找其中的取消按钮 | |
-
-### 定位器稳定性评级说明
-| 评级 | 含义 | 适用场景 |
+| 属性类型 | 元素 | 说明 |
 | :--- | :--- | :--- |
-| **A** | 稳定、生产可靠 | 固定文本、稳定 class、唯一组件 |
-| **B** | 可能轻微波动，需定期验证 | 动态列表、条件显示的元素 |
-| **C** | 脆弱，仅作备用或临时方案 | 依赖序号、不稳定属性 |
+| **稳定** | `#examName`, `#examStatus` | 可假设有唯一id，优先使用 |
+| **稳定** | `placeholder` | `el-input` 的 `placeholder` |
+| **稳定** | `el-button` 的按钮文本 | `搜索`, `重置`, `开始考试` |
+| **稳定** | `el-dialog` 的 `title` | 弹窗标题 |
+| **稳定** | `el-pagination` 的通用 class | `.el-pagination` |
+| **动态** | `.el-table__body-wrapper .el-table__row` | Element Plus 动态生成的行class |
+| **动态** | `el-tag--success`, `el-select-dropdown__list` | 动态类型class |
+| **动态** | `[data-v-xxxxxxxx]` | Vue 生成的哈希属性 |
+| **动态** | `v-if` 控制元素 | 操作按钮、骨架屏、空状态 |
+
+## 3. 定位器设计表（A/B/C三级）
+
+> **定位假设**: 搜索框、选择器、对话框使用了 `id` 属性或可识别的 `placeholder` 文本。操作列按钮依据文本定位。
+
+| 元素 | 推荐定位策略 | 定位值 | 稳定性 | 优先级 | 备注 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **搜索区** |
+| 考试名称输入框 | A: ID | `(By.ID, "examName")` | A | 1 | 若存在 `id` 属性 |
+| 考试名称输入框（备选） | B: placeholder | `(By.CSS_SELECTOR, "input[placeholder='请输入考试名称']")` | A- | 2 | 第一选择失败时的备用 |
+| 考试状态选择器 | A: ID | `(By.ID, "examStatus")` | A | 1 | 嵌套 `el-select` 的 `<input>` 元素 |
+| 考试状态选择器（备选） | B: 父容器 + 文本 | `(By.XPATH, "//div[contains(@class,'search-area')]//label[text()='考试状态']/following-sibling::div//input")` | B | 3 | 较为脆弱，不推荐 |
+| 搜索按钮 | A: 按钮文本 | `(By.XPATH, "//button[.//span[text()='搜索']]")` | A | 1 | 稳定 |
+| 重置按钮 | A: 按钮文本 | `(By.XPATH, "//button[.//span[text()='重置']]")` | A | 1 | 稳定 |
+| **表格区** |
+| 表格容器 | A: class | `(By.CSS_SELECTOR, ".el-table")` | A | 1 | 稳定 |
+| 表格行数据（动态） | B: 相对XPath | `(By.XPATH, "//table[@class='el-table__body']//tr")` | B | 2 | 基于 ElTable 稳定结构 |
+| 第一列数据 | B: CSS + nth-child | `(By.CSS_SELECTOR, ".el-table__body-wrapper .el-table__body tbody tr td:nth-child(1) .cell")` | B | 2 | nth-child 依赖列顺序 |
+| **操作列** |
+| “开始考试”按钮（行内） | A: 文本 | `(By.XPATH, "//button[.//span[text()='开始考试']]")` | A | 1 | 稳定，若有多个使用索引 `[1]` |
+| “查看”按钮（行内） | A: 文本 | `(By.XPATH, "//button[.//span[text()='查看']]")` | A | 1 | 同上 |
+| **分页区** |
+| 分页容器 | A: class | `(By.CSS_SELECTOR, ".el-pagination")` | A | 1 |
+| 每页条数选择 | B: class + title | `(By.XPATH, "//div[contains(@class,'el-pagination')]//span[@title='每页条数']/following-sibling::div[1]//input")` | C | 3 | 可能不稳定，建议用 `el-pagination` 内置方法 |
+| 下一页按钮 | A: aria标签 | `(By.CSS_SELECTOR, ".el-pagination .btn-next")` | A | 1 |
+| **弹窗区** |
+| 考试详情弹窗 | A: class + title | `(By.XPATH, "//div[contains(@class,'el-dialog') and .//*[text()='考试详情']]")` | A | 1 |
+| 确认开始弹窗 | A: class + title | `(By.XPATH, "//div[contains(@class,'el-dialog') and .//*[text()='确认开始考试']]")` | A | 1 |
+| 弹窗详情-考试名称 | B: label | `(By.XPATH, "//div[contains(@class,'el-dialog')][.//*[text()='考试详情']]//div[contains(@class,'el-descriptions')]//span[text()='考试名称']/following-sibling::span")` | B | 2 |
+| 弹窗关闭按钮 | A: 文本 | `(By.XPATH, "//div[contains(@class,'el-dialog')]//button[.//*[text()='关闭']]")` | A | 1 |
+| 确认按钮 | A: 文本+类型 | `(By.XPATH, "//div[contains(@class,'el-dialog')][.//*[text()='确认开始考试']]//button[contains(@class,'el-button--primary') and .//span[text()='确定']]")` | A | 1 |
+| 取消按钮 | A: 文本 | `(By.XPATH, "//div[contains(@class,'el-dialog')][.//*[text()='确认开始考试']]//button[.//span[text()='取消']]")` | A | 1 |
 
 ## 4. Vue 异步等待策略
 
-| 场景 | 等待条件 | WebDriverWait 示例 |
-| :--- | :--- | :--- |
-| **页面加载完成** | 表格容器可见 | `wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".el-table")))` |
-| **搜索/刷新完成** | 表格加载状态消失 | `wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, ".el-table .el-loading-mask")))` |
-| **el-select 下拉展开** | 下拉选项列表可见 | `wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".el-select-dropdown")))` |
-| **el-select 下拉关闭** | 下拉选项列表不可见 | `wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, ".el-select-dropdown")))` |
-| **el-dialog 弹窗打开** | 弹窗可见 | `wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".el-dialog")))` |
-| **el-dialog 弹窗关闭** | 弹窗不可见 | `wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, ".el-dialog")))` |
-| **表格数据重新渲染** | 行元素数量变化（可选） | 等待行数不再刷新，或比较前后行数 |
-| **按钮操作成功** | 按钮可点击 | `wait.until(EC.element_to_be_clickable((By.XPATH, "//button[.//span[text()='搜索']]")))` |
-| **持续 loading（骨架屏）** | 骨架屏不可见 | `wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, ".el-skeleton")))` |
+| 场景 | 等待条件 | 预期行为 | 建议等待时间 | WebDriverWait 示例 |
+| :--- | :--- | :--- | :--- | :--- |
+| 页面初始加载 | 表格容器出现 | 骨架屏或加载动画显示后变为表格 | 10s | `wait.until(EC.presence_of_element_located(TABLE_CONTAINER))` |
+| 搜索操作 | 表格数据更新（行数变化或新文本出现） | 查询结果刷新至新考试名称 | 10s | `wait.until(EC.text_to_be_present_in_element((By.XPATH, "...新的行..."), "预期考试名称"))` |
+| 表格刷新（分页/查询通用） | 表格容器的 `v-loading` 指令消失 | 加载遮罩消失 | 10s | `wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, ".el-loading-mask")))` |
+| 弹窗打开 | 弹窗可见 | 弹窗完全显示 | 5s | `wait.until(EC.visibility_of_element_located(DIALOG_DETAIL))` |
+| 弹窗关闭 | 弹窗不可见 | 弹窗关闭 | 5s | `wait.until(EC.invisibility_of_element_located(DIALOG_DETAIL))` |
+| 下拉框选项加载 | 下拉选项菜单出现 | 选项列表渲染完成 | 3s | `wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".el-select-dropdown__item"))` |
+| 确认操作（如开始考试） | 新页面/弹窗出现 | 可能跳转到考试页面 | 10s | 等待新页面URL或新的DOM元素出现 |
 
 ## 5. 自动化风险点
 
-| 风险 | 说明 | 缓解措施 |
+| 风险点 | 描述 | 规避建议 |
 | :--- | :--- | :--- |
-| **动态 class** | `el-tag--success/info/warning`、`el-button--primary/default/text` 等 class 会变化 | 优先使用文本 `XPath` 匹配，避免依赖表示状态的 class |
-| **v-if 控制元素显示** | 弹窗、空数据提示、表格中的操作按钮由 `v-if` 控制 | 始终等待可见性/不可见性，使用 `visibility_of_element_located` |
-| **el-select 选项渲染在 body 层** | 选项列表不在父容器内，与搜索区没有直接关联 | 定位时使用全局 XPath `//div[contains(@class,'el-select-dropdown')]` |
-| **多弹窗重叠** | 考试详情弹窗和确认开始弹窗同时可能存在 | 通过弹窗标题文本区分，或通过 DOM 层级定位 |
-| **表格虚拟滚动** | 如果数据量大，Element Plus 可能启用虚拟滚动，只渲染可见行 | 使用 `get_table_data()` 方法时需确认是否支持虚拟滚动 |
-| **分页切换数据异步加载** | 每页条数或页码切换后，表格数据异步刷新 | 在切换操作后，等待 loading 消失和表格重绘 |
-| **权限控制** | 无权限用户可能看不到某些按钮或弹窗 | 测试用例中先判断元素是否存在，避免直接点击导致失败 |
-| **`data-*` 属性缺失** | 假设不存在，若实际项目添加则可提升稳定性 | 建议开发团队在关键元素上添加 `data-testid` 属性 |
+| **动态ID/Class** | 某些场景下 `el-select` 或 `el-dialog` 可能会生成动态ID（如 `el-id-xxxx`） | 优先使用稳定的文本、`placeholder`、`title` 属性；避免依赖自动生成的ID |
+| **下拉选项渲染在 body 层** | `el-select` 的弹出菜单默认渲染在 `<body>` 下，不在其父级容器内 | 使用空状态清理等待；使用 `el-select-dropdown` 通用class定位 |
+| **表格动态行** | 表格行序号（index）受搜索/分页影响而变化 | 避免直接使用行序号，改用文本或唯一标识（如 `data-key`）定位行 |
+| **v-if 控制元素** | “开始考试”/“查看”按钮根据状态切换显隐，可能造成 `StaleElementReferenceException` | 使用显式等待，确保元素状态稳定后再操作；使用 `visibility_of_element_located` 而非 `presence` |
+| **权限控制** | 按钮因无权限而隐藏 | 在测试用例中提前确保账户权限；设计测试时注意权限场景 |
+| **时间格式化** | `formatter` 函数处理的时间格式可能因环境导致断言失败 | 在断言时使用正则匹配或 `datetime` 解析；避免硬编码精确时间字符串 |
+| **搜索后无数据** | 搜索条件可能导致无数据，触发 `v-if` 控制的无数据状态 | 确保测试数据已准备；或在测试中避免期望结果为空数据 |
+| **弹窗层叠** | 两个弹窗同时打开（如详情弹窗后点击开始考试弹出确认框） | 确保上一个弹窗关闭后再操作下一个；或对每个弹窗使用明确的等待条件 |
 
-## 6. ElementPlusHelper 扩展建议
+## 6. 扩展建议：ElementPlusHelper
 
-以下基于 `TECH_ANALYSIS.md` 分析，建议为 `ElementPlusHelper` 新增以下方法：
+基于上述分析，建议在 `ElementPlusHelper` 中增加以下方法，以简化常见的异步交互：
 
 ```python
-# 已有: select_option, get_select_value, get_table_data, get_pagination_info
-
-# 新增建议:
-
-def start_exam(self, exam_name: str) -> None:
+def select_option_by_label(self, select_trigger_locator: Locator, option_label: str):
     """
-    在表格中根据考试名称找到对应行，点击“开始考试”按钮。
-    隐含等待：确认弹窗可见 → 点击确定 → 确认弹窗关闭。
+    点击触发器，然后从下拉列表中选项文本选择。
+    Args:
+        select_trigger_locator: 例如 (By.ID, 'examStatus')
+        option_label: 例如 '未开始'
     """
-    pass  # 需结合 PageObject 实现
+    self.click_element(select_trigger_locator)
+    option_locator = (By.XPATH, f"//div[contains(@class, 'el-select-dropdown')]//span[text()='{option_label}']")
+    self.wait.until(EC.visibility_of_element_located(option_locator))
+    self.click_element(option_locator)
 
-def view_exam_result(self, exam_name: str) -> None:
+def wait_for_dialog_and_click_button(self, dialog_locator: Locator, button_text: str, dialog_title: str = None):
     """
-    在表格中根据考试名称找到对应行，点击“查看成绩”按钮。
+    等待弹窗可见，然后点击弹窗中指定文本的按钮。
+    Args:
+        dialog_locator: 弹窗定位器
+        button_text: 按钮文本，如'确定', '关闭'
+        dialog_title: 弹窗标题，用于精确匹配
     """
-    pass
-```
+    self.wait.until(EC.visibility_of_element_located(dialog_locator))
+    if dialog_title:
+        button_locator = (By.XPATH, f"//div[contains(@class, 'el-dialog')][.//*[text()='{dialog_title}']]//button[.//span[text()='{button_text}']]")
+    else:
+        button_locator = (By.XPATH, f"//div[contains(@class, 'el-dialog')]//button[.//span[text()='{button_text}']]")
+    self.click_element(button_locator)
+    self.wait.until(EC.invisibility_of_element_located(dialog_locator))
 
-这些高层操作封装了 `el-dialog` 弹窗和 `el-table` 行定位的复杂性，对测试脚本开发者更为友好。
+def wait_for_table_data_change(self, table_locator: Locator, expected_text_not_present: str = None):
+    """
+    等待表格数据刷新（例如，加载遮罩消失后，确认旧数据不存在）。
+    Args:
+        table_locator: 表格定位器
+        expected_text_not_present: 可选，等待该文本消失，确保数据更新完毕
+    """
+    self.wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, ".el-loading-mask")))
+    if expected_text_not_present:
+        self.wait.until(EC.invisibility_of_element_located((By.XPATH, f"//div[@class='el-table__body-wrapper']//*[text()='{expected_text_not_present}']")))
 ```
 
 ---
 
-## 产出物 2: PAGE_ELEMENT_POSITION.md
+## 总结
 
-```markdown
-# PAGE_ELEMENT_POSITION: 我的考试 (my-exam)
-
-> **定位器设计依据**: 基于 Vue 3 + Element Plus 典型的 HTML 结构，`data-testid` 为假设属性，实际项目中可能不存在。
-> **定位器版本**: 1.0
-
-| 元素ID | 定位策略 | 定位值 | 稳定性评级 | 备用方案 |
-| :--- | :--- | :--- | :--- | :--- |
-| exam_name_input | **CSS** `placeholder` | `.search-area input[placeholder='考试名称']` | A | `.search-area .el-input__inner` |
-| exam_status_select | **CSS** class | `.search-area .el-select` | A | `//div[contains(@class,'search-area')]//div[contains(@class,'el-select')]` |
-| exam_status_option (未开始) | **XPath** text | `//div[contains(@class,'el-select-dropdown') and contains(@style,'display: none')]//li[text()='未开始']` | B | `//div[contains(@class,'el-select-dropdown')]//li[text()='未开始']` |
-| exam_status_option (进行中) | **XPath** text | `//div[contains(@class,'el-select-dropdown')]//li[text()='进行中']` | B | - |
-| exam_status_option (已完成) | **XPath** text | `//div[contains(@class,'el-select-dropdown')]//li[text()='已完成']` | B | - |
-| search_btn | **XPath** text | `//div[contains(@class,'search-area')]//button[.//span[text()='搜索']]` | A | `.search-area .el-button--primary` |
-| reset_btn | **XPath** text | `//div[contains(@class,'search-area')]//button[.//span[text()='重置']]` | A | `.search-area .el-button--default` |
-| table_exam_list | **CSS** class | `.el-table` | A | - |
-| table_row | **CSS** class | `.el-table__body-wrapper .el-table__row` | B | XPath `//tr[contains(@class,'el-table__row')]` |
-| col_exam_status | **CSS** class | `.el-table__row .el-tag` | B | 通过行内 `td:nth-child(5)` 定位 |
-| row_cell_action_start | **XPath** text | `//button[.//span[text()='开始考试']]` | B | `//div[contains(@class,'col-operation')]//button[contains(text(),'开始')]` |
-| row_cell_action_view | **XPath** text | `//button[.//span[text()='查看成绩']]` | B | `//button[.//span[contains(text(),'查看')]]` |
-| pagination | **CSS** class | `.el-pagination` | A | - |
-| pagination_next_btn | **CSS** class | `.el-pagination .btn-next` | A | `//button[contains(@class,'btn-next')]` |
-| pagination_prev_btn | **CSS** class | `.el-pagination .btn-prev` | A | `//button[contains(@class,'btn-prev')]` |
-| pagination_size_select | **CSS** class | `.el-pagination .el-select` | B | 需先定位 `.el-pagination` 再查找 |
-| dialog_exam_detail | **CSS** class | `.el-dialog` | A | 配合 `contains_normalized_text('考试详情')` 使用 |
-| dialog_exam_detail_title | **XPath** text | `//span[text()='考试详情']` | B | `//div[contains(@class,'el-dialog__title') and text()='考试详情']` |
-| close_detail_btn | **XPath** text + class | `//div[contains(@class,'el-dialog')]//button[.//span[text()='关闭']]` | A | `//div[contains(@class,'el-dialog__footer')]//button[.//span[text()='关闭']]` |
-| dialog_start_exam_confirm | **CSS** class + text | `.el-dialog:has(.el-dialog__body p:contains('确认开始'))` | B | XPath `//div[contains(@class,'el-dialog') and .//div[contains(@class,'el-dialog__body') and contains(text(),'确认开始')]]` |
-| confirm_start_submit_btn | **XPath** text + 关联弹窗 | `//div[contains(@class,'el-dialog') and .//span[text()='确认开始考试']]//button[.//span[text()='确定']]` | A | 先定位弹窗，再找其中的确定按钮 |
-| confirm_start_cancel_btn | **XPath** text + 关联弹窗 | `//div[contains(@class,'el-dialog') and .//span[text()='确认开始考试']]//button[.//span[text()='取消']]` | A | 先定位弹窗，再找其中的取消按钮 |
-```
+本分析基于典型的Element Plus页面结构和Vue 3的异步行为进行推断。在实际项目中，应参考真实HTML源码和截图，对定位器进行微调（特别是验证ID属性的存在）。定位器策略遵循“A级 → B级 → C级”的选用顺序，A级优先（基于稳定文本或唯一ID），确保测试的稳定性。同步策略聚焦于关键异步场景（表格加载、弹窗显隐、下拉选项），提供显式等待，避免不合理的强制等待。以上扩展建议也集成了常见模式，可有效提高测试代码的健壮性和可维护性。

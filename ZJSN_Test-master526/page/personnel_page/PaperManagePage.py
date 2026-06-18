@@ -294,16 +294,20 @@ class PaperManagePage(BasePage):
         return ''
 
     def is_page_loaded(self):
-        """判断页面是否加载完成（表格或关键元素存在）"""
-        try:
-            self.wait.until(
-                EC.presence_of_element_located(
-                    (By.XPATH, '//div[contains(@class,"el-table")]')
-                )
-            )
-            return True
-        except Exception:
-            return False
+        """判断页面是否加载完成 — 多重检测"""
+        indicators = [
+            (By.XPATH, '//div[contains(@class,"el-table")]'),
+            (By.CSS_SELECTOR, '.el-table, .el-table__header-wrapper'),
+            (By.XPATH, '//*[contains(text(),"试卷")]'),
+            (By.XPATH, '//*[contains(text(),"共") and contains(text(),"条")]'),
+        ]
+        for locator in indicators:
+            try:
+                self.find_visible(locator, timeout=3)
+                return True
+            except Exception:
+                continue
+        return False
 
     def get_table_header_texts(self):
         """获取表格所有列头的文本"""

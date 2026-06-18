@@ -1,4 +1,4 @@
-好的，遵照您的指示。基于您提供的 `PAGE_CONTEXT.md` 和 `TECH_ANALYSIS.md`，我将制定“人员管理-资质管理”页面的自动化策略。
+好的，收到指令。我将基于您提供的 `PAGE_CONTEXT.md` 和项目上下文中的 `TECH_ANALYSIS.md`，并结合 `templates/auto-strategy.template.md` 模板，制定一份详细的自动化测试策略。
 
 ---
 
@@ -8,99 +8,92 @@
 
 | 用例编号 | 标题 | 优先级 | 是否自动化 | 理由 |
 |---------|------|--------|----------|------|
-| TC-001 | 页面正常加载 | P0 | ✅ | 基础冒烟，确保路由、面包屑、搜索区、操作栏、表格、分页组件正常渲染。 |
-| TC-002 | 搜索-按名称精确搜索 | P0 | ✅ | 核心搜索功能，定位器稳定（`#search-name`）。 |
-| TC-003 | 搜索-按类型下拉筛选 | P0 | ✅ | 核心筛选功能，`el-select` 下拉框选取。 |
-| TC-004 | 搜索-按状态下拉筛选 | P0 | ✅ | 核心筛选功能。 |
-| TC-005 | 搜索-按日期范围筛选 | P0 | ✅ | `el-date-picker` 日期范围选择。 |
-| TC-006 | 搜索-重置所有筛选条件 | P0 | ✅ | 验证“重置”按钮功能。 |
-| TC-007 | 新增资质-成功创建 | P0 | ✅ | CRUD 核心流程，验证弹窗、必填项、表单提交及成功反馈。 |
-| TC-008 | 编辑资质-成功修改 | P0 | ✅ | CRUD 核心流程，验证数据回填、修改及提交。 |
-| TC-009 | 查看资质详情 | P1 | ✅ | 验证只读弹窗数据渲染。 |
-| TC-010 | 删除资质-确认后删除 | P0 | ✅ | 核心操作，验证删除确认框（`el-message-box`）及删除成功反馈。 |
-| TC-011 | 新增资质-取消操作 | P1 | ✅ | 验证弹窗关闭逻辑（点击取消/X/遮罩）。 |
-| TC-012 | 新增资质-必填项校验 | P1 | ✅ | 验证表单校验（如名称、类型、发证机关为空时点击保存）。 |
-| TC-013 | 分页-切换每页显示条数 | P1 | ✅ | 验证 `el-pagination` 的 `size-change` 事件。 |
-| TC-014 | 分页-点击下一页 | P1 | ✅ | 验证 `current-change` 事件。 |
-| TC-015 | 权限控制-无新增权限时按钮隐藏 | P1 | ✅ | 验证 `btn-add` 元素不存在。 |
-| TC-016 | 权限控制-无编辑/删除权限时操作列不显示 | P1 | ✅ | 验证行内操作按钮 `btn-edit`, `btn-delete` 不存在。 |
-| TC-017 | 加载状态-表格显示 Loading 动画 | P1 | ❌ | 等待 `v-loading` 消失是自动化前置条件，不单独作为用例。 |
-| TC-018 | 空数据-表格显示“暂无数据” | P1 | ✅ | 验证 `el-empty` 组件在无数据时显示。 |
-| TC-019 | 附件上传-上传成功 | P2 | ❌ | 上传操作依赖系统弹窗（OS文件选择器），自动化成本高且不稳定。 | 
-| TC-020 | 附件上传-文件格式/大小校验 | P2 | ❌ | 校验逻辑可能在前端`before-upload`或后端执行，前端校验需要mock file对象，维护成本高。 |
-| TC-021 | 日期校验-有效期至不能早于获得日期 | P2 | ❌ | 该校验规则通常由后端处理，或作为复杂前端逻辑。自动化风险高，ROI低。 |
-| TC-022 | 性能-页面元素加载耗时不超过5s | P3 | ❌ | 不适合UI自动化，应使用专门的性能测试工具。 |
+| TC-DISPLAY-001 | 页面正常加载 | P0 | ✅ | 基础冒烟，定位器稳定（CSS: `.el-table`，`.el-pagination`） |
+| TC-SEARCH-001 | 按资质名称搜索 | P0 | ✅ | 搜索是核心功能，定位器稳定（`input[placeholder*='请输入资质名称']`） |
+| TC-SEARCH-002 | 按资质类型下拉搜索 | P0 | ✅ | 核心功能，定位器采用XPath（文字）策略，属于B级，但预期稳定 |
+| TC-SEARCH-003 | 按日期范围搜索 | P0 | ✅ | 核心功能，定位器稳定（`input[placeholder="开始日期"]`） |
+| TC-SEARCH-004 | 搜索后分页状态正确 | P0 | ✅ | 验证搜索与分页联动，属于基础功能 |
+| TC-RESET-001 | 重置按钮功能 | P0 | ✅ | 重置是搜索配套操作，定位器稳定 |
+| TC-CRUD-001 | 新增一条资质记录 | P0 | ✅ | CRUD 核心流程，定位器稳定 |
+| TC-CRUD-002 | 编辑一条资质记录 | P0 | ✅ | CRUD 核心流程，定位器稳定（行内操作依赖行索引，标记为 B 级风险） |
+| TC-CRUD-003 | 删除一条资质记录 | P0 | ✅ | CRUD 核心流程，定位器稳定（行内操作依赖行索引，标记为 B 级风险） |
+| TC-CRUD-004 | 新增重复名称资质 | P1 | ❌ | **不建议自动化**：验证后端唯一性约束，预期明确，但需要清理数据和等待接口回调，开发和维护成本高于收益。 |
+| TC-PAGINATION-001 | 切换每页显示条数 | P1 | ✅ | 定位器稳定（`.el-pagination`），自动化收益高，验证 UI 行为。 |
+| TC-PAGINATION-002 | 表格出现空数据状态 | P1 | ✅ | 验证边界场景（搜索无结果），定位器稳定（`.el-empty`）。 |
+| TC-PERM-001 | 无新增权限时，按钮隐藏 | P2 | ❌ | **不建议自动化**：依赖权限配置，需要准备特定权限账号，维护成本较高。 |
+| TC-PERM-002 | 无编辑权限时，按钮禁用 | P2 | ❌ | 同上，不建议自动化。 |
+| TC-EXPORT-001 | 导出资质列表 | P2 | ✅ | 核心功能，流程固定。需注意下载文件处理（可在 BasePage 中封装）。 |
+| TC-LOADING-001 | 页面加载时显示 loading 动画 | P1 | ✅ | 基础体验验证，通过 `v-loading` 属性判定，稳定性高。 |
 
-**风险标注：**
-- TC-007, 008 (Dialog表单): 弹窗中`el-upload`的定位和交互需关注，若`el-upload`列表项无稳定id，则定位不稳定，风险中。
-- TC-015, 016 (权限): 权限模拟需通过修改登录用户权限或API mock实现，有一定环境准备成本。
+#### 风险标注
+- **TC-SEARCH-002**: 定位器稳定性为 B 级（依赖XPath+文字），如果页面重构或文案变更可能导致失败，需在页面更新时重点维护。
+- **TC-CRUD-002/TC-CRUD-003**: 行内操作依赖行索引（`.el-table__row[n]`），如果表格排序、新增/删除后行顺序变化，可能导致操作错位。**建议**: 使用 `element-plus-test-utils` 或自定义 fixture 来确保操作前获取到的行索引是正确的。
 
 ### 2. PageObject 拆分方案
 
 ```
-suggested_page_objects:
-  - class_name: QualificationPage
-    file: pages/personnel/qualification_page.py
-    responsibilities:
-      - 搜索区域操作 (search_name, select_type, select_status, pick_date_range, click_search, click_reset)
-      - 操作栏操作 (click_add)
-      - 表格操作 (get_table_rows, get_cell_value, click_row_action_button)
-      - 分页操作 (select_page_size, click_next_page)
-      - 状态判断 (is_empty, is_loading)
-  - class_name: QualificationDialog
-    file: pages/personnel/qualification_dialog.py
-    responsibilities:
-      - 弹窗打开/关闭状态判断
-      - 表单填充 (fill_name, select_type, fill_issuer, pick_date, fill_remark)
-      - 附件上传 (upload_file) # 注意：此操作不稳定，作为可选方法
-      - 表单提交/取消 (click_save, click_cancel, click_close)
-      - 表单校验 (get_form_error_messages)
-      - 详情查看 (get_dialog_detail_values)
+- `QualificationPage`：
+    - 职责：封装资质管理主页面（搜索区、操作栏、表格、分页）的所有操作。
+        - 搜索操作（`search_by_name`, `search_by_type`, `search_by_date_range`, `reset_search`）
+        - 表格操作（`get_table_row_count`, `get_cell_text`, `click_edit_button_by_index`, `click_delete_button_by_index`）
+        - 分页操作（`switch_page`, `change_page_size`）
+        - 导出操作（`click_export`）
+    - 定位器：页面级别的稳定元素（搜索框、按钮、表格容器、分页组件）。
+
+- `QualificationDialog`：
+    - 职责：封装新增/编辑资质的弹窗（`el-dialog`）内的所有操作。
+        - 表单填写（`set_name`, `set_type`, `set_issuer`, `set_obtain_date`, `set_expiry_date`, `set_remark`, `upload_file`）
+        - 提交/取消（`click_save`, `click_cancel`）
+        - 状态检查（`is_dialog_visible`, `is_name_input_required` 等）
+    - 定位器：弹窗内的表单元素（`.el-dialog__body .el-form-item`），避免与页面其他元素混淆。
+
+- `QualificationEditDialog` (可选)：
+    - 继承 `QualificationDialog`。
+    - 职责：如果需要区分新增和编辑弹窗的行为（例如编辑时某些字段置灰或加载已有数据），可以独立，否则复用 `QualificationDialog`。
 ```
 
 ### 3. 公共组件复用分析
 
-| 操作 | 可复用的 BasePage 方法 | 扩展建议 |
-|------|------------------------|----------|
-| 输入框 `el-input` | `BasePage.input_text(locator, text)` | 可以直接复用，locator 由子类传入。 |
-| 下拉框 `el-select` | `BasePage.select_dropdown_option(locator, option_text)` | 可直接复用，需要确保 `ElementPlusHelper` 中的下拉框点击与选项选择逻辑正确。 |
-| 日期选择器 `el-date-picker` | `BasePage.pick_date_range(locator, start_date, end_date)` | 可直接复用，需要确保 `ElementPlusHelper` 正确处理日期面板的Teleport定位。 |
-| 表格 `el-table` | `BasePage.get_cell_text(table_locator, row_index, col_index)` | 可直接复用。建议在 `QualificationPage` 中封装基于列名称的获取方法，更语义化。 |
-| 分页 `el-pagination` | `BasePage` 无分页操作。 | 建议在 `ElementPlusHelper` 中新增 `select_pagination_size` 和 `click_pagination_page` 方法。 |
-| 弹窗 `el-dialog` | `BasePage.is_dialog_present(locator)` | 可直接复用。`ElementPlusHelper` 应包含 `wait_for_dialog_visible` / `invisible` 方法。 |
-| 按钮 `el-button` | `BasePage.click(locator)` | 可直接复用。 |
-| 上传 `el-upload` | `BasePage` 无上传操作。`ElementPlusHelper` 不处理。 | `QualificationDialog` 需要使用 Selenium `send_keys` 操作 `input[type='file']`，这是一个高风险操作，需单独封装并加日志。 |
-| 确认框 `el-message-box` | `BasePage.confirm_in_dialog(text=None)` | 可直接复用，用于确认删除等操作。 |
+| 操作 | 复用 BasePage 方法 | 是否需扩展 |
+|------|-------------------|-----------|
+| 点击搜索/重置/新增按钮 | `BasePage.click(locator)` | 否 |
+| 输入文本（搜索框/表单输入） | `BasePage.fill_element(locator, text)` | 否 |
+| 点击下拉选择（单选） | `ElementPlusHelper.multi_select(locator, [option_text])` | 否 |
+| 选择日期范围 | `ElementPlusHelper.pick_date_range(...)` | 否 |
+| 等待表格加载完毕 | `BasePage.wait_element_visible(locator)` + `wait_for_loading_to_disappear()` | 否，`wait_for_loading_to_disappear` 已在 BasePage 中实现 |
+| 分页操作 | `BasePage.click(locator)` | 否，但可以封装为 `PaginationMixin` 方便多个页面复用 |
+| 行内编辑/删除 | 需在 `QualificationPage` 中自定义 | **是**，需封装 `click_edit_button_by_index` 方法，内部逻辑：`get_table_rows()[index].find_element(...)` |
+| 上传文件 | `BasePage.find_element(locator).send_keys(file_path)` | 否 |
+| 等待弹窗可见/不可见 | `BasePage.wait_element_visible(locator)` / `wait_element_disappear(locator)` | 否 |
+
+**需要扩展 BasePage / ElementPlusHelper 的潜在场景**:
+- **行内操作**：当前 BasePage 没有基于行索引定位的方法，建议在 `QualificationPage` 中自行封装，或考虑在 `BasePage` 中添加一个通用的 `get_table_rows` / `click_action_in_row` 方法，提高复用性。
+- **分页操作**：当前 `BasePage` 可能没有专门的分页方法。如果多个页面都需要分页控制，建议封装一个 `PaginationMixin` 或 `PaginationComponent`。
 
 ### 4. 等待策略建议
 
-该页面的异步行为主要集中在数据加载和弹窗过渡。建议为该页面定制一个等待管理器或使用基类的统一等待。
+- **页面特有的异步行为**：
+    1. **搜索/重置**：点击按钮后，表格会重新加载数据，会有短暂的 loading 动画。
+        - **策略**：使用 `BasePage.wait_for_loading_to_disappear()`。
+    2. **新增/编辑/删除**：操作后同样会触发数据刷新，并可能出现成功/失败提示（Toast）。
+        - **策略**：先等待 Toast 出现（`wait_element_visible(By.CSS_SELECTOR, ".el-message")`），再等待它消失，最后等待表格加载完毕。
+    3. **日期选择器**：点击日期选择后，月/年面板有展开/关闭动画。
+        - **策略**：使用 `ElementPlusHelper` 中已有的 `_wait_for_picker_panel` 方法。
+    4. **导出**：点击导出按钮后，浏览器启动下载，可能需要几秒钟。
+        - **策略**：`time.sleep(2)` （不推荐）或等待下载目录中出现临时文件（更可靠，需 BasePage 扩展）。
 
-| 场景 | 触发条件 | 预期变化 | 等待策略 | 实现建议 |
-|------|---------|---------|----------|----------|
-| **表格数据加载** | 搜索、重置、翻页、新增/编辑/删除后 | `v-loading` 指令控制的遮罩层消失 & 表格行数据更新 | 等待 `v-loading` 遮罩消失（`visibility_of_element_located` 到 `invisibility_of_element_located`）。 | `BasePage.wait_for_table_loaded(table_locator)` |
-| **弹窗打开** | 点击“新增”、“编辑”、“查看”按钮 | `el-dialog__wrapper` 或 `.el-overlay.dialog-wrapper` 出现，且 `v-show` 或 `v-if` 生效 | 等待弹窗容器可见，并短暂等待其动画完成（建议使用显式等待 `.el-dialog__body` 子元素可见）。 | `BasePage.wait_for_dialog_visible(dialog_locator)` |
-| **弹窗关闭** | 点击保存/取消/关闭按钮 | 弹窗容器消失 | 等待弹窗容器隐藏 (`invisibility_of_element_located`)。 | `BasePage.wait_for_dialog_invisible(dialog_locator)` |
-| **确认框 (MessageBox)** | 点击“删除”按钮 | `.el-message-box__wrapper` 出现 | 等待确认框出现。点击确认后，等待确认框消失。 | `BasePage.wait_for_confirm_dialog_visible()` |
-| **Toast 消息提示** | 成功/失败/警告的任何操作反馈 | `el-message` 组件出现 | 短暂等待 Toast 出现即可断言文本，或使用 `EC.presence_of_element_located`。 | `BasePage.wait_and_get_toast_message()` |
-| **下拉选项加载** | 点击 `el-select` 输入框 | `<body>` 下的 `el-select-dropdown` 出现 | 等待 `.el-select-dropdown__item` 列表可见。 | `ElementPlusHelper.WaitForSelectDropdownOptions(locator)` |
-| **文件上传** | 点击上传按钮并选择文件 | 表格或列表中出现上传项 | 等待 `el-upload-list__item` 出现。由于上传时间不可控，建议设置较长的超时时间（如 15s）。 | `QualificationDialog.wait_for_upload_complete(upload_locator)` |
+- **建议的等待封装**：
+    1. **`wait_for_table_refresh()`**：组合 `wait_for_loading_to_disappear()` 和 `wait_element_visible(By.CSS_SELECTOR, ".el-table__body-wrapper .el-table__row:first-child")`，确保新数据加载完成。
+    2. **`wait_for_toast_and_dismiss(By.TOAST_TYPE, timeout=5)`**：等待特定类型的 Toast（成功/错误）出现，并确认其内容。之后等待 Toast 消失（便于执行后续步骤）。
 
 ### 5. ROI 分析
 
-| 项目 | 评估 | 计算 |
-|------|------|------|
-| **预估开发时间** | 16 小时 | 包含 PageObject 类编写、元素定位器确认、测试脚本编写、1 轮调试、自检与 PR。 |
-| **预估维护成本** | 3 小时/月 | UI 小改动的定位器更新、交互逻辑变更时的维护。 |
-| **手工执行时间** | 15 分钟/次 | 执行 TC-001 ~ TC-018 全套冒烟回归。 |
-| **执行频率** | 20 次/月 | 每日构建回归 (1次/工作日) + 缺陷验证 / 版本发布。 |
-| **ROI 计算 (12个月)** | `(15*20*12) - (16*60 + 3*60*12)` | 公式: `(手工执行总分钟数) - (开发总分钟数 + 维护总分钟数)` |
-| | | `= 3600 - (960 + 2160) = 480 分钟 = 8 小时 (ROI 为正值)` |
-| **结论** | **建议自动化** | 自动化在12个月内即可节省约8小时的测试执行时间，且随着时间推移，ROI将持续提升。考虑到P0和P1用例的覆盖率，自动化对质量的保障作用远大于纯时间计算。 |
+| 项目 | 估算值 | 备注 |
+|------|--------|------|
+| **预估开发时间** | **8 小时** | 包括：PageObject 设计（2h）、测试脚本编写（4h）、数据准备与清理（1h）、第一次调试与自检（1h）。假设无特殊环境问题。 |
+| **预估维护成本** | **2 小时/月** | 主要成本是页面 UI 变化时的定位器更新和业务流程调整。初始几个月可能稍高，稳定后递减。 |
+| **手工执行时间** | **15 分钟/次** | 假设手工执行一套覆盖 P0/P1 核心功能的回归。 |
+| **自动化执行频率** | **2 次/天** | 假设 CI 流水线每天触发两次（代码合并 + 定时任务）。 |
+| **ROI 计算** | **正向** | 每月手工回归成本：15 分钟 * 60 次（2次/天 * 30天） = 900 分钟 = 15 小时。<br>每月自动化成本（维护）：2 小时（不包括执行时间，执行由 CI 自动完成）。<br>**自动化成本回收期**: 8 小时（开发）/ (15 小时 - 2 小时) ≈ 0.6 个月。<br>**长期收益**: 每月节省约 13 小时的回归测试时间。 |
 
----
-
-**相关文件：**
-- [测试用例 (TEST_CASES.md)] (../test/TEST_CASES.md)
-- [技术分析 (TECH_ANALYSIS.md)](TECH_ANALYSIS.md)
-- [自动化架构概览](../AUTOMATION_ARCHITECTURE.md)
+**结论**：该页面的自动化投入回报率非常高，建议立即投入开发。核心风险点在于行内操作的稳定性，建议在测试脚本中增加适当的等待和索引校验逻辑，并通过持续集成中的定期执行来监控其稳定性。

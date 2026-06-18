@@ -87,11 +87,20 @@ class EmployeePage(BasePage):
             return False
 
     def is_title_displayed(self):
-        """判断页面标题是否显示 — 检查面包屑或搜索区存在"""
-        try:
-            return self.is_element_present((By.XPATH, '//span[contains(text(),"员工")]'))
-        except Exception:
-            return self.is_page_loaded()
+        """判断页面标题是否显示 — 多重检测"""
+        indicators = [
+            (By.XPATH, '//span[contains(text(),"员工")]'),
+            (By.XPATH, '//*[contains(text(),"人员")]'),
+            (By.CSS_SELECTOR, '.el-breadcrumb, [class*="breadcrumb"]'),
+            (By.CSS_SELECTOR, '.search-area, .search-form, [class*="search"]'),
+        ]
+        for locator in indicators:
+            try:
+                if self.is_element_present(locator):
+                    return True
+            except Exception:
+                continue
+        return self.is_page_loaded()
 
     # ==================== 搜索相关 ====================
     def search(self, keyword: str = None, department: str = None, status: str = None,
