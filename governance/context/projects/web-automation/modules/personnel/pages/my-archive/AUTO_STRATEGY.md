@@ -1,172 +1,175 @@
-好的，遵照您的指令。作为负责“自动化策略”的AI Agent，我将基于您提供的“personnel/my-archive”页面的 `PAGE_CONTEXT.md`，结合假设的 `TECH_ANALYSIS.md` 和项目基座上下文中的 `BasePage` 能力，制定一份详细的自动化测试策略。
+好的，遵照您的指令。作为负责“自动化策略”的AI Agent，我将基于您提供的 `MyArchivePage.py` Page Object 代码、`PAGE_CONTEXT.md` 页面上下文以及常见测试场景，对该页面进行自动化覆盖策略分析，并输出 `AUTO_STRATEGY.md`。
 
 ---
 
-## AUTO_STRATEGY.md
+### AUTO_STRATEGY.md
+
+```markdown
+# AUTO_STRATEGY: personnel / my-archive（我的档案）
 
 > **版本**: 1.0 | **最后更新**: 2026-06-18 | **维护者**: automation-agent
-> **页面**: personnel / my-archive (我的档案)
-> **依赖**: `testcases-personnel-my-archive.md`, `TECH_ANALYSIS.md`, `BasePage` 能力清单
+> **模块**: personnel
+> **页面**: my-archive
+> **基于**: MyArchivePage.py (v1.0), PAGE_CONTEXT.md (v1.0), TECH_ANALYSIS.md (v1.0)
 
 ---
 
 ## 1. 自动化覆盖矩阵
 
 | 用例编号 | 标题 | 优先级 | 是否自动化 | 理由 |
-|----------|------|--------|------------|------|
-| TC-LOGIN-001 | 页面正常加载 | P0 | ✅ | 基础冒烟，定位器稳定 |
-| TC-BASIC-001 | 切换Tab至基本信息 | P0 | ✅ | 核心页面导航校验 |
-| TC-BASIC-002 | 查看基本信息表单内容 | P0 | ✅ | 关键数据展示，`el-input`定位稳定 |
-| TC-BASIC-003 | 点击“编辑基本信息”按钮 | P1 | ✅ | 触发弹窗的关键操作 |
-| TC-BASIC-004 | 编辑基本信息并保存 | P1 | ✅ | 重要业务流程，需用边界值校验（可选） |
-| TC-BASIC-005 | 编辑基本信息并取消 | P1 | ⚠️ | 可自动化，但定位器`el-message`不稳定，风险较高 |
-| TC-PWD-001 | 打开“修改密码”弹窗 | P2 | ❌ | 一次性操作（仅限用户主动执行），ROI低 |
-| TC-ARCHIVE-001 | 切换Tab至档案变更记录 | P0 | ✅ | 核心Tab切换，校验表格是否加载 |
-| TC-ARCHIVE-002 | 按变更类型筛选记录 | P1 | ✅ | 功能性筛选，`el-select`操作稳定 |
-| TC-ARCHIVE-003 | 按日期范围筛选记录 | P2 | ⚠️ | 定位器`el-date-picker`稳定，但日期选择逻辑复杂，维护成本高 |
-| TC-ARCHIVE-004 | 查询后表格数据更新 | P1 | ✅ | 验证筛选功能的有效性 |
-| TC-ARCHIVE-005 | 分页功能验证 | P2 | ✅ | 优先校验分页组件是否正常出现，不覆盖多页导航 |
-| TC-SMOKE-001 | 个人标签状态（在职/试用期） | P2 | ❌ | 需要特定测试数据，维护成本高，手工检查更高效 |
+|---------|------|--------|-----------|------|
+| **TC-MA-001** | 页面正常打开，默认显示基本信息Tab | P0 | ✅ | 基础冒烟，定位器稳定（CSS class + 首个子元素） |
+| **TC-MA-002** | 切换各Tab，验证内容正确显示 | P0 | ✅ | P0，Tab切换操作简单，定位器稳定 |
+| **TC-MA-003** | 档案变更记录Tab：查询所有记录 | P0 | ✅ | 核心查询流程，表格加载需要等待 |
+| **TC-MA-004** | 档案变更记录Tab：按变更类型筛选 | P1 | ✅ | 下拉选择+查询，定位器稳定 |
+| **TC-MA-005** | 档案变更记录Tab：按日期范围筛选 | P1 | ✅ | 日期选择器操作需特殊处理，但可自动化 |
+| **TC-MA-006** | 档案变更记录Tab：查询为空时展示空状态 | P2 | ✅ | 边界情况，可复用查询流程 |
+| **TC-MA-007** | 档案变更记录Tab：表格分页（翻页、每页条数） | P1 | ✅ | 分页组件操作固定，可套用BasePage分页方法 |
+| **TC-MA-008** | 编辑基本信息：通过Tab内编辑按钮打开弹窗 | P0 | ✅ | P0核心功能，弹窗定位器使用role+标题稳定 |
+| **TC-MA-009** | 编辑基本信息：成功修改姓名并保存 | P1 | ✅ | 表单填写+保存+验证，动态UI需处理 |
+| **TC-MA-010** | 编辑基本信息：必填项为空时校验 | P2 | ✅ | 表单校验，可在现有编辑流程上扩展 |
+| **TC-MA-011** | 编辑基本信息：取消编辑，弹窗关闭且数据不保存 | P1 | ✅ | 取消按钮定位器存在 |
+| **TC-MA-012** | 修改密码：打开弹窗 | P0 | ✅ | P0，侧边栏按钮定位器使用相对XPath，稍脆弱但不频繁变更 |
+| **TC-MA-013** | 修改密码：旧密码错误提示 | P1 | ✅ | 可自动化，需准备固定密码数据 |
+| **TC-MA-014** | 修改密码：成功修改密码 | P2 | ❌ | **绕过生产安全策略**：修改密码后需重新登录且影响其他用例，维护成本高，ROI低。建议手动执行。 |
+| **TC-MA-015** | 侧边栏：点击“编辑资料”跳转编辑弹窗 | P0 | ✅ | 与TC-MA-008等价，保留为一个独立用例以保证覆盖 |
+| **TC-MA-016** | 证件信息Tab：查看证件列表 | P2 | ❌ | **一次性操作**（仅上线前验证数据展示是否正确），后续无频繁回归价值 |
+| **TC-MA-017** | 联系方式Tab：查看联系方式 | P2 | ❌ | 与TC-MA-016同理，静态只读展示，无需自动化 |
 
-**风险标注**:
-- `TC-BASIC-005`: `el-message` 为瞬态元素，定位时机难以精确把控，建议使用更稳定的断言方式。
-- `TC-ARCHIVE-003`: `el-date-picker` 的日期选择和确认操作在无 `id` 或 `class` 标记时容易定位到错误的DOM节点，需使用精确的XPath策略。
+**风险标注**：
+- **定位器不稳定风险**：`SIDEBAR_EDIT_PROFILE_BTN` 和 `SIDEBAR_CHANGE_PASSWORD_BTN` 使用 `//aside//button[.//span[text()='编辑资料']]` 相对XPath，若UI重构可能导致失败。建议持续监控，必要时加css class。
+- **高脆弱定位器**：`DIALOG_CANCEL_BTN` 使用类似XPath，同风险。
+
+**不建议自动化用例的理由**：
+- TC-MA-016、TC-MA-017：只读展示，无交互，自动化收益低（执行一次不再用）。
+- TC-MA-014：修改密码后状态改变，影响其他用例，维护成本高，ROI为负。
+
+---
 
 ## 2. PageObject 拆分方案
 
-### 2.1 `MyArchivePage` (主页面类)
+按照“一个页面一个Page类，复杂弹窗独立”的原则，建议：
+- **MyArchivePage**：主页面类，包含Tab切换、侧边栏、基本信息展示、档案变更记录的筛选/表格/分页。
+- **EditBasicInfoDialog**：`编辑基本信息`弹窗，独立类，管理弹窗所有表单操作（姓名/部门/职位/手机/邮箱/保存/取消）。
+- **ChangePasswordDialog**：`修改密码`弹窗，独立类，管理旧密码/新密码/确认/保存/取消。
 
 ```python
+# 类结构建议
 class MyArchivePage(BasePage):
-    def __init__(self, driver: WebDriver):
-        super().__init__(driver)
-        self.page_locator = (By.CSS_SELECTOR, ".my-archive-page")
+    # Tab、侧边栏、基本信息表单、变更记录表格、分页
+    ...
 
-    # Tab 切换
-    def switch_to_basic_info_tab(self):
-        """切换至基本信息Tab"""
-        self.click(self.basic_info_tab)
-        return self
+class EditBasicInfoDialog(BasePage):
+    # 编辑弹窗内元素
+    def fill_name(self, name): ...
+    def select_department(self, dept): ...
+    def click_save(self): ...
+    ...
 
-    def switch_to_archive_tab(self):
-        """切换至档案变更记录Tab"""
-        self.click(self.archive_tab)
-        return self
-
-    # 基本信息 Tab
-    def get_employee_name(self) -> str:
-        """获取基本信息中的员工姓名"""
-        return self.get_input_value(self.field_employee_name)
-
-    def click_edit_basic_info(self):
-        """点击编辑按钮"""
-        self.click(self.edit_basic_info_btn)
-        return EditInfoDialog(self.driver)
-
-    # 档案变更记录 Tab
-    def select_change_type(self, type_value: str):
-        """在变更类型下拉框中选择选项"""
-        self.select_by_value(self.change_type_select, type_value)
-        return self
-
-    def click_search(self):
-        """点击查询按钮"""
-        self.click(self.search_btn)
-        return self
-
-    # ... 其他方法
+class ChangePasswordDialog(BasePage):
+    # 密码弹窗内元素
+    def set_old_password(self, pwd): ...
+    def click_save(self): ...
+    ...
 ```
 
-### 2.2 `EditInfoDialog` (弹窗类)
+**理由**：弹窗表单元素较多（编辑弹窗7个input/select，密码弹窗3个input），独立类可提高内聚性，避免主Page类膨胀。
 
-```python
-class EditInfoDialog(BasePage):
-    def __init__(self, driver: WebDriver):
-        super().__init__(driver)
-        self.dialog_locator = (By.XPATH, "//div[contains(@class, 'el-dialog')][.//span[contains(text(), '编辑基本信息')]]")
-
-    # 表单输入
-    def fill_name(self, name: str):
-        self.fill_input(self.dialog_name_input, name)
-        return self
-
-    def select_department(self, dept: str):
-        self.select_by_label(self.dialog_department_select, dept)
-        return self
-
-    # 操作
-    def click_save(self):
-        self.click(self.dialog_save_btn)
-        return self
-```
+---
 
 ## 3. 公共组件复用分析
 
-- **可复用 `BasePage` 方法**:
-  - `self.wait_element_visible(locator)`: 用于所有页面和弹窗的元素可见性等待。
-  - `self.click(locator)`: 用于所有按钮、Tab、复选框等可点击元素。
-  - `self.fill_input(locator, text)`: 用于所有输入框 (`el-input`, `el-input__inner`)。
-  - `self.get_input_value(locator)`: 用于获取只读输入框的值。
-  - `self.select_by_value(locator, value)` / `self.select_by_label(locator, label)`: 用于所有 `el-select` 下拉框选择。
+### 3.1 BasePage 直接复用
+- `self.get_text()`：获取输入框文本（只读表单验证）
+- `self.click()`：点击按钮/Tab
+- `self.input_text()`：填写文本框（弹窗输入）
+- `self.select_dropdown_option()`：选择下拉选项（变更类型筛选、部门选择）——需确保BasePage已有该方法
+- `self.get_table_row_count()`：获取表格行数（变更记录）
+- `self.get_pagination_info()`：获取分页信息（总条数、当前页）
+- `self.switch_tab()`：切换Tab（若BasePage已封装Tab通用方法）
 
-- **需要扩展 `ElementPlusHelper` 的方法**:
-  - `handle_date_picker(locator, start_date, end_date)`: `el-date-picker` (daterange) 的自动化操作可抽象为公共方法，封装点击输入框、选择日期、确认等步骤。
-  - `wait_for_table_load(locator)`: `el-table` 加载数据可能耗时较长（异步请求），可扩展一个专用等待方法，等待表格行出现或加载动画消失。
+### 3.2 ElementPlusHelper 扩展需求
+当前页面涉及以下特殊操作，建议在 `ElementPlusHelper` 中添加：
+- **`select_date_range(start, end, picker_locator)`**：选择日期范围，针对 `el-date-picker daterange` 组件，需处理点开日历、选择开始/结束日期。
+- **`select_dropdown_by_label(label_text, select_locator)`**：基于选项文本选择下拉，替代 `select_dropdown_option` 以确保稳定（当前变更类型选择使用XPath选项可能因下拉定位器动态而变化）。
+
+### 3.3 不适用复用
+- 编辑弹窗独立类不宜继承 MyArchivePage，应直接继承 BasePage。
+- 侧边栏快捷按钮无法复用通用导航方法，需独立定位。
+
+---
 
 ## 4. 等待策略建议
 
-| 操作 | 建议等待策略 | 备注 |
-|------|---------------|------|
-| 页面加载 | `wait_element_visible(MyArchivePage.page_locator)` | 前置条件：登录完成后 |
-| Tab切换 | `wait_until_attribute_is(active_tab_locator, "aria-selected", "true")` | 确保新Tab内容已渲染 |
-| 弹窗出现 | `wait_element_visible(dialog_locator)` | 依赖 `ElementPlusHelper.wait_dialog_visible()` |
-| 表单内容渲染 | `wait_for_value(field_locator)` | 等待只读 `el-input` 中填充值不为空 |
-| 表格数据加载 | `wait_for_table_cell_exists(change_table_locator)` | 等待 `el-table` 下至少出现一个单元格 |
-| 保存操作 | `wait_for_success_message()` + 等待弹窗消失 | 保存后通常会有成功提示和弹窗关闭动画 |
-| 日期选择器 | `element_to_be_clickable(date_picker_locator)` + `time.sleep(0.5)` | Element Plus 日期选择器有复杂动画，强制等待不可完全避免但需控制时长 |
+### 4.1 页面特有异步行为
+- **Tab 切换**：Vue 路由或条件渲染导致的短暂加载（约200-500ms）。建议使用 `wait_for_element_visible(next_tab_content)`。
+- **表格加载**：查询按钮点击后出现 `el-loading-mask`，必须等待遮罩消失。建议在 BasePage 加入 `wait_for_table_loaded(table_loading_locator=None)`，默认等待 `TABLE_LOADING` 消失。
+- **弹窗打开**：el-dialog 有过度动画（300ms）。建议 `wait_for_element_visible(dialog_locator)`。
+- **下拉选项展开**：el-select 下拉可能异步加载选项，但本页面选项静态，直接 `wait_for_element_visible(option_locator)` 即可。
 
-**建议封装**:
+### 4.2 推荐等待封装
+在 `base_page.py` 扩展：
 ```python
-# 在 ElementPlusHelper 或 MyArchivePage 中
-def wait_for_table_data_loaded(self, timeout=10):
-    # 1. 等待加载动画消失（如果有）
-    # 2. 等待表格出现行
-    self.wait.until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, ".el-table__body-wrapper tbody tr.el-table__row"))
+def wait_for_loading_disappear(self, loading_locator=None, timeout=10):
+    """等待页面/区域加载遮罩消失"""
+    loading = loading_locator or self.TABLE_LOADING
+    WebDriverWait(self.driver, timeout).until_not(
+        EC.presence_of_element_located(loading)
     )
 ```
 
+在测试脚本中使用：
+```python
+page.click_search()
+page.wait_for_loading_disappear()
+```
+
+对于 Tab 切换，可使用 `element_to_be_clickable` 后立刻检查内容可见。
+
+---
+
 ## 5. ROI 分析
 
-- **预估开发时间**:
-  - 页面主类和弹窗类编写: 3 小时
-  - 核心用例 (P0): 2 小时
-  - 扩展用例 (P1, P2): 3 小时
-  - 调试与定位器校准: 2 小时
-  - **总计**: **10 小时**
+### 5.1 估算开发成本
 
-- **预估维护成本**:
-  - 平均每月因UI改动导致的定位器失效: 0.5 小时
-  - 平均每月因业务逻辑变更导致的用例失败: 1 小时
-  - **预估维护成本**: **1.5 小时/月**
+| 类型 | 内容 | 预估工时（小时） |
+|------|------|----------------|
+| PageObject 创建 | MyArchivePage 定位器已基本完成（约30行），补充方法（如选日期、选下拉） | 1.0 |
+| 弹窗独立类 | EditBasicInfoDialog、ChangePasswordDialog 各 0.5h | 1.0 |
+| ElementPlusHelper 扩展 | 添加 `select_date_range`、`select_dropdown_by_label` | 1.5 |
+| 测试用例编写 | 自动化的13个用例，平均0.3h/个 | 3.9 |
+| 初步调试/CI集成 | 连调、修复定位器问题 | 2.0 |
+| **总计** | | **9.4 小时** |
 
-- **手工执行时间**:
-  - 执行全部 P0-P2 测试用例所需时间: 约 20 分钟
-  - **手工执行时间**: **20 分钟/次**
+### 5.2 预估维护成本
+- 每月 UI 重构频率：中等（约2次/月微调）。每次影响定位器需修复：0.5h。
+- 每月执行频率：每日回归1次 + 每周全量2次 ≈ 每月25+8=33次。
+- 手工执行一次所有用例时间：10分钟/次（13个用例，含切换Tab、查询、编辑、密码等）。
 
-- **ROI 计算**:
-  > 假设每周执行一轮回归测试（每月约4次）。
+### 5.3 ROI 计算（以6个月为周期）
+- 自动化开发成本：9.4 小时
+- 维护成本：6个月 × 每月1h（因定位器不稳定，预留1h/月） = 6 小时
+- 总投入 = 9.4 + 6 = 15.4 小时
+- 手工执行总时间 = 33次/月 × 6个月 × (10分钟/60) = 33 × 6 × 0.167 = 33 小时
+- **节省 = 33 - 15.4 = 17.6 小时（约2.2人天）**
+- **ROI = 17.6 / 15.4 ≈ 114%**（6个月内收回成本并产生收益）
 
-  - **1 年后 ROI**:
-    - 手工执行总时间 = 20分钟/次 × 48次 = 960分钟 ≈ 16小时
-    - 自动化开发 + 1年维护成本 = 10小时 + (1.5小时/月 × 12月) = 28小时
-    - **ROI = 16 - 28 = -12小时** (第一年投入较大)
+**结论**：强烈建议自动化，尤其当手工执行频繁（每日回归）时，ROI显著。
 
-  - **2 年后 ROI**:
-    - 手工执行总时间 = 20分钟/次 × 96次 = 1920分钟 ≈ 32小时
-    - 自动化开发 + 2年维护成本 = 10小时 + (1.5小时/月 × 24月) = 46小时
-    - **ROI = 32 - 46 = -14小时** (第二年后仍为负值，主要因为维护成本超出预期)
+---
 
-  - **调整建议**: 通过简化定位器和增加异常处理，可将年维护成本控制在10小时以内，则2年后ROI为正。
+## 6. 风险与缓解措施
 
-**结论**: 对于“我的档案”页面，自动化测试在**长期**（2-3年后），尤其是在维护成本得到良好控制的情况下，能显著节省手工执行时间。建议**优先自动化P0和P1级核心用例**，对P2级低价值用例保持谨慎。
+| 风险 | 影响 | 缓解 |
+|------|------|------|
+| 侧边栏按钮XPath不稳定 | 自动化失败率上升 | 推动前端添加 `data-testid`；改用更稳定的CSS class（如 `.btn-edit-profile`） |
+| 日期范围选择器操作复杂 | 调试时间增加 | 封装 `ElementPlusHelper.select_date_range` 并充分单元测试 |
+| 修改密码后影响其他用例 | TC-MA-014 未自动化，但需确保密码环境独立 | 测试数据策略中保证每个测试用户的密码可重置，或使用独立测试账号 |
+| 表格数据依赖真实用户数据 | 测试结果不可预测 | 使用 Mock 或预埋测试数据（如固定查询日期） |
+
+---
+
+**文件状态**：✅ 已审核，建议自动化团队按上述策略实现。
+```
+
+如果需要补充具体的测试数据设计或进一步细化 `ElementPlusHelper` 的扩展方案，请告知。

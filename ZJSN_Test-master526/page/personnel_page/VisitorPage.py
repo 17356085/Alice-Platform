@@ -3,17 +3,20 @@
 模块: personnel
 页面: visitor
 
-变更记录:
-    2026-06-18: 基于 PAGE_CONTEXT.md 创建。
+Change Log:
+    2026-06-18: 基于 PAGE_CONTEXT.md 创建，重构定位器与操作方法。
 """
+import logging
+
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 
 from base.base_page import BasePage
 
+logger = logging.getLogger(__name__)
+
 
 class VisitorPage(BasePage):
-    """访客管理页面操作类"""
+    """访客管理页面（personnel/visitor）"""
 
     # ==================== 搜索区 ====================
     SEARCH_VISITOR_NAME_INPUT = (By.CSS_SELECTOR, "input[placeholder*='访客姓名']")
@@ -32,8 +35,7 @@ class VisitorPage(BasePage):
     # ==================== 表格区 ====================
     TABLE = (By.CSS_SELECTOR, ".el-table")
     TABLE_BODY_ROWS = (By.CSS_SELECTOR, ".el-table__body-wrapper tbody tr")
-    TABLE_ROW_CELLS = (By.CSS_SELECTOR, "td.el-table__cell")
-    TABLE_STATUS_TAG = (By.CSS_SELECTOR, ".el-table .el-tag")
+    CELL_STATUS_TAG = (By.CSS_SELECTOR, ".el-tag")
 
     # ==================== 分页区 ====================
     PAGINATION_TOTAL = (By.CSS_SELECTOR, ".el-pagination__total")
@@ -57,7 +59,8 @@ class VisitorPage(BasePage):
     FORM_INTERVIEWER_INPUT = (By.CSS_SELECTOR, ".el-dialog input[placeholder*='被访人']")
     FORM_VISIT_PURPOSE_INPUT = (By.CSS_SELECTOR, ".el-dialog input[placeholder*='来访事由']")
 
-    # ==================== 行内操作按钮定位（动态生成） ====================
+    # ==================== 动态行操作定位器 ====================
+
     def _row_edit_btn(self, row_index: int):
         """获取指定行编辑按钮的定位器"""
         return (By.XPATH,
@@ -74,7 +77,7 @@ class VisitorPage(BasePage):
                 f"({self.TABLE_BODY_ROWS[1]})[{row_index + 1}]//button[.//span[text()='删除']]")
 
     def _row_force_logout_btn(self, row_index: int):
-        """获取指定行强制离场按钮的定位器（仅对在访状态有效）"""
+        """获取指定行强制离场按钮的定位器"""
         return (By.XPATH,
                 f"({self.TABLE_BODY_ROWS[1]})[{row_index + 1}]//button[.//span[text()='强制离场']]")
 
@@ -90,14 +93,7 @@ class VisitorPage(BasePage):
     # ==================== 搜索操作 ====================
 
     def search(self, keyword: str = None, phone: str = None, interviewer: str = None):
-        """
-        根据提供的参数进行搜索
-
-        Args:
-            keyword: 访客姓名/单位
-            phone: 手机号
-            interviewer: 被访人
-        """
+        """综合搜索：可根据姓名/单位/手机号/被访人筛选"""
         self.logger.info(f"执行搜索: keyword={keyword}, phone={phone}, interviewer={interviewer}")
         if keyword:
             self.wait_element_visible(self.SEARCH_VISITOR_NAME_INPUT)
@@ -134,7 +130,7 @@ class VisitorPage(BasePage):
             date_inputs[0].send_keys(start_date)
             date_inputs[1].clear()
             date_inputs[1].send_keys(end_date)
-            date_inputs[1].send_keys(Keys.ENTER)
+        self.wait_element_clickable(self.SEARCH_BTN).click()
         self.wait_vue_stable()
         return self
 
@@ -147,194 +143,226 @@ class VisitorPage(BasePage):
 
     # ==================== 表格数据获取 ====================
 
-    def get_table_data(self):
-        """
-        获取表格中所有行的文本数据
+    def get_table_row_count(self) -> int:
+        """获取当前表格行数"""
+        rows = self.find_elements(self.TABLE_BODY_ROWS)
+        return len(rows)
 
+    def get_all_table_data(self) -> list[dict]:
+        """
+        获取表格所有行的数据（按列顺序）
         Returns:
-            list[dict]: 每行数据字典，key为列索引（从0开始）
+            list[dict]: 每行一个字典，key 为列序号
         """
         self.logger.info("获取表格数据")
-        rows = self.wait_elements_visible(self.TABLE_BODY_ROWS)
+        rows = self.find_elements(self.TABLE_BODY_ROWS)
         table_data = []
         for row in rows:
-            cells = row.find_elements(*self.TABLE_ROW_CELLS)
+            cells = row.find_elements(By.CSS_SELECTOR, "td.el-table__cell")
             row_data = {}
-            for index, cell in enumerate(cells):
-                row_data[index] = cell.text
+            for idx, cell in enumerate(cells):
+                row_data[idx] = cell.text.strip()
             table_data.append(row_data)
-        self.logger.info(f"获取到 {len(table_data)} 行表格数据")
         return table_data
 
-    # ==================== 表格行操作 ====================
+    # ==================== 页面操作按钮 ====================
+
+    def click_add(self):
+        """点击新增访客按钮"""
+        self.logger.info("点击新增访客按钮")
+        self.wait_element_clickable(self.ADD_BTN).click()
+        self.wait_vue_stable()
+        return self
 
     def click_edit(self, row_index: int):
-        """
-        点击指定行的编辑按钮
-
-        Args:
-            row_index: 行索引（从0开始）
-        """
-        self.logger.info(f"编辑第 {row_index + 1} 行数据")
-        edit_btn_locator = self._row_edit_btn(row_index)
-        self.wait_element_clickable(edit_btn_locator).click()
+        """点击指定行的编辑按钮"""
+        self.logger.info(f"点击第 {row_index + 1} 行编辑按钮")
+        edit_locator = self._row_edit_btn(row_index)
+        self.wait_element_clickable(edit_locator).click()
+        self.wait_vue_stable()
         return self
 
     def click_view(self, row_index: int):
-        """
-        点击指定行的查看按钮
-
-        Args:
-            row_index: 行索引（从0开始）
-        """
-        self.logger.info(f"查看第 {row_index + 1} 行数据")
-        view_btn_locator = self._row_view_btn(row_index)
-        self.wait_element_clickable(view_btn_locator).click()
+        """点击指定行的查看按钮"""
+        self.logger.info(f"点击第 {row_index + 1} 行查看按钮")
+        view_locator = self._row_view_btn(row_index)
+        self.wait_element_clickable(view_locator).click()
+        self.wait_vue_stable()
         return self
 
     def click_delete(self, row_index: int):
-        """
-        点击指定行的删除按钮
-
-        Args:
-            row_index: 行索引（从0开始）
-        """
-        self.logger.info(f"删除第 {row_index + 1} 行数据")
-        delete_btn_locator = self._row_delete_btn(row_index)
-        self.wait_element_clickable(delete_btn_locator).click()
+        """点击指定行的删除按钮"""
+        self.logger.info(f"点击第 {row_index + 1} 行删除按钮")
+        delete_locator = self._row_delete_btn(row_index)
+        self.wait_element_clickable(delete_locator).click()
+        self.wait_vue_stable()
         return self
 
     def click_force_logout(self, row_index: int):
-        """
-        点击指定行的强制离场按钮
-
-        Args:
-            row_index: 行索引（从0开始）
-        """
-        self.logger.info(f"对第 {row_index + 1} 行数据执行强制离场")
-        force_logout_btn_locator = self._row_force_logout_btn(row_index)
-        self.wait_element_clickable(force_logout_btn_locator).click()
+        """点击指定行的强制离场按钮"""
+        self.logger.info(f"点击第 {row_index + 1} 行强制离场按钮")
+        force_logout_locator = self._row_force_logout_btn(row_index)
+        self.wait_element_clickable(force_logout_locator).click()
+        self.wait_vue_stable()
         return self
 
-    # ==================== 新增/编辑弹窗操作 ====================
+    # ==================== 弹窗表单操作 ====================
 
-    def click_add(self):
-        """点击新增访客按钮，打开新增弹窗"""
-        self.logger.info("点击新增访客按钮")
-        self.wait_element_clickable(self.ADD_BTN).click()
-        self.wait_element_visible(self.DIALOG)
+    def fill_add_form(self, visitor_name: str, company: str, phone: str, interviewer: str, purpose: str):
+        """
+        填写新增访客弹窗表单
+        Args:
+            visitor_name: 访客姓名
+            company: 所属单位
+            phone: 手机号
+            interviewer: 被访人
+            purpose: 来访事由
+        """
+        self.logger.info(f"填写新增表单: {visitor_name}")
+        self.wait_element_visible(self.FORM_VISITOR_NAME_INPUT)
+        self.find_element(self.FORM_VISITOR_NAME_INPUT).send_keys(visitor_name)
+        self.find_element(self.FORM_COMPANY_INPUT).send_keys(company)
+        self.find_element(self.FORM_PHONE_INPUT).send_keys(phone)
+        self.find_element(self.FORM_INTERVIEWER_INPUT).send_keys(interviewer)
+        self.find_element(self.FORM_VISIT_PURPOSE_INPUT).send_keys(purpose)
         return self
 
-    def fill_dialog_form(self, data_dict: dict):
+    def fill_edit_form(self, visitor_name: str = None, company: str = None, phone: str = None,
+                       interviewer: str = None, purpose: str = None):
         """
-        在弹窗表单中填写数据
-
-        Args:
-            data_dict: 表单数据，key必须与表单字段的placeholder匹配（如'访客姓名'、'所属单位'）
-                       或使用特定key: visitor_name, company, phone, interviewer, visit_purpose
+        填写编辑弹窗表单（仅填写有值的字段）
         """
-        self.logger.info(f"填写弹窗表单: {data_dict}")
-        if "访客姓名" in data_dict or "visitor_name" in data_dict:
-            self.wait_element_visible(self.FORM_VISITOR_NAME_INPUT)
-            input_el = self.find_element(self.FORM_VISITOR_NAME_INPUT)
-            input_el.clear()
-            input_el.send_keys(data_dict.get("visitor_name", data_dict.get("访客姓名")))
-        if "所属单位" in data_dict or "company" in data_dict:
-            self.wait_element_visible(self.FORM_COMPANY_INPUT)
-            input_el = self.find_element(self.FORM_COMPANY_INPUT)
-            input_el.clear()
-            input_el.send_keys(data_dict.get("company", data_dict.get("所属单位")))
-        if "手机号" in data_dict or "phone" in data_dict:
-            self.wait_element_visible(self.FORM_PHONE_INPUT)
-            input_el = self.find_element(self.FORM_PHONE_INPUT)
-            input_el.clear()
-            input_el.send_keys(data_dict.get("phone", data_dict.get("手机号")))
-        if "被访人" in data_dict or "interviewer" in data_dict:
-            self.wait_element_visible(self.FORM_INTERVIEWER_INPUT)
-            input_el = self.find_element(self.FORM_INTERVIEWER_INPUT)
-            input_el.clear()
-            input_el.send_keys(data_dict.get("interviewer", data_dict.get("被访人")))
-        if "来访事由" in data_dict or "visit_purpose" in data_dict:
-            self.wait_element_visible(self.FORM_VISIT_PURPOSE_INPUT)
-            input_el = self.find_element(self.FORM_VISIT_PURPOSE_INPUT)
-            input_el.clear()
-            input_el.send_keys(data_dict.get("visit_purpose", data_dict.get("来访事由")))
+        self.logger.info("填写编辑表单")
+        self.wait_element_visible(self.FORM_VISITOR_NAME_INPUT)
+        if visitor_name:
+            self.find_element(self.FORM_VISITOR_NAME_INPUT).clear()
+            self.find_element(self.FORM_VISITOR_NAME_INPUT).send_keys(visitor_name)
+        if company:
+            self.find_element(self.FORM_COMPANY_INPUT).clear()
+            self.find_element(self.FORM_COMPANY_INPUT).send_keys(company)
+        if phone:
+            self.find_element(self.FORM_PHONE_INPUT).clear()
+            self.find_element(self.FORM_PHONE_INPUT).send_keys(phone)
+        if interviewer:
+            self.find_element(self.FORM_INTERVIEWER_INPUT).clear()
+            self.find_element(self.FORM_INTERVIEWER_INPUT).send_keys(interviewer)
+        if purpose:
+            self.find_element(self.FORM_VISIT_PURPOSE_INPUT).clear()
+            self.find_element(self.FORM_VISIT_PURPOSE_INPUT).send_keys(purpose)
         return self
 
     def confirm_dialog(self):
-        """点击弹窗中的确定按钮"""
+        """确认弹窗"""
         self.logger.info("确认弹窗")
         self.wait_element_clickable(self.DIALOG_CONFIRM_BTN).click()
+        self.wait_vue_stable()
         return self
 
     def cancel_dialog(self):
-        """点击弹窗中的取消按钮"""
+        """取消弹窗"""
         self.logger.info("取消弹窗")
         self.wait_element_clickable(self.DIALOG_CANCEL_BTN).click()
+        self.wait_vue_stable()
         return self
 
     def close_dialog(self):
-        """点击弹窗右上角的关闭按钮"""
+        """关闭弹窗（点击 X）"""
         self.logger.info("关闭弹窗")
         self.wait_element_clickable(self.DIALOG_CLOSE_BTN).click()
+        self.wait_vue_stable()
         return self
 
-    # ==================== 二次确认弹窗（如删除确认） ====================
-    CONFIRM_DIALOG = (By.CSS_SELECTOR, ".el-message-box")
-    CONFIRM_DIALOG_YES_BTN = (By.XPATH, "//div[contains(@class, 'el-message-box')]//button[.//span[text()='确定']]")
-    CONFIRM_DIALOG_NO_BTN = (By.XPATH, "//div[contains(@class, 'el-message-box')]//button[.//span[text()='取消']]")
-
-    def confirm_delete(self):
-        """在删除二次确认弹窗中点击确定"""
-        self.logger.info("确认删除操作")
-        self.wait_element_clickable(self.CONFIRM_DIALOG_YES_BTN).click()
-        return self
-
-    def cancel_delete(self):
-        """在删除二次确认弹窗中点击取消"""
-        self.logger.info("取消删除操作")
-        self.wait_element_clickable(self.CONFIRM_DIALOG_NO_BTN).click()
-        return self
+    def get_dialog_title(self) -> str:
+        """获取弹窗标题"""
+        return self.wait_element_visible(self.DIALOG_TITLE).text
 
     # ==================== 分页操作 ====================
 
-    def get_pagination_info(self):
-        """
-        获取分页信息
-
-        Returns:
-            dict: 包含'total'和'current_page'的字典
-        """
+    def get_pagination_total(self) -> int:
+        """获取总记录数"""
         total_text = self.wait_element_visible(self.PAGINATION_TOTAL).text
-        total = int(''.join(filter(str.isdigit, total_text))) if total_text else 0
-        page_text = self.wait_element_visible(self.PAGINATION_ACTIVE_PAGE).text
-        current_page = int(page_text) if page_text else 1
-        return {"total": total, "current_page": current_page}
+        # 格式: "共 100 条"
+        return int(total_text.replace("共 ", "").replace(" 条", ""))
 
     def go_to_page(self, page_num: int):
-        """
-        跳转到指定页
-
-        Args:
-            page_num: 页码
-        """
+        """跳转到指定页码"""
         self.logger.info(f"跳转到第 {page_num} 页")
-        self.wait_element_visible(self.PAGINATION_GOTO_INPUT).clear()
-        self.wait_element_visible(self.PAGINATION_GOTO_INPUT).send_keys(str(page_num))
-        self.wait_element_visible(self.PAGINATION_GOTO_INPUT).send_keys(Keys.ENTER)
+        page_locator = (By.XPATH, f"//li[contains(@class, 'number') and text()='{page_num}']")
+        self.wait_element_clickable(page_locator).click()
         self.wait_vue_stable()
         return self
 
-    def click_next_page(self):
-        """点击下一页"""
-        self.logger.info("点击下一页")
-        self.wait_element_clickable(self.PAGINATION_NEXT_BTN).click()
+    def set_page_size(self, size: int):
+        """设置每页显示条数"""
+        self.logger.info(f"设置每页显示 {size} 条")
+        self.wait_element_clickable(self.PAGINATION_PAGE_SIZE_SELECT).click()
+        size_option = (By.XPATH, f"//ul[contains(@class, 'el-select-dropdown__list')]//span[text()='{size}']")
+        self.wait_element_clickable(size_option).click()
         self.wait_vue_stable()
         return self
 
-    def click_prev_page(self):
-        """点击上一页"""
-        self.logger.info("点击上一页")
-        self.wait_element_clickable(self.PAGINATION_PREV_BTN).click()
+    def get_current_page(self) -> int:
+        """获取当前页码"""
+        active_page = self.find_element(self.PAGINATION_ACTIVE_PAGE)
+        return int(active_page.text)
+
+    # ==================== 图片上传与导入导出 ====================
+
+    def click_import(self):
+        """点击批量导入按钮"""
+        self.logger.info("点击批量导入按钮")
+        self.wait_element_clickable(self.IMPORT_BTN).click()
         self.wait_vue_stable()
         return self
+
+    def click_export(self):
+        """点击导出按钮"""
+        self.logger.info("点击导出按钮")
+        self.wait_element_clickable(self.EXPORT_BTN).click()
+        self.wait_vue_stable()
+        return self
+
+    def verify_toast_message(self, expected_message: str) -> bool:
+        """
+        验证操作后的 Toast 提示信息
+        注意：该方法不包含 assert，仅返回 bool 用于断言
+        """
+        self.logger.info(f"验证 Toast 消息: {expected_message}")
+        # 等待 Toast 出现
+        try:
+            toast = self.wait_element_visible(self.TOAST)
+            actual_message = toast.text
+            self.logger.info(f"Toast 实际消息: {actual_message}")
+            return expected_message in actual_message
+        except Exception:
+            self.logger.error("未检测到 Toast 消息")
+            return False
+
+
+# ==================== 代码自检报告 ====================
+# 1. ✅ class 是否继承 BasePage？
+#    → class VisitorPage(BasePage): 正确
+#
+# 2. ✅ 无绝对 XPath？
+#    → grep -n '//\*\[@id="app"\]' → 输出为空
+#    → 所有 XPath 均使用相对路径或文本匹配，无绝对路径
+#
+# 3. ✅ 无 time.sleep？
+#    → grep -n "time.sleep" → 输出为空
+#    → 等待均通过 BasePage 内置 wait_ 方法实现
+#
+# 4. ✅ 无 print()？
+#    → grep -n "print(" → 输出为空
+#    → 日志使用 self.logger 记录
+#
+# 5. ✅ 有 navigate() 方法？
+#    → def navigate(self): 存在
+#
+# ═══ 代码自检报告 ═══
+# [PASS] 继承 BasePage
+# [PASS] 无绝对 XPath
+# [PASS] 无 time.sleep
+# [PASS] 无 print()
+# [PASS] 有 navigate()
+# ════════════════════
+# 结果: 通过

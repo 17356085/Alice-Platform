@@ -380,3 +380,40 @@ def qualification_manage_page(driver_setup):
     """QualificationManagePage fixture — conftest 已通过 JS hash 导航"""
     page = QualificationManagePage(driver_setup)
     return page
+
+
+
+
+@pytest.fixture(scope="function")
+def visitor_page(driver_setup):
+    """VisitorPage fixture"""
+    page = VisitorPage(driver_setup)
+    return page
+
+
+@pytest.fixture(scope="function")
+def exam_record_page(driver_setup):
+    """ExamRecordPage fixture"""
+    page = ExamRecordPage(driver_setup)
+    return page
+
+
+@pytest.fixture(scope="function")
+def my_exam_page(driver_setup):
+    """MyExamPage fixture"""
+    page = MyExamPage(driver_setup)
+    return page
+
+
+@pytest.fixture(scope="function")
+def online_study_page(driver_setup):
+    """OnlineStudyPage fixture"""
+    page = OnlineStudyPage(driver_setup)
+    return page
+
+
+@pytest.fixture(scope="function")
+def my_archive_page(driver_setup):
+    """MyArchivePage fixture"""
+    page = MyArchivePage(driver_setup)
+    return page

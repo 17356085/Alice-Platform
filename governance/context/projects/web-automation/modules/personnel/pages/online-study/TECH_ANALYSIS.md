@@ -1,256 +1,169 @@
-好的，收到任务。根据您提供的 `PAGE_CONTEXT.md` 内容，我将基于 Vue 3 + Element Plus 的通用实现模式，对 `personnel/online-study` 页面进行技术分析。请注意，由于缺乏真实 HTML 源码和截图，以下分析是基于行业通用实践和 Element Plus 组件默认 DOM 结构的**合理推断**，实际实现可能略有差异。使用前建议通过浏览器开发者工具验证关键定位器。
-
----
-
-# TECH_ANALYSIS.md
-
-> **模块**: personnel | **页面**: online-study (在线学习管理) | **分析日期**: 2026-06-18  
-> **技术栈**: Vue 3 + Element Plus + Selenium | **分析依据**: PAGE_CONTEXT.md 描述
-
----
+```markdown
+# 技术分析：在线学习管理页面 (OnlineStudyPage)
 
 ## 1. Element Plus 组件识别
 
-| 组件 | 用途 | 对应页面区域 | 备注 |
-|------|------|--------------|------|
-| `el-input` | 文本输入 (课程名称搜索、表单输入) | 搜索区、弹窗表单 | |
-| `el-select` | 下拉选择 (课程分类、状态、每页条数) | 搜索区、弹窗表单、分页区 | 选项动态加载 |
-| `el-date-picker` | 日期范围选择 (创建日期) | 搜索区 | `type="daterange"` |
-| `el-button` | 操作按钮 (查询、重置、新建、保存、取消、编辑、删除等) | 搜索区、顶部操作区、表格操作列、弹窗 | 含 `type="primary"` |
-| `el-table` + `el-table-column` | 课程列表表格 | 主内容区 | 含序号、链接、标签列 |
-| `el-tag` | 状态标签 (上架/下架)、课程分类标签 | 表格列 | 动态颜色 |
-| `el-pagination` | 分页 | 表格底部 | layout 含 total/sizes/prev/pager/next |
-| `el-dialog` | 新建/编辑课程弹窗 | 弹窗区域 | title 动态 |
-| `el-switch` | 上架/下架开关 | 弹窗表单 | |
-| `el-upload` | 封面图片上传 | 弹窗表单 | |
-| `el-tree` | 左侧课程分类树 (推测) | 左侧筛选区 | 未在表格中列出但上下文提到“分类筛选树” |
-| `el-empty` | 空数据状态 | 表格 | |
-| `el-loading` | 加载中状态 | 表格 | v-loading 指令 |
+| 组件类型 | 用途 | 定位器来源 |
+|:---------|:-----|:-----------|
+| `el-input` | 课程名称搜索框、弹窗课程名称输入框、授课老师输入框 | `SEARCH_COURSE_NAME_INPUT`, `FORM_COURSE_NAME_INPUT`, `FORM_TEACHER_INPUT` |
+| `el-select` | 课程分类下拉、课程状态下拉、每页条数选择 | `SEARCH_CATEGORY_SELECT`, `SEARCH_STATUS_SELECT`, `PAGE_SIZE_SELECT`, `FORM_CATEGORY_SELECT` |
+| `el-date-picker` | 创建日期范围选择 | `SEARCH_DATE_RANGE` |
+| `el-button` | 查询、重置、新建课程、编辑、删除、查看进度、弹窗确定/取消 | `SEARCH_BTN`, `RESET_BTN`, `NEW_COURSE_BTN`, `BTN_EDIT_BY_ROW` 等 |
+| `el-table` | 课程列表展示 | `TABLE`, `TABLE_ROWS` |
+| `el-pagination` | 分页 | `PAGINATION`, `PAGINATION_NEXT_BTN` |
+| `el-dialog` | 新建/编辑课程弹窗 | `DIALOG_COURSE`, `DIALOG_TITLE` |
+| `el-switch` | 上架/下架状态开关 | `FORM_STATUS_SWITCH` |
+| `el-upload` | 封面图片上传 | `FORM_COVER_UPLOAD` |
+| `el-tag` | 表格中课程分类、状态标签（预期） | 未显式定位，通过表格数据读取时处理 |
+| `el-loading` | 表格加载遮罩 | `TABLE_LOADING` |
+| `el-link` | 课程名称链接 | `COL_COURSE_NAME_LINK` |
+| `el-select-dropdown` | 下拉选项弹出层（渲染在 body） | `SEARCH_CATEGORY_DROPDOWN`（通用class） |
 
----
+## 2. DOM 结构分析
 
-## 2. DOM 结构分析 (推断)
+### 关键层级结构
 
-### 页面层级
-```text
+```
 <div id="app">
-  <el-container>
-    <el-main>
-      <!-- 面包屑略 -->
-      <div class="page-header">
-        <span class="page-title">在线学习管理</span>
-        <el-button id="btn-newCourse" type="primary">新建课程</el-button>
-      </div>
-      <div class="main-content">
-        <!-- 左侧分类树 -->
-        <div class="category-tree">
-          <el-tree :data="categoryTreeData" />
+  <!-- 导航侧栏 -->
+  <aside class="sidebar">...</aside>
+  <!-- 主内容区域 -->
+  <main class="main-content">
+    <!-- 面包屑 + 页面标题 -->
+    <div class="page-header">
+      <span class="breadcrumb">...</span>
+      <h2>在线学习管理</h2>
+      <button id="btn-newCourse">新建课程</button>
+    </div>
+    <!-- 搜索/筛选区 -->
+    <div class="search-area">
+      <div id="search-courseName" class="el-input">...</div>
+      <div id="search-category" class="el-select">...</div>
+      <div id="search-status" class="el-select">...</div>
+      <div id="search-dateRange" class="el-date-editor el-date-editor--daterange">...</div>
+      <button id="btn-search">查询</button>
+      <button id="btn-reset">重置</button>
+    </div>
+    <!-- 表格区 -->
+    <div class="table-container">
+      <div class="el-table">
+        <div class="el-table__header-wrapper">...</div>
+        <div class="el-table__body-wrapper">
+          <div class="el-loading-mask" v-if="loading">...</div>
+          <table><tbody><tr class="el-table__row">...</tr></tbody></table>
         </div>
-        <!-- 右侧内容 -->
-        <div class="right-panel">
-          <!-- 搜索区 -->
-          <el-form class="search-area" inline>
-            <el-form-item label="课程名称">
-              <el-input id="search-courseName" placeholder="请输入课程名称" />
-            </el-form-item>
-            <el-form-item label="课程分类">
-              <el-select id="search-category" placeholder="请选择分类" />
-            </el-form-item>
-            <el-form-item label="状态">
-              <el-select id="search-status" placeholder="请选择状态" />
-            </el-form-item>
-            <el-form-item label="创建日期">
-              <el-date-picker id="search-dateRange" type="daterange" />
-            </el-form-item>
-            <el-form-item>
-              <el-button id="btn-search" type="primary">查询</el-button>
-              <el-button id="btn-reset">重置</el-button>
-            </el-form-item>
+      </div>
+      <div class="el-pagination">...</div>
+    </div>
+    <!-- 弹窗 -->
+    <div id="dialog-course" class="el-dialog__wrapper" v-if="dialogVisible">
+      <div class="el-dialog">
+        <div class="el-dialog__header"><span>新建课程</span></div>
+        <div class="el-dialog__body">
+          <el-form>
+            <el-form-item id="form-courseName">...</el-form-item>
+            <!-- 其他表单项 -->
           </el-form>
-          <!-- 表格 -->
-          <el-table v-loading="loading" class="el-table">
-            <el-table-column type="index" label="序号" />
-            <el-table-column prop="courseName" label="课程名称" />
-            <el-table-column prop="category" label="课程分类">
-              <template #default="{ row }">
-                <el-tag>{{ row.category }}</el-tag>
-              </template>
-            </el-table-column>
-            <!-- 其他列 -->
-            <el-table-column label="操作" width="200">
-              <template #default="{ row }">
-                <el-button size="small" @click="editCourse(row)">编辑</el-button>
-                <el-button size="small" type="danger" @click="deleteCourse(row)">删除</el-button>
-                <el-button size="small" @click="viewProgress(row)">查看进度</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-          <!-- 分页 -->
-          <el-pagination
-            class="el-pagination"
-            layout="total, sizes, prev, pager, next"
-            :total="total"
-            :page-size="pageSize"
-            :page-sizes="[10,20,50,100]"
-          />
+        </div>
+        <div class="el-dialog__footer">
+          <button>取消</button>
+          <button>确定</button>
         </div>
       </div>
-    </el-main>
-  </el-container>
+    </div>
+  </main>
 </div>
 ```
 
-### 弹窗结构
-```html
-<el-dialog
-  id="dialog-course"
-  :title="dialogTitle"
-  :visible.sync="dialogVisible"
-  width="600px"
->
-  <el-form :model="form" label-width="100px">
-    <el-form-item label="课程名称" required>
-      <el-input id="form-courseName" v-model="form.courseName" />
-    </el-form-item>
-    <!-- 其他表单项 -->
-    <el-form-item label="上架状态">
-      <el-switch id="form-status" v-model="form.status" />
-    </el-form-item>
-    <el-form-item label="封面">
-      <el-upload id="form-cover" action="/api/upload" />
-    </el-form-item>
-  </el-form>
-  <span slot="footer">
-    <el-button id="btn-cancel">取 消</el-button>
-    <el-button id="btn-save" type="primary">确 定</el-button>
-  </span>
-</el-dialog>
-```
+### 稳定属性分析
 
-### 关键特征
-- **稳定属性**: 大量使用了 `id` 属性（如 `search-courseName`, `btn-search`, `dialog-course`, `form-courseName`）——这是 A 级定位的基石
-- **动态 class**: `el-table__row` 等由 Vue 生成，但 Element Plus 的 class 命名稳定（如 `.el-table`, `.el-dialog`, `.el-pagination`）
-- **v-if 控制**: 弹窗内容在 `dialogVisible` 为 true 时才渲染到 DOM，可能导致元素定位时需等弹窗完全出现
-- **下拉选项渲染**: `el-select` 的下拉面板 `el-select-dropdown` 默认渲染在 `<body>` 下，定位时需要特殊处理
+| 属性类型 | 示例 | 稳定性 |
+|:---------|:-----|:-------|
+| `id` | `btn-search`, `dialog-course`, `form-courseName` | **A级** — 唯一且稳定 |
+| `name` | 未使用（Vue+EP 通常不生成 name） | — |
+| `data-*` | 未在代码中体现，但可通过 `data-testid` 扩展（当前未用） | 若存在则为A级 |
+| 纯 CSS class | `.el-table`, `.el-dialog__title`, `.el-switch` | **B级** — 可能随版本变化 |
+| EP 组件内部 class | `.el-select__wrapper`, `.el-date-editor--daterange` | **B级** — 组件内部稳定，但可能升级调整 |
+| Vue 动态 class | `el-table__row` 是静态，但 `el-loading-mask` 由 v-if 控制 | 需配合等待策略 |
 
----
+### 动态/不稳定因素
 
-## 3. 定位器设计表 (A/B/C 三级)
+- `v-if="dialogVisible"` 控制弹窗 DOM 存在/消失，必须先确保可见再操作。
+- `el-select` 的下拉选项 (`el-select-dropdown`) 渲染在 `document.body` 下，不是选择器的父级内部。
+- `el-table` 的行数动态变化，行元素 class 固定 `el-table__row`，但每行内容不同，需通过行文本或索引定位。
+- `el-upload` 的内部 `input[type=file]` 可能隐藏，需特殊处理。
 
-基于前述 DOM 结构推断，设计定位器。**优先级：A > B > C**。
+## 3. 定位器设计表（A/B/C 三级）
 
 | 元素 | 推荐定位策略 | 定位值 | 稳定性 | 备注 |
-|------|-------------|--------|--------|------|
-| 课程名称搜索框 | CSS (ID) | `#search-courseName` | **A** | 显式 `id` |
-| 课程分类搜索选择 | CSS (ID) | `#search-category` | **A** | 显式 `id` |
-| 课程状态搜索选择 | CSS (ID) | `#search-status` | **A** | 显式 `id` |
-| 日期范围选择 | CSS (ID) | `#search-dateRange` | **A** | 显式 `id`；实际可能需要具体到 `el-date-picker` 内部的 input 或触发区 |
-| 查询按钮 | CSS (ID) | `#btn-search` | **A** | 显式 `id` |
-| 重置按钮 | CSS (ID) | `#btn-reset` | **A** | 显式 `id` |
-| 新建课程按钮 | CSS (ID) | `#btn-newCourse` | **A** | 显式 `id` |
-| 课程列表表格 | CSS (Tag+Class) | `table.el-table` | **A** | 也可用 `#app .el-table` |
-| 表格行（数据行） | CSS | `.el-table__body-wrapper .el-table__row` | **B** | 动态渲染的 tr，class 稳定 |
-| 课程名称列（链接） | XPath | `//tr[{{某行索引}}]//td[{{列索引}}]/div/a` | **C** | 索引脆弱；建议根据行内文本定位 |
-| 操作列：编辑按钮 | XPath (相对) | `.//button[span[text()='编辑']]` | **A** | 基于按钮文本，行级相对定位 |
-| 操作列：删除按钮 | XPath (相对) | `.//button[span[text()='删除']]` | **A** | 同上 |
-| 操作列：查看进度按钮 | XPath (相对) | `.//button[span[text()='查看进度']]` | **A** | 同上 |
-| 分页组件 | CSS (Tag+Class) | `.el-pagination` | **A** | |
-| 分页器总记录数 | CSS | `.el-pagination__total` | **A** | |
-| 每页条数选择器 | CSS | `.el-pagination .el-select` | **B** | 实际是 `el-select` 内部，下拉选项在 body |
-| 弹窗 (dialog) | CSS (ID) | `#dialog-course` | **A** | 显式 `id` |
-| 弹窗：课程名称输入 | CSS (ID) | `#form-courseName` | **A** | |
-| 弹窗：课程分类选择 | CSS (ID) | `#form-category` | **A** | 下拉选项在 body |
-| 弹窗：上架开关 | CSS (ID) | `#form-status` | **A** | |
-| 弹窗：封面上传 | CSS (ID) | `#form-cover` | **A** | |
-| 弹窗：保存按钮 | XPath | `//div[@id='dialog-course']//button[span[text()='确 定']]` | **A** | 注意文本包含空格 |
-| 弹窗：取消按钮 | XPath | `//div[@id='dialog-course']//button[span[text()='取 消']]` | **A** | |
-| 左侧分类树 | CSS | `.category-tree .el-tree` | **B** | class 稳定，无 id 时 B 级 |
-| 空数据提示 | CSS | `.el-empty` | **B** | 可结合 `contains(text(),'暂无课程数据')` |
+|:-----|:------------|:-------|:-------|:-----|
+| **课程名称搜索输入框** | CSS (基于 id) | `#search-courseName .el-input__inner` | **A** | id 唯一 |
+| **课程分类下拉** | CSS (基于 id) | `#search-category .el-select__wrapper` | **A** | 点击触发下拉 |
+| **课程状态下拉** | CSS (基于 id) | `#search-status .el-select__wrapper` | **A** | id 唯一 |
+| **日期范围选择** | CSS (基于 id) | `#search-dateRange .el-date-editor--daterange` | **A** | id 唯一 |
+| **查询按钮** | CSS (基于 id) | `button#btn-search` | **A** | id 唯一 |
+| **重置按钮** | CSS (基于 id) | `button#btn-reset` | **A** | id 唯一 |
+| **新建课程按钮** | CSS (基于 id) | `button#btn-newCourse` | **A** | id 唯一 |
+| **表格** | CSS | `.el-table` | **B** | 通用 class，无 id |
+| **表格加载遮罩** | CSS | `.el-table__body-wrapper .el-loading-mask` | **B** | 可能因 EP 版本改动 |
+| **表格行** | CSS | `.el-table__body-wrapper tbody tr.el-table__row` | **B** | 动态行，数量可变 |
+| **课程名称链接** | CSS | `.cell a.el-link` (或更具体 `.el-table__row .cell a.el-link`) | **B** | 可能随列配置变化 |
+| **操作列编辑按钮（某行内）** | XPath (相对行) | `.//button[.//span[text()='编辑']]` | **B** | 需先定位对应行 |
+| **操作列删除按钮（某行内）** | XPath (相对行) | `.//button[.//span[text()='删除']]` | **B** | 同上 |
+| **操作列查看进度按钮** | XPath (相对行) | `.//button[.//span[text()='查看进度']]` | **B** | 同上 |
+| **分页** | CSS | `.el-pagination` | **B** | 通用 class |
+| **每页条数选择** | CSS | `.el-pagination .el-select__wrapper` | **B** | |
+| **下一页按钮** | CSS | `.el-pagination .btn-next` | **B** | |
+| **弹窗（新建/编辑）** | CSS (基于 id) | `div#dialog-course` | **A** | id 唯一 |
+| **弹窗标题** | CSS | `div#dialog-course .el-dialog__title` | **B** | 依赖弹窗可见 |
+| **弹窗课程名称输入** | CSS | `#dialog-course #form-courseName .el-input__inner` | **A** | 嵌套 id |
+| **弹窗课程分类下拉** | CSS | `#dialog-course #form-category .el-select__wrapper` | **A** | |
+| **弹窗授课老师输入** | CSS | `#dialog-course #form-teacher .el-input__inner` | **A** | |
+| **弹窗课程描述** | CSS | `#dialog-course #form-description .el-textarea__inner` | **A** | |
+| **弹窗封面上传拖拽区** | CSS | `#dialog-course #form-cover .el-upload-dragger` | **B** | 文件上传需特殊处理 |
+| **弹窗上架开关** | CSS | `#dialog-course #form-status .el-switch` | **A** | id 稳定 |
+| **弹窗确定按钮** | XPath (基于弹窗id) | `//div[@id='dialog-course']//button[.//span[text()='确定']]` | **A** | id + 文本 |
+| **弹窗取消按钮** | XPath (基于弹窗id) | `//div[@id='dialog-course']//button[.//span[text()='取消']]` | **A** | |
 
----
+### 补充 C 级定位策略（备用）
+
+当 A/B 级失败时：
+
+- 表格行：`(By.XPATH, "//tr[contains(@class,'el-table__row')]")` — C 级，脆弱
+- 弹窗内任意输入框：`(By.XPATH, "//div[@id='dialog-course']//input[@type='text'][1]")` — C 级，依赖顺序
+- 下拉选项（body 下）：`(By.XPATH, "//body//div[contains(@class,'el-select-dropdown') and contains(@style,'display: none') = false]//li[.//span[text()='具体选项文本']]")` — C 级，通常不需要，但可用于备选
 
 ## 4. Vue 异步等待策略
 
-| 场景 | 等待条件 | WebDriverWait 示例 | 备注 |
-|------|---------|-------------------|------|
-| **初始页面加载** | 表格元素出现且 loading 消失 | `wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".el-table")))` 以及 `EC.invisibility_of_element_located((By.CSS_SELECTOR, ".el-loading-mask"))` | |
-| **搜索/重置后表格刷新** | loading 消失 + 新数据行稳定 | 推荐先等待 `invisibility` 再等待 `staleness_of` 旧行或 `presence_of_element_located` 新行 | |
-| **弹窗打开** | 弹窗元素可见 | `wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#dialog-course")))` | 确保弹窗渲染完成 |
-| **弹窗关闭** | 弹窗元素不可见 | `wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "#dialog-course")))` | |
-| **下拉选项展开** | 下拉面板出现在 body 层 | `wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".el-select-dropdown__item")))` | 需先打开下拉 |
-| **文件上传完成** | 上传进度消失 | 自定义 `wait_for_upload_finish` 或检查上传列表 | |
-| **分页切换** | 分页按钮可交互 + 表格行刷新 | 点击页码后等待 `loading` 消失 | |
+| 场景 | 等待条件 | WebDriverWait 示例（利用 BasePage 封装） |
+|:-----|:---------|:----------------------------------------|
+| **页面导航完成** | 表格元素存在 | `self.wait_element_visible(self.TABLE)` |
+| **表格数据加载中** | loading 遮罩消失 | `self.wait_loading_disappear(self.TABLE_LOADING)` |
+| **搜索/刷新后** | loading 消失 + 表格行非空（可选） | `self.wait_loading_disappear(self.TABLE_LOADING)`；可追加 `self.wait.until(lambda d: len(d.find_elements(*self.TABLE_ROWS)) > 0)` |
+| **弹窗打开** | 弹窗可见 | `self.wait_element_visible(self.DIALOG_COURSE)` |
+| **弹窗关闭** | 弹窗不可见 | `self.wait_element_invisible(self.DIALOG_COURSE)` |
+| **下拉选项弹出** | 下拉选项容器可见 | `self.wait_element_visible(self.SEARCH_CATEGORY_DROPDOWN)` |
+| **文件上传完成** | 上传组件内出现缩略图或进度条消失 | 自定义回调，一般等待 `el-upload-list` 中的文件项出现 |
+| **分页切换** | 表格重新加载（loading 出现 then 消失） | `self.wait_loading_disappear(self.TABLE_LOADING)` |
 
-**推荐使用 BasePage 已有方法**：`wait_table_loaded`（可改为 `.el-table`）、`wait_dialog_visible`（`#dialog-course`）、`wait_loading_disappear`（`.el-loading-mask`）。
-
----
+> BasePage 已经封装了 `wait_vue_stable()`（等待 Vue 异步渲染完成）、`wait_loading_disappear(locator)`、`wait_element_visible(locator)`、`wait_element_invisible(locator)`。可直接复用。
 
 ## 5. 自动化风险点
 
-| 风险 | 说明 | 应对策略 |
-|------|------|----------|
-| **弹窗内下拉选项渲染在 `<body>`** | Element Plus 的 `el-select` 选项面板默认 `append-to-body`，无法在弹窗内定位 | 使用全局选择器 `.el-select-dropdown`，并配合 `visible_scope` 等待；定位时需包含文本过滤 |
-| **日期范围选择器组件结构复杂** | `el-date-picker` 内部有多个 input 和 icon，触发方式可能是 click | 建议直接 click 组件外层，再与弹出的日期面板交互；面板也是 `append-to-body` |
-| **表格行索引动态** | 分页、排序后行顺序变化 | 避免硬编码行索引，使用文本或数据属性定位行 |
-| **操作列按钮权限控制** | 按钮可能因角色权限直接不渲染 | 定位前先判断是否存在，Fixture 可提前设置权限 |
-| **弹窗表单可能存在 `v-if`/`v-show`** | 部分表单项（如上传组件）可能在特定条件下才显示 | 等待元素 `visibility` 或 `presence` 后再操作 |
-| **左侧分类树选择后可能触发表格异步刷新** | 点击树节点后需等待 loading | 将树节点点击封装为等待表格刷新完成的方法 |
-| **id 冲突** | 如果页面内出现多个相同 id（罕见但可能），定位器需缩小范围 | 优先使用更具体的父容器或使用唯一父级路径 |
+| 风险点 | 说明 | 应对措施 |
+|:-------|:-----|:---------|
+| **动态 ID** | 未发现动态 ID（所有 id 均为固定字符串） | 当前无风险 |
+| **Vue 动态 class** | 例如 `el-select-dropdown__list` 可能随版本变动 | 使用 A 级定位（id）规避；若使用 B 级，监控 EP 升级 |
+| **v-if 控制元素** | 弹窗、loading 遮罩、空状态组件均由 v-if 控制 | 操作前必须等待可见/不可见；添加显式等待 |
+| **if rame 嵌套** | 当前页面未见 iframe | 后续若集成第三方课件预览可能引入，需额外处理 |
+| **虚拟列表/懒加载** | 课程列表可能使用 `el-table-v2`（虚拟滚动）？当前推测为普通 `el-table` | 如果改用虚拟列表，滚动加载会改变行定位方式，需更新定位器 |
+| **权限控制导致元素缺失** | 新建/编辑/删除按钮可能根据角色隐藏 | 测试前应确认测试账号权限； fixture 中处理断言缺失 |
+| **Element Plus 下拉选项渲染在 body 层** | `el-select` 的下拉菜单附加到 `document.body`，不在父组件内 | 点击触发后，使用 `SEARCH_CATEGORY_DROPDOWN` 定位（通用 class），避免使用父级作为上下文 |
+| **日期范围选择** | 需要两次点击输入框来打开/关闭面板，且输入格式需匹配组件期望 | 使用 `send_keys` 填入带 `~` 的格式；或拆分选取具体日期 |
+| **文件上传** | `input[type=file]` 被隐藏，不能直接点击 | 使用 Selenium 的 `send_keys(locator, file_path)` 直接设置文件路径，或者通过 JS 触发 |
+| **表格操作列按钮** | 同一行有多个按钮，需区分“编辑”“删除”“查看进度” | 使用 XPath 文本选择，或先定位到行再 `.find_element` |
 
 ---
 
-## 6. 针对 Element Plus 特定组件的补充定位技巧
-
-### el-select 下拉选项
-```python
-# 先点击触发 el-select，等待下拉面板出现
-select_element = driver.find_element(By.CSS_SELECTOR, "#search-category")
-select_element.click()
-wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".el-select-dropdown__item")))
-# 再选择具体项（例如文本匹配）
-option = driver.find_element(By.XPATH, "//div[contains(@class,'el-select-dropdown')]//span[text()='编程开发']")
-option.click()
+**总结**：页面定位器以 `id` 为主，A 级稳定性高。建议优先使用基于 id 的 CSS 选择器；对于动态部分（表格行、操作按钮）采用组合定位（行索引 + 相对 XPath）。等待策略聚焦 `el-loading` 的消失和弹窗的切换。需特别关注 `el-select` 下拉渲染在 body 层以及文件上传的特殊处理。
 ```
-
-### el-date-picker 日期范围
-```python
-# 点击输入框打开面板
-picker = driver.find_element(By.CSS_SELECTOR, "#search-dateRange .el-date-editor")
-picker.click()
-# 等待日期面板出现
-wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".el-date-range-picker")))
-# 选择开始日期和结束日期（略）
-# 确认后点击空白处关闭面板
-picker.find_element(By.XPATH, "..").click()  # 或按 Esc
-```
-
-### el-dialog
-```python
-# 等待弹窗完全打开
-dialog = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#dialog-course")))
-# 弹窗内操作
-```
-
-### el-table 行级定位
-```python
-# 基于课程名称定位行
-row_xpath = f"//tr[.//td[contains(@class,'el-table_1_column_2')]//a[text()='{course_name}']]"
-row = driver.find_element(By.XPATH, row_xpath)
-# 然后在该行内点击编辑
-edit_btn = row.find_element(By.XPATH, ".//button[span[text()='编辑']]")
-edit_btn.click()
-```
-
----
-
-## 7. 建议
-
-1. **优先使用 id 定位器**（A 级），本页面假设了大量 id，稳定性极高。
-2. **封装通用操作**：基于 BasePage 封装 `search_course(name, category, status, date_range)`、`click_new_course()`、`fill_course_form(data)`、`delete_course_by_name()` 等方法，复用性强。
-3. **应对弹窗下拉选项**：在 `ElementPlusHelper` 中已有 `select_option` 方法，确保其能处理 `append-to-body` 场景（提供 `parent` 参数指定下拉根选择器，或使用 `is_append_to_body=True` 开关）。
-4. **验证实际页面 HTML**：上述定位器需在实际页面中通过开发者工具验证，特别是 `id` 是否存在、Class 名称是否如推测。
-5. **异步等待**：所有涉及表格刷新的操作（搜索、重置、新建后、删除后、分页切换）均需等待 `loading` 消失，建议在 `BasePage` 中统一处理。
-
----
-
-**产出物**：本文件 `TECH_ANALYSIS.md` 已生成，可与 `PAGE_CONTEXT.md` 一同用于自动化代码生成。如需进一步细化某个组件（如树组件或上传组件的详细定位），请提供对应 HTML 片段。
