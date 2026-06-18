@@ -250,7 +250,7 @@ def api_client():
     """
     base_url = os.getenv(
         "TEST_API_BASE_URL",
-        "https://aiwechatminidemo.cimc-digital.com/api",
+        "https://aiwechatminidemo.cimc-digital.com",
     )
     username = os.getenv("TEST_USER", "admin")
     password = os.getenv("TEST_PASSWORD", "password")
