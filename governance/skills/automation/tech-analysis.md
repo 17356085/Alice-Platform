@@ -134,14 +134,16 @@
 - [ ] 自动化风险点已标注（动态ID、iframe、虚拟列表等）
 - [ ] 定位器值来源真实 HTML，不编造
 - [ ] 输出同时可作为 PAGE_ELEMENT_POSITION.md 使用
+- [ ] TECH_ANALYSIS.md 包含 YAML front-matter: source + source_agent + created
 
 ---
 
 ## 产出物
 → `TECH_ANALYSIS.md` + `PAGE_ELEMENT_POSITION.md`，存放至对应页面目录。
 → 输出格式参见 `templates/tech-analysis.template.md`。
+→ TECH_ANALYSIS.md 必须包含 YAML front-matter 来源标记：`source: ai`（参见 source-of-truth.md）。
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | automation | synced 2026-06-17 21:52
+> **1.0** | active | automation | synced 2026-06-18 10:54
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

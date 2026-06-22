@@ -128,12 +128,14 @@
 - [ ] 权限敏感元素已标注
 - [ ] 元素定位器至少覆盖 A/B 两级
 - [ ] 输出使用表格格式（元素ID/描述/类型/区域/备注）
+- [ ] PAGE_CONTEXT.md 包含 YAML front-matter: source + source_agent + created
 
 ---
 
 ## 产出物
 → `PAGE_CONTEXT.md` + `PAGE_ELEMENT_POSITION.md`，存放至对应页面目录。
 → 输出格式参见 `templates/page-context.template.md`。
+→ PAGE_CONTEXT.md 必须包含 YAML front-matter 来源标记：`source: ai | pair | merged`（参见 source-of-truth.md）。
 
 ---
 
@@ -157,6 +159,6 @@ python tools/generate_page_interface.py --module {{module}} --page {{page}}
 → `PAGE_INTERFACE.yaml`，存放至对应页面目录。
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.1** | active | test-design | synced 2026-06-17 21:52
+> **1.1** | active | test-design | synced 2026-06-18 10:54
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

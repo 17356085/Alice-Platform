@@ -17,6 +17,31 @@
 | SOP 运行状态 (可读导出) | artifacts/sop-status/SOP_STATUS_<module>.json | JSON 快照 | SQLite 的人类可读导出，不作为独立门禁依据 |
 | Agent 定义 | governance/agents/agent-definitions.yaml | 单一事实源 | agents/README.md + project-index.yaml 从此文件自动生成 |
 
+## 产出物来源标记
+
+所有 AI Agent 产出的治理文档必须标注来源，用于审核时区分 AI 生成 vs 人类提供。
+
+| 标记 | 含义 | 示例场景 |
+|------|------|---------|
+| `source: ai` | AI 全自动生成 | test-design-agent 从零分析页面生成 |
+| `source: pair` | 人类结对同学提供 | PAIR_SEEDS.md 中的种子场景 |
+| `source: merged` | AI + 人类合并产物 | TEST_CASES.md 中 AI 围绕人类种子扩展的用例 |
+| `source: ai-reviewed` | AI 生成 + 人工审核通过 | 经 HITL 审批后的产出 |
+
+**Markdown 文档**（PAGE_CONTEXT / TECH_ANALYSIS / AUTO_STRATEGY / RISK_MODEL / BUSINESS_SCENARIOS）：
+```yaml
+---
+source: ai
+source_agent: test-design-agent
+created: 2026-06-22T15:30:00+08:00
+reviewed_by: null
+---
+```
+
+**TEST_CASES.md 用例表**：增加 `来源` 列（值：`ai` / `pair` / `merged`）和 `合并来源` 列（引用 SEED ID 或留空）。
+
+**向后兼容**：旧文档缺少 source 字段时默认视为 `source: ai`。
+
 ## 禁止事项
 - 不在多个文件重复维护同一份模块清单
 - 不把临时 AI 会话记录写进项目主上下文

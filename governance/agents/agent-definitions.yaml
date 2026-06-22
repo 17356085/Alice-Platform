@@ -97,18 +97,20 @@ agents:
     skills:
       - test-design/page-analysis       # P1-2: page-interface-generator 已合并为 page-analysis 的后处理
       - test-design/page-observe        # 🆕 BrowserUse 自动页面结构观察 (page-analysis 后处理)
+      - test-design/pair-seed           # 🆕 结对种子注入——人类提供 2-5 核心场景，AI 围绕扩展
       - test-design/risk-modeling       # P2-5: 新增 BUSINESS_SCENARIOS.md 产出
-      - test-design/testcase-design     # P2-5: 新增第 9 维度（业务场景验证）
+      - test-design/testcase-design     # P2-5: 新增第 9 维度（业务场景验证）+ 结对种子合并
       - test-design/test-data-generation
       - test-design/api-testing
       - test-design/miniapp-testing
     output_artifacts:
       - PAGE_CONTEXT.md
       - PAGE_STRUCTURE.json             # 🆕 page-observe 自动生成
+      - PAIR_SEEDS.md                   # 🆕 结对种子（人类填写，可选）
       - RISK_MODEL.md
       - BUSINESS_SCENARIOS.md           # P2-5: 业务场景模型（testcase-design 必选输入）
       - TEST_DESIGN.md                  # P2-5: 需覆盖 9 个维度（含业务场景验证）
-      - TEST_CASES.md                   # P2-5: 需标注 BS-XXX-NNN 场景 ID 映射
+      - TEST_CASES.md                   # P2-5: 需标注 BS-XXX-NNN 场景 ID 映射 + source 字段
       - PAGE_INTERFACE.yaml             # page-analysis 自动生成
     boundaries:
       - 不写代码

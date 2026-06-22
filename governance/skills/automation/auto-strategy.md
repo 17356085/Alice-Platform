@@ -92,14 +92,16 @@
 - [ ] 等待策略：标注页面特有的异步行为
 - [ ] ROI 计算完整：开发时间 + 维护成本 + 手工执行时间
 - [ ] 定位器不稳定的用例标注了风险
+- [ ] AUTO_STRATEGY.md 包含 YAML front-matter: source + source_agent + created
 
 ---
 
 ## 产出物
 → `AUTO_STRATEGY.md`，存放至对应页面目录。
 → 输出格式参见 `templates/auto-strategy.template.md`。
+→ AUTO_STRATEGY.md 必须包含 YAML front-matter 来源标记：`source: ai | ai-reviewed`（参见 source-of-truth.md）。
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | automation | synced 2026-06-17 21:52
+> **1.0** | active | automation | synced 2026-06-18 10:54
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

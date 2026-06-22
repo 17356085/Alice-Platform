@@ -774,6 +774,7 @@ def main():
     parser.add_argument("--check-pe-optimized", action="store_true", help="Prompt Engineering: 检查 Skill 是否经过 PE 优化")
     parser.add_argument("--check-pe-all", action="store_true", help="Prompt Engineering: 运行全部 3 项 PE 质量检查")
     parser.add_argument("--pe-skill-filter", default=None, help="PE 检查: 仅检查匹配的 Skill (substring match)")
+    parser.add_argument("--check-coverage", action="store_true", help="Coverage: 检查测试用例覆盖率 (P0/类型/元素/来源)")
 
     args = parser.parse_args()
 
@@ -895,6 +896,43 @@ def main():
             # If only PE checks requested (no --agent), exit now
             if not args.agent or args.agent == "pe-gate":
                 sys.exit(0 if pe_result["passed"] else 1)
+        # Otherwise fall through to standard gate check below
+
+    # Coverage check — test case quality metrics (P0/type/source/element)
+    if args.check_coverage:
+        # Import inline to avoid dependency at import time
+        _coverage_dir = str(WORKSTUDY_DIR / "governance")
+        if _coverage_dir not in sys.path:
+            sys.path.insert(0, _coverage_dir)
+        from validators.coverage_checker import check_coverage, check_all_pages
+
+        if args.page:
+            results = [check_coverage(args.module, args.page)]
+        else:
+            results = check_all_pages(args.module)
+
+        if args.json:
+            print(json.dumps(results, ensure_ascii=False, indent=2))
+        elif not args.quiet:
+            for r in results:
+                print("=" * 58)
+                print(f"  Coverage Check — {r['module']}/{r['page']}")
+                print("  " + "-" * 54)
+                for c in r["checks"]:
+                    icon = "✅" if c["passed"] else "❌"
+                    print(f"  {icon} [{c['level'].upper()}] {c['message']}")
+                    if c.get("hint"):
+                        print(f"     💡 {c['hint']}")
+                    if c.get("detail"):
+                        print(f"     📋 {c['detail'][:120]}")
+                print("  " + "-" * 54)
+                print(f"  {r['summary']}")
+                print("=" * 58)
+
+        # Exit if only coverage check requested
+        if not args.agent or args.agent == "coverage":
+            all_pass = all(r["passed"] for r in results)
+            sys.exit(0 if all_pass else 1)
         # Otherwise fall through to standard gate check below
 
     result = check_sop_gate(

@@ -164,6 +164,7 @@
 - [ ] 数据风险覆盖边界值（空/超长/特殊字符/SQL注入）
 - [ ] 权限风险覆盖"无权限用户通过URL直接访问"
 - [ ] 高风险场景标注了现有自动化覆盖状态
+- [ ] RISK_MODEL.md 包含 YAML front-matter: source + source_agent + created
 
 ### BUSINESS_SCENARIOS 检查（P2-5: 新增）
 - [ ] 6 个业务维度全部覆盖（目标/角色/流程/规则/数据/风险映射）
@@ -181,8 +182,9 @@
 → `RISK_MODEL.md` + `BUSINESS_SCENARIOS.md`，存放至对应页面目录。
 → 输出格式参见 `templates/risk-model.template.md`。
 → BUSINESS_SCENARIOS.md 作为 testcase-design Skill 的必选输入。
+→ RISK_MODEL.md 与 BUSINESS_SCENARIOS.md 必须包含 YAML front-matter 来源标记：`source: ai`（参见 source-of-truth.md）。
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | test-design | synced 2026-06-17 21:52
+> **1.0** | active | test-design | synced 2026-06-18 10:54
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

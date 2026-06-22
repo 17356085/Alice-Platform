@@ -100,6 +100,22 @@ skills:
   note: BrowserUse AI Agent 自动探索页面，提取 search_fields / buttons / columns / pagination。作为 page-analysis 的 BrowserUse 驱动后处理。
   workflows:
   - module-onboarding
+- id: pair-seed
+  category: test-design
+  status: active
+  file: skills/test-design/pair-seed.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/test-design/pair-seed.md
+    released: '2026-06-22'
+    changelog: 结对种子场景注入 — 人类提供 2-5 核心场景，AI 围绕扩展生成完整用例集
+    status: active
+  depends_on:
+  - page-analysis
+  note: 在 testcase-design 之前执行。检测 PAIR_SEEDS.md，校验种子完整性，注入 pipeline_context.pair_seeds。无种子时正常跳过。
+  workflows:
+  - module-test-design
 - id: risk-modeling
   category: test-design
   status: active

@@ -79,6 +79,27 @@ hitl:
     enabled: true
     min_p0_cases: 1    # P0 用例数 ≥ 此值才触发审批
 
+# ── Coverage 覆盖率目标 (🆕 pair-seed 方案 Task C) ─────────────────────
+coverage:
+  targets:
+    requirement_coverage: 0.95       # 每个页面至少 1 个 P0 用例
+    min_p0_cases: 1
+    scene_type_diversity:            # positive / negative / boundary 至少各 1
+      min_positive: 1
+      min_negative: 1
+      min_boundary: 1
+    min_element_coverage: 0.90       # 可交互元素被用例覆盖比例
+    e2e_coverage: 0.80               # 核心流程端到端覆盖
+    require_source_field: true       # 检查 source 字段存在性（info 级别）
+  # 按模块覆盖（覆盖默认值）
+  per_module:
+    equipment:
+      min_p0_cases: 3
+      require_e2e: true
+    production:
+      min_p0_cases: 3
+      require_e2e: true
+
 # ── 测试账号说明 ──────────────────────────────────────────────────────
 # 账号信息统一在 ZJSN_Test-master526/.env 中维护（DEFAULT_USERNAME / DEFAULT_PASSWORD）
 # CI 凭据通过 Jenkins credentials 管理：

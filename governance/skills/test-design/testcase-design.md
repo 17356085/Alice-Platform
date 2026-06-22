@@ -21,10 +21,49 @@
 - 先风险，后覆盖
 - 区分手工、自动化、混合
 - 明确不建议自动化的场景
+- **🆕 结对种子合并**：若 `pipeline_context.pair_seeds` 存在，结对种子优先，AI 围绕扩展。参见下方「结对种子合并策略」
 
 ## 依赖
 - templates/test-design.template.md
 - templates/test-cases.template.md
+- templates/pair-seeds.template.md（如有结对种子）
+
+---
+
+## 结对种子合并策略
+
+> 当 PAIR_SEEDS.md 存在且 pair-seed Skill 已注入 `pipeline_context.pair_seeds` 时生效。
+
+### 优先级
+
+1. **结对种子** (`source: pair`) — 直接采用，不做修改
+2. **结对覆盖** (`source: pair`) — 同场景但结对版本设计不同 → 使用结对版本
+3. **AI 扩展** (`source: merged`) — 围绕种子补充同优先级/同类型的缺失场景
+4. **AI 纯生成** (`source: ai`) — 全新场景，与种子无关联
+
+### 去重规则
+
+- AI 生成候选与已有种子做语义相似度匹配
+- 相似度 > 0.8 → 视为重复，丢弃 AI 版本
+- 相似度 0.5–0.8 → 标记 `source: merged`，关联对应 SEED ID
+- 相似度 < 0.5 → 保留 `source: ai`
+
+### 冲突处理
+
+| 冲突类型 | 规则 |
+|---------|------|
+| 同一场景，不同步骤设计 | 结对版本优先，AI 版本作为备选注释 |
+| 同一场景，不同预期结果 | 标记 `⚠️ REVIEW`，待人工审核 |
+| 结对种子步骤不完整 | AI 补充详细步骤，标记 `source: merged`，保留原始 SEED ID |
+| AI 场景与种子业务冲突 | 丢弃 AI 版本，记录日志 |
+
+### 覆盖缺口检测
+
+合并后检查以下缺口，AI 自动填补：
+- 每个优先级（P0/P1/P2）至少 1 个用例
+- positive / negative / boundary 至少各 1 个
+- 高风险元素（来自 RISK_MODEL）至少 1 个用例
+- 存在 BUSINESS_SCENARIOS 时，每个 BS 场景至少 1 条用例
 
 ---
 
@@ -115,6 +154,8 @@ TEST_DESIGN：{{粘贴 TEST_DESIGN.md}}
 | 所属模块 | {{模块名}} |
 | 所属页面 | {{页面名}} |
 | 优先级 | P0/P1/P2 |
+| 来源 | ai / pair / merged（参见 source-of-truth.md 来源标记规范） |
+| 合并来源 | 若来源为 merged，填写 SEED-XXX；否则填 - |
 | 前置条件 | 数据准备、账号、环境要求 |
 | 测试步骤 | 编号的详细操作步骤（可被另一个人复现） |
 | 测试数据 | 具体的输入值（不要写"输入用户名"，写"输入 admin"） |
@@ -125,6 +166,8 @@ TEST_DESIGN：{{粘贴 TEST_DESIGN.md}}
 ## 格式要求
 - 用例编号连续
 - P0 用例 100% 覆盖，P1 ≥ 80%，P2 ≥ 50%
+- 每个用例标注 `来源` 字段：`ai`（AI 全自动生成）/ `pair`（结对种子）/ `merged`（AI+种子合并）
+- 若 PAIR_SEEDS.md 存在，种子用例标记 `source: pair`，AI 围绕扩展的标记 `source: merged`，纯 AI 补充的标记 `source: ai`
 ```
 
 ---
@@ -149,6 +192,8 @@ TEST_DESIGN：{{粘贴 TEST_DESIGN.md}}
 - [ ] P1 覆盖率 ≥ 80%
 - [ ] 每个用例标注自动化状态
 - [ ] 业务场景用例标注对应的 BS-XXX-NNN 场景 ID
+- [ ] 每个用例标注 `来源` 字段（ai/pair/merged）
+- [ ] merged 来源的用例标注 `合并来源` SEED ID
 - [ ] 与已有用例格式一致
 
 ### 业务覆盖完整性检查（P2-5: 新增）
@@ -160,13 +205,21 @@ TEST_DESIGN：{{粘贴 TEST_DESIGN.md}}
 - [ ] 数据流完整性已验证（来源→变换→消费）
 - [ ] 操作覆盖 + 业务覆盖 双维度均达标
 
+### 结对种子合并检查（🆕）
+- [ ] 若 PAIR_SEEDS.md 存在，种子用例全部标记 `source: pair`
+- [ ] 围绕种子扩展的用例标记 `source: merged` + 关联 SEED ID
+- [ ] 无与种子重复的 AI 生成用例（相似度 > 0.8）
+- [ ] 覆盖缺口已检测并填补（优先级/类型/元素）
+
 ---
 
 ## 产出物
 → `TEST_DESIGN.md` + `TEST_CASES.md`，存放至对应页面目录。
 → 输出格式参见 `templates/test-design.template.md` 和 `templates/test-cases.template.md`。
+→ 若 PAIR_SEEDS.md 存在，TEST_CASES.md 中结对种子标记 `source: pair`，AI 扩展标记 `source: merged`，纯 AI 补充标记 `source: ai`。
+→ 合并逻辑参见上方「结对种子合并策略」。
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | test-design | synced 2026-06-17 21:52
+> **1.0** | active | test-design | synced 2026-06-18 10:54
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->
