@@ -8,9 +8,9 @@
 - 或通过 Chat 界面交互式输入的种子场景
 
 ## 输出
-- 校验报告（哪些种子有效/无效/需要补充）
-- 注入标记：`pipeline_context.pair_seeds` 供下游 testcase-design Skill 消费
-- 有效种子场景写入上下文，标记 `source: pair`
+- `_pair_seeds_validated.json` — 校验后的种子场景（结构化 JSON，供 testcase-design 直接消费）
+- 校验报告（控制台输出）
+- 校验失败时仍生成输出文件（仅包含通过校验的种子）
 
 ## 规则
 - 结对种子优先于 AI 生成：种子覆盖的场景 AI 不再重复生成
@@ -121,5 +121,5 @@ PAGE_CONTEXT 摘要：{{粘贴 PAGE_CONTEXT.md 核心元素清单}}
 
 ## 产出物
 → 校验报告（控制台输出或嵌入 test-design 流程日志）
-→ `pipeline_context.pair_seeds` 供下游 testcase-design 消费
-→ 无文件产出（种子场景融入 TEST_CASES.md 中）
+→ `_pair_seeds_validated.json` 写入页面目录，供下游 testcase-design 直接读取
+→ 无种子时写 `{"seeds": [], "available": false}`；有种子时写完整验证结果
