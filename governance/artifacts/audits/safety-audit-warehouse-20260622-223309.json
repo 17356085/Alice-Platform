@@ -1,0 +1,54 @@
+{
+  "module": "warehouse",
+  "audit_time": "2026-06-22T22:33:09.112218",
+  "audit_type": "safety",
+  "overall_status": "error",
+  "safety_score": 85,
+  "total_violations": 1,
+  "critical_count": 0,
+  "high_count": 1,
+  "medium_count": 0,
+  "warning_count": 0,
+  "violations": [
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "knowledge/context-sync",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.100...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-warehouse-240621-002",
+        "skill_id": "knowledge/context-sync",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.100"
+      }
+    }
+  ],
+  "checks": {
+    "high_risk_confirm": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    },
+    "sensitive_leak": {
+      "total": 1,
+      "critical": 0,
+      "high": 1,
+      "ok": false
+    },
+    "permission_bypass": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    },
+    "audit_trail": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    }
+  }
+}

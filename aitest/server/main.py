@@ -148,18 +148,17 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
+    """Dashboard landing page — demo entry point."""
+    dashboard_html = _STATIC_DIR / "dashboard.html"
+    if dashboard_html.exists():
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(dashboard_html.read_text(encoding="utf-8"))
     return {
         "name": "AITest Platform",
-        "version": "0.4.0",
+        "version": "0.5.0",
         "docs": "/docs",
         "chat": "/chat",
-        "modules": {
-            "chat":      ["POST /api/chat/sessions", "POST /api/chat/sessions/{id}/messages", "GET /api/chat/sessions/{id}/stream/{mid}"],
-            "agents":    ["POST /api/agent/run", "GET /api/agent/task/{id}", "GET /api/agent/queue", "GET /api/agent/status/{module}", "GET /api/agent/list"],
-            "workflows": ["POST /api/workflow/run", "GET /api/workflow/status/{run_id}", "GET /api/workflow/list", "GET /api/workflow/runs"],
-            "bugs":      ["GET /api/bugs/list", "POST /api/bugs/add", "GET /api/bugs/trends"],
-            "webhooks":  ["POST /api/webhook/jenkins"],
-        },
+        "trace": "/trace",
     }
 
 
@@ -420,6 +419,16 @@ async def trace_ui():
         from fastapi.responses import HTMLResponse
         return HTMLResponse(trace_html.read_text(encoding="utf-8"))
     return {"message": f"trace.html not found at {_STATIC_DIR}"}
+
+
+@app.get("/governance")
+async def governance_ui():
+    """治理仪表板界面。"""
+    gov_html = _STATIC_DIR / "governance.html"
+    if gov_html.exists():
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(gov_html.read_text(encoding="utf-8"))
+    return {"message": f"governance.html not found at {_STATIC_DIR}"}
 
 
 if __name__ == "__main__":
