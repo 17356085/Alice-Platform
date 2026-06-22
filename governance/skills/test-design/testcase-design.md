@@ -85,11 +85,12 @@
 输出 TEST_DESIGN.md，按以下维度设计测试：
 
 **🆕 结对种子优先（必须执行）**：
-在开始设计前，先检查页面目录下是否存在 `PAIR_SEEDS.md`。若存在：
-1. 读取并解析其中的 SEED-XXX 场景
-2. 这些场景**必须**出现在最终的 TEST_CASES 中，标记 `来源: pair`
-3. AI 围绕种子补充同优先级/同类型的缺失场景，标记 `来源: merged`，关联对应 SEED ID
-4. AI 全新生成的场景标记 `来源: ai`
+在开始设计前，**必须先检查** `governance/context/projects/web-automation/modules/{{module}}/pages/{{page}}/PAIR_SEEDS.md` 是否存在。
+若存在，读取并解析其中的 SEED-XXX 场景，执行以下规则：
+1. 种子场景**直接采用**为正式用例，标记 `来源: pair`
+2. AI 围绕种子补充同优先级/同类型的缺失场景，标记 `来源: merged`，关联对应 SEED ID
+3. AI 全新生成的场景标记 `来源: ai`
+4. 去重：AI 候选与种子语义相似度 > 0.8 则丢弃 AI 版本
 
 ### 1. 页面加载与显示
 - 正常加载、空数据状态、权限受限状态
@@ -152,7 +153,9 @@
 
 ## 输入
 TEST_DESIGN：{{粘贴 TEST_DESIGN.md}}
-**PAIR_SEEDS（如存在）**：{{若页面目录下存在 PAIR_SEEDS.md，粘贴其内容}}
+🆕 **PAIR_SEEDS（结对种子）**：
+  检查路径：`governance/context/projects/web-automation/modules/{{module}}/pages/{{page}}/PAIR_SEEDS.md`
+  若该文件存在，**必须**读取并采用其中的种子场景。若不存在，所有用例标记 `来源: ai`。
 
 ## 任务
 将每个测试场景展开为可执行用例，输出 TEST_CASES.md。

@@ -51,6 +51,10 @@ SKILL_CONTEXT_MAP = {
         {"type": "rag", "collection": "project_context", "query": "BasePage API 交互方法"},
         {"type": "rag", "collection": "project_context", "query": "Element Plus 定位规范"},
     ],
+    "test-design/pair-seed": [
+        {"type": "file", "path": "{module_dir}/pages/{page}/PAIR_SEEDS.md", "label": "结对种子（人类提供）", "optional": True, "max_chars": 4000},
+        {"type": "file", "path": "{module_dir}/pages/{page}/PAGE_CONTEXT.md", "label": "页面上下文", "optional": True, "max_chars": 2000},
+    ],
     "test-design/risk-modeling": [
         {"type": "file", "path": "{po_path}", "label": "Page Object 代码", "max_chars": 4000, "optional": True},
         {"type": "file", "path": "{module_dir}/pages/{page}/PAGE_CONTEXT.md", "label": "页面上下文", "optional": True, "max_chars": 3000},
@@ -60,6 +64,7 @@ SKILL_CONTEXT_MAP = {
     "test-design/testcase-design": [
         {"type": "file", "path": "{po_path}", "label": "Page Object 代码（真实方法/定位器）", "max_chars": 5000},
         {"type": "file", "path": "{test_path}", "label": "现有测试脚本（场景参考）", "max_chars": 4000, "optional": True},
+        {"type": "file", "path": "{module_dir}/pages/{page}/PAIR_SEEDS.md", "label": "🆕 结对种子（必须优先采用）", "optional": True, "max_chars": 4000},
         {"type": "file", "path": "{module_dir}/pages/{page}/PAGE_CONTEXT.md", "label": "页面上下文", "optional": True, "max_chars": 3000},
         {"type": "file", "path": "{module_dir}/pages/{page}/RISK_MODEL.md", "label": "风险模型", "optional": True, "max_chars": 2000},
         {"type": "rag", "collection": "project_context", "query": "测试用例命名规范"},
