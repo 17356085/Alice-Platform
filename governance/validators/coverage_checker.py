@@ -63,22 +63,36 @@ def load_coverage_targets(module: str) -> dict:
 
 
 def parse_test_cases(content: str) -> list[dict]:
-    """从 TEST_CASES.md 解析用例列表。返回 [{id, title, priority, type, source, merged_from}, ...]"""
+    """从 TEST_CASES.md 解析用例列表。返回 [{id, title, priority, type, source, merged_from}, ...]
+
+    支持多种表头格式：用例编号/编号/ID, 用例标题/测试场景/标题, 优先级, 类型, 来源.
+    """
     cases = []
     in_table = False
     headers = []
+
+    # Header detection keywords
+    _case_id_keys = ("用例编号", "编号", "id", "case id")
+    _title_keys = ("用例标题", "测试场景", "标题", "title", "场景名称")
+    _priority_keys = ("优先级", "priority")
+    _type_keys = ("类型", "type")
+    _source_keys = ("来源", "source")
 
     for line in content.split("\n"):
         line = line.strip()
         if not line:
             continue
 
-        # Detect table start
-        if line.startswith("|") and "用例编号" in line:
-            in_table = True
-            # Parse header
-            headers = [h.strip() for h in line.split("|")[1:-1]]
-            continue
+        # Detect table start — flexible header detection
+        if line.startswith("|"):
+            header_cells = [h.strip().lower() for h in line.split("|")[1:-1]]
+            # Check if this looks like a case table header
+            has_case_id = any(k in " ".join(header_cells) for k in _case_id_keys)
+            has_priority = any(k in " ".join(header_cells) for k in _priority_keys)
+            if has_case_id and has_priority:
+                in_table = True
+                headers = [h.strip() for h in line.split("|")[1:-1]]
+                continue
 
         if not in_table:
             continue
@@ -87,13 +101,17 @@ def parse_test_cases(content: str) -> list[dict]:
         if re.match(r"^\|[\s\-:|]+\|$", line):
             continue
 
-        # End of table
+        # End of table — non-pipe line or new section header
         if not line.startswith("|"):
             in_table = False
             continue
 
         cells = [c.strip() for c in line.split("|")[1:-1]]
         if len(cells) < 4:
+            continue
+
+        # Skip if first cell looks like a section header (e.g., "### 1.")
+        if cells[0].startswith("#"):
             continue
 
         case = {"id": cells[0] if len(cells) > 0 else ""}
@@ -103,16 +121,16 @@ def parse_test_cases(content: str) -> list[dict]:
             if i >= len(cells):
                 break
             hl = h.lower()
-            if hl in ("优先级", "priority"):
-                case["priority"] = cells[i].upper()
-            elif hl in ("类型", "type"):
-                case["type"] = cells[i].lower()
-            elif hl in ("来源", "source"):
-                case["source"] = cells[i].lower()
-            elif hl in ("合并来源", "merged_from", "合并来源"):
-                case["merged_from"] = cells[i]
-            elif hl in ("用例标题", "title", "场景名称"):
-                case["title"] = cells[i]
+            if any(k in hl for k in _priority_keys):
+                case["priority"] = cells[i].upper().strip("* ")
+            elif any(k in hl for k in _type_keys):
+                case["type"] = cells[i].lower().strip("* ")
+            elif any(k in hl for k in _source_keys):
+                case["source"] = cells[i].lower().strip("* ")
+            elif "合并来源" in hl or "merged" in hl:
+                case["merged_from"] = cells[i].strip("* ")
+            elif any(k in hl for k in _title_keys):
+                case["title"] = cells[i].strip("* ")
 
         # Defaults
         case.setdefault("priority", "")
