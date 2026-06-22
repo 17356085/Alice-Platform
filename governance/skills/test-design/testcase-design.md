@@ -131,7 +131,8 @@
 - 维度 9（业务场景验证）必须基于 BUSINESS_SCENARIOS.md 中定义的业务场景设计
 - 维度 9 的每个测试场景必须标注对应的 BS-XXX-NNN 场景 ID
 - 维度 1-8 是 UI 操作覆盖（基础层），维度 9 是业务场景覆盖（价值层）
-- 每个测试点格式：| 编号 | 测试场景 | 优先级 | 前置条件 | 测试步骤 | 预期结果 |
+- 每个测试点格式：`| 编号 | 测试场景 | 优先级 | 类型 | 来源 | 前置条件 | 测试步骤 | 预期结果 |`
+- **类型（必填）**：`positive`（正常流程）/ `negative`（异常输入/错误处理）/ `boundary`（边界值/极限）/ `destructive`（破坏性操作如删除）
 - P0（阻塞上线）、P1（影响核心体验）、P2（边缘场景）
 - 与 RISK_MODEL 中的风险项一一对应
 ```
@@ -154,6 +155,7 @@ TEST_DESIGN：{{粘贴 TEST_DESIGN.md}}
 | 所属模块 | {{模块名}} |
 | 所属页面 | {{页面名}} |
 | 优先级 | P0/P1/P2 |
+| 类型（必填） | positive（正常流程）/ negative（异常/错误）/ boundary（边界值）/ destructive（破坏性操作） |
 | 来源 | ai / pair / merged（参见 source-of-truth.md 来源标记规范） |
 | 合并来源 | 若来源为 merged，填写 SEED-XXX；否则填 - |
 | 前置条件 | 数据准备、账号、环境要求 |
@@ -166,8 +168,10 @@ TEST_DESIGN：{{粘贴 TEST_DESIGN.md}}
 ## 格式要求
 - 用例编号连续
 - P0 用例 100% 覆盖，P1 ≥ 80%，P2 ≥ 50%
-- 每个用例标注 `来源` 字段：`ai`（AI 全自动生成）/ `pair`（结对种子）/ `merged`（AI+种子合并）
+- **每个用例必须标注 `类型` 字段**：`positive`（正常流程）/ `negative`（异常/错误）/ `boundary`（边界值）/ `destructive`（删除等破坏性操作）
+- **每个用例必须标注 `来源` 字段**：`ai`（AI 全自动生成）/ `pair`（结对种子）/ `merged`（AI+种子合并）
 - 若 PAIR_SEEDS.md 存在，种子用例标记 `source: pair`，AI 围绕扩展的标记 `source: merged`，纯 AI 补充的标记 `source: ai`
+- 覆盖率硬要求：positive ≥ 1, negative ≥ 1, boundary ≥ 1（每个页面至少覆盖三类场景）
 ```
 
 ---

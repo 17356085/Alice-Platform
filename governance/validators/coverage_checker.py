@@ -165,7 +165,24 @@ def parse_page_elements(content: str) -> list[str]:
             elif eid:
                 elements.append(eid.lower())
 
-    return elements
+    # Filter out display-only / metadata elements that don't need test coverage
+    _display_only_patterns = [
+        "列头", "列头：",        # column headers (visual labels, not interactive)
+        "总条数", "每页条数",     # pagination metadata
+        "分页组件",               # pagination wrapper
+        "弹窗标题",               # dialog title label
+        "面包屑",                 # breadcrumb
+        "搜索区", "表格区", "操作按钮区", "分页区",  # layout regions
+        "顶部导航", "左侧菜单",   # shell elements
+        "所有列头单元格", "所有数据行",  # aggregate descriptors
+        "空数据提示", "加载中",   # state indicators (not elements)
+    ]
+    filtered = []
+    for elem in elements:
+        if any(p in elem for p in _display_only_patterns):
+            continue
+        filtered.append(elem)
+    return filtered
 
 
 def check_coverage(module: str, page: str) -> dict:
