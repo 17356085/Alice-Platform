@@ -965,6 +965,44 @@ class ContractPage(BasePage):
         """等待表格数据渲染完成（兼容旧接口）"""
         return self._el_helper.wait_table_ready(timeout)
 
+    def fill_contract_form(self, *, name=None, customer=None, product_type=None,
+                           total_quantity=None, unit_price=None,
+                           start_date=None, end_date=None):
+        """填充合同新增/编辑弹窗表单。
+        基于 placeholder 定位（弹窗使用 input placeholder 而非 label）。
+        """
+        if name is not None:
+            self.js_fill_input(
+                (By.XPATH, '//div[contains(@class,"el-dialog")]//input[@placeholder="合同名称"]'),
+                name, fallback_send_keys=True)
+        if customer is not None:
+            self._click_vue_select(None, "请选择客户", customer)
+        if product_type is not None:
+            self._click_vue_select(None, "产品类型", product_type)
+        if total_quantity is not None:
+            self.js_fill_input(
+                (By.XPATH, '//div[contains(@class,"el-dialog")]//input[@placeholder="合同总量(吨)"]'),
+                str(total_quantity), fallback_send_keys=True)
+        if unit_price is not None:
+            self.js_fill_input(
+                (By.XPATH, '//div[contains(@class,"el-dialog")]//input[@placeholder="合同金额(万元)"]'),
+                str(unit_price), fallback_send_keys=True)
+        if start_date is not None:
+            self.js_fill_input(
+                (By.XPATH, '//div[contains(@class,"el-dialog")]//input[@placeholder="生效日期"]'),
+                start_date, fallback_send_keys=True)
+        if end_date is not None:
+            self.js_fill_input(
+                (By.XPATH, '//div[contains(@class,"el-dialog")]//input[@placeholder="有效期至"]'),
+                end_date, fallback_send_keys=True)
+
+    def click_save(self):
+        """点击弹窗确定按钮，返回 toast 消息文本"""
+        logger.info("点击确定按钮")
+        self._el_helper.click_button_by_text("确定")
+        self.wait_vue_stable()
+        return self.get_toast()
+
     def get_form_error_text(self, timeout=3):
         """获取所有表单验证错误文本
 

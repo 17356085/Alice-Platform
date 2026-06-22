@@ -274,6 +274,50 @@ async def audit_cost(days: int = 7):
         return {"error": str(e)[:300], "total_cost": 0, "alert_count": 0}
 
 
+@app.get("/api/audit/safety")
+async def audit_safety(module: str = "equipment", days: int = 7):
+    """Safety Auditor — 安全审计 API (P0)。"""
+    try:
+        from aitest.governance.safety_auditor import SafetyAuditor
+        auditor = SafetyAuditor()
+        report = auditor.audit(module, days=days)
+        return report
+    except Exception as e:
+        return {"error": str(e)[:300], "overall_status": "error", "safety_score": 0}
+
+
+@app.get("/api/online/analyze")
+async def online_analyze(module: str = "system", days: int = 7):
+    """Online Monitor — 线上指标分析 API (P0)。"""
+    try:
+        from aitest.governance.online_monitor import OnlineMonitor
+        monitor = OnlineMonitor()
+        report = monitor.analyze(module, days=days)
+        return report
+    except Exception as e:
+        return {"error": str(e)[:300], "module": module}
+
+
+@app.get("/api/trace/{run_id}")
+async def trace_replay(run_id: str):
+    """Trace 回放 API — 获取指定运行的全部步骤。"""
+    try:
+        from aitest.governance.online_monitor import get_run_trace_replay
+        return get_run_trace_replay(run_id)
+    except Exception as e:
+        return {"error": str(e)[:300], "run_id": run_id, "steps": []}
+
+
+@app.get("/api/trace/runs")
+async def trace_runs(limit: int = 20):
+    """列出最近的运行记录。"""
+    try:
+        from aitest.governance.online_monitor import list_recent_runs
+        return {"runs": list_recent_runs(limit=limit)}
+    except Exception as e:
+        return {"error": str(e)[:300], "runs": []}
+
+
 @app.get("/api/audit/governance")
 async def audit_governance(module: str = "equipment", days: int = 7):
     """Governance 聚合 API — 一次返回所有审计摘要。"""
@@ -296,6 +340,11 @@ async def audit_governance(module: str = "equipment", days: int = 7):
         result["cost"] = CostAuditor().audit(days=days)
     except Exception as e:
         result["cost"] = {"error": str(e)[:200]}
+    try:
+        from aitest.governance.safety_auditor import SafetyAuditor
+        result["safety"] = SafetyAuditor().audit(module, days=days)
+    except Exception as e:
+        result["safety"] = {"error": str(e)[:200]}
     return result
 
 
@@ -361,6 +410,16 @@ async def chat_ui():
         from fastapi.responses import HTMLResponse
         return HTMLResponse(chat_html.read_text(encoding="utf-8"))
     return {"message": f"chat.html not found at {_STATIC_DIR}. Run: aitest server start"}
+
+
+@app.get("/trace")
+async def trace_ui():
+    """Trace 回放界面。"""
+    trace_html = _STATIC_DIR / "trace.html"
+    if trace_html.exists():
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(trace_html.read_text(encoding="utf-8"))
+    return {"message": f"trace.html not found at {_STATIC_DIR}"}
 
 
 if __name__ == "__main__":

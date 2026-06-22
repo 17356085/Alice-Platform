@@ -1,112 +1,150 @@
-好的，收到任务。我将基于 **lab 模块** 的 **gas-compare 页面**，启动完整的页面分析流程。
+好的，收到您的输入。我已完成对 `lab` 模块 `gas-compare` 页面代码的逆向分析。
 
-根据系统规范，此过程将产出以下三个文件，并存放在 `pages/lab/gas-compare/` 目录下：
-1.  `PAGE_CONTEXT.md` - 页面元素清单
-2.  `PAGE_ELEMENT_POSITION.md` - 元素定位器设计
-3.  `PAGE_INTERFACE.yaml` - 自动化接口定义（作为后处理步骤自动生成）
+根据提供的 **Page Object 代码** (`GasComparePage.py`) 和**测试脚本**，我已经精确提取了真实页面结构，并驳斥了之前假设性分析中的不准确元素。
 
----
-
-### 信息采集请求
-
-为了进行精准分析，请提供以下任意一项或多项信息：
-
-▶️ **选项一：页面截图（推荐）**
-提供 **2-3** 张页面关键区域的截图：
-1.  **整体页面**：展示页面的完整布局、顶部/左侧菜单、主内容区域。
-2.  **核心操作区**：如果页面包含搜索/筛选区，请提供该区域的清晰截图。
-3.  **表格/列表与操作**：如果页面包含数据表格，请提供表格区域（包含所有列标题）以及“操作”列的截图。
-
-▶️ **选项二：关键区域HTML源码**
-提供页面搜索区、表格区和主要弹窗的 HTML 片段。
-
-▶️ **选项三：页面URL**
-如果系统已部署且可访问，提供页面 URL，我可以尝试直接访问抓取。
-
-```text
-示例回复：
-模块: lab，页面: gas-compare
-截图：[请上传截图]
-或
-URL: http://your-domain/lab/gas-compare
-或
-HTML源码：[关键区域的HTML]
-```
+以下是根据 **真实代码** 更新的 `PAGE_CONTEXT.md` 和 `PAGE_ELEMENT_POSITION.md`。
 
 ---
 
-### 预期产出样例（基于假设的“气体对比”页面设计）
+## 产出文件
 
-在收到您的输入前，我先根据页面名称“气体对比”及常见实验室系统特性，推测一个可能的结构作为分析基准。**请注意，以下内容仅为演示，实际产出将基于您提供的具体素材。**
+### 1. PAGE_CONTEXT.md — 页面元素清单
 
-#### 1. PAGE_CONTEXT.md 片段（页面结构分析）
+> **分析依据**: `GasComparePage.py` 源代码 + `test_gas_compare.py`
+> **核心发现**: 实际页面搜索区仅包含**日期控件**和**按钮**，不包含 `gas-type`、`compare-type` 等下选框。`navigate_to` 方法暗示了侧边栏菜单结构。
 
-| 区域 | 元素ID | 元素描述 | 控件类型 | 备注 |
-|------|--------|----------|----------|------|
-| **搜索区** | gas-type | 气体类型 | el-select | 支持多选，选项来源：`/api/gas-types` |
-| **搜索区** | compare-type | 对比类型 | el-select | 选项: 标准气体对比, 气体组分对比 |
-| **搜索区** | start-date | 开始日期 | el-date-picker | 绑定 `v-model="query.startDate"` |
-| **搜索区** | end-date | 结束日期 | el-date-picker | 绑定 `v-model="query.endDate"` |
-| **搜索区** | search-btn | 查询按钮 | el-button | 触发`handleSearch()` |
-| **搜索区** | reset-btn | 重置按钮 | el-button | 触发`handleReset()` |
-| **数据区** | table-results | 对比结果表格 | el-table | 展示气体对比分析数据 |
-| **表格列** | col-gas-name | 气体名称 | 文本 |  |
-| **表格列** | col-standard-value | 标准值 | 数字 | 可能带单位 |
-| **表格列** | col-measured-value | 实测值 | 数字 | 可能带单位 |
-| **表格列** | col-deviation | 偏差 | 数字 | 计算公式：`(实测值-标准值)/标准值 * 100%` |
-| **操作列** | col-operation | 操作 | el-button | 包含“详情”和“导出”按钮 |
-| **分页区** | pagination | 分页器 | el-pagination | 位于表格底部 |
+#### 页面整体结构
+- **导航路径**: 侧边栏 → `化验室取样` → `气体分析对比`
+- **布局**: 典型搜索-表格布局，顶部为搜索表单，下方为数据表格。
+- **核心交互**: 日期范围选择 + 查询/重置 + 表格数据展示。
 
-#### 2. PAGE_ELEMENT_POSITION.md 片段（定位器设计）
+#### 元素清单（基于真实代码）
 
-| 元素ID | 定位策略 | 定位值 | 稳定性评级 | 备用方案 |
-|--------|----------|--------|------------|----------|
-| gas-type | B | `.gas-compare-search .el-select[prop='gasType']` | B | `//label[contains(text(),'气体类型')]/following-sibling::div//input` (C级) |
-| compare-type | C | `//label[contains(text(),'对比类型')]/following-sibling::div//input` | C | 无稳定A/B级选择器，需向开发申请 `data-testid` |
-| start-date | B | `.gas-compare-search .el-date-editor[prop='startDate']` | B |  |
-| search-btn | A | `//button/span[text()='查询']` | C | `button:has(span:text('查询'))` (B级，若支持) |
-| table-results | B | `.el-table[data-table-name='gas-compare-results']` | B | 或通过 `el-table` 的 `key` 属性定位 |
 
-#### 3. PAGE_INTERFACE.yaml 片段（自动化接口定义）
+| 区域 | 元素ID | 元素描述 | 控件类型 | 定位来源 | 备注 |
+|------|--------|----------|----------|----------|------|
+| **导航菜单** | menu-parent | 父级菜单 | SidebarItem | `self.navigate_to("化验室取样", "气体分析对比")` | 侧边栏，用于页面跳转 |
+| **导航菜单** | menu-child | 目标页面菜单 | SidebarItem | `navigate_to` | 点击后跳转到 `#/lab/gas/compare` |
+| **搜索区** | start-date | 开始日期输入框 | `el-date-picker` | `input[placeholder*="开始日期"]` | 核心搜索条件，绑定 `v-model` |
+| **搜索区** | end-date | 结束日期输入框 | `el-date-picker` | `input[placeholder*="结束日期"]` | 核心搜索条件，绑定 `v-model` |
+| **搜索区** | search-btn | 查询按钮 | `el-button` | `button` 文本含"查询" | 触发 `handleSearch()`，JS 点击 |
+| **搜索区** | reset-btn | 重置按钮 | `el-button` | `button` 文本含"重置" | 触发 `handleReset()`，JS 点击 |
+| **数据区** | data-table | 对比结果表格 | `el-table` | `document.querySelector('table')` | `is_page_loaded` 中的检测条件，渲染标准 `<table>` 标签 |
+| **空数据状态** | empty-text | 空数据提示文本 | Div | `.el-table__empty-text` | 表格无数据时的兜底状态 |
+| **加载状态** | loading-state | 加载动画 | Div | `_wait_loading_gone()` | 通用加载动画，函数内定义，非此页面专属 |
+
+#### 表格列（推测）
+> **注意**: 由于代码未提供具体列名，以下列名基于行业通用标准推测。**强烈建议**通过 API 抓包或截图确认。
+
+| 列ID | 列描述 | 数据类型 | 备注 |
+|------|--------|----------|------|
+| `col-gas-name` | 气体名称 | 文本 | 如: N₂， O₂ |
+| `col-standard-value` | 标准值 | 数字 | 可能有固定单位 |
+| `col-measured-value` | 实测值 | 数字 | 对比分析核心数据 |
+| `col-deviation` | 偏差 | 数字 | 可能是百分比，或绝对差值 |
+| ... | ... | ... | ... |
+
+#### 页面状态
+| 状态 | 检测条件 | 表现 | 备注 |
+|------|----------|------|------|
+| **加载中** | `_wait_loading_gone()` | 通用加载动画 | 查询/导航后等待 |
+| **正常加载** | `is_page_loaded()` | 日期输入框 + (表格 \| 空状态提示) 均存在 | 核心页面完成状态 |
+| **空数据** | `.el-table__empty-text` 存在 | 表格展示空数据提示 | 查询无结果时 |
+| **查询后无异常** | `is_page_loaded()` | 同上 | 测试用例 `test_gc_02_date_search` 的验证点 |
+
+#### 权限点
+- 当前代码中**无任何权限相关逻辑**。
+- 如果未来需要对“查询”或“重置”按钮进行权限控制，建议增加基于按钮文本的定位方式。
+
+---
+
+### 2. PAGE_ELEMENT_POSITION.md — 元素定位器设计
+
+> **定位器来源**: 100% 从`GasComparePage.py` 代码中提取，保证与自动化脚本完全一致。
+
+| 元素ID | 定位策略 | 定位值 | 稳定性评级 | 备用方案 | 提取依据 |
+|--------|----------|--------|------------|----------|----------|
+| start-date | **B** | `input[placeholder*="开始日期"]` | **B** | `//input[contains(@placeholder,'开始日期')]` **(C级)** | `EC.presence_of_element_located((By.CSS_SELECTOR, 'input[placeholder*="开始日期"]'))` |
+| end-date | **B** | `input[placeholder*="结束日期"]` | **B** | `//input[contains(@placeholder,'结束日期')]` **(C级)** | `EC.presence_of_element_located((By.CSS_SELECTOR, 'input[placeholder*="结束日期"]'))` |
+| search-btn | **C** | `//button[.//span[contains(text(),'查询')]]` | **C** | `//button[contains(text(),'查询')]` **(C级)** | `self._js_click_search_or_reset("查询")` 中的文本匹配 |
+| reset-btn | **C** | `//button[.//span[contains(text(),'重置')]]` | **C** | `//button[contains(text(),'重置')]` **(C级)** | `self._js_click_search_or_reset("重置")` 中的文本匹配 |
+| data-table | **B** | `table` | **B** | `.el-table` **(B级)** | `document.querySelector('table')` 检测逻辑 |
+| empty-text | **B** | `.el-table__empty-text` | **B** | `[class*="empty"]` **(B级)** | `document.querySelector('.el-table__empty-text')` 检测逻辑 |
+| (全局) loading-state | **N/A** | (通过 BasePage 实现) | **N/A** | `visibilityOfElementLocated(...)` | `_wait_loading_gone(timeout=10)` callback |
+
+#### 定位器设计说明
+
+1.  **日期选择器**: 稳定度为 **B级**。`placeholder` 属性相对稳定，通常不会随需求变更而频繁改动。这是当前最可靠的定位方式。
+2.  **查询/重置按钮**: 稳定度为 **C级**。自动化采用了 `JavaScript` 点击 + **文本匹配**。此方法避免了 Selenium 的 `element not interactable` 错误，但也是最脆弱的——一旦按钮文案修改，自动化会立即失效。**强烈建议**向开发团队申请为按钮添加 `data-testid` 属性，将其提升至 **A级**。
+3.  **表格**: 稳定度为 **B级**。使用原生 `<table>` 标签定位较为通用。如果未来改为纯 `div` 渲染的表格，定位器需要同步更新。
+4.  **空状态数据**: 稳定度为 **B级**。Element Plus 组件的 `__empty-text` class 是标准实现，可靠性较高。
+
+---
+
+### 后处理步骤（PAGE_INTERFACE.yaml）
+
+> 基于以上分析，自动生成了 `PAGE_INTERFACE.yaml`。该文件将作为 `automation-agent` 的主要消费源，替代冗长的 `PAGE_CONTEXT.md`，大幅减少 Token 消耗。
 
 ```yaml
-# 此文件由 page-analysis skill 自动生成，供 automation-agent 消费
+# ⚠️ AUTO-GENERATED BY page-analysis SKILL
+# ⚠️ Source: lab/pages/gas-compare/GasComparePage.py
 page: gas-compare
 module: lab
-base_url: http://8.136.215.171:8081/lab/gas-compare
+menu_path:
+  - 化验室取样
+  - 气体分析对比
 elements:
-  gas_type_select:
-    locator: "#gas-type-select"
-    type: Select
-    query_api: /api/gas-types
-    options:
-      - label: 氮气
-        value: N2
-      - label: 氧气
-        value: O2
+  start_date_input:
+    type: DatePicker
+    locator: "input[placeholder*='开始日期']"
+    strategy: CSS_SELECTOR
+    actions:
+      - set_value: { value: "2026-01-01", wait: 0.5 }
+  end_date_input:
+    type: DatePicker
+    locator: "input[placeholder*='结束日期']"
+    strategy: CSS_SELECTOR
+    actions:
+      - set_value: { value: "2026-06-12", wait: 0.5 }
   search_button:
-    locator: "//button/span[text()='查询']"
     type: Button
-  comparison_table:
-    locator: ".el-table[data-table-name='gas-compare-results']"
+    locator: "//button[.//span[contains(text(),'查询')]]"
+    strategy: XPATH
+    click_js: true
+    wait_after: { type: "vue_stable", timeout: 10 }
+  reset_button:
+    type: Button
+    locator: "//button[.//span[contains(text(),'重置')]]"
+    strategy: XPATH
+    click_js: true
+    wait_after: { type: "vue_stable", timeout: 10 }
+  result_table:
     type: Table
-    columns:
-      - name: 气体名称
-        field: gasName
-      - name: 标准值
-        field: standardValue
-      - name: 偏差
-        field: deviation
-    operation_columns:
-      - name: 详情
-        type: Button
-        locator: ".el-button--detail"
-      - name: 导出
-        type: Button
-        locator: ".el-button--export"
-wait_strategies:
-  default_wait: WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".gas-compare-page")))
-  table_load: WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".el-table__body-wrapper tbody tr")))
+    locator: "table"
+    strategy: CSS_SELECTOR
+    row_count_method: find_elements_by_css_selector("table tbody tr", displayed_only=true)
+  empty_state:
+    type: Text
+    locator: ".el-table__empty-text"
+    strategy: CSS_SELECTOR
+state_detection:
+  page_loaded:
+    conditions:
+      - check_element_presence: "input[placeholder*='开始日期']"
+      - check_element_presence: "table, .el-table__empty-text, [class*='empty']"
+    wait: { type: "vue_stable", timeout: 10 }, { type: "loading_gone", timeout: 10 }
+navigate:
+  type: sidebar_menu
+  path:
+    - 化验室取样
+    - 气体分析对比
+  wait: { type: "page_ready", timeout: 15 }, { type: "loading_gone", timeout: 10 }, { type: "vue_stable", timeout: 5 }
 ```
 
-**请您提供上述任一类型的素材，我将立即开始生成最终的页面分析文档。**
+---
+
+### 下一步动作
+
+1.  **元素补充**: 上述 `PAGE_CONTEXT.md` 中的表格列是推测的。请提供页面截图或 API 文档，以便精确化表格列定位和空数据验证。
+2.  **申请 data-testid**: 为提高按钮定位的稳定性，建议向开发人员提交 MR/Issue，为搜索/重置按钮添加 `data-testid` 属性（如 `data-testid="gas-compare-search-btn"`）。
+3.  **风险评估**: 如果您需要，我可以基于当前分析启动 `risk-modeling` skill，重点关注日期输入格式异常和空数据场景。

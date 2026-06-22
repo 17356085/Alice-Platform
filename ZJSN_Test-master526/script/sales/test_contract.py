@@ -127,7 +127,7 @@ class TestContractManage:
 
             if toast and "成功" in toast:
                 pass
-            elif not page.wait_dialog_closed(timeout=2):
+            elif not page.wait_dialog_close(timeout=2):
                 form_errors = page.get_form_error_text()
                 if form_errors:
                     pytest.fail(f"表单校验失败: {form_errors}")

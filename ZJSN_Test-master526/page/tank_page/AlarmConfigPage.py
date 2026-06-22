@@ -1,6 +1,8 @@
 """
 Page Object for Tank Alarm Configuration Page.
 """
+import time
+
 from base.base_page import BasePage
 from selenium.webdriver.common.by import By
 

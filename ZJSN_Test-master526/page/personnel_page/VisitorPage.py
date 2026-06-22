@@ -7,6 +7,9 @@ Change Log:
     2026-06-18: 基于 PAGE_CONTEXT.md 创建，重构定位器与操作方法。
 """
 import logging
+import time
+
+logger = logging.getLogger(__name__)
 
 from selenium.webdriver.common.by import By
 
@@ -84,9 +87,9 @@ class VisitorPage(BasePage):
     # ==================== 页面入口 ====================
 
     def navigate(self):
-        """导航到访客管理页面"""
-        self.logger.info("导航到访客管理页面")
-        self.navigate_to("人员管理", "访客管理")
+        """JS hash 导航到访客管理页面（SPA 内无刷新，conftest 已前置导航）"""
+        logger.info("导航到访客管理页面")
+        self.driver.execute_script("window.location.hash = '#/personnel/visitor'")
         self.wait_vue_stable()
         return self
 
@@ -94,7 +97,7 @@ class VisitorPage(BasePage):
 
     def search(self, keyword: str = None, phone: str = None, interviewer: str = None):
         """综合搜索：可根据姓名/单位/手机号/被访人筛选"""
-        self.logger.info(f"执行搜索: keyword={keyword}, phone={phone}, interviewer={interviewer}")
+        logger.info(f"执行搜索: keyword={keyword}, phone={phone}, interviewer={interviewer}")
         if keyword:
             self.wait_element_visible(self.SEARCH_VISITOR_NAME_INPUT)
             self.find_element(self.SEARCH_VISITOR_NAME_INPUT).clear()
@@ -113,7 +116,7 @@ class VisitorPage(BasePage):
 
     def search_by_status(self, status_text: str):
         """按来访状态搜索"""
-        self.logger.info(f"按状态搜索: {status_text}")
+        logger.info(f"按状态搜索: {status_text}")
         self.wait_element_clickable(self.SEARCH_STATUS_SELECT).click()
         status_option = (By.XPATH, f"//div[contains(@class, 'el-select-dropdown')]//span[text()='{status_text}']")
         self.wait_element_clickable(status_option).click()
@@ -122,7 +125,7 @@ class VisitorPage(BasePage):
 
     def search_by_date_range(self, start_date: str, end_date: str):
         """按来访日期范围搜索"""
-        self.logger.info(f"按日期范围搜索: {start_date} ~ {end_date}")
+        logger.info(f"按日期范围搜索: {start_date} ~ {end_date}")
         self.wait_element_clickable(self.SEARCH_VISIT_DATE_RANGE).click()
         date_inputs = self.find_elements(self.SEARCH_VISIT_DATE_RANGE)
         if len(date_inputs) >= 2:
@@ -136,7 +139,7 @@ class VisitorPage(BasePage):
 
     def reset_search(self):
         """重置搜索条件"""
-        self.logger.info("重置搜索条件")
+        logger.info("重置搜索条件")
         self.wait_element_clickable(self.RESET_BTN).click()
         self.wait_vue_stable()
         return self
@@ -154,7 +157,7 @@ class VisitorPage(BasePage):
         Returns:
             list[dict]: 每行一个字典，key 为列序号
         """
-        self.logger.info("获取表格数据")
+        logger.info("获取表格数据")
         rows = self.find_elements(self.TABLE_BODY_ROWS)
         table_data = []
         for row in rows:
@@ -169,14 +172,14 @@ class VisitorPage(BasePage):
 
     def click_add(self):
         """点击新增访客按钮"""
-        self.logger.info("点击新增访客按钮")
+        logger.info("点击新增访客按钮")
         self.wait_element_clickable(self.ADD_BTN).click()
         self.wait_vue_stable()
         return self
 
     def click_edit(self, row_index: int):
         """点击指定行的编辑按钮"""
-        self.logger.info(f"点击第 {row_index + 1} 行编辑按钮")
+        logger.info(f"点击第 {row_index + 1} 行编辑按钮")
         edit_locator = self._row_edit_btn(row_index)
         self.wait_element_clickable(edit_locator).click()
         self.wait_vue_stable()
@@ -184,7 +187,7 @@ class VisitorPage(BasePage):
 
     def click_view(self, row_index: int):
         """点击指定行的查看按钮"""
-        self.logger.info(f"点击第 {row_index + 1} 行查看按钮")
+        logger.info(f"点击第 {row_index + 1} 行查看按钮")
         view_locator = self._row_view_btn(row_index)
         self.wait_element_clickable(view_locator).click()
         self.wait_vue_stable()
@@ -192,7 +195,7 @@ class VisitorPage(BasePage):
 
     def click_delete(self, row_index: int):
         """点击指定行的删除按钮"""
-        self.logger.info(f"点击第 {row_index + 1} 行删除按钮")
+        logger.info(f"点击第 {row_index + 1} 行删除按钮")
         delete_locator = self._row_delete_btn(row_index)
         self.wait_element_clickable(delete_locator).click()
         self.wait_vue_stable()
@@ -200,7 +203,7 @@ class VisitorPage(BasePage):
 
     def click_force_logout(self, row_index: int):
         """点击指定行的强制离场按钮"""
-        self.logger.info(f"点击第 {row_index + 1} 行强制离场按钮")
+        logger.info(f"点击第 {row_index + 1} 行强制离场按钮")
         force_logout_locator = self._row_force_logout_btn(row_index)
         self.wait_element_clickable(force_logout_locator).click()
         self.wait_vue_stable()
@@ -218,7 +221,7 @@ class VisitorPage(BasePage):
             interviewer: 被访人
             purpose: 来访事由
         """
-        self.logger.info(f"填写新增表单: {visitor_name}")
+        logger.info(f"填写新增表单: {visitor_name}")
         self.wait_element_visible(self.FORM_VISITOR_NAME_INPUT)
         self.find_element(self.FORM_VISITOR_NAME_INPUT).send_keys(visitor_name)
         self.find_element(self.FORM_COMPANY_INPUT).send_keys(company)
@@ -232,7 +235,7 @@ class VisitorPage(BasePage):
         """
         填写编辑弹窗表单（仅填写有值的字段）
         """
-        self.logger.info("填写编辑表单")
+        logger.info("填写编辑表单")
         self.wait_element_visible(self.FORM_VISITOR_NAME_INPUT)
         if visitor_name:
             self.find_element(self.FORM_VISITOR_NAME_INPUT).clear()
@@ -253,21 +256,21 @@ class VisitorPage(BasePage):
 
     def confirm_dialog(self):
         """确认弹窗"""
-        self.logger.info("确认弹窗")
+        logger.info("确认弹窗")
         self.wait_element_clickable(self.DIALOG_CONFIRM_BTN).click()
         self.wait_vue_stable()
         return self
 
     def cancel_dialog(self):
         """取消弹窗"""
-        self.logger.info("取消弹窗")
+        logger.info("取消弹窗")
         self.wait_element_clickable(self.DIALOG_CANCEL_BTN).click()
         self.wait_vue_stable()
         return self
 
     def close_dialog(self):
         """关闭弹窗（点击 X）"""
-        self.logger.info("关闭弹窗")
+        logger.info("关闭弹窗")
         self.wait_element_clickable(self.DIALOG_CLOSE_BTN).click()
         self.wait_vue_stable()
         return self
@@ -286,7 +289,7 @@ class VisitorPage(BasePage):
 
     def go_to_page(self, page_num: int):
         """跳转到指定页码"""
-        self.logger.info(f"跳转到第 {page_num} 页")
+        logger.info(f"跳转到第 {page_num} 页")
         page_locator = (By.XPATH, f"//li[contains(@class, 'number') and text()='{page_num}']")
         self.wait_element_clickable(page_locator).click()
         self.wait_vue_stable()
@@ -294,7 +297,7 @@ class VisitorPage(BasePage):
 
     def set_page_size(self, size: int):
         """设置每页显示条数"""
-        self.logger.info(f"设置每页显示 {size} 条")
+        logger.info(f"设置每页显示 {size} 条")
         self.wait_element_clickable(self.PAGINATION_PAGE_SIZE_SELECT).click()
         size_option = (By.XPATH, f"//ul[contains(@class, 'el-select-dropdown__list')]//span[text()='{size}']")
         self.wait_element_clickable(size_option).click()
@@ -310,14 +313,14 @@ class VisitorPage(BasePage):
 
     def click_import(self):
         """点击批量导入按钮"""
-        self.logger.info("点击批量导入按钮")
+        logger.info("点击批量导入按钮")
         self.wait_element_clickable(self.IMPORT_BTN).click()
         self.wait_vue_stable()
         return self
 
     def click_export(self):
         """点击导出按钮"""
-        self.logger.info("点击导出按钮")
+        logger.info("点击导出按钮")
         self.wait_element_clickable(self.EXPORT_BTN).click()
         self.wait_vue_stable()
         return self
@@ -327,15 +330,15 @@ class VisitorPage(BasePage):
         验证操作后的 Toast 提示信息
         注意：该方法不包含 assert，仅返回 bool 用于断言
         """
-        self.logger.info(f"验证 Toast 消息: {expected_message}")
+        logger.info(f"验证 Toast 消息: {expected_message}")
         # 等待 Toast 出现
         try:
             toast = self.wait_element_visible(self.TOAST)
             actual_message = toast.text
-            self.logger.info(f"Toast 实际消息: {actual_message}")
+            logger.info(f"Toast 实际消息: {actual_message}")
             return expected_message in actual_message
         except Exception:
-            self.logger.error("未检测到 Toast 消息")
+            logger.error("未检测到 Toast 消息")
             return False
 
 

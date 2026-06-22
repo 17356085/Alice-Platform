@@ -30,11 +30,11 @@
 
 <!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-stats -->
 <!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
-## 自动统计数据 (更新于 2026-06-17 21:52)
+## 自动统计数据 (更新于 2026-06-18 10:54)
 
 | 指标 | 数值 |
 |------|:---:|
-| 测试文件 | 8 (script/equipment/test_*.py) |
+| 测试文件 | 9 (script/equipment/test_*.py) |
 | Page Object | 7 (page/equipment_page/*.py) |
 | 治理文档 | 30 .md 文件 |
 | TECH_ANALYSIS | 4 |

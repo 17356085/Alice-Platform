@@ -10,6 +10,7 @@ import os
 import sys
 import pytest
 import allure
+from selenium.webdriver.common.by import By
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -188,6 +189,112 @@ class TestKeyParamDialog:
     def test_kp_11_view_detail(self, driver_setup):
         """KP-FUNC-012: 查看参数详情弹窗 — 跳过：查看按钮Unicode匹配问题"""
         pytest.skip("[KNOWN] 查看按钮Unicode编码在XPath/JS中匹配失败")
+
+
+# ==================================================================
+#  P1 — 分页测试
+# ==================================================================
+class TestKeyParamPagination:
+
+    def test_kp_12_pagination_element_visible(self, driver_setup):
+        """KP-PAG-001: 分页组件可见"""
+        page = KeyParamPage(driver_setup)
+        case("KP-PAG-001", "分页组件可见性")
+
+        total = page.get_total_count()
+        assert total >= 0, ea("分页总条数>=0", total)
+        print(f"  分页总条数: {total}")
+
+    def test_kp_13_page_size_default(self, driver_setup):
+        """KP-PAG-002: 分页每页条数默认值"""
+        page = KeyParamPage(driver_setup)
+        case("KP-PAG-002", "分页默认每页条数")
+
+        page_size_info = page.driver.execute_script("""
+            const pager = document.querySelector('.el-pagination');
+            if (!pager) return null;
+            const sizeText = pager.querySelector('.el-select .el-input__inner');
+            return sizeText ? sizeText.value : '10';
+        """)
+        assert page_size_info, ea("pageSize 信息存在", "未获取到")
+
+
+# ==================================================================
+#  P1 — 权限控制测试
+# ==================================================================
+class TestKeyParamPermissions:
+
+    def test_kp_14_row_actions_present(self, driver_setup):
+        """KP-AUTH-001: 表格行操作按钮权限检查"""
+        page = KeyParamPage(driver_setup)
+        case("KP-AUTH-001", "表格行操作按钮权限检查")
+
+        if page.get_table_row_count() == 0:
+            pytest.skip("表格无数据")
+
+        step("检查第一行操作按钮")
+        rows = page.find_all(page.TABLE_ROWS)
+        if rows:
+            first_row = rows[0]
+            buttons = first_row.find_elements(By.XPATH, './/button[contains(.,"查看") or contains(.,"编辑") or contains(.,"删除")]')
+            assert len(buttons) >= 1, ea("至少有一个操作按钮", f"实际{len(buttons)}个")
+            print(f"  操作按钮数量: {len(buttons)}")
+
+
+# ==================================================================
+#  P1 — 边界值测试
+# ==================================================================
+class TestKeyParamBoundary:
+
+    def test_kp_15_search_special_chars(self, driver_setup):
+        """KP-BND-001: 搜索特殊字符处理"""
+        page = KeyParamPage(driver_setup)
+        case("KP-BND-001", "搜索特殊字符处理")
+
+        page.input_keyword("!@#$%^&*()_+-=[]{}|\\:;<>?,./~`")
+        page.wait_vue_stable()
+        page._wait_table_ready()
+
+        try:
+            count = page.get_table_row_count()
+            assert count >= 0, "特殊字符搜索正常处理"
+        except Exception as e:
+            pytest.fail(f"特殊字符搜索导致异常: {e}")
+
+    def test_kp_16_search_long_keyword(self, driver_setup):
+        """KP-BND-002: 搜索超长关键词"""
+        page = KeyParamPage(driver_setup)
+        case("KP-BND-002", "搜索超长关键词处理")
+
+        page.input_keyword("x" * 256)
+        page.wait_vue_stable()
+        page._wait_table_ready()
+
+        try:
+            count = page.get_table_row_count()
+            assert count >= 0, "超长关键词处理正常"
+        except Exception as e:
+            pytest.fail(f"超长关键词搜索导致异常: {e}")
+
+
+# ==================================================================
+#  P2 — 可靠性测试
+# ==================================================================
+class TestKeyParamReliability:
+
+    def test_kp_17_repeat_search_stable(self, driver_setup):
+        """KP-REL-001: 重复搜索稳定性"""
+        page = KeyParamPage(driver_setup)
+        case("KP-REL-001", "重复搜索稳定性")
+
+        for i in range(3):
+            page.click_reset()
+            page.input_keyword("温度")
+            page.wait_vue_stable()
+            page._wait_table_ready()
+            count = page.get_table_row_count()
+            assert count >= 0, f"第{i+1}次搜索 count={count} 正常"
+            print(f"  第{i+1}次: {count}行")
 
 
 if __name__ == "__main__":

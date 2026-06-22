@@ -8,21 +8,15 @@ def lab_logged_in_driver(session_logged_in_browser):
     yield session_logged_in_browser
 
 
-# ══════════════════════════════════════════════════════════════
-#  已覆盖页面
-# ══════════════════════════════════════════════════════════════
 @pytest.fixture(scope="session")
 def gas_report_page(lab_logged_in_driver):
     """气体分析报告单"""
     from page.lab_page.GasAnalysisReportPage import GasAnalysisReportPage
     page = GasAnalysisReportPage(lab_logged_in_driver)
-    page.navigate_to_gas_analysis_report()
+    page.navigate()
     return page
 
 
-# ══════════════════════════════════════════════════════════════
-#  新增：气体/水质分析设计指标（只读展示）
-# ══════════════════════════════════════════════════════════════
 @pytest.fixture(scope="function")
 def gas_indicator_page(lab_logged_in_driver):
     """气体分析设计指标"""
@@ -41,9 +35,6 @@ def water_indicator_page(lab_logged_in_driver):
     return page
 
 
-# ══════════════════════════════════════════════════════════════
-#  新增：气体/水质分析对比（搜索+对比表格）
-# ══════════════════════════════════════════════════════════════
 @pytest.fixture(scope="function")
 def gas_compare_page(lab_logged_in_driver):
     """气体分析对比"""
@@ -62,9 +53,6 @@ def water_compare_page(lab_logged_in_driver):
     return page
 
 
-# ══════════════════════════════════════════════════════════════
-#  新增：水质分析报告单（搜索+CRUD+弹窗）
-# ══════════════════════════════════════════════════════════════
 @pytest.fixture(scope="function")
 def water_report_page(lab_logged_in_driver):
     """水质分析报告单"""

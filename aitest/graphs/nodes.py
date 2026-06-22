@@ -13,7 +13,10 @@ import time
 from pathlib import Path
 from typing import Callable, Optional
 
-from aitest.graphs.state import SOPState, GateResult, GateLevel, AgentName, AGENT_PHASE_MAP
+from aitest.graphs.state import (
+    SOPState, GateResult, GateLevel, AgentName, AGENT_PHASE_MAP,
+    validate_phase_artifacts, MAX_PHASE_RETRY_ROUNDS,
+)
 
 WORKSTUDY = Path(__file__).resolve().parent.parent.parent
 
@@ -117,7 +120,28 @@ def make_agent_loop_node(
 
         # ── Phase 完成/失败 ──
         if loop_state.success:
-            updates["completed_phases"] = state.get("completed_phases", []) + [phase]
+            # ★ 硬门禁: 检查强制产物是否物理存在
+            artifact_ok, missing = validate_phase_artifacts(
+                phase, state["module"], state.get("pages", [])
+            )
+            if artifact_ok:
+                updates["completed_phases"] = state.get("completed_phases", []) + [phase]
+                updates["phase_retry_count"] = 0
+            else:
+                retry_count = state.get("phase_retry_count", 0) + 1
+                if retry_count <= MAX_PHASE_RETRY_ROUNDS:
+                    updates["force_retry_phase"] = phase
+                    updates["phase_retry_count"] = retry_count
+                    # 不标记 completed — 路由将送回当前 phase 重试
+                else:
+                    missing_desc = "; ".join(
+                        f"{fname}" for fname, _ in missing[:5]
+                    )
+                    updates["fatal_error"] = (
+                        f"{phase}: {len(missing)} mandatory artifact(s) missing "
+                        f"after {MAX_PHASE_RETRY_ROUNDS} retries. "
+                        f"Missing: {missing_desc}"
+                    )
         else:
             updates["failed_phases"] = state.get("failed_phases", []) + [phase]
             if loop_state.termination_reason == "agent_aborted":

@@ -1,0 +1,302 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-22 10:00"
+
+meta:
+  module: "dcs"
+  page_name: "CommonDataPage"
+  page_slug: "common-data"
+  page_url: "/dcs/common-data"
+  page_type: "卡片面板页（拖拽排序）"
+  vue_components:
+    - component: el-input
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 6
+      risk_flags: []
+    - component: el-select
+      count: 1
+      risk_flags: []
+    - component: el-card
+      count: 2
+      risk_flags: ["数量不固定", "拖拽可能触发重排"]
+    - component: el-table
+      count: 1
+      risk_flags: ["备用视图"]
+    - component: el-dialog
+      count: 1
+      risk_flags: ["点位选择弹窗"]
+    - component: el-dropdown
+      count: 1
+      risk_flags: ["右键菜单"]
+
+elements:
+  - name: "搜索输入框"
+    selector: 'input[placeholder*="点位名称" i], input[placeholder*="点位" i], input[placeholder*="名称" i]'
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "多级 fallback 匹配点位/名称"
+    risk_level: low
+
+  - name: "搜索按钮"
+    selector: '//button[normalize-space(.//span)="搜索"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "重置按钮"
+    selector: '//button[normalize-space(.//span)="重置"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "新增按钮"
+    selector: '//button[normalize-space(.//span)="新增"] | //button[.//span[text()="添加常用点位"]]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    locator_notes: "打开点位选择弹窗"
+    risk_level: high
+    risk_reason: "页面可能为只读查询页，无'新增'按钮"
+
+  - name: "删除所有按钮"
+    selector: '//button[.//span[text()="删除所有"]] | //button[.//span[text()="清空"]]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "清空全部常用点位"
+    risk_level: medium
+    risk_reason: "破坏性操作"
+
+  - name: "恢复默认按钮"
+    selector: '//button[.//span[text()="恢复默认"]]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+
+  - name: "导出按钮"
+    selector: '//button[normalize-space(.//span)="导出"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+
+  - name: "刷新按钮"
+    selector: '//button[normalize-space(.//span)="刷新"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "点位卡片"
+    selector: ".point-card, .data-card, .el-card"
+    selector_type: CSS_SELECTOR
+    element_type: card
+    el_component: el-card
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "多级 fallback，卡片个数不固定"
+    risk_level: medium
+    risk_reason: "定位器需根据实际 DOM 调整"
+
+  - name: "卡片标题"
+    selector: ".el-card__header, .card-title, .point-name"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: el-card
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "卡片当前值"
+    selector: ".card-value, .point-value"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: other
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "显示实时数值"
+    risk_level: low
+
+  - name: "拖拽手柄"
+    selector: ".drag-handle, .el-icon-rank"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: other
+    interaction: drag
+    wait_strategy: wait_vue_stable
+    locator_notes: "用于卡片拖拽排序"
+    risk_level: medium
+    risk_reason: "拖拽操作需 JS 模拟 DataTransfer"
+
+  - name: "右键菜单项"
+    selector: '.el-dropdown-menu__item, [role="menuitem"]'
+    selector_type: CSS_SELECTOR
+    element_type: menuitem
+    el_component: el-dropdown
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "编辑/删除/置顶/移至末尾"
+    risk_level: medium
+
+  - name: "确认添加按钮"
+    selector: '//button[.//span[text()="添加选中"]] | //button[.//span[text()="确定"]]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_close
+    locator_notes: "弹窗内确认按钮"
+    risk_level: low
+
+  - name: "数据表格（备用视图）"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_element_visible
+    locator_notes: "卡片视图可能切换到表格视图"
+    risk_level: low
+
+  - name: "表格加载遮罩"
+    selector: ".el-loading-mask"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-loading
+    interaction: wait
+    wait_strategy: wait_until_gone
+    locator_notes: ""
+    risk_level: low
+
+test_scenarios:
+  - id: TC-DCS-COM-001
+    title: "页面正常加载"
+    priority: P0
+    type: positive
+    preconditions: ["admin登录"]
+    steps_summary: "导航到 DCS 数据监控 → 常用点位"
+    expected: "卡片网格或表格可见，搜索区可见"
+    relates_to_elements:
+      - "搜索输入框"
+      - "点位卡片"
+
+  - id: TC-DCS-COM-002
+    title: "搜索常用点位"
+    priority: P0
+    type: positive
+    preconditions: ["存在常用点位"]
+    steps_summary: "搜索框输入名称 → 点击搜索"
+    expected: "卡片/表格仅显示匹配记录"
+    relates_to_elements:
+      - "搜索输入框"
+      - "搜索按钮"
+      - "点位卡片"
+
+  - id: TC-DCS-COM-003
+    title: "重置搜索"
+    priority: P1
+    type: positive
+    preconditions: ["已执行搜索"]
+    steps_summary: "点击重置"
+    expected: "搜索框清空，恢复全量"
+    relates_to_elements:
+      - "重置按钮"
+      - "搜索输入框"
+
+  - id: TC-DCS-COM-004
+    title: "点击卡片"
+    priority: P1
+    type: positive
+    preconditions: ["有卡片数据"]
+    steps_summary: "点击第一张卡片"
+    expected: "卡片可点击，响应正常"
+    relates_to_elements:
+      - "点位卡片"
+
+  - id: TC-DCS-COM-005
+    title: "右键菜单操作"
+    priority: P1
+    type: positive
+    preconditions: ["有卡片数据"]
+    steps_summary: "右键卡片 → 点击菜单项"
+    expected: "菜单弹出并响应"
+    relates_to_elements:
+      - "点位卡片"
+      - "右键菜单项"
+
+  - id: TC-DCS-COM-006
+    title: "拖拽排序"
+    priority: P2
+    type: positive
+    preconditions: ["卡片数≥2"]
+    steps_summary: "拖拽卡片0→2"
+    expected: "卡片顺序改变"
+    relates_to_elements:
+      - "拖拽手柄"
+      - "点位卡片"
+
+  - id: TC-DCS-COM-007
+    title: "删除所有确认"
+    priority: P2
+    type: destructive
+    preconditions: ["有卡片数据"]
+    steps_summary: "点击删除所有 → 确认"
+    expected: "所有卡片清空"
+    relates_to_elements:
+      - "删除所有按钮"
+
+page_behaviors:
+  - behavior: "页面初始加载"
+    triggers: ["页面导航"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable → _wait_loading_gone"
+
+  - behavior: "搜索刷新卡片/表格"
+    triggers: ["点击搜索"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "弹窗打开/关闭"
+    triggers: ["点击新增", "点击确认/取消"]
+    wait_required: true
+    wait_suggestion: "wait_dialog_open / wait_dialog_close"
+
+  - behavior: "右键菜单弹出"
+    triggers: ["右键卡片"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "拖拽排序"
+    triggers: ["dragstart→dragover→drop→dragend"]
+    wait_required: true
+    wait_suggestion: "JS DataTransfer 模拟 + wait_vue_stable"

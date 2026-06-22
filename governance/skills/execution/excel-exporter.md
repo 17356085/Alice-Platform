@@ -10,9 +10,59 @@
 - 模块名称
 
 ## 输出
-- **场景 C**：`测试报告-{模块}.xlsx` — ★ Phase 9 最终交付物，含用例设计+执行结果合并，覆盖式
-- 场景 B：`测试报告-{模块}.xlsx`（同上，仅无 TEST_CASES 列）
+- **场景 C**：`测试报告-{模块}-{页面}.xlsx` — ★ Phase 9 最终交付物，**每个页面一个文件**，覆盖式
+- 场景 B：已废弃（使用场景 C 的 render_page_report() 替代）
+- 场景 A：已废弃（Phase 3 仅产出 .md，不生成 Excel）
 - 所有 .xlsx 输出到 `governance/kpi/reports/{模块}/` 目录，每次 SOP 重跑直接覆写
+
+## 生成方式（v2.0）
+
+**不再让 Agent 编写临时 Python 脚本。** 统一调用共享渲染引擎：
+
+```python
+from tools.report.excel_renderer import render_page_report
+
+render_page_report(
+    module="equipment",           # 模块英文名
+    module_cn="设备管理",          # 模块中文名
+    page_key="alarm-config",      # 页面 slug
+    page_cn="设备报警配置",        # 页面中文名
+    testcases_md_path="governance/kpi/testcases/equipment/testcases-equipment-alarm-config.md",
+    output_dir="governance/kpi/reports/equipment/",
+)
+```
+
+**Agent 职责**: 收集 TEST_CASES.md 路径 + 模块/页面元数据 → 调用 `render_page_report()`。**不写代码**。
+
+## 输出格式规范（不可变，由 excel_renderer.py 强制）
+
+```
+Sheet: {page_key}  (1 个 sheet)
+
+Row1: 标题合并 A1:K1 — "{module_cn} — {page_cn} 测试报告"
+      字体: 微软雅黑 14pt bold #1F4E79, 行高 32
+
+Row2: 统计合并 A2:K2 — "生成时间: YYYY-MM-DD HH:MM | 页面: {page_cn}({page_key}) | 总: N (P0:X P1:Y P2:Z) | 通过: P | 失败: F | 跳过: S | 通过率: R%"
+      字体: 微软雅黑 9pt #666666, 行高 20
+
+Row3: 空行
+
+Row4: 列标题 — 用例编号 | 用例标题 | 优先级 | 前置条件 | 测试步骤 | 测试数据 | 预期结果 | 实际状态 | 耗时(s) | 错误信息 | 自动化
+      字体: 微软雅黑 11pt bold #FFFFFF, 背景 #4472C4, 行高 22
+
+Row5+: 
+  分组标题行（合并 A:K）: "{section_name} ({N}条){🆕}{⚠️}"
+      字体: 微软雅黑 11pt bold, 背景 #D9E2F3, 行高 24
+      🆕: 分组名含[新]标记 OR 不在预定义列表中时自动添加
+      ⚠️: 分组中 >50% 用例为 FAIL 时自动添加
+
+  数据行: 11 列，行高 ≥28
+      优先级配色: P0=#FFC7CE / P1=#FFEB9C / P2=#C6EFCE
+      状态配色: PASS=#C6EFCE / FAIL=#FFC7CE / SKIP=#FFEB9C / 未执行=#F2F2F2
+      自动化: PASS/FAIL/SKIP → ✅, 未执行 → 空
+      列宽: A=18 B=32 C=8 D=22 E=40 F=18 G=36 H=10 I=13 J=38 K=10
+      冻结: A5
+```
 
 ## 规则
 - 复用项目中已验证的 Excel 样式（来自 `tools/report/generate_*.py`）
@@ -559,6 +609,6 @@ print(f'[STATS] 总={total} 通过={passed} 失败={failed} 跳过={skipped} 未
   - `ZJSN_Test-master526/tools/report/generate_excel.py`
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | execution | synced 2026-06-17 21:52
+> **1.0** | active | execution | synced 2026-06-18 10:54
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

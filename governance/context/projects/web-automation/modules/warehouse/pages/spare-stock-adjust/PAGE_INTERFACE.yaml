@@ -1,0 +1,90 @@
+# 备品盘点调整 — 页面接口定义
+# 来源: SpareStockAdjustPage PO 代码 + 测试脚本
+# 页面类型: 只读查询页面
+
+page:
+  name: 备品盘点调整
+  module: warehouse
+  sub_module: 备品备件管理
+  type: read_only_list
+  hash_route: "#/warehouse/spare/stock_adjust"
+  class_name: SpareStockAdjustPage
+  test_file: test_spare_stock_adjust.py
+  has_crud: false
+  has_approval: false
+  has_dialogs: false
+
+search_fields:
+  - name: FILTER_ITEM_CODE
+    label: 物品编号
+    component: el-input
+    placeholder: "请输入物品编号"
+    locator:
+      by: XPATH
+      value: '//input[@placeholder="请输入物品编号"]'
+    data_type: string
+    required: false
+
+  - name: FILTER_DATE
+    label: 日期
+    component: el-date-picker
+    placeholder: "选择日期"
+    locator:
+      by: XPATH
+      value: '//input[@placeholder="选择日期"]'
+    data_type: date
+    required: false
+    is_range: false  # 单日选择器，非范围
+
+buttons:
+  - name: BTN_QUERY
+    label: 查询
+    action: filter
+    locator:
+      by: XPATH
+      value: '//button[contains(.,"查询")]'
+
+  - name: BTN_RESET
+    label: 重置
+    action: reset
+    locator:
+      by: XPATH
+      value: '//button[contains(.,"重置")]'
+
+table:
+  component: el-table
+  row_locator:
+    by: CSS_SELECTOR
+    value: ".el-table__body-wrapper tbody tr.el-table__row"
+    source: BasePage.TABLE_ROWS
+  columns:
+    - title: 物品编号
+      data_type: string
+      confidence: inferred
+    - title: 物品名称
+      data_type: string
+      confidence: inferred
+    - title: 调整前数量
+      data_type: number
+      confidence: inferred
+    - title: 调整后数量
+      data_type: number
+      confidence: inferred
+    - title: 调整数量
+      data_type: number
+      confidence: inferred
+    - title: 调整日期
+      data_type: date
+      confidence: inferred
+    - title: 操作人
+      data_type: string
+      confidence: inferred
+
+pagination:
+  component: el-pagination
+  total_locator:
+    by: CSS_SELECTOR
+    value: ".el-pagination__total"
+    source: BasePage.TOTAL_COUNT
+
+dialogs: []

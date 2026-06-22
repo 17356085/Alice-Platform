@@ -1,0 +1,303 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-22 10:00"
+
+meta:
+  module: "dcs"
+  page_name: "DcsMonitorPage"
+  page_slug: "monitor"
+  page_url: "/dcs/monitor"
+  page_type: "监控面板页（卡片网格 + 可选表格视图 + 图表）"
+  vue_components:
+    - component: el-input
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 4
+      risk_flags: []
+    - component: el-select
+      count: 1
+      risk_flags: []
+    - component: el-card
+      count: 2
+      risk_flags: ["数量不固定", "实时数据推送"]
+    - component: el-date-picker
+      count: 1
+      risk_flags: []
+    - component: el-table
+      count: 1
+      risk_flags: ["可选视图切换"]
+    - component: el-tag
+      count: 2
+      risk_flags: ["颜色编码状态"]
+
+elements:
+  - name: "搜索输入框"
+    selector: 'input[placeholder*="参数" i], input[placeholder*="设备" i], input[placeholder*="点位名称" i]'
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "多级 fallback 匹配参数/设备/点位名称"
+    risk_level: low
+
+  - name: "搜索按钮"
+    selector: '//button[normalize-space(.//span)="搜索"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "实际可能无此按钮（卡片仪表盘）"
+    risk_level: medium
+    risk_reason: "监控仪表盘可能无传统搜索栏"
+
+  - name: "重置按钮"
+    selector: '//button[normalize-space(.//span)="重置"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "实际可能无此按钮"
+    risk_level: medium
+    risk_reason: "仪表盘可能无重置功能"
+
+  - name: "新增按钮"
+    selector: '//button[normalize-space(.//span)="新增"] | //button[normalize-space(.//span)="新增参数"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    locator_notes: "实际可能无此按钮（只读仪表盘）"
+    risk_level: high
+    risk_reason: "页面可能为只读仪表盘，无新增功能"
+
+  - name: "刷新按钮"
+    selector: '//button[normalize-space(.//span)="刷新"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "实际数据可能自动推送"
+    risk_level: medium
+    risk_reason: "仪表盘数据可能自动刷新，无手动刷新按钮"
+
+  - name: "导出按钮"
+    selector: '//button[normalize-space(.//span)="导出"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+
+  - name: "状态筛选下拉"
+    selector: ".el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "按状态（正常/告警/离线）筛选"
+    risk_level: low
+
+  - name: "日期选择器"
+    selector: ".el-date-picker, .el-date-editor"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+
+  - name: "参数卡片"
+    selector: ".monitor-card, .param-card, .el-card"
+    selector_type: CSS_SELECTOR
+    element_type: card
+    el_component: el-card
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "多级 fallback，个数不固定"
+    risk_level: medium
+    risk_reason: "卡片选择器需根据实际 DOM 调整"
+
+  - name: "卡片名称"
+    selector: ".card-title, .param-name"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: other
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "卡片当前值"
+    selector: ".card-value, .param-value"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: other
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "实时数值"
+    risk_level: low
+
+  - name: "状态标签"
+    selector: ".el-tag, .status-badge"
+    selector_type: CSS_SELECTOR
+    element_type: tag
+    el_component: el-tag
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "正常(绿)/告警(红)/离线(灰)"
+    risk_level: low
+
+  - name: "趋势图标（上）"
+    selector: ".trend-up, .el-icon-top"
+    selector_type: CSS_SELECTOR
+    element_type: icon
+    el_component: other
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "趋势图标（下）"
+    selector: ".trend-down, .el-icon-bottom"
+    selector_type: CSS_SELECTOR
+    element_type: icon
+    el_component: other
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "图表容器"
+    selector: '.chart-container, [class*="chart"]'
+    selector_type: CSS_SELECTOR
+    element_type: chart
+    el_component: other
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "ECharts/G2 canvas，无法直接获取内部数据"
+    risk_level: medium
+    risk_reason: "图表由 JS 异步渲染，验证困难"
+
+  - name: "数据表格"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_element_visible
+    locator_notes: "可能切换到表格视图"
+    risk_level: low
+
+  - name: "分页器"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+test_scenarios:
+  - id: TC-DCS-MON-001
+    title: "页面正常加载"
+    priority: P0
+    type: positive
+    preconditions: ["admin登录"]
+    steps_summary: "导航到 DCS 数据监控 → 关键参数监控"
+    expected: "监控卡片渲染，图表可见（如有）"
+    relates_to_elements:
+      - "参数卡片"
+      - "图表容器"
+
+  - id: TC-DCS-MON-002
+    title: "参数搜索"
+    priority: P0
+    type: positive
+    preconditions: ["存在参数数据"]
+    steps_summary: "搜索框输入关键词 → 搜索"
+    expected: "卡片/表格仅显示匹配参数"
+    relates_to_elements:
+      - "搜索输入框"
+      - "搜索按钮"
+      - "参数卡片"
+
+  - id: TC-DCS-MON-003
+    title: "状态筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在多种状态参数"]
+    steps_summary: "下拉选择状态 → 筛选"
+    expected: "仅显示该状态参数"
+    relates_to_elements:
+      - "状态筛选下拉"
+      - "参数卡片"
+
+  - id: TC-DCS-MON-004
+    title: "数据刷新"
+    priority: P1
+    type: positive
+    preconditions: ["页面加载"]
+    steps_summary: "点击刷新按钮或等待自动推送"
+    expected: "数据更新"
+    relates_to_elements:
+      - "刷新按钮"
+      - "卡片当前值"
+
+  - id: TC-DCS-MON-005
+    title: "参数详情"
+    priority: P1
+    type: positive
+    preconditions: ["有参数卡片"]
+    steps_summary: "点击卡片 → 查看详情"
+    expected: "详情弹窗打开，数据完整"
+    relates_to_elements:
+      - "参数卡片"
+
+  - id: TC-DCS-MON-006
+    title: "图表渲染"
+    priority: P1
+    type: positive
+    preconditions: ["页面加载"]
+    steps_summary: "检查图表容器是否渲染"
+    expected: "图表 canvas 存在且可见"
+    relates_to_elements:
+      - "图表容器"
+
+page_behaviors:
+  - behavior: "页面初始加载"
+    triggers: ["页面导航"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable → _wait_loading_gone"
+
+  - behavior: "实时数据推送"
+    triggers: ["WebSocket/轮询推送"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable（数据更新后 DOM 变化）"
+
+  - behavior: "卡片点击展开详情"
+    triggers: ["点击参数卡片"]
+    wait_required: true
+    wait_suggestion: "wait_dialog_open"
+
+  - behavior: "图表异步渲染"
+    triggers: ["页面加载", "数据更新"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable → 轮询检查 canvas 元素"
+
+  - behavior: "状态筛选联动"
+    triggers: ["选择状态下拉"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"

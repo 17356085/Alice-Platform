@@ -1,0 +1,39 @@
+{
+  "module": "lab",
+  "audit_time": "2026-06-22T12:26:20.178782",
+  "audit_type": "safety",
+  "overall_status": "ok",
+  "safety_score": 100,
+  "total_violations": 0,
+  "critical_count": 0,
+  "high_count": 0,
+  "medium_count": 0,
+  "warning_count": 0,
+  "violations": [],
+  "checks": {
+    "high_risk_confirm": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    },
+    "sensitive_leak": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    },
+    "permission_bypass": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    },
+    "audit_trail": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    }
+  }
+}

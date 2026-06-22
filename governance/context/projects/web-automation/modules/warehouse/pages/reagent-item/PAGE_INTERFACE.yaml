@@ -1,0 +1,190 @@
+page:
+  name: 三剂消耗-物品管理
+  module: warehouse
+  route: 库管管理 > 三剂消耗管理 > 物品管理
+  hash_route: "#/warehouse/reagent/item"   # 从 conftest.py 推断
+  type: crud_list
+  features: [create, delete, search, batch_select, import_export]
+
+elements:
+  search:
+    - id: FILTER_ITEM_NAME
+      description: 物品名称搜索框
+      locator: '//input[@placeholder="请输入物品名称"]'
+      strategy: xpath_placeholder
+      ui_component: el-input
+      stability: A
+      source: PO 代码
+
+    - id: BTN_QUERY
+      description: 查询按钮
+      locator: '//button[contains(.,"查询")]'
+      strategy: xpath_contains_text
+      ui_component: el-button
+      stability: A
+      source: PO 代码
+
+    - id: BTN_RESET
+      description: 重置按钮
+      locator: '//button[contains(.,"重置")]'
+      strategy: xpath_contains_text
+      ui_component: el-button
+      stability: A
+      source: PO 代码
+
+  buttons:
+    - id: BTN_ADD
+      description: 新增按钮
+      locator: '//button[contains(.,"新增")]'
+      strategy: xpath_contains_text
+      ui_component: el-button
+      stability: A
+      source: PO 代码
+
+  table:
+    - id: TABLE
+      description: 数据表格容器
+      ui_component: el-table
+      source: 从 BasePage 继承推断
+
+    - id: TABLE_HEADER
+      description: 表头行
+      ui_component: el-table__header-wrapper
+      source: 从 BasePage 继承推断
+
+    - id: TABLE_ROWS
+      description: 所有数据行
+      locator: '.el-table__body-wrapper tbody tr.el-table__row'
+      strategy: css_selector
+      ui_component: el-table__row
+      stability: B
+      source: 从 BasePage 继承
+
+    - id: TOTAL_COUNT
+      description: 分页总条数
+      locator: '.el-pagination__total'
+      strategy: css_selector
+      ui_component: el-pagination__total
+      stability: B
+      source: 从 BasePage 继承
+
+  dialogs:
+    - id: DIALOG_ADD
+      description: 新增物品弹窗
+      trigger: BTN_ADD
+      fields:
+        - id: FIELD_ITEM_NAME
+          description: 物品名称输入框
+          placeholder: 物品名称
+          ui_component: el-input
+          required: true
+          fill_method: _fill_dialog_by_placeholder("物品名称", value)
+      buttons:
+        - id: DIALOG_SAVE
+          description: 保存按钮
+          locator: BasePage.click_dialog_save (通用)
+          action: 提交表单
+        - id: DIALOG_CANCEL
+          description: 取消按钮
+          locator: BasePage.click_dialog_cancel (通用)
+          action: 关闭弹窗，不保存
+
+methods:
+  - name: navigate
+    description: 通过侧栏导航到物品管理页面
+    calls: ["navigate_to(库管管理, 三剂消耗管理, 物品管理)", "_wait_page_ready()"]
+    source: PO 代码
+
+  - name: click_add
+    description: 点击新增按钮，等待弹窗打开
+    steps:
+      - click(BTN_ADD)
+      - wait_dialog_open()
+    source: PO 代码
+
+  - name: search_by_item_name
+    description: 按物品名称搜索
+    parameters:
+      - name: name
+        type: string
+    steps:
+      - input_text(FILTER_ITEM_NAME, name)
+      - click(BTN_QUERY)
+      - wait_vue_stable()
+    source: PO 代码
+
+  - name: reset_search
+    description: 重置搜索条件
+    steps:
+      - click(BTN_RESET)
+      - wait_vue_stable()
+    source: PO 代码
+
+  - name: _fill_dialog_by_placeholder
+    description: "弹窗内按 placeholder 查找输入框并填写（JS 方式，避免 xpath 编码问题）"
+    visibility: private
+    parameters:
+      - name: placeholder_contains
+        type: string
+      - name: value
+        type: string
+    implementation: |
+      JS 脚本遍历可见 .el-dialog 内的所有 input，匹配 placeholder 后
+      通过 focus() + value 赋值 + dispatchEvent(input/change) 设置值。
+      未找到匹配输入框时记录 warning 日志。
+    source: PO 代码
+
+  - name: fill_item_name
+    description: 在新增弹窗中填写物品名称
+    parameters:
+      - name: name
+        type: string
+    steps:
+      - _fill_dialog_by_placeholder("物品名称", name)
+    source: PO 代码
+
+  - name: click_search
+    description: 点击查询按钮（与 search_by_item_name 的区别是不先填搜索框）
+    steps:
+      - click(BTN_QUERY)
+      - wait_vue_stable()
+    source: PO 代码
+
+  - name: delete_item_by_name
+    description: 搜索并删除指定物品
+    parameters:
+      - name: name
+        type: string
+    steps:
+      - search_by_item_name(name)
+      - click_row_button(name, "删除")
+      - confirm_message_box()
+    source: PO 代码
+
+  # BasePage 继承方法（在测试中使用）
+  - name: click_dialog_save
+    description: 点击弹窗保存按钮（继承自 BasePage）
+    source: BasePage
+
+  - name: click_dialog_cancel
+    description: 点击弹窗取消按钮（继承自 BasePage）
+    source: BasePage
+
+  - name: is_dialog_visible
+    description: 判断弹窗是否可见（继承自 BasePage）
+    source: BasePage
+
+  - name: get_total_count
+    description: 获取分页总条数（继承自 BasePage）
+    source: BasePage
+
+  - name: is_row_present
+    description: 判断表格中是否存在指定文本的行（继承自 BasePage）
+    parameters:
+      - name: text
+        type: string
+    source: BasePage
+
+  - name: get_form_error
+    description: 获取弹窗表单校验错误信息（继承自 BasePage）
+    source: BasePage

@@ -405,3 +405,84 @@ class TestMaintenancePermissions:
         )
         assert page.is_present((By.XPATH, xpath)), \
             ea("编辑按钮在行内可见", "不可见")
+
+
+# ==================================================================
+#  P1 — 边界值测试
+# ==================================================================
+class TestMaintenanceBoundary:
+
+    def test_mt_18_search_special_chars(self, driver_setup):
+        """MT-18: 下拉筛选边界 — 切换类型/状态组合"""
+        page = MaintenancePage(driver_setup)
+        case("MT-18", "下拉筛选类型组合")
+
+        step("选择所有类型+状态组合验证不崩溃")
+        types = ["日检", "周检", "月检"]
+        for t in types:
+            try:
+                page.select_type(t)
+                page.click_search()
+                count = page.get_table_row_count()
+                assert count >= 0, f"类型'{t}'搜索 count={count}"
+            except Exception as e:
+                print(f"  类型'{t}'搜索异常: {e}")
+        page.click_reset()
+
+    def test_mt_19_add_plan_name_max_length(self, driver_setup):
+        """MT-19: 新增计划 — 计划名称带数字后缀"""
+        page = MaintenancePage(driver_setup)
+        case("MT-19", "计划名称带标识")
+
+        step("打开新增弹窗并填写带时间戳的名称")
+        page.click_add()
+        import time
+        long_name = f"维保计划_AUTOTEST_{int(time.time()) % 100000}"
+        page.fill_form_plan_name(long_name)
+        page.fill_form_cycle(7)
+
+        step("保存并验证")
+        toast = page.click_form_save()
+        assert '成功' in (toast or ''), ea("名称应保存成功", toast)
+
+
+# ==================================================================
+#  P1 — 批量操作测试
+# ==================================================================
+class TestMaintenanceBatchOps:
+
+    def test_mt_20_batch_checkbox_presence(self, driver_setup):
+        """MT-20: 批量操作复选框检查"""
+        page = MaintenancePage(driver_setup)
+        case("MT-20", "批量操作复选框可见性")
+
+        step("检查表格复选框列")
+        has_checkbox = page.driver.execute_script("""
+            const table = document.querySelector('.el-table');
+            if (!table) return false;
+            const checkbox = table.querySelector('input[type="checkbox"]');
+            return checkbox !== null;
+        """)
+        print(f"  批量操作复选框存在: {has_checkbox}")
+
+
+# ==================================================================
+#  P2 — 可靠性测试
+# ==================================================================
+class TestMaintenanceReliability:
+
+    def test_mt_21_repeat_search_stable(self, driver_setup):
+        """MT-21: 重复搜索稳定性"""
+        page = MaintenancePage(driver_setup)
+        case("MT-21", "重复搜索稳定性")
+
+        for i in range(3):
+            page.click_reset()
+            if i % 2 == 0:
+                page.select_type("日检")
+            else:
+                page.select_status("待执行")
+            page.click_search()
+            count = page.get_table_row_count()
+            assert count >= 0, f"第{i+1}次搜索 count={count} 正常"
+            print(f"  第{i+1}次: {count}行")

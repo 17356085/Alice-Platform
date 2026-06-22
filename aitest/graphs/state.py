@@ -284,6 +284,87 @@ AGENT_PHASE_MAP: dict[AgentName, PhaseName] = {
     "knowledge-agent": "Knowledge",
 }
 
+# ── 产物硬门禁 ──
+MAX_PHASE_RETRY_ROUNDS: int = 2
+
+# 产物路径（与 _PATH_BASE / _CONTEXT_MODULES 对齐）
+_ZJSN_TEST = _PATH_BASE / "ZJSN_Test-master526"
+_KPI_REPORTS = _PATH_BASE / "governance" / "kpi" / "reports"
+_KPI_TESTCASES = _PATH_BASE / "governance" / "kpi" / "testcases"
+_EXECUTION_REPORTS = _PATH_BASE / "governance" / "artifacts" / "execution-reports"
+
+
+def _check_test_design_artifacts(module: str, pages: list[str]) -> list[tuple[bool, str, str]]:
+    """Check per-page Test Design artifacts: TEST_CASES.md, TEST_DESIGN.md, PAGE_CONTEXT.md."""
+    results = []
+    for page in pages:
+        page_dir = get_page_dir(module, page)
+        for fname in ["TEST_CASES.md", "TEST_DESIGN.md", "PAGE_CONTEXT.md"]:
+            fpath = page_dir / fname
+            ok = fpath.exists() and fpath.stat().st_size > 0
+            results.append((ok, str(fpath), f"{page}/{fname}"))
+    return results
+
+
+def _check_automation_artifacts(module: str, pages: list[str]) -> list[tuple[bool, str, str]]:
+    """Check per-module Automation artifacts: *Page.py + test_*.py exist."""
+    results = []
+    po_dir = _ZJSN_TEST / "page" / f"{module}_page"
+    test_dir = _ZJSN_TEST / "script" / module
+    has_po = po_dir.exists() and any(po_dir.glob("*Page.py"))
+    has_test = test_dir.exists() and any(test_dir.glob("test_*.py"))
+    results.append((has_po, str(po_dir), f"PageObject (*Page.py) in page/{module}_page"))
+    results.append((has_test, str(test_dir), f"Test scripts (test_*.py) in script/{module}"))
+    return results
+
+
+def _check_report_artifacts(module: str, pages: list[str]) -> list[tuple[bool, str, str]]:
+    """Check execution report .md exists."""
+    pattern = f"TEST_EXECUTION_{module.upper()}_*.md"
+    found = list(_EXECUTION_REPORTS.glob(pattern)) if _EXECUTION_REPORTS.exists() else []
+    ok = len(found) > 0
+    results = [(ok, str(_EXECUTION_REPORTS / pattern), f"执行报告 ({pattern})")]
+    return results
+
+
+def _check_knowledge_artifacts(module: str, pages: list[str]) -> list[tuple[bool, str, str]]:
+    """Check per-page Excel + .md test case files exist."""
+    results = []
+    for page in pages:
+        xlsx_path = _KPI_REPORTS / module / f"测试报告-{module}-{page}.xlsx"
+        md_path = _KPI_TESTCASES / module / f"testcases-{module}-{page}.md"
+        results.append((xlsx_path.exists(), str(xlsx_path), f"{page}/测试报告.xlsx"))
+        results.append((md_path.exists(), str(md_path), f"{page}/testcases.md"))
+    return results
+
+
+# Phase → 强制产物检查器列表
+# 仅包含硬要求产物。软要求（BUSINESS_SCENARIOS.md, RISK_MODEL.md）不在此列。
+MANDATORY_ARTIFACTS: dict[PhaseName, list] = {
+    "Test Design": [_check_test_design_artifacts],
+    "Automation": [_check_automation_artifacts],
+    "Report": [_check_report_artifacts],
+    "Knowledge": [_check_knowledge_artifacts],
+}
+
+
+def validate_phase_artifacts(phase: str, module: str, pages: list[str]) -> tuple[bool, list[tuple[str, str]]]:
+    """Check mandatory artifacts for a phase exist on disk.
+
+    Returns (all_ok, [(label, path), ...]) for missing artifacts.
+    Returns (True, []) if phase has no mandatory artifacts.
+    """
+    checkers = MANDATORY_ARTIFACTS.get(phase, [])
+    if not checkers:
+        return True, []
+    missing: list[tuple[str, str]] = []
+    for checker in checkers:
+        results = checker(module, pages)
+        for ok, path, label in results:
+            if not ok:
+                missing.append((label, path))
+    return len(missing) == 0, missing
+
 
 # P2-4: AgentResult — 封装 Agent 执行结果，避免污染顶层状态
 @dataclass
@@ -369,6 +450,7 @@ class SOPState(TypedDict):
 
     # ── 质量门禁重试 ──
     force_retry_phase: Optional[str]          # 非 None 时强制路由到指定 phase（绕过 operator.add 只增不减限制）
+    phase_retry_count: int                    # 当前 phase 的重试计数（产物硬门禁用，独立于 bsc_retry_count）
 
     # ── 门禁检查 ──
     gate_results: Annotated[List[Dict[str, Any]], _bounded_gate_results]
@@ -440,6 +522,7 @@ def create_initial_state(
         "test_cases_approved": None,         # P1-3 HITL: None=未检查
 
         "force_retry_phase": None,           # 质量门禁重试: None=无重试, str=目标 phase
+        "phase_retry_count": 0,               # 产物硬门禁重试计数
 
         "gate_results": [],
 

@@ -1,15 +1,15 @@
-# CURRENT_TASK — system 模块工作流 7 页面
+# CURRENT_TASK — system 模块 SOP 全量完成
 
-> 最后更新：2026-06-12 16:05 | 第三轮修复完成，7/7 文件清零或接近清零
+> 最后更新：2026-06-18 15:50 | 治理文档补齐 + SOP Gate 全 PASS
 
 ## 基本信息
 | 字段 | 值 |
 |------|-----|
 | 项目 | web-automation |
 | 模块 | system（系统管理） |
-| 子范围 | 7个零覆盖页面（审批链/待审批/已审批/我发起的/SAP日志/API管理/监控） |
-| 当前 Phase | Phase 4.5（Bug分析）→ Phase 8（测试总结） |
-| 状态 | 🟢 6/7 文件零失败，审批链从1P/8F→7P/1F（单独跑8P/0F/1S），SAP日志/API/监控为长期问题 |
+| 子范围 | 12 页面（含新补齐 8 页面治理文档） |
+| 当前 Phase | Phase 8（测试总结）→ Phase 9（知识沉淀） |
+| 状态 | 🟢 SOP 治理文档 12/12 页面完成，84 .md 文件，所有 Agent Gate PASS |
 
 ---
 
@@ -408,3 +408,87 @@ assert (row_count > 0) or ("暂无" in empty)  # 非 "暂无数据"
 6. **XPath `[last()]` 在多 overlay 页面不可靠**: 页面常有隐藏 overlay（CSS 隐藏而非 inline style），`[last()]` 可能选错。CSS Selector `:not([style*="display: none"])` 更可靠。
 7. **placeholder 不可作为唯一定位依据**: 弹窗"名称"字段的 placeholder 是"如：日报审批流程"不含"名称"二字。JS 遍历 label 文本是最可靠的中文表单定位方式。
 8. **`//button[.//span[contains(text(),"X")]]` 陷阱**: 仅当按钮文字包裹在 `<span>` 内才匹配。直接文本在 `<button>` 中的情况需用 `contains(text(),"X")` 或 JS 文本搜索。
+
+---
+
+## 九、SOP 全量完成：2026-06-18
+
+### 治理文档补齐 (Phase 1-3.5)
+
+补齐 8 个缺失页面的治理文档（56 份新 .md 文件）：
+
+| 页面 | 路由 | PAGE_CONTEXT | RISK_MODEL | TEST_DESIGN | TEST_CASES | TECH_ANALYSIS | AUTO_STRATEGY | PAGE_ELEMENT_POSITION |
+|------|------|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| org-management | #/system/dept | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| dict-management | #/system/dict | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| params-management | #/system/config | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| notice-management | #/system/notice | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| timed-task | #/system/job | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| login-log | #/system/log/login-log | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| operation-log | #/system/log/oper-log | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| system-log | #/system/log/system-log | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+### SOP Gate 验证
+
+| Agent | Gate | 状态 |
+|-------|------|:--:|
+| requirement-agent | Phase 0.5 (Module Modeling) | ✅ PASS |
+| test-design-agent | Phase 2 (Test Design) — 8 页面逐一 | ✅ PASS |
+| automation-agent | Phase 3~4 (Automation) | ✅ PASS |
+| execution-agent | Phase 4.5~7 (Execute) | ✅ PASS |
+| knowledge-agent | Phase 9 (Knowledge) | ✅ PASS |
+
+### 模块统计
+
+| 指标 | 之前 | 现在 |
+|------|:--:|:--:|
+| 治理文档 | 32 .md | 84 .md |
+| 已建模页面 | 5/12 | 12/12 |
+| 测试文件 | 16 | 16 |
+| Page Object | 15 | 15 |
+| 测试收集 | — | 159 tests |
+
+### 测试执行快照 (2026-06-18 17:30)
+
+全量 159 tests 分批重跑完成：
+
+| 批次 | 文件 | Pass | Fail | Skip |
+|------|------|:--:|:--:|:--:|
+| 1 | test_login_log_management.py | 6 | 1 | 2 |
+| 2 | test_operation_log_management.py | 10 | 1 | 0 |
+| 3 | test_org_management.py (fix后) | 11 | 3 | 0 |
+| 4 | test_dict + params + notice | 25 | 11 | 0 |
+| 5 | test_timed + menu + user | 22 | 18 | 0 |
+| 6 | test_user_list + personnel + e2e + login | 26 | 4 | 1 |
+| **SUM** | **12 file groups** | **~96** | **~38** | **~3** |
+| **RATE** | | **~74%** | | |
+
+> 工作流文件 (approval_*, sap_push_log, api, monitor) 未重跑：上次已知 27P/8F/11S
+
+## 十、Phase 5 失败分析 (2026-06-18)
+
+### 已修复 Bug
+
+| Bug ID | 类型 | 影响 | 修复 |
+|--------|------|------|------|
+| **SYS-001** | `NameError: name 'time' is not defined` | 24 PO × 全模块 | 全部添加 `import time` |
+| **SYS-002** | Notice TOOLBAR_ADD XPath `[.//span]` 不匹配 | 1 PO | 改用 `contains(normalize-space(.),"新增")` |
+
+### 遗留失败模式
+
+| 模式 | 影响用例 | 严重程度 | 根因 | 建议修复 |
+|------|:--:|:--:|------|------|
+| el-select dropdown 不展开 | ~8 | P1 | Element Plus 新版 `.el-select__wrapper` 点击机制变化 | 更新 PO 中 el-select 点击为 wrapper-first |
+| 搜索/筛选后预期有数据但为空 | ~5 | P2 | 数据被前序用例清理 / 异步刷新未完成 | 加数据存在性前置校验 + skip on empty |
+| org export/view 失败 | 2 | P2 | 弹窗定位器使用绝对 XPath `/html/body/div[5]/…` | 改用相对 XPath / CSS |
+| login-log 日期选择器 | 1 | P2 | el-date-range-picker 点击位置不对 | JS 触发 click + wait panel |
+| params 删除断言失败 | 1 | P2 | 前序用例已删除测试数据 | 增加数据存在性检查 |
+
+### 下一会话建议
+
+1. P0: 修复 el-select dropdown 定位器 → 预计 +6-8P
+2. P1: 修复 org export/view 弹窗绝对 XPath → 预计 +2P  
+3. P1: 重跑 workflow 7 文件 (上次 27P/8F/11S)
+4. P2: 全量重跑 → 目标通过率 >85%
+5. Phase 8: 生成 Allure 报告
+6. Phase 9: 提取 `import time` 系统性 bug 为知识沉淀

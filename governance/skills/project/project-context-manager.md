@@ -89,6 +89,6 @@
 - [ ] 踩坑经验记录完整
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | project | synced 2026-06-17 21:52
+> **1.0** | active | project | synced 2026-06-18 10:54
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

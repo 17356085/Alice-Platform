@@ -4,6 +4,7 @@
   2026-06-12: 新建，继承 BasePage，遵循代码红线规范
 """
 import logging
+import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -120,35 +121,126 @@ class SapPushLogPage(BasePage):
         logger.info("已选择推送状态: %s", status_text)
 
     def set_date_range(self, start_date, end_date):
-        start = self.wait.until(EC.presence_of_element_located(self.DATE_START_INPUT))
-        end = self.wait.until(EC.presence_of_element_located(self.DATE_END_INPUT))
-        self.driver.execute_script("arguments[0].scrollIntoView({block:'center'});", start)
-        self.driver.execute_script(
-            "arguments[0].value = arguments[1];"
-            "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));"
-            "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));",
-            start, start_date,
-        )
-        self.driver.execute_script(
-            "arguments[0].value = arguments[1];"
-            "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));"
-            "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));",
-            end, end_date,
-        )
-        self.wait_vue_stable()
-        logger.info("已设置日期范围: %s ~ %s", start_date, end_date)
+        """设置日期范围。支持三种模式：
+        1. 独立开始/结束 input (placeholder含'开始日期'/'结束日期')
+        2. el-date-picker daterange 组件
+        3. 无日期字段时静默跳过
+        """
+        # Strategy 1: independent start/end inputs
+        for loc in [self.DATE_START_INPUT, (By.CSS_SELECTOR, 'input[placeholder*="开始"]')]:
+            try:
+                start = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located(loc))
+                if start and start.is_displayed():
+                    # Found start input, look for end
+                    for eloc in [self.DATE_END_INPUT, (By.CSS_SELECTOR, 'input[placeholder*="结束"]')]:
+                        try:
+                            end = WebDriverWait(self.driver, 2).until(EC.presence_of_element_located(eloc))
+                            if end and end.is_displayed():
+                                self.driver.execute_script("arguments[0].scrollIntoView({block:'center'});", start)
+                                self.driver.execute_script(
+                                    "arguments[0].value = arguments[1];"
+                                    "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));"
+                                    "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));",
+                                    start, start_date)
+                                self.driver.execute_script(
+                                    "arguments[0].value = arguments[1];"
+                                    "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));"
+                                    "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));",
+                                    end, end_date)
+                                self.wait_vue_stable()
+                                logger.info("已设置日期范围(input): %s ~ %s", start_date, end_date)
+                                return
+                        except Exception:
+                            continue
+            except Exception:
+                continue
+
+        # Strategy 2: el-date-picker daterange component
+        try:
+            picker = self.driver.execute_script("""
+                var pickers = document.querySelectorAll('.el-date-editor, .el-date-picker, [class*=\"date-range\"], [class*=\"daterange\"]');
+                for (var i=0; i<pickers.length; i++) {
+                    if (pickers[i].offsetParent !== null) return pickers[i];
+                }
+                // Search by label '时间范围'
+                var labels = document.querySelectorAll('.el-form-item__label');
+                for (var j=0; j<labels.length; j++) {
+                    if ((labels[j].textContent||'').indexOf('时间')!==-1 || (labels[j].textContent||'').indexOf('日期')!==-1) {
+                        var item = labels[j].closest('.el-form-item');
+                        if (item) {
+                            var editor = item.querySelector('.el-date-editor');
+                            if (editor) return editor;
+                            var input = item.querySelector('input');
+                            if (input) return input;
+                        }
+                    }
+                }
+                return null;
+            """)
+            if picker:
+                self.driver.execute_script("arguments[0].scrollIntoView({block:'center'});", picker)
+                # Try JS-based date setting via __vue__ component
+                set_ok = self.driver.execute_script("""
+                    var el = arguments[0];
+                    var start = arguments[1];
+                    var end = arguments[2];
+                    // Try Vue component data
+                    if (el.__vue__ && el.__vue__.value !== undefined) {
+                        el.__vue__.value = [start, end];
+                        return 'vue_set';
+                    }
+                    // Try setting via input
+                    var inputs = el.querySelectorAll('input');
+                    if (inputs.length >= 2) {
+                        inputs[0].value = start;
+                        inputs[0].dispatchEvent(new Event('input', {bubbles:true}));
+                        inputs[0].dispatchEvent(new Event('change', {bubbles:true}));
+                        inputs[1].value = end;
+                        inputs[1].dispatchEvent(new Event('input', {bubbles:true}));
+                        inputs[1].dispatchEvent(new Event('change', {bubbles:true}));
+                        return 'input_set';
+                    }
+                    return 'no_set';
+                """, picker, start_date, end_date)
+                self.wait_vue_stable()
+                logger.info("已设置日期范围(picker): %s ~ %s (method=%s)", start_date, end_date, set_ok)
+                return
+        except Exception as e:
+            logger.debug("el-date-picker date set attempt: %s", e)
+
+        # Strategy 3: no date field found — skip gracefully
+        logger.warning("未找到日期输入组件，跳过日期设置")
+        raise TimeoutException("未找到日期输入组件 (已尝试 input + el-date-picker)")
 
     def click_search(self):
         self._wait_settled(timeout=6)
-        self.click_search_button()
+        self._js_click_search_or_reset("搜索")
         self._wait_settled(timeout=10)
         logger.info("已点击搜索按钮")
 
     def click_reset(self):
         self._wait_settled(timeout=6)
-        self.click_reset_button()
+        self._js_click_search_or_reset("重置")
         self._wait_settled(timeout=10)
         logger.info("已点击重置按钮")
+
+    def _js_click_search_or_reset(self, text):
+        """JS 点击搜索/重置按钮（绕过 element click intercepted）"""
+        self.driver.execute_script(f"""
+            var btns = document.querySelectorAll('button');
+            for (var i = 0; i < btns.length; i++) {{
+                if ((btns[i].textContent || '').trim().indexOf('{text}') !== -1) {{
+                    btns[i].scrollIntoView({{block:'center'}});
+                    btns[i].click();
+                    return;
+                }}
+            }}
+            // Fallback: click primary button for search
+            if ('{text}' === '搜索') {{
+                var primary = document.querySelector('.search-form button.el-button--primary, .search-row button.el-button--primary');
+                if (primary) {{ primary.scrollIntoView({{block:'center'}}); primary.click(); }}
+            }}
+        """)
 
     # ══════════════════════════════════════════════════════════════════════
     #  表格操作

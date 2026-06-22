@@ -1,0 +1,82 @@
+{
+  "module": "",
+  "audit_time": "2026-06-18T10:54:56.733823",
+  "overall_status": "error",
+  "drift_count": 3,
+  "error_count": 1,
+  "warning_count": 1,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "",
+      "description": "SOP_STATUS_.json 不存在或无法解析",
+      "expected": "",
+      "actual": "",
+      "suggestion": "运行一次完整的 SOP 以生成 SOP_STATUS"
+    },
+    {
+      "check_type": "r_check",
+      "severity": "warning",
+      "phase": "Requirement",
+      "description": "产物 'MODULE_CONTEXT.md' 存在但 Phase 'Requirement' 未在 completed_phases 中",
+      "expected": "Phase 'Requirement' 在 completed_phases 中",
+      "actual": "Phase 'Requirement' 不在 completed_phases 中，但 MODULE_CONTEXT.md 已存在",
+      "suggestion": "更新 SOP_STATUS 将 'Requirement' 加入 completed_phases，或确认产物是否由外部创建"
+    },
+    {
+      "check_type": "orphan",
+      "severity": "info",
+      "phase": "",
+      "description": "发现非标准产物文件: README.md",
+      "expected": "标准产物 (PAGE_CONTEXT, RISK_MODEL, TEST_DESIGN, TEST_CASES, TECH_ANALYSIS, AUTO_STRATEGY)",
+      "actual": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\README.md",
+      "suggestion": "确认文件用途后归档到 governance/artifacts/archive/ 或删除"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 1,
+      "errors": 1,
+      "warnings": 0,
+      "ok": false
+    },
+    "r_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "o_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "orphan_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 0,
+      "ok": false
+    },
+    "c_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "q_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "t_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    }
+  }
+}

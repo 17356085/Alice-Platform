@@ -19,6 +19,7 @@ from base.sidebar_navigator import SidebarNavigator
 from page.warehouse_page.HazardItemPage import HazardItemPage
 from page.warehouse_page.HazardIORecordPage import HazardIORecordPage
 from page.warehouse_page.HazardInOrderPage import HazardInOrderPage
+from page.warehouse_page.HazardOutOrderPage import HazardOutOrderPage
 from page.warehouse_page.HazardStockPage import HazardStockPage
 from page.warehouse_page.ReagentItemPage import ReagentItemPage
 from page.warehouse_page.ReagentFillPage import ReagentFillPage
@@ -36,6 +37,7 @@ logger = logging.getLogger(__name__)
 # 测试文件 → 页面 hash 路由映射
 _MODULE_HASH_ROUTES = {
     "test_hazard_in_order": "#/warehouse/hazard/in_order",
+    "test_hazard_out_order": "#/warehouse/hazard/out_order",
     "test_hazard_io_record": "#/warehouse/hazard/io_record",
     "test_hazard_item": "#/warehouse/hazard/item",
     "test_hazard_stock": "#/warehouse/hazard/stock",
@@ -57,24 +59,15 @@ _MODULE_HASH_ROUTES = {
 @pytest.fixture(scope="module")
 def driver_setup(request):
     """模块级浏览器实例，自动导航到测试路由"""
-    driver = BaseDriver().driver
-    ensure_logged_in(driver)
-
+    base = BaseDriver()
+    driver = base.open_browser()
     try:
+        ensure_logged_in(driver)
         _navigate_for_module(driver, request.module)
-    except Exception as e:
-        logger.error("导航失败: %s", e)
-        driver.quit()
-        raise
-
-    yield driver
-
-    try:
+        yield driver
+    finally:
         _teardown_for_module(driver, request.module)
-    except Exception as e:
-        logger.warning("后置清理失败: %s", e)
-
-    driver.quit()
+        base.close_browser()
 
 
 def _navigate_for_module(driver, module):
@@ -110,6 +103,11 @@ def hazard_io_record_page(driver_setup):
 @pytest.fixture
 def hazard_in_order_page(driver_setup):
     return HazardInOrderPage(driver_setup)
+
+
+@pytest.fixture
+def hazard_out_order_page(driver_setup):
+    return HazardOutOrderPage(driver_setup)
 
 
 @pytest.fixture

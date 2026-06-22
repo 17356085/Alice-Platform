@@ -124,8 +124,8 @@ class TestDailyReportDataIntegrity:
     def test_053_total_count_consistent_after_page(self, daily_report_page):
         """翻到下一页后，分页总条数不变"""
         page = daily_report_page
-        # 扩大到全量日期范围确保数据量足够分页
-        page.query_date_range("2025-01-01", "2027-01-01")
+        # 使用最近1个月范围避免超时（数据量足够即可分页）
+        page.query_date_range("2026-05-17", "2026-06-17")
         print("\n========== DLY-053: 翻页总条数一致性 ==========")
 
         total_before = page.get_total_count()

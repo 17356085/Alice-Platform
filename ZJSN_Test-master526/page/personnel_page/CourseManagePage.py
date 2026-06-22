@@ -6,6 +6,7 @@
 """
 import os
 import logging
+import time
 from datetime import datetime
 
 from selenium.webdriver.common.by import By

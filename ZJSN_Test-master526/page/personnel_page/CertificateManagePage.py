@@ -4,6 +4,7 @@ Phase 4 自动生成 | 2026-06-12
 基于 PAGE_CONTEXT + TECH_ANALYSIS + PAGE_ELEMENT_POSITION
 """
 import logging
+import time
 
 from selenium.webdriver.common.by import By
 

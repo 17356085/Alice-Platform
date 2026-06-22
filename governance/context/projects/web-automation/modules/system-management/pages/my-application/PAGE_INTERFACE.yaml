@@ -1,0 +1,259 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-12 12:00"
+
+meta:
+  module: "system-management"
+  page_name: "MyApplication"
+  page_slug: "my-application"
+  page_url: "#/system/workflow/my-applications"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 1
+      risk_flags: []
+    - component: el-select
+      count: 2
+      risk_flags: ["审批状态", "工厂代码"]
+    - component: el-date-picker
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 4
+      risk_flags: ["搜索按钮JS点击", "重置按钮JS点击"]
+    - component: el-tag
+      count: 1
+      risk_flags: []
+    - component: el-form
+      count: 1
+      risk_flags: []
+
+elements:
+  - name: "审批状态下拉"
+    selector: "//div[contains(@class,'el-form-item')][.//label[text()='审批状态']]//div[contains(@class,'el-select')]"
+    selector_type: XPATH
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "通过label文本定位对应的el-select"
+    risk_level: low
+    risk_reason: "标准el-select下拉"
+
+  - name: "报表日期范围选择器"
+    selector: "//div[contains(@class,'el-form-item')][.//label[text()='报表日期']]//div[contains(@class,'el-date-range-picker')]"
+    selector_type: XPATH
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "两个日期输入框组合"
+    risk_level: low
+    risk_reason: "标准日期范围选择器"
+
+  - name: "工厂代码下拉"
+    selector: "//div[contains(@class,'el-form-item')][.//label[text()='工厂']]//div[contains(@class,'el-select')]//input"
+    selector_type: XPATH
+    element_type: select
+    el_component: el-select
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "非标准标题字段，通过JS遍历label定位输入框"
+    risk_level: high
+    risk_reason: "依赖文本遍历，可能存在多语言或变体"
+
+  - name: "搜索按钮"
+    selector: "//button[span[text()='搜索']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: WebDriverWait
+    locator_notes: "使用JS点击绕过拦截，查找文本'搜索'的按钮"
+    risk_level: medium
+    risk_reason: "按钮可能有防重复点击拦截"
+
+  - name: "重置按钮"
+    selector: "//button[span[text()='重置']]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: WebDriverWait
+    locator_notes: "使用JS点击绕过拦截，查找文本'重置'的按钮"
+    risk_level: medium
+    risk_reason: "按钮可能有防重复点击拦截"
+
+  - name: "表格主体"
+    selector: "//div[contains(@class,'el-table')]"
+    selector_type: XPATH
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+    risk_reason: "标准el-table"
+
+  - name: "第一行查看详情按钮"
+    selector: "(//div[contains(@class,'el-table__row')][1]//button[.//span[text()='查看详情']])[1]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "点击表格第一行的查看详情按钮"
+    risk_level: low
+    risk_reason: "存在性依赖数据"
+
+  - name: "第一行撤回按钮"
+    selector: "(//div[contains(@class,'el-table__row')][1]//button[.//span[text()='撤回']])[1]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "仅审批中状态显示，无数据时跳过"
+    risk_level: high
+    risk_reason: "按钮动态显示，状态依赖，可能不存在"
+
+  - name: "详情弹窗"
+    selector: "//div[contains(@class,'el-dialog') and .//span[contains(text(),'详情')]]"
+    selector_type: XPATH
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "查看详情后弹出的弹窗"
+    risk_level: low
+    risk_reason: "标准el-dialog"
+
+  - name: "详情弹窗关闭按钮"
+    selector: "//div[contains(@class,'el-dialog') and .//span[contains(text(),'详情')]]//button[contains(@class,'el-dialog__headerbtn')]"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗右上角关闭按钮"
+    risk_level: low
+    risk_reason: "标准关闭按钮"
+
+  - name: "表格空状态提示"
+    selector: "//div[contains(@class,'el-table__empty-text')]"
+    selector_type: XPATH
+    element_type: other
+    el_component: ""
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "可能显示'暂无申请记录'等变体"
+    risk_level: medium
+    risk_reason: "文案可能变化"
+
+test_scenarios:
+  - id: TC-001
+    title: "按审批状态筛选"
+    priority: P0
+    type: positive
+    preconditions: ["页面上存在申请记录"]
+    steps_summary: "选择审批状态下拉为'审批中'，点击搜索"
+    expected: "表格仅显示审批状态为'审批中'的记录"
+    relates_to_elements: ["审批状态下拉", "搜索按钮"]
+
+  - id: TC-002
+    title: "按工厂代码筛选"
+    priority: P1
+    type: positive
+    preconditions: ["页面上存在申请记录"]
+    steps_summary: "输入工厂代码值，点击搜索"
+    expected: "表格仅显示该工厂的申请记录"
+    relates_to_elements: ["工厂代码下拉", "搜索按钮"]
+
+  - id: TC-003
+    title: "重置搜索条件"
+    priority: P1
+    type: positive
+    preconditions: ["已设置搜索条件"]
+    steps_summary: "设置筛选条件后点击重置按钮"
+    expected: "搜索条件清空，表格显示全部记录"
+    relates_to_elements: ["重置按钮", "审批状态下拉", "工厂代码下拉", "报表日期范围选择器"]
+
+  - id: TC-004
+    title: "按报表日期范围搜索"
+    priority: P1
+    type: positive
+    preconditions: []
+    steps_summary: "选择日期范围，点击搜索"
+    expected: "表格仅显示该日期范围内的记录"
+    relates_to_elements: ["报表日期范围选择器", "搜索按钮"]
+
+  - id: TC-005
+    title: "查看详情弹窗"
+    priority: P0
+    type: positive
+    preconditions: ["表格有数据"]
+    steps_summary: "点击第一行查看详情按钮"
+    expected: "弹出详情弹窗，显示申请完整信息和审批进度"
+    relates_to_elements: ["第一行查看详情按钮", "详情弹窗"]
+
+  - id: TC-006
+    title: "撤回审批中申请"
+    priority: P1
+    type: positive
+    preconditions: ["存在审批中状态的申请"]
+    steps_summary: "点击第一行撤回按钮，确认撤回"
+    expected: "申请成功撤回，状态改变或不再显示"
+    relates_to_elements: ["第一行撤回按钮"]
+
+  - id: TC-007
+    title: "空状态显示"
+    priority: P2
+    type: negative
+    preconditions: ["无匹配记录"]
+    steps_summary: "使用搜索条件查询无结果"
+    expected: "表格显示空状态文案'暂无申请记录'"
+    relates_to_elements: ["表格空状态提示"]
+
+  - id: TC-008
+    title: "撤回按钮在非审批中状态不可见"
+    priority: P2
+    type: negative
+    preconditions: ["表格存在已通过/已驳回记录"]
+    steps_summary: "查看已通过或已驳回行的操作列"
+    expected: "该行无撤回按钮或按钮不可点击"
+    relates_to_elements: ["第一行撤回按钮"]
+
+page_behaviors:
+  - behavior: "表格加载后渲染"
+    triggers: ["页面加载", "搜索后"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "搜索后刷新表格"
+    triggers: ["点击搜索按钮", "点击重置按钮"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable 并等待表格数据刷新"
+
+  - behavior: "打开详情弹窗"
+    triggers: ["点击查看详情按钮"]
+    wait_required: true
+    wait_suggestion: "等待 el-dialog 出现"
+
+  - behavior: "关闭详情弹窗"
+    triggers: ["点击弹窗关闭按钮", "点击弹窗外部"]
+    wait_required: true
+    wait_suggestion: "等待 el-dialog 消失"
+
+  - behavior: "撤回操作后刷新"
+    triggers: ["点击撤回按钮并确认"]
+    wait_required: true
+    wait_suggestion: "等待表格更新（wait_vue_stable）"
+
+  - behavior: "空状态显示"
+    triggers: ["无查询结果"]
+    wait_required: true
+    wait_suggestion: "检测 el-table__empty-text 出现"

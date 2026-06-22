@@ -85,7 +85,7 @@
 
 <!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-table -->
 <!-- Source: tools/sync_progress.py -->
-## 模块状态表 (自动生成 — 更新于 2026-06-17 21:52)
+## 模块状态表 (自动生成 — 更新于 2026-06-18 10:54)
 
 | 模块ID | 模块名称 | SOP状态 | 页面数 | PO | 测试 | 治理文档 | TECH | AUTO | RISK | 进度 |
 |------|------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -93,13 +93,13 @@
 | system-user | 系统-用户 | ✅ completed | 5 | 15 | 16 | 32 | 3 | 3 | 5 | 89% |
 | system-role | 角色管理 | ✅ completed | 1 | 1 | 6 | 15 | 1 | 1 | 2 | 89% |
 | system-management | 系统管理(重置) | ⏳ pending | 8 | 0 | 1 | 0 | 0 | 0 | 0 | 0% |
-| equipment | 设备管理 | ✅ completed | 4 | 7 | 8 | 30 | 4 | 4 | 4 | 89% |
+| equipment | 设备管理 | ✅ completed | 4 | 7 | 9 | 30 | 4 | 4 | 4 | 89% |
 | tank | 储罐管理 | ✅ completed | 3 | 4 | 6 | 21 | 3 | 3 | 3 | **100%** |
-| personnel | 人员管理 | ✅ completed | 16 | 17 | 18 | 99 | 16 | 12 | 11 | 89% |
+| personnel | 人员管理 | ✅ completed | 16 | 17 | 19 | 102 | 16 | 12 | 13 | 89% |
 | sales | 销售管理 | ✅ completed | 4 | 4 | 20 | 29 | 4 | 4 | 4 | 89% |
 | lab | 化验室取样 | ✅ completed | 6 | 9 | 9 | 40 | 5 | 5 | 5 | **100%** |
 | production | 生产管理 | ✅ completed | 4 | 4 | 5 | 27 | 4 | 4 | 4 | 89% |
-| dcs | DCS数据管理 | ⚠️ partial | 5 | 5 | 5 | 11 | 5 | 5 | 0 | 56% |
+| dcs | DCS数据管理 | ⚠️ partial | 5 | 5 | 5 | 21 | 6 | 6 | 1 | 89% |
 | warehouse | 库管管理 | ✅ completed | 17 | 14 | 16 | 26 | 5 | 5 | 5 | 89% |
 | workflow | 工作流管理 | ✅ completed | 5 | 5 | 6 | 21 | 2 | 2 | 3 | 89% |
 

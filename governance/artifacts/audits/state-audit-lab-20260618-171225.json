@@ -1,0 +1,334 @@
+{
+  "module": "lab",
+  "audit_time": "2026-06-18T17:12:25.355627",
+  "overall_status": "error",
+  "drift_count": 31,
+  "error_count": 8,
+  "warning_count": 22,
+  "drifts": [
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'gas-analysis-report' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-analysis-report\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'gas-compare' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-compare\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'gas-indicator' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-indicator\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'water-compare' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-compare\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'water-indicator' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-indicator\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Bug Analysis",
+      "description": "Phase 'Bug Analysis' 已完成，但页面 'water-report' 缺失: BUG_ANALYSIS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-report\\BUG_ANALYSIS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Bug Analysis 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Data Sanitization",
+      "description": "Phase 'Data Sanitization' 已完成，但模块级产物缺失: DATA_QUALITY.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\DATA_QUALITY.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Data Sanitization 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "error",
+      "phase": "Project Init",
+      "description": "Phase 'Project Init' 已完成，但模块级产物缺失: PROJECT_CONTEXT.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\PROJECT_CONTEXT.md",
+      "actual": "文件不存在",
+      "suggestion": "建议重新运行 Project Init 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'gas-analysis-report' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-analysis-report\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'gas-compare' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-compare\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'gas-indicator' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-indicator\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'water-compare' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-compare\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'water-indicator' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-indicator\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "s_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "Phase 'Test Design' 已完成，但页面 'water-report' 缺失: BUSINESS_SCENARIOS.md",
+      "expected": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-report\\BUSINESS_SCENARIOS.md",
+      "actual": "文件不存在",
+      "suggestion": "建议对该页面重新运行 Test Design 相关 Agent"
+    },
+    {
+      "check_type": "orphan",
+      "severity": "info",
+      "phase": "",
+      "description": "发现非标准产物文件: CURRENT_TASK.md",
+      "expected": "标准产物 (PAGE_CONTEXT, RISK_MODEL, TEST_DESIGN, TEST_CASES, TECH_ANALYSIS, AUTO_STRATEGY)",
+      "actual": "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\CURRENT_TASK.md",
+      "suggestion": "确认文件用途后归档到 governance/artifacts/archive/ 或删除"
+    },
+    {
+      "check_type": "c_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "SOP_STATUS JSON 中有但 checkpoint 中无: {'Knowledge', 'Bug Analysis', 'Report', 'Data Sanitization', 'Execute & Debug'}",
+      "expected": "JSON 和 checkpoint 一致",
+      "actual": "JSON: ['Automation', 'Bug Analysis', 'Data Sanitization', 'Execute & Debug', 'Knowledge', 'Project Init', 'Report', 'Requirement', 'Test Design'], SQLite: ['Automation', 'Project Init', 'Requirement', 'Test Design']",
+      "suggestion": "以 SQLite checkpoint 为准，重新导出 SOP_STATUS JSON"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "TEST_DESIGN.md 内容质量不足: 行数 11 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['用例', '场景', '覆盖', '策略']",
+      "actual": "行数=11, 标记匹配=2/4",
+      "suggestion": "建议重新运行相关 Agent 生成 TEST_DESIGN.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "TEST_DESIGN.md 内容质量不足: 行数 10 < 最低要求 15",
+      "expected": "行数≥15, 标记匹配≥2/['用例', '场景', '覆盖', '策略']",
+      "actual": "行数=10, 标记匹配=2/4",
+      "suggestion": "建议重新运行相关 Agent 生成 TEST_DESIGN.md"
+    },
+    {
+      "check_type": "q_check",
+      "severity": "warning",
+      "phase": "",
+      "description": "TEST_DESIGN.md 内容质量不足: 行数 14 < 最低要求 15; 关键标记匹配 1/4 < 最低 2 (缺失: ['用例', '覆盖', '策略'])",
+      "expected": "行数≥15, 标记匹配≥2/['用例', '场景', '覆盖', '策略']",
+      "actual": "行数=14, 标记匹配=1/4",
+      "suggestion": "建议重新运行相关 Agent 生成 TEST_DESIGN.md"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'gas-analysis-report' 业务场景覆盖评分 30 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=30",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'lab' 有 6 个页面，但页面 'gas-analysis-report' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'gas-compare' 业务场景覆盖评分 35 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=35",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'lab' 有 6 个页面，但页面 'gas-compare' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'gas-indicator' 业务场景覆盖评分 35 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=35",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'lab' 有 6 个页面，但页面 'gas-indicator' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'water-compare' 业务场景覆盖评分 35 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=35",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'lab' 有 6 个页面，但页面 'water-compare' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'water-indicator' 业务场景覆盖评分 25 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=25",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'lab' 有 6 个页面，但页面 'water-indicator' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "error",
+      "phase": "Test Design",
+      "description": "页面 'water-report' 业务场景覆盖评分 35 < 60。测试用例可能仅覆盖 UI 操作，缺失业务场景验证。",
+      "expected": "Business Coverage Score ≥ 60",
+      "actual": "score=35",
+      "suggestion": "建议: (1) 确保 risk-modeling 产出了 BUSINESS_SCENARIOS.md; (2) 重新运行 testcase-design 确保维度 9 (业务场景验证) 已覆盖; (3) 检查 TEST_CASES.md 中是否有 BS-XXX-NNN 场景 ID 映射"
+    },
+    {
+      "check_type": "bsc_check",
+      "severity": "warning",
+      "phase": "Test Design",
+      "description": "模块 'lab' 有 6 个页面，但页面 'water-report' 的 BUSINESS_SCENARIOS.md 中未检测到跨页面流程覆盖",
+      "expected": "≥1 条跨页面业务流程场景",
+      "actual": "cross_page_scenarios=0",
+      "suggestion": "检查 BUSINESS_SCENARIOS.md 的 '3. 业务流程' 是否覆盖了跨页面场景"
+    }
+  ],
+  "repairs_attempted": [],
+  "checks": {
+    "s_check": {
+      "total": 14,
+      "errors": 2,
+      "warnings": 12,
+      "ok": false
+    },
+    "r_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "o_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    },
+    "orphan_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 0,
+      "ok": false
+    },
+    "c_check": {
+      "total": 1,
+      "errors": 0,
+      "warnings": 1,
+      "ok": false
+    },
+    "q_check": {
+      "total": 3,
+      "errors": 0,
+      "warnings": 3,
+      "ok": false
+    },
+    "t_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "ok": true
+    }
+  }
+}

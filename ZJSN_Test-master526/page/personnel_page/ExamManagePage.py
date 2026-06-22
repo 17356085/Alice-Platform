@@ -4,6 +4,7 @@
   2026-06-11: 继承 BasePage，清理绝对 XPath，替换 time.sleep → BasePage 等待方法
 """
 import logging
+import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -538,7 +539,11 @@ class ExamManagePage(BasePage):
         return options
 
     def select_dialog_option(self, label_text, option_text=None):
-        """在弹窗中选择下拉选项，优先匹配指定文本，失败则选第一个可用选项"""
+        """在弹窗中选择下拉选项，优先匹配指定文本，失败则选第一个可用选项。
+
+        Returns:
+            str: 实际选中的选项文本，如果无可用选项则返回 None
+        """
         self._open_dialog_select(label_text)
         self.wait_vue_stable()
         available = self.get_visible_select_options()
@@ -546,12 +551,16 @@ class ExamManagePage(BasePage):
 
         if option_text:
             if self._select_option_by_text(option_text):
-                return
+                return option_text
             logger.warning("未找到 '%s'，尝试第一个", option_text)
 
         if available:
             if self._select_option_by_text(available[0]):
-                return
+                return available[0]
+
+        if not available:
+            logger.warning("'%s' 无可选项，跳过", label_text)
+            return None
 
         raise Exception(f"选择 {label_text} 的选项失败，可用选项: {available}")
 
@@ -817,20 +826,22 @@ class ExamManagePage(BasePage):
         self.input_dialog_field("考试名称", exam_name)
 
         # 关联试卷：优先指定名称，失败则选第一个
+        paper_selected = None
         if paper_name:
             try:
-                self.select_dialog_option("关联试卷", paper_name)
+                paper_selected = self.select_dialog_option("关联试卷", paper_name)
             except Exception:
                 logger.warning("选择试卷 '%s' 失败，尝试第一个可用选项", paper_name)
-                try:
-                    self.select_dialog_option("关联试卷", None)
-                except Exception as e:
-                    logger.warning("选择试卷失败: %s", e)
-        else:
+        if not paper_selected:
             try:
-                self.select_dialog_option("关联试卷", None)
+                paper_selected = self.select_dialog_option("关联试卷", None)
             except Exception as e:
                 logger.warning("选择试卷失败: %s", e)
+
+        # 如果无可用试卷，考试创建必然失败，尽早返回错误
+        if paper_selected is None:
+            self.click_dialog_cancel()
+            return "创建失败: 无可选试卷(关联试卷下拉为空，请先在试卷管理中创建试卷)"
 
         if start_time:
             try:

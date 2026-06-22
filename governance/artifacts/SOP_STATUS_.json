@@ -1,0 +1,75 @@
+{
+  "module": "",
+  "status": "completed_with_issues",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation",
+    "Execute & Debug",
+    "Data Sanitization",
+    "Report",
+    "Knowledge"
+  ],
+  "failed_phases": [
+    "Project Init",
+    "Automation"
+  ],
+  "pages_processed": [],
+  "per_page_results": [],
+  "agent_summary": {
+    "preflight_auto_detect": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": ""
+    },
+    "project-agent": {
+      "success": true,
+      "skills_completed": 4,
+      "termination": "all_skills_completed"
+    },
+    "requirement-agent": {
+      "success": true,
+      "skills_completed": 2,
+      "termination": "all_skills_completed"
+    },
+    "test-design-agent": {
+      "success": true,
+      "skills_completed": 7,
+      "termination": "all_skills_completed"
+    },
+    "automation-agent": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": "max_steps_reached"
+    },
+    "execution-agent": {
+      "success": true,
+      "skills_completed": 1,
+      "termination": "all_skills_completed"
+    },
+    "data-sanitization": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": ""
+    },
+    "skill_reporting_report-generator": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": ""
+    },
+    "skill_knowledge_knowledge-manager": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": ""
+    },
+    "rag_indexed": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": ""
+    }
+  },
+  "run_id": "sop--1781748633",
+  "updated_at": "2026-06-18T10:54:56",
+  "engine": "langgraph"
+}

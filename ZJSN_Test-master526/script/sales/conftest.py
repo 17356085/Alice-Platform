@@ -241,8 +241,8 @@ def daily_report_page(driver_setup):
     """
     page = DailyReportPage(driver_setup)
 
-    # 等待页面就绪（loading gone + vue stable + table ready）
-    page._wait_loading_gone(timeout=10)
+    # __init__ 已做 _wait_page_ready(15)，此处仅补充短等待
+    page._wait_loading_gone(timeout=3)
     page.wait_vue_stable()
 
     # 表格无数据时等待额外渲染

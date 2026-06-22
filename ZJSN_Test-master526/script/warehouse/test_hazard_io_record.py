@@ -6,7 +6,7 @@ test_hazard_io_record.py - 环保出入库明细表自动化测试脚本
 """
 import pytest
 import allure
-from page.warehouse_page.hazard_io_record_page import HazardIORecordPage
+from page.warehouse_page.HazardIORecordPage import HazardIORecordPage
 
 
 @allure.epic("仓库管理")

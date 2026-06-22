@@ -1,0 +1,316 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-22 10:00"
+
+meta:
+  module: "dcs"
+  page_name: "AllDataPage"
+  page_slug: "all-data"
+  page_url: "/dcs/all-data"
+  page_type: "列表页（CRUD + 批量选择）"
+  vue_components:
+    - component: el-input
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 7
+      risk_flags: []
+    - component: el-select
+      count: 2
+      risk_flags: []
+    - component: el-table
+      count: 1
+      risk_flags: ["大数据量渲染可能慢"]
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 1
+      risk_flags: ["弹窗内嵌套表单"]
+    - component: el-checkbox
+      count: 2
+      risk_flags: []
+
+elements:
+  - name: "搜索输入框"
+    selector: 'input[placeholder*="点位" i], input[placeholder*="点位名称" i]'
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "模糊匹配 placeholder 含'点位'或'点位名称'"
+    risk_level: low
+
+  - name: "搜索按钮"
+    selector: '//button[normalize-space(.//span)="搜索"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "span 内文本精确匹配'搜索'"
+    risk_level: low
+
+  - name: "重置按钮"
+    selector: '//button[normalize-space(.//span)="重置"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "新增按钮"
+    selector: '//button[normalize-space(.//span)="新增"] | //button[normalize-space(.//span)="新增点位"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    locator_notes: "实际页面可能无此按钮（只读查询页），需 E2E 确认"
+    risk_level: high
+    risk_reason: "页面可能为只读查询页，无'新增'按钮"
+
+  - name: "导入按钮"
+    selector: '//button[normalize-space(.//span)="导入"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: "导入触发文件选择对话框，需特殊处理"
+
+  - name: "导出按钮"
+    selector: '//button[normalize-space(.//span)="导出"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "触发文件下载"
+    risk_level: medium
+
+  - name: "刷新按钮"
+    selector: '//button[normalize-space(.//span)="刷新"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "批量删除按钮"
+    selector: '//button[.//span[text()="批量删除"]]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+    risk_reason: "需先勾选行，否则可能置灰"
+
+  - name: "类型/状态筛选下拉"
+    selector: ".search-area .el-select, .filter-bar .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_loading_gone
+    locator_notes: "可能多个 el-select，需按位置取"
+    risk_level: low
+
+  - name: "数据表格"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_element_visible
+    locator_notes: ""
+    risk_level: low
+
+  - name: "表格行"
+    selector: ".el-table__body-wrapper tbody tr.el-table__row"
+    selector_type: CSS_SELECTOR
+    element_type: row
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格体中的每一行"
+    risk_level: low
+
+  - name: "表格加载遮罩"
+    selector: ".el-loading-mask"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-loading
+    interaction: wait
+    wait_strategy: wait_until_gone
+    locator_notes: "数据加载时显示，加载完消失"
+    risk_level: low
+
+  - name: "表格复选框"
+    selector: ".el-checkbox__input"
+    selector_type: CSS_SELECTOR
+    element_type: checkbox
+    el_component: el-checkbox
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "用于行选择和全选"
+    risk_level: low
+
+  - name: "分页器"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "分页总数"
+    selector: ".el-pagination__total"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: el-pagination
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "显示'共N条'"
+    risk_level: low
+
+  - name: "弹窗名称输入"
+    selector: '.el-dialog input[placeholder*="名称"]'
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_dialog_open
+    locator_notes: "弹窗内的名称输入框"
+    risk_level: low
+
+  - name: "弹窗类型下拉"
+    selector: ".el-dialog .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗内第一个 el-select"
+    risk_level: low
+
+test_scenarios:
+  - id: TC-DCS-ALL-001
+    title: "页面正常加载"
+    priority: P0
+    type: positive
+    preconditions: ["admin登录"]
+    steps_summary: "导航到 DCS 数据监控 → 全部点位"
+    expected: "搜索区、表格、分页器均可见"
+    relates_to_elements:
+      - "搜索输入框"
+      - "搜索按钮"
+      - "数据表格"
+      - "分页器"
+
+  - id: TC-DCS-ALL-002
+    title: "点位搜索"
+    priority: P0
+    type: positive
+    preconditions: ["存在点位数据"]
+    steps_summary: "搜索框输入关键词 → 点击搜索"
+    expected: "表格仅显示匹配记录"
+    relates_to_elements:
+      - "搜索输入框"
+      - "搜索按钮"
+      - "数据表格"
+
+  - id: TC-DCS-ALL-003
+    title: "重置搜索"
+    priority: P1
+    type: positive
+    preconditions: ["已执行搜索"]
+    steps_summary: "点击重置按钮"
+    expected: "搜索框清空，表格恢复全量数据"
+    relates_to_elements:
+      - "重置按钮"
+      - "搜索输入框"
+      - "数据表格"
+
+  - id: TC-DCS-ALL-004
+    title: "分页导航"
+    priority: P1
+    type: positive
+    preconditions: ["数据超过一页"]
+    steps_summary: "点击下一页 → 点击上一页"
+    expected: "页码切换正常，数据刷新"
+    relates_to_elements:
+      - "分页器"
+      - "数据表格"
+
+  - id: TC-DCS-ALL-005
+    title: "行选择"
+    priority: P1
+    type: positive
+    preconditions: ["表格有数据"]
+    steps_summary: "勾选一行 → 全选"
+    expected: "复选框状态正常切换"
+    relates_to_elements:
+      - "表格复选框"
+
+  - id: TC-DCS-ALL-006
+    title: "类型筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在多种类型点位"]
+    steps_summary: "下拉选择类型 → 查询"
+    expected: "仅显示该类型点位"
+    relates_to_elements:
+      - "类型/状态筛选下拉"
+      - "数据表格"
+
+  - id: TC-DCS-ALL-007
+    title: "无匹配结果"
+    priority: P2
+    type: boundary
+    preconditions: []
+    steps_summary: "搜索不存在的点位ID"
+    expected: "表格显示空数据提示"
+    relates_to_elements:
+      - "搜索输入框"
+      - "搜索按钮"
+      - "数据表格"
+
+page_behaviors:
+  - behavior: "页面初始加载"
+    triggers: ["页面导航"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable → _wait_loading_gone"
+
+  - behavior: "搜索刷新表格"
+    triggers: ["点击搜索按钮"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable → _wait_loading_gone"
+
+  - behavior: "弹窗打开/关闭"
+    triggers: ["点击新增/编辑/详情按钮", "点击取消/确定"]
+    wait_required: true
+    wait_suggestion: "wait_dialog_open / wait_dialog_close"
+
+  - behavior: "分页切换"
+    triggers: ["点击下一页/上一页"]
+    wait_required: true
+    wait_suggestion: "_wait_loading_gone"
+
+  - behavior: "批量操作确认"
+    triggers: ["点击批量删除"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable（等待 message-box）"

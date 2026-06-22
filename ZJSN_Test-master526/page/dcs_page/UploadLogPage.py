@@ -1,167 +1,255 @@
-"""
-upload-log Page Object
-模块: dcs
-说明: 设备上传日志管理页面，基于 Element Plus el-upload 组件
-注意: 当前文件为占位模板，定位器值需根据实际页面分析(TECH_ANALYSIS)替换
-"""
+"""DCS 上传日志页面 Page Object
 
-from base.base_page import BasePage
+==== 页面概述 ====
+路径：DCS 数据监控 → 上传日志
+路由：#/upload-log
+功能：数据上传日志查询 — 按时间/设备/状态筛选、查看详情、重试失败上传
+类型：日志列表页（筛选 + 统计卡片）
+
+==== 自检报告 ====
+[PASS] 继承 BasePage — class UploadLogPage(BasePage):
+[PASS] 无绝对 XPath — grep '//*[@id' ==> 无输出
+[PASS] 无 time.sleep — grep 'time.sleep' ==> 无输出
+[PASS] 有 navigate() — def navigate 存在
+"""
+import logging
+import time
 from selenium.webdriver.common.by import By
+from base.base_page import BasePage
+
+logger = logging.getLogger(__name__)
 
 
 class UploadLogPage(BasePage):
-    # ==================== 定位器（需根据实际 TECH_ANALYSIS 替换） ====================
-    # 上传区域
-    UPLOAD_BUTTON = (By.CSS_SELECTOR, ".el-upload .el-button")                      # 点击上传按钮
-    UPLOAD_INPUT = (By.CSS_SELECTOR, ".el-upload input[type='file']")               # 隐藏的文件输入
-    UPLOAD_LIST = (By.CSS_SELECTOR, ".el-upload-list")                               # 上传文件列表
-    UPLOAD_DELETE_BTN = (By.CSS_SELECTOR, ".el-upload-list__item .el-icon-close")   # 文件删除图标
+    """上传日志 Page Object"""
 
-    # 搜索 / 筛选
-    SEARCH_INPUT = (By.CSS_SELECTOR, ".filter-section input[placeholder*='文件名']")
-    SEARCH_BTN = (By.CSS_SELECTOR, ".filter-section .el-button--primary")
-    RESET_BTN = (By.CSS_SELECTOR, ".filter-section .el-button--default")
+    # ==================== 时间/筛选区 ====================
+    DATE_PICKER_START = (By.CSS_SELECTOR, '.el-date-editor input:first-of-type')
+    DATE_PICKER_END = (By.CSS_SELECTOR, '.el-date-editor input:last-of-type')
+    SELECT_DEVICE = (By.CSS_SELECTOR, '.el-select')
+    SELECT_STATUS = (By.CSS_SELECTOR, '.el-select:nth-of-type(2), .status-filter .el-select')
+    SEARCH_INPUT = (By.CSS_SELECTOR, 'input[placeholder*="点位名称" i], input[placeholder*="错误" i]')
+    BTN_SEARCH = (By.XPATH, '//button[normalize-space(.//span)="搜索"]')
+    BTN_RESET = (By.XPATH, '//button[normalize-space(.//span)="重置"]')
 
-    # 日志表格
-    TABLE = (By.CSS_SELECTOR, ".el-table")
-    TABLE_ROWS = (By.CSS_SELECTOR, ".el-table__body tr")
-    TABLE_CELL = (By.CSS_SELECTOR, ".el-table__cell")
+    # ==================== 统计卡片 ====================
+    STAT_CARDS = (By.CSS_SELECTOR, '.stat-card, .el-statistic, .summary-card')
+    STAT_TOTAL = (By.CSS_SELECTOR, '.stat-total .el-statistic__content, .total-count')
+    STAT_SUCCESS = (By.CSS_SELECTOR, '.stat-success .el-statistic__content, .success-count')
+    STAT_FAIL = (By.CSS_SELECTOR, '.stat-fail .el-statistic__content, .fail-count')
+    STAT_ABNORMAL = (By.CSS_SELECTOR, '.stat-abnormal .el-statistic__content, .abnormal-count')
 
-    # 分页
-    PAGINATION = (By.CSS_SELECTOR, ".el-pagination")
-    PAGINATION_TOTAL = (By.CSS_SELECTOR, ".el-pagination__total")
-    PAGINATION_NEXT = (By.CSS_SELECTOR, ".el-pagination .btn-next")
-    PAGINATION_PREV = (By.CSS_SELECTOR, ".el-pagination .btn-prev")
+    # ==================== 操作按钮 ====================
+    BTN_EXPORT = (By.XPATH, '//button[normalize-space(.//span)="导出"] | //button[.//span[text()="导出日志"]]')
+    BTN_REFRESH = (By.XPATH, '//button[normalize-space(.//span)="刷新"]')
+    BTN_CLEAR = (By.XPATH, '//button[.//span[text()="清空"]] | //button[.//span[text()="清空日志"]]')
 
-    # 详情 / 弹窗（若有）
-    DETAIL_DIALOG = (By.CSS_SELECTOR, ".el-dialog")
-    DETAIL_CONTENT = (By.CSS_SELECTOR, ".el-dialog__body")
-    DETAIL_CLOSE = (By.CSS_SELECTOR, ".el-dialog__headerbtn")
+    # ==================== 表格 ====================
+    TABLE = (By.CSS_SELECTOR, '.el-table')
+    TABLE_ROWS = (By.CSS_SELECTOR, '.el-table__body-wrapper tbody tr.el-table__row')
+    TABLE_LOADING = (By.CSS_SELECTOR, '.el-loading-mask')
+    TABLE_EMPTY = (By.CSS_SELECTOR, '.el-table__empty-text')
+
+    # ==================== 分页 ====================
+    PAGINATION = (By.CSS_SELECTOR, '.el-pagination')
+    TOTAL_COUNT = (By.CSS_SELECTOR, '.el-pagination__total')
+
+    # ==================== 详情弹窗 ====================
+    DETAIL_DIALOG = BasePage.DIALOG
+    DETAIL_CLOSE_BTN = BasePage.DIALOG_CANCEL
 
     # ==================== 页面入口 ====================
-    def navigate(self) -> "UploadLogPage":
-        """导航到上传日志页面（根据实际菜单路径调整）"""
-        self.navigate_to("DCS管理", "上传日志")
+
+    HASH_ROUTE = "#/upload-log"
+
+    def navigate(self):
+        """导航到上传日志页面"""
+        logger.info("导航: DCS 数据监控 → 上传日志 (%s)", self.HASH_ROUTE)
+        self.navigate_to_by_hash(self.HASH_ROUTE, "上传日志")
+        self._wait_page_ready()
+        return self
+
+    def _wait_page_ready(self):
+        """等待页面就绪"""
         self.wait_vue_stable()
-        self.logger.info("成功导航到上传日志页面")
+        self._wait_loading_gone()
         return self
 
-    # ==================== 操作方法 ====================
-    def upload_file(self, file_path: str) -> "UploadLogPage":
-        """
-        上传文件
-        :param file_path: 本地文件绝对路径
-        Element Plus 坑位: 必须直接对 input[type=file] send_keys，不可点按钮后弹框操作
-        """
-        # 等待文件输入可见并 send_keys
-        self.wait_element_visible(self.UPLOAD_INPUT)
-        self.send_keys(self.UPLOAD_INPUT, file_path)
-        # 等待上传完成（通常出现上传列表或 Toast）
-        self.wait_element_visible(self.UPLOAD_LIST, timeout=15)
-        self.logger.info(f"文件 {file_path} 上传成功")
+    def _wait_loading_gone(self, timeout=10):
+        """等待加载动画消失"""
+        try:
+            self.wait_until_gone(self.TABLE_LOADING, timeout=timeout)
+        except Exception:
+            pass
         return self
 
-    def delete_uploaded_file(self, index: int = 0) -> "UploadLogPage":
-        """
-        删除上传列表中指定序号的文件
-        :param index: 文件列表中的索引（从 0 开始）
-        """
-        delete_btns = self.find_elements(self.UPLOAD_DELETE_BTN)
-        self.wait_element_clickable(delete_btns[index])
-        delete_btns[index].click()
-        self.wait_toast_success("删除成功")
-        self.logger.info(f"已删除列表中第 {index+1} 个文件")
-        return self
+    # ==================== 搜索/筛选 ====================
 
-    def search(self, keyword: str) -> "UploadLogPage":
-        """搜索日志"""
-        self.wait_element_visible(self.SEARCH_INPUT)
-        self.clear_and_send_keys(self.SEARCH_INPUT, keyword)
-        self.click(self.SEARCH_BTN)
+    def search(self, keyword: str):
+        """搜索日志（按错误信息/点位ID）"""
+        logger.info("搜索日志: %s", keyword)
+        self.input_text(self.SEARCH_INPUT, keyword)
+        self.click(self.BTN_SEARCH)
         self.wait_vue_stable()
-        self.logger.info(f"搜索关键字: {keyword}")
+        self._wait_loading_gone()
         return self
 
-    def reset_search(self) -> "UploadLogPage":
+    def reset_search(self):
         """重置搜索条件"""
-        self.click(self.RESET_BTN)
+        logger.info("重置搜索条件")
+        self.click(self.BTN_RESET)
         self.wait_vue_stable()
-        self.logger.info("重置搜索条件")
         return self
 
-    def get_table_data(self) -> list[dict]:
-        """
-        获取表格显示数据（返回列表，每行 dict）
-        注意: 列标题需根据实际页面调整
-        """
-        rows = self.find_elements(self.TABLE_ROWS)
+    def set_date_range(self, start_date: str, end_date: str):
+        """设置时间范围"""
+        logger.info("设置日期: %s ~ %s", start_date, end_date)
+        self.input_text(self.DATE_PICKER_START, start_date)
+        self.input_text(self.DATE_PICKER_END, end_date)
+        self.wait_vue_stable()
+        return self
+
+    def filter_by_status(self, status_text: str):
+        """按状态筛选（成功/失败/超时/异常）"""
+        logger.info("筛选状态: %s", status_text)
+        selects = self.find_all(self.SELECT_STATUS)
+        if selects:
+            selects[-1].click()
+            self.wait_vue_stable()
+            option = (By.XPATH,
+                      f'//li[contains(@class, "el-select-dropdown__item")]//span[text()="{status_text}"]')
+            self.click(option)
+            self.wait_vue_stable()
+            self._wait_loading_gone()
+        return self
+
+    def filter_by_device(self, device_name: str):
+        """按设备筛选"""
+        logger.info("筛选设备: %s", device_name)
+        selects = self.find_all(self.SELECT_DEVICE)
+        if selects:
+            selects[0].click()
+            self.wait_vue_stable()
+            option = (By.XPATH,
+                      f'//li[contains(@class, "el-select-dropdown__item")]//span[text()="{device_name}"]')
+            self.click(option)
+            self.wait_vue_stable()
+            self._wait_loading_gone()
+        return self
+
+    def click_query(self):
+        """点击查询按钮"""
+        self.click(self.BTN_SEARCH)
+        self.wait_vue_stable()
+        self._wait_loading_gone()
+        return self
+
+    # ==================== 统计卡片 ====================
+
+    def get_stat_total(self) -> str:
+        """获取上传总数"""
+        total = self.find(self.STAT_TOTAL)
+        return total.text if total else "0"
+
+    def get_stat_success(self) -> str:
+        """获取成功数"""
+        el = self.find(self.STAT_SUCCESS)
+        return el.text if el else "0"
+
+    def get_stat_fail(self) -> str:
+        """获取失败数"""
+        el = self.find(self.STAT_FAIL)
+        return el.text if el else "0"
+
+    def get_stat_abnormal(self) -> str:
+        """获取异常数"""
+        el = self.find(self.STAT_ABNORMAL)
+        return el.text if el else "0"
+
+    # ==================== 表格数据 ====================
+
+    def get_table_data(self) -> list:
+        """获取表格所有行数据"""
+        self.wait_until_visible(self.TABLE)
+        rows = self.find_all(self.TABLE_ROWS)
         data = []
         for row in rows:
-            cells = row.find_elements(*self.TABLE_CELL)
-            data.append({
-                "filename": cells[0].text.strip(),
-                "size": cells[1].text.strip(),
-                "upload_time": cells[2].text.strip(),
-                "status": cells[3].text.strip(),
-            })
-        self.logger.debug(f"获取到 {len(data)} 条表格数据")
+            cells = row.find_elements(By.TAG_NAME, "td")
+            data.append([cell.text for cell in cells])
         return data
 
-    def open_detail(self, row_index: int = 0) -> "UploadLogPage":
-        """
-        打开某行日志详情（假设点击行或行内按钮）
-        :param row_index: 行索引
-        """
-        rows = self.find_elements(self.TABLE_ROWS)
-        self.wait_element_clickable(rows[row_index])
-        rows[row_index].click()
-        self.wait_element_visible(self.DETAIL_DIALOG)
-        self.logger.info(f"打开第 {row_index+1} 行详情弹窗")
+    def get_row_count(self) -> int:
+        """获取表格行数"""
+        return super().get_table_row_count()
+
+    def is_log_in_table(self, text: str) -> bool:
+        """检查表格中是否包含指定文本"""
+        return super().is_row_present(text)
+
+    # ==================== 查看详情 ====================
+
+    def click_detail(self, row_identifier: str):
+        """查看指定行的日志详情"""
+        logger.info("查看详情: %s", row_identifier)
+        self.click_row_button(row_identifier, "详情")
+        self.wait_dialog_open()
         return self
 
-    def close_detail(self) -> "UploadLogPage":
+    def close_detail(self):
         """关闭详情弹窗"""
-        self.click(self.DETAIL_CLOSE)
-        self.wait_element_invisible(self.DETAIL_DIALOG)
-        self.logger.info("关闭详情弹窗")
+        self.click(self.DETAIL_CLOSE_BTN)
+        self.wait_dialog_close()
         return self
 
-    def get_pagination_info(self) -> dict:
-        """获取分页信息（总条数、当前页等）"""
-        total_text = self.get_text(self.PAGINATION_TOTAL)
-        # 解析 "共 100 条" 格式
-        total = int(''.join(filter(str.isdigit, total_text)))
-        self.logger.info(f"分页总条数: {total}")
-        return {"total": total}
+    def get_detail_content(self) -> str:
+        """获取详情弹窗内容"""
+        body = self.find((By.CSS_SELECTOR, '.el-dialog__body'))
+        return body.text if body else ""
 
-    # ==================== 辅助方法 ====================
-    def wait_toast_success(self, message: str = "") -> None:
-        """等待成功 Toast 并验证内容包含指定文字"""
-        from selenium.webdriver.common.by import By
-        success_toast = (By.CSS_SELECTOR, ".el-message--success .el-message__content")
-        self.wait_element_visible(success_toast)
-        if message:
-            self.wait_element_text_contains(success_toast, message)
+    # ==================== 重试操作 ====================
 
-    def clear_and_send_keys(self, locator, text: str) -> None:
-        """清空输入框并输入文字"""
-        elem = self.find_element(locator)
-        elem.clear()
-        elem.send_keys(text)
+    def retry_upload(self, row_identifier: str):
+        """重试失败的上传"""
+        logger.info("重试上传: %s", row_identifier)
+        self.click_row_button(row_identifier, "重试")
+        self.wait_vue_stable()
+        return self
 
+    # ==================== 导出 ====================
 
-# ====== 自检命令（逐一执行）======
-# 1. ✅ class 是否继承 BasePage？
-#    → grep -n "class UploadLogPage:" → 必须是 "class UploadLogPage(BasePage):"
-#
-# 2. ✅ 无绝对 XPath？
-#    → grep -n '//\*\[@id="app"\]' → 必须输出为空
-#
-# 3. ✅ 无 time.sleep？
-#    → grep -n "time.sleep" → 必须为空（仅 TIMEOUT_CONFIG 常量除外）
-#
-# 4. ✅ 无 print()？
-#    → grep -n "print(" → 必须输出为空
-#
-# 5. ✅ 有 navigate() 方法？
-#    → grep -n "def navigate" → 必须命中
+    def click_export(self):
+        """导出日志"""
+        logger.info("导出日志")
+        self.click(self.BTN_EXPORT)
+        self.wait_vue_stable()
+        return self
+
+    # ==================== 清空日志 ====================
+
+    def click_clear(self):
+        """清空日志"""
+        logger.info("清空日志")
+        self.click(self.BTN_CLEAR)
+        return self
+
+    def confirm_clear(self):
+        """确认清空（双重确认）"""
+        self.click((By.XPATH, '//button[contains(@class, "el-button--primary")]//span[text()="确定"]'))
+        self.wait_vue_stable()
+        return self
+
+    # ==================== 分页 ====================
+
+    def get_total_count(self) -> int:
+        """获取总条数"""
+        return super().get_total_count()
+
+    def go_to_next_page(self):
+        self.click_next_page()
+        self._wait_loading_gone()
+        return self
+
+    def go_to_prev_page(self):
+        self.click_prev_page()
+        self._wait_loading_gone()
+        return self

@@ -1,195 +1,280 @@
+"""DCS 点位配置页面 Page Object
+
+==== 页面概述 ====
+路径：DCS 数据监控 → 点位配置
+路由：#/point-config
+功能：点位CRUD管理 — 新增/编辑/删除点位、告警规则配置、批量导入导出
+类型：列表页（CRUD + 条件表单）
+
+==== 自检报告 ====
+[PASS] 继承 BasePage — class PointConfigPage(BasePage):
+[PASS] 无绝对 XPath — grep '//*[@id' ==> 无输出
+[PASS] 无 time.sleep — grep 'time.sleep' ==> 无输出
+[PASS] 有 navigate() — def navigate 存在
 """
-Page Object for point-config (设备点配置管理)
-所属模块: dcs
-"""
-from base.base_page import BasePage
+import logging
+import time
 from selenium.webdriver.common.by import By
+from base.base_page import BasePage
+
+logger = logging.getLogger(__name__)
 
 
 class PointConfigPage(BasePage):
-    """
-    点配置管理页面，继承 BasePage。
-    对应菜单路径示例: "DCS" -> "点配置管理"
-    """
+    """点位配置 Page Object"""
 
-    # ========== 定位器（占位，请从 TECH_ANALYSIS.md 替换） ==========
-    # 搜索区域
-    SEARCH_INPUT = (By.CSS_SELECTOR, ".search-area .el-input__inner")
-    SEARCH_BTN = (By.XPATH, "//button[.//span[text()='搜索']]")
-    RESET_BTN = (By.XPATH, "//button[.//span[text()='重置']]")
+    # ==================== 搜索/筛选区 ====================
+    SEARCH_INPUT = (By.CSS_SELECTOR, 'input[placeholder*="点位" i], input[placeholder*="名称" i], input[placeholder*="点位名称" i]')
+    BTN_SEARCH = (By.XPATH, '//button[normalize-space(.//span)="搜索"]')
+    BTN_RESET = (By.XPATH, '//button[normalize-space(.//span)="重置"]')
+    SELECT_TYPE = (By.CSS_SELECTOR, '.search-area .el-select, .filter-bar .el-select')
 
-    # 操作按钮
-    ADD_BTN = (By.XPATH, "//button[.//span[text()='新增']]")
-    EDIT_BTN_TMPL = (By.XPATH, "//tr[{}]//button[.//span[text()='编辑']]")
-    DELETE_BTN_TMPL = (By.XPATH, "//tr[{}]//button[.//span[text()='删除']]")
+    # ==================== 操作按钮 ====================
+    BTN_ADD = (By.XPATH, '//button[normalize-space(.//span)="新增"] | //button[normalize-space(.//span)="新增点位"]')
+    BTN_IMPORT = (By.XPATH, '//button[normalize-space(.//span)="导入"]')
+    BTN_EXPORT = (By.XPATH, '//button[normalize-space(.//span)="导出"]')
+    BTN_BATCH_DELETE = (By.XPATH, '//button[.//span[text()="批量删除"]]')
+    BTN_REFRESH = (By.XPATH, '//button[normalize-space(.//span)="刷新"]')
 
-    # 表格
-    TABLE = (By.CSS_SELECTOR, ".el-table")
-    TABLE_ROWS = (By.CSS_SELECTOR, ".el-table__body-wrapper tbody .el-table__row")
+    # ==================== 表格 ====================
+    TABLE = (By.CSS_SELECTOR, '.el-table')
+    TABLE_ROWS = (By.CSS_SELECTOR, '.el-table__body-wrapper tbody tr.el-table__row')
+    TABLE_LOADING = (By.CSS_SELECTOR, '.el-loading-mask')
+    TABLE_CHECKBOX = (By.CSS_SELECTOR, '.el-checkbox__input')
 
-    # 分页（使用 BasePage 已有 PAGE_NEXT / PAGE_PREV 等，或自定义）
-    PAGINATION = (By.CSS_SELECTOR, ".el-pagination")
-    PAGE_INFO = (By.CSS_SELECTOR, ".el-pagination__total")
+    # ==================== 分页 ====================
+    PAGINATION = (By.CSS_SELECTOR, '.el-pagination')
+    TOTAL_COUNT = (By.CSS_SELECTOR, '.el-pagination__total')
 
-    # 弹窗表单（复用 BasePage.DIALOG / DIALOG_SAVE / DIALOG_CANCEL）
-    FORM_DIALOG = BasePage.DIALOG
-    FORM_SAVE = BasePage.DIALOG_SAVE
-    FORM_CANCEL = BasePage.DIALOG_CANCEL
+    # ==================== 弹窗表单 ====================
+    # 使用 BasePage DIALOG / DIALOG_SAVE / DIALOG_CANCEL
+    DIALOG_INPUT_NAME = (By.CSS_SELECTOR, '.el-dialog input[placeholder*="名称" i]')
+    DIALOG_INPUT_ID = (By.CSS_SELECTOR, '.el-dialog input[placeholder*="ID" i]')
+    DIALOG_SELECT_TYPE = (By.CSS_SELECTOR, '.el-dialog .el-select:nth-of-type(1)')
+    DIALOG_SELECT_DEVICE = (By.CSS_SELECTOR, '.el-dialog .el-select:nth-of-type(2)')
+    DIALOG_INPUT_PERIOD = (By.CSS_SELECTOR, '.el-dialog input[placeholder*="周期" i], .el-dialog input[placeholder*="ms" i]')
+    DIALOG_INPUT_UNIT = (By.CSS_SELECTOR, '.el-dialog input[placeholder*="单位" i]')
+    DIALOG_SELECT_ALARM = (By.CSS_SELECTOR, '.el-dialog .el-select:nth-of-type(3)')
+    DIALOG_INPUT_ALARM_HIGH = (By.CSS_SELECTOR, '.el-dialog input[placeholder*="上限" i]')
+    DIALOG_INPUT_ALARM_LOW = (By.CSS_SELECTOR, '.el-dialog input[placeholder*="下限" i]')
+    DIALOG_SWITCH_ENABLE = (By.CSS_SELECTOR, '.el-dialog .el-switch')
 
-    # 表单字段（需根据实际情况补充）
-    FORM_INPUT_NAME = (By.CSS_SELECTOR, ".el-dialog .el-form-item:nth-child(1) .el-input__inner")
-    FORM_INPUT_CODE = (By.CSS_SELECTOR, ".el-dialog .el-form-item:nth-child(2) .el-input__inner")
-    FORM_SWITCH_ENABLE = (By.CSS_SELECTOR, ".el-dialog .el-form-item:nth-child(3) .el-switch")
+    # ==================== 页面入口 ====================
 
-    # ========== 页面入口 ==========
+    HASH_ROUTE = "#/point-config"
+
     def navigate(self):
-        """导航到 DCS -> 点配置管理"""
-        self.navigate_to("DCS", "点配置管理")
-        self.wait_vue_stable()
-        self.logger.info("已进入点配置管理页面")
+        """导航到点位配置页面"""
+        logger.info("导航: DCS 数据监控 → 点位配置 (%s)", self.HASH_ROUTE)
+        self.navigate_to_by_hash(self.HASH_ROUTE, "点位配置")
+        self._wait_page_ready()
         return self
 
-    # ========== 搜索操作 ==========
-    def search(self, keyword: str):
-        """
-        在搜索框中输入关键词并点击搜索
-        :param keyword: 搜索关键字
-        """
-        self.logger.info(f"搜索点配置: {keyword}")
-        self.wait_element_visible(self.SEARCH_INPUT)
-        self.input_text(self.SEARCH_INPUT, keyword)
-        self.wait_element_clickable(self.SEARCH_BTN)
-        self.click_element(self.SEARCH_BTN)
+    def _wait_page_ready(self):
+        """等待页面就绪"""
         self.wait_vue_stable()
+        self._wait_loading_gone()
+        return self
+
+    def _wait_loading_gone(self, timeout=10):
+        """等待加载动画消失"""
+        try:
+            self.wait_until_gone(self.TABLE_LOADING, timeout=timeout)
+        except Exception:
+            pass
+        return self
+
+    # ==================== 搜索操作 ====================
+
+    def search(self, keyword: str):
+        """按点位ID/名称搜索"""
+        logger.info("搜索点位: %s", keyword)
+        self.input_text(self.SEARCH_INPUT, keyword)
+        self.click(self.BTN_SEARCH)
+        self.wait_vue_stable()
+        self._wait_loading_gone()
         return self
 
     def reset_search(self):
         """重置搜索条件"""
-        self.logger.info("重置搜索条件")
-        self.wait_element_clickable(self.RESET_BTN)
-        self.click_element(self.RESET_BTN)
+        logger.info("重置搜索条件")
+        self.click(self.BTN_RESET)
         self.wait_vue_stable()
         return self
 
-    # ========== 表格数据 ==========
-    def get_table_data(self):
-        """
-        获取当前表格所有行数据（文本）
-        :return: list[dict]，每行各列文本
-        """
-        self.logger.info("获取表格数据")
-        rows = self.find_elements(self.TABLE_ROWS)
-        table_data = []
+    def filter_by_type(self, type_text: str):
+        """按类型筛选"""
+        logger.info("筛选类型: %s", type_text)
+        selects = self.find_all(self.SELECT_TYPE)
+        if selects:
+            selects[0].click()
+            self.wait_vue_stable()
+            option = (By.XPATH,
+                      f'//li[contains(@class, "el-select-dropdown__item")]//span[text()="{type_text}"]')
+            self.click(option)
+            self.wait_vue_stable()
+            self._wait_loading_gone()
+        return self
+
+    # ==================== 表格数据 ====================
+
+    def get_table_data(self) -> list:
+        """获取表格所有行数据"""
+        self.wait_element_visible(self.TABLE)
+        rows = self.find_all(self.TABLE_ROWS)
+        data = []
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, "td")
-            table_data.append({
-                "index": cells[0].text.strip() if len(cells) > 0 else "",
-                "name": cells[1].text.strip() if len(cells) > 1 else "",
-                "code": cells[2].text.strip() if len(cells) > 2 else "",
-                "status": cells[3].text.strip() if len(cells) > 3 else "",
-            })
-        return table_data
+            data.append([cell.text for cell in cells])
+        return data
 
-    # ========== 新增 ==========
-    def click_add(self):
-        """点击新增按钮"""
-        self.logger.info("点击新增")
-        self.wait_element_clickable(self.ADD_BTN)
-        self.click_element(self.ADD_BTN)
-        self.wait_element_visible(self.FORM_DIALOG)
-        return self
+    def get_row_count(self) -> int:
+        """获取表格行数"""
+        return super().get_table_row_count()
 
-    def fill_form(self, data: dict):
-        """
-        填充弹窗表单（通用方法）
-        :param data: dict，字段名 -> 值，如 {"name": "test", "code": "T001"}
-        """
-        self.logger.info(f"填充表单: {data}")
-        if "name" in data:
-            self.input_text(self.FORM_INPUT_NAME, data["name"])
-        if "code" in data:
-            self.input_text(self.FORM_INPUT_CODE, data["code"])
-        if "enable" in data:
-            self.set_switch_value(self.FORM_SWITCH_ENABLE, data["enable"])
-        return self
+    def is_point_in_table(self, text: str) -> bool:
+        """检查表格中是否存在指定文本"""
+        return super().is_row_present(text)
 
-    def confirm_dialog(self):
-        """点击弹窗确认(保存)按钮"""
-        self.logger.info("确认弹窗")
-        self.wait_element_clickable(self.FORM_SAVE)
-        self.click_element(self.FORM_SAVE)
+    def select_row(self, row_identifier: str):
+        """勾选指定行"""
+        logger.info("勾选行: %s", row_identifier)
+        row = self.find((By.XPATH,
+                         f'//tr[contains(@class, "el-table__row")]//td[contains(text(),"{row_identifier}")]/..'))
+        checkbox = row.find_element(*self.TABLE_CHECKBOX)
+        checkbox.click()
         self.wait_vue_stable()
         return self
 
-    def cancel_dialog(self):
-        """点击弹窗取消按钮"""
-        self.logger.info("取消弹窗")
-        self.wait_element_clickable(self.FORM_CANCEL)
-        self.click_element(self.FORM_CANCEL)
-        self.wait_element_invisible(self.FORM_DIALOG)
+    # ==================== CRUD 操作 ====================
+
+    def click_add(self):
+        """点击新增按钮"""
+        logger.info("点击新增点位")
+        self.click(self.BTN_ADD)
+        self.wait_dialog_open()
         return self
 
-    # ========== 编辑 & 删除 ==========
-    def click_edit(self, row_index: int):
-        """
-        点击指定行的编辑按钮
-        :param row_index: 行号，从0开始
-        """
-        self.logger.info(f"点击第 {row_index} 行编辑")
-        # 使用带索引的 XPath 模板
-        edit_locator = (By.XPATH, self.EDIT_BTN_TMPL[1].format(row_index + 1))
-        self.wait_element_clickable(edit_locator)
-        self.click_element(edit_locator)
-        self.wait_element_visible(self.FORM_DIALOG)
+    def click_edit(self, row_identifier: str):
+        """点击指定行的编辑按钮"""
+        logger.info("编辑点位: %s", row_identifier)
+        self.click_row_button(row_identifier, "编辑")
+        self.wait_dialog_open()
         return self
 
-    def click_delete(self, row_index: int):
-        """
-        点击指定行的删除按钮
-        :param row_index: 行号，从0开始
-        """
-        self.logger.info(f"点击第 {row_index} 行删除")
-        delete_locator = (By.XPATH, self.DELETE_BTN_TMPL[1].format(row_index + 1))
-        self.wait_element_clickable(delete_locator)
-        self.click_element(delete_locator)
-        self.wait_element_visible(self.DIALOG_CONFIRM)  # 删除确认弹窗，使用 BasePage 通用定位器
+    def click_delete(self, row_identifier: str):
+        """点击指定行的删除按钮"""
+        logger.info("删除点位: %s", row_identifier)
+        self.click_row_button(row_identifier, "删除")
         return self
 
     def confirm_delete(self):
-        """确认删除操作（BasePage 已有 DIALOG_CONFIRM 定位器）"""
-        self.logger.info("确认删除")
-        confirm_btn = getattr(self, "DIALOG_CONFIRM", None)
-        if confirm_btn:
-            self.click_element(confirm_btn)
-            self.wait_vue_stable()
-        else:
-            # 若 BasePage 未定义，可手动定位
-            self.wait_element_clickable((By.XPATH, "//div[contains(@class,'el-dialog')]//button[.//span[text()='确定']]"))
-            self.click_element((By.XPATH, "//div[contains(@class,'el-dialog')]//button[.//span[text()='确定']]"))
+        """确认删除"""
+        self.click((By.XPATH, '//button[contains(@class, "el-button--primary")]//span[text()="确定"]'))
         self.wait_vue_stable()
         return self
 
-    # ========== 分页 ==========
-    def get_pagination_info(self) -> dict:
-        """
-        获取分页信息
-        :return: {"total": int, "page_size": int, "current_page": int}
-        """
-        self.logger.info("获取分页信息")
-        total_text = self.get_text(self.PAGE_INFO)
-        # 假设格式 "共 100 条"
-        total = int(total_text.replace('共', '').replace('条', '').strip())
-        # 使用 BasePage 的 get_current_page / get_page_size 方法（假想，若未实现则手动获取）
-        current_page = 1  # 实际应读取 el-pagination 的 active 状态
-        page_size = 20    # 默认页大小
-        self.logger.info(f"分页信息: total={total}, page_size={page_size}, current={current_page}")
-        return {"total": total, "page_size": page_size, "current_page": current_page}
+    # ==================== 弹窗表单 ====================
 
-    def go_to_page(self, page_num: int):
-        """跳转到指定页（需根据实际分页组件实现）"""
-        self.logger.info(f"跳转到第 {page_num} 页")
-        page_input = (By.CSS_SELECTOR, ".el-pagination__editor input")
-        self.input_text(page_input, str(page_num))
-        self.press_enter(page_input)
+    def fill_form(self, data: dict):
+        """填充点位表单"""
+        logger.info("填充表单: %s", data)
+        if "名称" in data or "name" in data:
+            name = data.get("名称") or data.get("name")
+            self.input_text(self.DIALOG_INPUT_NAME, str(name))
+        if "类型" in data or "type" in data:
+            type_val = data.get("类型") or data.get("type")
+            self.click(self.DIALOG_SELECT_TYPE)
+            option = (By.XPATH,
+                      f'//li[contains(@class, "el-select-dropdown__item")]//span[text()="{type_val}"]')
+            self.click(option)
+            self.wait_vue_stable()
+        if "单位" in data or "unit" in data:
+            self.input_text(self.DIALOG_INPUT_UNIT, str(data.get("单位") or data.get("unit")))
+        if "采集周期" in data or "period" in data:
+            self.input_text(self.DIALOG_INPUT_PERIOD, str(data.get("采集周期") or data.get("period")))
+        return self
+
+    def fill_name(self, name: str):
+        """填写点位名称"""
+        self.input_text(self.DIALOG_INPUT_NAME, name)
+        return self
+
+    def fill_point_id(self, point_id: str):
+        """填写点位ID"""
+        self.input_text(self.DIALOG_INPUT_ID, point_id)
+        return self
+
+    def select_type(self, type_text: str):
+        """选择点位类型"""
+        self.click(self.DIALOG_SELECT_TYPE)
+        option = (By.XPATH,
+                  f'//li[contains(@class, "el-select-dropdown__item")]//span[text()="{type_text}"]')
+        self.click(option)
         self.wait_vue_stable()
+        return self
+
+    def select_alarm_rule(self, rule_type: str):
+        """选择告警规则（无/上限/下限/双限）"""
+        self.click(self.DIALOG_SELECT_ALARM)
+        option = (By.XPATH,
+                  f'//li[contains(@class, "el-select-dropdown__item")]//span[text()="{rule_type}"]')
+        self.click(option)
+        self.wait_vue_stable()
+        return self
+
+    def fill_alarm_high(self, value: str):
+        """填写告警上限值"""
+        self.input_text(self.DIALOG_INPUT_ALARM_HIGH, value)
+        return self
+
+    def fill_alarm_low(self, value: str):
+        """填写告警下限值"""
+        self.input_text(self.DIALOG_INPUT_ALARM_LOW, value)
+        return self
+
+    def toggle_enable(self):
+        """切换启用/禁用开关"""
+        self.click(self.DIALOG_SWITCH_ENABLE)
+        self.wait_vue_stable()
+        return self
+
+    def submit_form(self):
+        """提交弹窗表单"""
+        self.click_dialog_save()
+        self.wait_dialog_close()
+        self.wait_vue_stable()
+        self._wait_loading_gone()
+        return self
+
+    def cancel_form(self):
+        """取消弹窗表单"""
+        self.click_dialog_cancel()
+        self.wait_dialog_close()
+        return self
+
+    # ==================== 批量操作 ====================
+
+    def click_batch_delete(self):
+        """点击批量删除"""
+        logger.info("点击批量删除")
+        self.click(self.BTN_BATCH_DELETE)
+        return self
+
+    # ==================== 分页 ====================
+
+    def get_total_count(self) -> int:
+        """获取总条数"""
+        return super().get_total_count()
+
+    def go_to_next_page(self):
+        """下一页"""
+        self.click_next_page()
+        self._wait_loading_gone()
+        return self
+
+    def go_to_prev_page(self):
+        """上一页"""
+        self.click_prev_page()
+        self._wait_loading_gone()
         return self

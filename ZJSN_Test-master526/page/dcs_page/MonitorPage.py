@@ -1,125 +1,253 @@
-from base.base_page import BasePage
+"""DCS 关键参数监控页面 Page Object
+
+==== 页面概述 ====
+路径：DCS 数据监控 → 关键参数监控
+路由：#/monitor
+功能：实时参数监控卡片 + 搜索 + 新增/编辑/删除参数
+类型：监控面板页（卡片网格 + 可选表格视图）
+
+==== 定位策略 ====
+- CSS_SELECTOR 优先（Element Plus 标准类）
+- 相对 XPath 仅用于文本内容匹配
+- 禁止：绝对 XPath
+
+==== 风险点 ====
+1. 实时数据推送可能使用 WebSocket，刷新延迟需处理
+2. 参数卡片由 CSS Grid 布局，个数不固定
+3. 告警状态颜色编码需正确识别
+4. 曲线图表渲染可能延迟（ECharts）
+"""
+import logging
 from selenium.webdriver.common.by import By
+from base.base_page import BasePage
+
+logger = logging.getLogger(__name__)
 
 
 class DcsMonitorPage(BasePage):
-    """
-    DCS 模块 - Monitor 页面对象
-    注意：所有定位器需根据 TECH_ANALYSIS.md 替换，此处为示例占位。
-    """
+    """关键参数监控 Page Object"""
 
-    # ========== 定位器（占位符，需替换为真实选择器）==========
-    SEARCH_INPUT = (By.CSS_SELECTOR, ".monitor-search input")
-    SEARCH_BUTTON = (By.XPATH, "//button[.//span[text()='搜索']]")
-    RESET_BUTTON = (By.XPATH, "//button[.//span[text()='重置']]")
-    ADD_BUTTON = (By.XPATH, "//button[.//span[text()='新增']]")
-    TABLE = (By.CSS_SELECTOR, ".el-table")
-    PAGINATION = (By.CSS_SELECTOR, ".el-pagination")
+    # ==================== 搜索/筛选区 ====================
+    SEARCH_INPUT = (By.CSS_SELECTOR, 'input[placeholder*="参数" i], input[placeholder*="设备" i], input[placeholder*="点位名称" i]')
+    BTN_SEARCH = (By.XPATH, '//button[normalize-space(.//span)="搜索"]')
+    BTN_RESET = (By.XPATH, '//button[normalize-space(.//span)="重置"]')
+    BTN_ADD = (By.XPATH, '//button[normalize-space(.//span)="新增"] | //button[normalize-space(.//span)="新增参数"]')
+    BTN_REFRESH = (By.XPATH, '//button[normalize-space(.//span)="刷新"]')
+    BTN_EXPORT = (By.XPATH, '//button[normalize-space(.//span)="导出"]')
 
-    # 弹窗相关（复用 BasePage 通用定位器 DIALOG / DIALOG_SAVE / DIALOG_CANCEL）
+    # 状态筛选
+    SELECT_STATUS = (By.CSS_SELECTOR, '.el-select')
+    STATUS_OPTIONS = (By.CSS_SELECTOR, '.el-select-dropdown__item')
 
-    # ========== 页面入口 ==========
+    # 时间选择器
+    DATE_PICKER = (By.CSS_SELECTOR, '.el-date-picker, .el-date-editor')
+
+    # ==================== 卡片网格区 ====================
+    CARD_GRID = (By.CSS_SELECTOR, '.monitor-cards, .card-grid, .el-row')
+    PARAM_CARDS = (By.CSS_SELECTOR, '.monitor-card, .param-card, .el-card')
+    CARD_NAME = (By.CSS_SELECTOR, '.card-title, .param-name')
+    CARD_VALUE = (By.CSS_SELECTOR, '.card-value, .param-value')
+    CARD_STATUS_BADGE = (By.CSS_SELECTOR, '.el-tag, .status-badge')
+    CARD_TREND_UP = (By.CSS_SELECTOR, '.trend-up, .el-icon-top')
+    CARD_TREND_DOWN = (By.CSS_SELECTOR, '.trend-down, .el-icon-bottom')
+
+    # ==================== 表格区（如果切换到表格视图）====================
+    TABLE = (By.CSS_SELECTOR, '.el-table')
+    TABLE_ROWS = (By.CSS_SELECTOR, '.el-table__body-wrapper tbody tr.el-table__row')
+    TABLE_LOADING = (By.CSS_SELECTOR, '.el-loading-mask')
+
+    # ==================== 图表区 ====================
+    CHART_CONTAINER = (By.CSS_SELECTOR, '.chart-container, [class*="chart"]')
+
+    # ==================== 分页 ====================
+    PAGINATION = (By.CSS_SELECTOR, '.el-pagination')
+    TOTAL_COUNT = (By.CSS_SELECTOR, '.el-pagination__total')
+
+    # ==================== 页面入口 ====================
+
+    HASH_ROUTE = "#/monitor"
+
     def navigate(self):
-        """导航至 Monitor 页面（菜单路径需确认）"""
-        self.logger.info("导航到 DCS Monitor 页面")
-        self.navigate_to("DCS模块", "Monitor")  # 请替换为实际菜单项名称
-        self.wait_vue_stable()
+        """导航到关键参数监控页面（DCS 模块）"""
+        logger.info("导航: DCS 数据监控 → 关键参数监控 (%s)", self.HASH_ROUTE)
+        self.navigate_to_by_hash(self.HASH_ROUTE, "关键参数监控")
+        self._wait_page_ready()
         return self
 
-    # ========== 搜索 / 重置 ==========
+    def _wait_page_ready(self):
+        """等待页面就绪"""
+        self.wait_vue_stable()
+        self._wait_loading_gone()
+        return self
+
+    def _wait_loading_gone(self, timeout=10):
+        """等待 Element Plus 加载动画消失"""
+        try:
+            self.wait_until_gone(self.TABLE_LOADING, timeout=timeout)
+        except Exception:
+            pass
+        return self
+
+    # ==================== 搜索操作 ====================
+
     def search(self, keyword: str):
-        """搜索关键字"""
-        self.logger.info(f"输入搜索关键字: {keyword}")
-        self.find(self.SEARCH_INPUT).clear()
-        self.find(self.SEARCH_INPUT).send_keys(keyword)
-        self.click_element(self.SEARCH_BUTTON)
+        """按参数名/设备ID搜索"""
+        logger.info("搜索: %s", keyword)
+        self.input_text(self.SEARCH_INPUT, keyword)
+        self.click(self.BTN_SEARCH)
         self.wait_vue_stable()
         return self
 
     def reset_search(self):
         """重置搜索条件"""
-        self.logger.info("重置搜索")
-        self.click_element(self.RESET_BUTTON)
+        logger.info("重置搜索条件")
+        self.click(self.BTN_RESET)
         self.wait_vue_stable()
         return self
 
-    # ========== 表格数据 ==========
-    def get_table_data(self):
-        """获取表格所有行的文本数据（按需调整解析逻辑）"""
-        self.logger.info("获取表格数据")
+    def filter_by_status(self, status_text: str):
+        """按状态筛选（正常/告警/离线）"""
+        logger.info("筛选状态: %s", status_text)
+        selects = self.find_all(self.SELECT_STATUS)
+        if selects:
+            selects[0].click()
+            self.wait_vue_stable()
+            option = self.find((By.XPATH, f'//li[contains(@class, "el-select-dropdown__item")]//span[text()="{status_text}"]'))
+            option.click()
+            self.wait_vue_stable()
+        return self
+
+    # ==================== 卡片操作 ====================
+
+    def get_param_cards(self) -> list:
+        """获取所有参数卡片"""
+        return self.find_all(self.PARAM_CARDS)
+
+    def get_card_count(self) -> int:
+        """获取卡片数量"""
+        return len(self.get_param_cards())
+
+    def get_card_name(self, card_index: int = 0) -> str:
+        """获取指定卡片的参数名"""
+        cards = self.get_param_cards()
+        if card_index < len(cards):
+            return self.find_in_parent(cards[card_index], self.CARD_NAME).text
+        return ""
+
+    def get_card_value(self, card_index: int = 0) -> str:
+        """获取指定卡片的当前值"""
+        cards = self.get_param_cards()
+        if card_index < len(cards):
+            return self.find_in_parent(cards[card_index], self.CARD_VALUE).text
+        return ""
+
+    def click_card(self, card_index: int = 0):
+        """点击指定卡片"""
+        cards = self.get_param_cards()
+        if card_index < len(cards):
+            cards[card_index].click()
+            self.wait_vue_stable()
+        return self
+
+    # ==================== 表格操作 ====================
+
+    def get_table_data(self) -> list:
+        """获取表格数据"""
         self.wait_element_visible(self.TABLE)
-        rows = self.find_elements((By.CSS_SELECTOR, ".el-table__body-wrapper tbody tr"))
+        rows = self.find_all(self.TABLE_ROWS)
         data = []
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, "td")
             data.append([cell.text for cell in cells])
         return data
 
-    # ========== 操作（新增/编辑/删除）==========
+    def get_row_count(self) -> int:
+        """获取表格行数"""
+        return super().get_table_row_count()
+
+    def is_param_in_table(self, text: str) -> bool:
+        """检查表格中是否存在包含指定文本的行"""
+        return super().is_row_present(text)
+
+    # ==================== 新增/编辑/删除 ====================
+
     def click_add(self):
         """点击新增按钮"""
-        self.logger.info("点击新增")
-        self.click_element(self.ADD_BUTTON)
-        self.wait_dialog_visible()  # 假设新增打开弹窗
+        logger.info("点击新增参数")
+        self.click(self.BTN_ADD)
+        self.wait_dialog_open()
         return self
 
     def fill_form(self, data: dict):
-        """
-        填充弹窗表单
-        :param data: 字段名->值的字典，例如 {"name": "test", "status": "1"}
-        """
-        self.logger.info(f"填充表单: {data}")
+        """填充参数表单（弹窗模式）"""
+        logger.info("填充表单: %s", data)
         for field, value in data.items():
-            # 根据字段名定位输入框（示例用标签定位，需根据实际 DOM 调整）
-            locator = (By.XPATH, f"//label[text()='{field}']/following-sibling::div//input")
-            self.find(locator).clear()
-            self.find(locator).send_keys(value)
+            locator = (By.XPATH, f'//label[contains(text(),"{field}")]/following-sibling::div//input | '
+                                 f'//span[contains(text(),"{field}")]/following-sibling::div//input')
+            self.input_text(locator, str(value))
         return self
 
-    def confirm_dialog(self):
-        """确认弹窗（点击保存）"""
-        self.logger.info("确认弹窗")
-        self.click_element(self.DIALOG_SAVE)
-        self.wait_dialog_invisible()
+    def submit_form(self):
+        """提交表单"""
+        self.click_dialog_save()
+        self.wait_dialog_close()
         self.wait_vue_stable()
         return self
 
-    def cancel_dialog(self):
-        """取消弹窗"""
-        self.logger.info("取消弹窗")
-        self.click_element(self.DIALOG_CANCEL)
-        self.wait_dialog_invisible()
+    def cancel_form(self):
+        """取消表单"""
+        self.click_dialog_cancel()
+        self.wait_dialog_close()
         return self
 
-    def click_edit(self, row_index: int):
-        """
-        点击指定行的编辑按钮
-        :param row_index: 从0开始的索引
-        """
-        self.logger.info(f"编辑第 {row_index+1} 行")
-        # 假设每行最后一个操作列有编辑按钮
-        edit_btn = (By.XPATH, f"//tbody/tr[{row_index+1}]//button[contains(@class, 'el-button--text') and .//span[text()='编辑']]")
-        self.click_element(edit_btn)
-        self.wait_dialog_visible()
+    def click_edit(self, row_identifier: str):
+        """点击指定行的编辑按钮"""
+        self.click_row_button(row_identifier, "编辑")
+        self.wait_dialog_open()
         return self
 
-    def click_delete(self, row_index: int):
-        """
-        点击指定行的删除按钮
-        :param row_index: 从0开始的索引
-        """
-        self.logger.info(f"删除第 {row_index+1} 行")
-        del_btn = (By.XPATH, f"//tbody/tr[{row_index+1}]//button[contains(@class, 'el-button--text') and .//span[text()='删除']]")
-        self.click_element(del_btn)
+    def click_delete(self, row_identifier: str):
+        """点击指定行的删除按钮"""
+        self.click_row_button(row_identifier, "删除")
         return self
 
-    # ========== 分页 ==========
-    def get_pagination_info(self):
-        """获取分页信息，返回 (当前页, 总条数)"""
-        self.logger.info("获取分页信息")
-        self.wait_element_visible(self.PAGINATION)
-        # Element Plus 分页通常显示 "共 X 条"，可通过 .el-pagination__total 获取
-        total_text = self.find((By.CSS_SELECTOR, ".el-pagination__total")).text
-        total = int(total_text.replace("共 ", "").replace(" 条", ""))
-        current_page = self.find((By.CSS_SELECTOR, ".el-pagination .el-pager li.active")).text
-        return int(current_page), total
+    def confirm_delete(self):
+        """确认删除（Element Plus message-box）"""
+        self.click_element((By.XPATH, '//button[contains(@class, "el-button--primary")]//span[text()="确定"]'))
+        self.wait_vue_stable()
+        return self
+
+    # ==================== 详情操作 ====================
+
+    def click_detail(self, row_identifier: str):
+        """查看参数详情"""
+        self.click_row_button(row_identifier, "详情")
+        self.wait_dialog_open()
+        return self
+
+    def close_detail(self):
+        """关闭详情弹窗"""
+        self.click_dialog_cancel()
+        self.wait_dialog_close()
+        return self
+
+    # ==================== 刷新操作 ====================
+
+    def refresh(self):
+        """点击刷新按钮"""
+        logger.info("刷新数据")
+        self.click(self.BTN_REFRESH)
+        self.wait_vue_stable()
+        return self
+
+    # ==================== 图表验证 ====================
+
+    def is_chart_visible(self) -> bool:
+        """检查图表是否渲染"""
+        return self.is_visible(self.CHART_CONTAINER, timeout=5)
+
+    # ==================== 分页 ====================
+
+    def get_total_count(self) -> int:
+        """获取总条数"""
+        return super().get_total_count()

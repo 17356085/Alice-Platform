@@ -118,10 +118,11 @@ CODE_REDLINE_CHECKS = [
 class Observation:
     """Agent 执行一步 Skill 后的观察结果。"""
     skill_id: str
-    status: str = "pending"        # pass | fail | partial | skipped
+    status: str = "pending"        # pass | fail | partial | skipped | correct_failure | wrong_failure
     artifacts_found: list[str] = field(default_factory=list)
     artifacts_missing: list[str] = field(default_factory=list)
     quality_issues: list[str] = field(default_factory=list)
+    safety_flags: list[dict] = field(default_factory=list)  # [{severity, rule, detail}]
     summary: str = ""
     suggestion: str = "continue"   # continue | retry | skip | abort
     raw_output_preview: str = ""
@@ -130,6 +131,7 @@ class Observation:
     latency_ms: int = 0
     model_name: str = ""
     run_id: str = ""
+    failure_category: str = ""     # prompt | tool_desc | schema | context_pollution | retrieval | env_permission
 
     def __post_init__(self):
         if not self.timestamp:
@@ -167,9 +169,11 @@ class AgentState:
             "observations": [
                 {"skill_id": o.skill_id, "status": o.status,
                  "artifacts_found": o.artifacts_found, "artifacts_missing": o.artifacts_missing,
-                 "quality_issues": o.quality_issues, "summary": o.summary, "suggestion": o.suggestion,
+                 "quality_issues": o.quality_issues, "safety_flags": o.safety_flags,
+                 "summary": o.summary, "suggestion": o.suggestion,
                  "token_usage": o.token_usage, "timestamp": o.timestamp,
-                 "latency_ms": o.latency_ms, "model_name": o.model_name, "run_id": o.run_id}
+                 "latency_ms": o.latency_ms, "model_name": o.model_name, "run_id": o.run_id,
+                 "failure_category": o.failure_category}
                 for o in self.observations
             ],
             "memory": self.memory, "artifacts": self.artifacts,

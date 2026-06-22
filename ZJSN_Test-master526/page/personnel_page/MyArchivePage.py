@@ -171,42 +171,42 @@ class MyArchivePage(BasePage):
     # ==================== 导航方法 ====================
 
     def navigate(self):
-        """
-        导航到"我的档案"页面
-        从侧边栏进入
-        """
-        self.logger.info("导航到: 我的档案")
-        self.navigate_to("人员管理", "我的档案")
+        """JS hash 导航到我的档案页面（SPA 内无刷新）"""
+        logger.info("导航到: 我的档案")
+        self.driver.execute_script("window.location.hash = '#/personnel/training/my-archive'")
         self.wait_vue_stable()
-        self.wait_page_ready(self.CHANGE_TABLE)
+        try:
+            self.wait_page_ready(self.CHANGE_TABLE)
+        except Exception:
+            pass
         return self
 
     # ==================== Tab切换 ====================
 
     def switch_to_basic_info_tab(self):
         """切换到个人基本信息 Tab"""
-        self.logger.info("切换到个人基本信息Tab")
+        logger.info("切换到个人基本信息Tab")
         self.do_click(self.BASIC_INFO_TAB)
         self.wait_vue_stable()
         return self
 
     def switch_to_certificate_tab(self):
         """切换到证件信息 Tab"""
-        self.logger.info("切换到证件信息Tab")
+        logger.info("切换到证件信息Tab")
         self.do_click(self.CERTIFICATE_TAB)
         self.wait_vue_stable()
         return self
 
     def switch_to_contact_tab(self):
         """切换到联系方式 Tab"""
-        self.logger.info("切换到联系方式Tab")
+        logger.info("切换到联系方式Tab")
         self.do_click(self.CONTACT_TAB)
         self.wait_vue_stable()
         return self
 
     def switch_to_archive_tab(self):
         """切换到档案变更记录 Tab"""
-        self.logger.info("切换到档案变更记录Tab")
+        logger.info("切换到档案变更记录Tab")
         self.do_click(self.ARCHIVE_TAB)
         self.wait_vue_stable()
         return self
@@ -215,14 +215,14 @@ class MyArchivePage(BasePage):
 
     def click_edit_profile(self):
         """点击侧边栏的编辑资料按钮"""
-        self.logger.info("点击编辑资料按钮")
+        logger.info("点击编辑资料按钮")
         self.do_click(self.SIDEBAR_EDIT_PROFILE_BTN)
         self.wait_vue_stable()
         return self
 
     def click_change_password(self):
         """点击侧边栏的修改密码按钮"""
-        self.logger.info("点击修改密码按钮")
+        logger.info("点击修改密码按钮")
         self.do_click(self.SIDEBAR_CHANGE_PASSWORD_BTN)
         self.wait_vue_stable()
         return self
@@ -233,12 +233,12 @@ class MyArchivePage(BasePage):
         """获取基本信息展示表单中某个字段的值"""
         element = self.wait_element_visible(field_locator)
         value = element.get_attribute('value')
-        self.logger.info(f"获取基本信息字段值: {value}")
+        logger.info(f"获取基本信息字段值: {value}")
         return value
 
     def click_edit_basic_info(self):
         """点击编辑基本信息按钮"""
-        self.logger.info("点击编辑基本信息按钮")
+        logger.info("点击编辑基本信息按钮")
         self.do_click(self.EDIT_BASIC_INFO_BTN)
         self.wait_dialog_visible(self.EDIT_INFO_DIALOG)
         return self
@@ -250,7 +250,7 @@ class MyArchivePage(BasePage):
         选择变更类型筛选
         :param option_text: 选项文本（新增/修改/删除）
         """
-        self.logger.info(f"选择变更类型: {option_text}")
+        logger.info(f"选择变更类型: {option_text}")
         # # 步骤1: 点击下拉框触发
         self.do_click(self.CHANGE_TYPE_SELECTOR)
         # # 步骤2: 根据文本选择对应选项
@@ -266,7 +266,7 @@ class MyArchivePage(BasePage):
         :param start_date: 开始日期，格式 'YYYY-MM-DD'
         :param end_date: 结束日期，格式 'YYYY-MM-DD'
         """
-        self.logger.info(f"输入变更日期范围: {start_date} ~ {end_date}")
+        logger.info(f"输入变更日期范围: {start_date} ~ {end_date}")
         date_input = self.wait_element_clickable(self.CHANGE_DATE_PICKER)
         self.do_click(date_input)
         # # 使用键盘操作清空并输入日期（Element Plus 日期选择器逻辑）
@@ -279,14 +279,14 @@ class MyArchivePage(BasePage):
 
     def click_search(self):
         """点击查询按钮"""
-        self.logger.info("点击查询按钮")
+        logger.info("点击查询按钮")
         self.do_click(self.SEARCH_BTN)
         self.wait_table_loaded(self.CHANGE_TABLE)
         return self
 
     def click_reset(self):
         """点击重置按钮"""
-        self.logger.info("点击重置按钮")
+        logger.info("点击重置按钮")
         self.do_click(self.RESET_BTN)
         self.wait_vue_stable()
         return self
@@ -301,7 +301,7 @@ class MyArchivePage(BasePage):
         """
         rows = self.wait_elements_visible(self.TABLE_ROWS)
         if row_index >= len(rows):
-            self.logger.warning(f"请求的行索引 {row_index} 超出表格行数 {len(rows)}")
+            logger.warning(f"请求的行索引 {row_index} 超出表格行数 {len(rows)}")
             return None
 
         row = rows[row_index]
@@ -313,7 +313,7 @@ class MyArchivePage(BasePage):
             "变更时间": cells[3].text,
             "操作人": cells[4].text
         }
-        self.logger.info(f"获取第 {row_index+1} 行数据: {data}")
+        logger.info(f"获取第 {row_index+1} 行数据: {data}")
         return data
 
     def get_all_table_data(self):
@@ -329,7 +329,7 @@ class MyArchivePage(BasePage):
                 "变更时间": cells[3].text,
                 "操作人": cells[4].text
             })
-        self.logger.info(f"获取表格数据，共 {len(data_list)} 行")
+        logger.info(f"获取表格数据，共 {len(data_list)} 行")
         return data_list
 
     # ==================== 分页操作 ====================
@@ -341,7 +341,7 @@ class MyArchivePage(BasePage):
 
     def go_to_page(self, page_number):
         """跳转到指定页码"""
-        self.logger.info(f"跳转到第 {page_number} 页")
+        logger.info(f"跳转到第 {page_number} 页")
         page_btn = (By.XPATH, f"//ul[contains(@class, 'el-pager')]//li[text()='{page_number}']")
         self.do_click(page_btn)
         self.wait_table_loaded(self.CHANGE_TABLE)
@@ -355,7 +355,7 @@ class MyArchivePage(BasePage):
         :param data_dict: 字典，包含字段名和值
               例: {'姓名': '张三', '部门': '技术部', '职位': '工程师', '手机号': '13800138000', '邮箱': 'zhangsan@test.com'}
         """
-        self.logger.info(f"填写编辑基本信息弹窗: {data_dict}")
+        logger.info(f"填写编辑基本信息弹窗: {data_dict}")
         if '姓名' in data_dict:
             self.do_input(self.DIALOG_NAME_INPUT, data_dict['姓名'])
         if '部门' in data_dict:
@@ -373,7 +373,7 @@ class MyArchivePage(BasePage):
 
     def save_edit_info(self):
         """点击编辑基本信息弹窗的保存按钮"""
-        self.logger.info("保存编辑基本信息弹窗")
+        logger.info("保存编辑基本信息弹窗")
         self.do_click(self.DIALOG_SAVE_BTN)
         self.wait_dialog_closed(self.EDIT_INFO_DIALOG)
         self.wait_vue_stable()
@@ -382,7 +382,7 @@ class MyArchivePage(BasePage):
 
     def cancel_edit_info(self):
         """点击编辑基本信息弹窗的取消按钮"""
-        self.logger.info("取消编辑基本信息弹窗")
+        logger.info("取消编辑基本信息弹窗")
         self.do_click(self.DIALOG_CANCEL_BTN)
         self.wait_dialog_closed(self.EDIT_INFO_DIALOG)
         return self
@@ -395,7 +395,7 @@ class MyArchivePage(BasePage):
         :param old_password: 旧密码
         :param new_password: 新密码
         """
-        self.logger.info("填写修改密码弹窗")
+        logger.info("填写修改密码弹窗")
         self.do_input(self.DIALOG_OLD_PASSWORD_INPUT, old_password)
         self.do_input(self.DIALOG_NEW_PASSWORD_INPUT, new_password)
         self.do_input(self.DIALOG_CONFIRM_PASSWORD_INPUT, new_password)
@@ -403,7 +403,7 @@ class MyArchivePage(BasePage):
 
     def submit_password_change(self):
         """点击修改密码弹窗的提交按钮"""
-        self.logger.info("提交修改密码")
+        logger.info("提交修改密码")
         self.do_click(self.DIALOG_PASSWORD_SUBMIT_BTN)
         self.wait_dialog_closed(self.PASSWORD_DIALOG)
         self.wait_vue_stable()
@@ -412,7 +412,7 @@ class MyArchivePage(BasePage):
 
     def cancel_password_change(self):
         """点击修改密码弹窗的取消按钮"""
-        self.logger.info("取消修改密码")
+        logger.info("取消修改密码")
         self.do_click(self.DIALOG_PASSWORD_CANCEL_BTN)
         self.wait_dialog_closed(self.PASSWORD_DIALOG)
         return self

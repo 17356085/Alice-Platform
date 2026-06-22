@@ -1,0 +1,137 @@
+page:
+  name: spare-requisition
+  module: warehouse
+  description: 备品领用申请 (Spare Requisition)
+  approval_chain: 备件领用申请审批链 (admin+chenqian -> tjw)
+  po_class: SpareRequisitionPage
+  po_file: page/warehouse_page/SpareRequisitionPage.py
+  test_file: script/warehouse/test_spare_requisition.py
+  route: 库管管理 > 备品备件管理 > 领用申请
+
+elements:
+  search:
+    - name: 申请人
+      label: 请输入申请人
+      type: el-input
+      locator: '//input[@placeholder="请输入申请人"]'
+      po_constant: FILTER_APPLICANT
+      note: 模糊搜索
+
+    - name: 日期
+      label: 选择日期
+      type: el-date-picker
+      locator: '//input[@placeholder="选择日期"]'
+      po_constant: FILTER_DATE
+      note: 日期选择器，测试中未直接使用
+
+    - name: 流程状态
+      label: 无 placeholder（el-select wrapper）
+      type: el-select
+      locator: '(//div[contains(@class,"wh-filter-toolbar")]//div[contains(@class,"el-select__wrapper")])[1]'
+      po_constant: FILTER_STATUS
+      note: 自定义 wh-filter-toolbar 容器，定位器脆弱；测试中未直接使用
+
+  buttons:
+    - name: 查询
+      locator: '//button[contains(.,"查询")]'
+      po_constant: BTN_QUERY
+      scope: toolbar
+      action: 搜索
+
+    - name: 重置
+      locator: '//button[contains(.,"重置")]'
+      po_constant: BTN_RESET
+      scope: toolbar
+      action: 重置搜索条件
+
+    - name: 新增
+      locator: '//button[contains(.,"新增")]'
+      po_constant: BTN_ADD
+      scope: toolbar
+      action: 打开新增弹窗
+
+    - name: 查看
+      locator: '//button[contains(.,"查看")]'
+      po_constant: BTN_VIEW
+      scope: row_action
+      action: 打开查看详情弹窗
+
+    - name: 编辑
+      locator: '//button[contains(.,"编辑")]'
+      po_constant: BTN_EDIT
+      scope: row_action
+      action: 打开编辑弹窗
+      note: 仅当行状态为草稿/待提交时可见
+
+    - name: 提交
+      locator: '//button[contains(.,"提交")]'
+      po_constant: BTN_SUBMIT
+      scope: row_action
+      action: 提交审批
+      note: 仅当行状态为草稿/待提交时可见；操作后触发 Toast
+
+    - name: 删除
+      locator: '//button[contains(.,"删除")]'
+      po_constant: BTN_DELETE
+      scope: row_action
+      action: 删除记录
+      note: 仅当行状态为草稿/待提交时可见；已审批记录不可删除
+
+  table:
+    columns:
+      - name: 申请人
+        type: text
+        note: 搜索字段之一（从 PO 搜索方法推断）
+      - name: 流程状态
+        type: el-tag
+        note: 使用 .el-tag 渲染，通过 get_first_row_status() 读取
+      - name: 日期
+        type: date
+        note: 搜索字段之一（从 FILTER_DATE 推断）
+      - name: 操作
+        type: action_buttons
+        note: 包含 查看/编辑/提交/删除 四个行内按钮
+      - name: (其他列)
+        type: text
+        note: 共 6-14 列，具体列名未在 PO 中定义（从列数断言推断）
+
+  dialogs:
+    - name: 新增弹窗
+      trigger: click_add()
+      fields:
+        - name: 申请人
+          type: el-input
+          placeholder: 申请人
+          fill_method: fill_requisition_applicant(name)
+          required: true
+      actions:
+        - save: click_dialog_save()
+        - cancel: click_dialog_cancel()
+      note: JS fill 机制；测试验证保存按钮存在（DIALOG_SAVE）而非表单字段数量
+
+    - name: 编辑弹窗
+      trigger: click_edit_first()
+      note: 触发后等待弹窗打开；表单字段同新增弹窗（中置信度）
+
+    - name: 查看弹窗
+      trigger: click_view_first()
+      actions:
+        - cancel: click_dialog_cancel()
+      note: 只读弹窗
+
+  workflow:
+    description: 行内操作按钮按工作流状态动态显隐
+    buttons:
+      - view
+      - edit
+      - submit
+      - delete
+    visibility_rule: 编辑/提交/删除仅草稿/待提交状态可见，已审批记录无编辑/提交/删除按钮
+    status_source: ".el-tag in first row"
+    detection_methods:
+      - has_edit_button() -> bool
+      - has_submit_button() -> bool
+      - has_delete_button() -> bool
+    submit_behavior: click_submit_first() 内部调用 wait_for_toast_text()
+    delete_behavior: click_delete_first() 调用 confirm_message_box() + wait_for_toast_text()
+    delete_exception: delete_by_name() 使用 try/except 捕获已审批记录不可删除异常

@@ -16,6 +16,7 @@
 3. 搜索框 placeholder 可能因语言/版本变化，测试前确认
 """
 import logging
+import time
 
 from selenium.webdriver.common.by import By
 

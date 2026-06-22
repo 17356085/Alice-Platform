@@ -1,274 +1,135 @@
-interface: page-to-automation
-version: "1.0"
-source_agent: test-design-agent
-target_agent: automation-agent
-generated_at: "2026-06-13 13:00"
+好的，作为**项目智能体 (Project Agent)**，我已收到 `PAGE_CONTEXT.md` 页面上下文。我将严格遵循 `skills: page-analysis` 的规范，基于页面上下文（AI推测版）为摄像头管理页面生成 `PAGE_ELEMENT_POSITION.md`。
 
-meta:
-  module: equipment
-  page_name: CameraManage
-  page_slug: camera
-  page_url: /equipment/camera
-  vue_components:
-    - component: el-table
-      count: 0
-      risk_flags: []
-    - component: el-input
-      count: 1
-      risk_flags: []
-    - component: el-select
-      count: 1
-      risk_flags: [teleport]
-    - component: el-dialog
-      count: 1
-      risk_flags: [teleport, animation]
-    - component: el-pagination
-      count: 1
-      risk_flags: []
-    - component: stat-card
-      count: 4
-      risk_flags: [custom]
+本次输出将为每个关键元素设计A/B/C三级定位器，并明确WebDriverWait策略。由于是`source: ai`（推测版），所有定位器在真实页面生效后必须进行验证和调整。
 
-elements:
-  - name: 统计卡片-总数
-    selector: ".stat-card:first-child .stat-value"
-    selector_type: CSS_SELECTOR
-    element_type: other
-    el_component: null
-    interaction: wait
-    wait_strategy: wait_vue_stable
-    locator_notes: "自定义 stat-card 组件，非 Element Plus 标准组件"
-    risk_level: low
-    risk_reason: ""
+---
 
-  - name: 统计卡片-在线
-    selector: ".stat-card:nth-child(2) .stat-value"
-    selector_type: CSS_SELECTOR
-    element_type: other
-    el_component: null
-    interaction: wait
-    wait_strategy: wait_vue_stable
-    locator_notes: ""
-    risk_level: low
-    risk_reason: ""
+### 文件: `PAGE_ELEMENT_POSITION.md`
 
-  - name: 统计卡片-离线
-    selector: ".stat-card:nth-child(3) .stat-value"
-    selector_type: CSS_SELECTOR
-    element_type: other
-    el_component: null
-    interaction: wait
-    wait_strategy: wait_vue_stable
-    locator_notes: ""
-    risk_level: low
-    risk_reason: ""
+```markdown
+---
+version: 1.0
+source: ai
+source_agent: page-analysis
+created: 2026-06-18T11:41:00+08:00
+module: equipment
+page: camera
+description: "摄像头管理页面元素定位器设计（AI推测版）"
+---
 
-  - name: 统计卡片-故障
-    selector: ".stat-card:nth-child(4) .stat-value"
-    selector_type: CSS_SELECTOR
-    element_type: other
-    el_component: null
-    interaction: wait
-    wait_strategy: wait_vue_stable
-    locator_notes: ""
-    risk_level: low
-    risk_reason: ""
+# PAGE_ELEMENT_POSITION — 摄像头管理 (推测版)
 
-  - name: 摄像头网格容器
-    selector: ".monitor-cell"
-    selector_type: CSS_SELECTOR
-    element_type: other
-    el_component: null
-    interaction: wait
-    wait_strategy: wait_vue_stable
-    locator_notes: "自定义 monitor-cell 组件，每个单元格含标题/画面/IP"
-    risk_level: medium
-    risk_reason: "自定义组件，非标准 Element Plus"
+> **定位器设计原则:**
+> - **A级 (首选)**: 依赖 `data-testid`, 稳定的 `id`, 唯一的 `placeholder` 或 `aria-label`。
+> - **B级 (备选)**: 依赖稳定的 CSS 类名组合。对于Element Plus组件，使用 `el-*` 类名 + 特定上下文。
+> - **C级 (保底)**: 使用相对 XPath。谨慎使用 `text()`，避免因文案多语言化或微小变化导致失败。
+> - **等待策略**: 基于元素状态和交互类型，选择合适的WebDriverWait条件。
 
-  - name: 搜索输入框
-    selector: "input[placeholder*='搜索']"
-    selector_type: CSS_SELECTOR
-    element_type: input
-    el_component: el-input
-    interaction: input
-    wait_strategy: wait_vue_stable
-    locator_notes: ""
-    risk_level: low
-    risk_reason: ""
+## 1. 搜索/筛选区
 
-  - name: 搜索按钮
-    selector: "button:has(span:contains('搜索'))"
-    selector_type: CSS_SELECTOR
-    element_type: button
-    el_component: el-button
-    interaction: click
-    wait_strategy: "wait_loading_gone(timeout=10)"
-    locator_notes: ""
-    risk_level: low
-    risk_reason: ""
+| 元素ID | 定位策略 | 定位值 | 稳定性评级 | 备用方案 |
+| :--- | :--- | :--- | :--- | :--- |
+| `search-input` | **A级**: placeholder | `css: [placeholder="请输入摄像头名称或IP地址"]` | ★★★ | 如placeholder不唯一，使用B级 |
+| | **B级**: CSS Class | `css: .el-form .el-input__inner[placeholder*="名称或IP"]` | ★★ | |
+| | **C级**: XPath | `xpath: //label[contains(text(), '名称')]/following-sibling::div//input` | ★ | |
+| `group-select` | **A级**: aria-label | `css: [aria-label="所属分组"]` | ★★★ | 依赖Element Plus渲染 `aria-label` |
+| | **B级**: CSS Class | `css: .el-form .el-select .el-input__inner` | ★★ | 不精确，需结合上下文序号 |
+| | **C级**: XPath | `xpath: (//label[contains(text(), '分组')]/following-sibling::div//input)[1]` | ★ | |
+| `status-select` | **A级**: aria-label | `css: [aria-label="在线状态"]` | ★★★ | |
+| | **B级**: CSS Class | `css: .el-form .el-select .el-input__inner` | ★★ | 不精确，需结合上下文序号 |
+| | **C级**: XPath | `xpath: (//label[contains(text(), '状态')]/following-sibling::div//input)[1]` | ★ | |
+| `search-btn` | **A级**: Button Text | `xpath: //button[contains(text(), '搜索')]` | ★★★ | 按钮文字通常稳定 |
+| | **B级**: CSS Class | `css: button.el-button--primary:has-text("搜索")` | ★★ | `:has-text` 为playwright特性，纯selenium不可用 |
+| | **C级**: CSS Class | `css: button.el-button--primary` | ★ | 此页可能唯一 |
+| `reset-btn` | **A级**: Button Text | `xpath: //button[contains(text(), '重置')]` | ★★★ | |
+| | **B级**: CSS Class + Text | `css: button.el-button--default:has-text("重置")` | ★★ | |
+| | **C级**: XPath | `xpath: //button[contains(@class, 'el-button--default') and contains(text(), '重置')]` | ★ | |
+| `add-camera-btn` | **A级**: Button Text | `xpath: //button[contains(text(), '添加摄像头')]` | ★★★ | **高权限点**，文案稳定 |
+| | **B级**: CSS Class + Text | `css: button.el-button--primary:has-text("添加摄像头")` | ★★ | |
+| | **C级**: XPath | `xpath: //div[contains(@class, 'header')]//button[contains(text(), '添加摄像头')]` | ★ | 通过区域限定 |
 
-  - name: 状态筛选下拉
-    selector: ".el-select"
-    selector_type: CSS_SELECTOR
-    element_type: select
-    el_component: el-select
-    interaction: select
-    wait_strategy: "WebDriverWait 5s + wait_vue_stable"
-    locator_notes: "el-select 下拉选项 Teleport 到 body"
-    risk_level: high
-    risk_reason: "el-select Teleport 渲染，选项在 body 下"
+**等待策略:**
+- 对于 `search-btn`, `reset-btn`, `add-camera-btn`：等待元素可点击 (`element_to_be_clickable`)。
+- 对于输入框和下拉框：等待元素可见 (`visibility_of_element_located`)。
 
-  - name: 分页组件
-    selector: ".el-pagination"
-    selector_type: CSS_SELECTOR
-    element_type: pagination
-    el_component: el-pagination
-    interaction: click
-    wait_strategy: wait_vue_stable
-    locator_notes: ""
-    risk_level: low
-    risk_reason: ""
+## 2. 表格/列表区
 
-  - name: 摄像头详情弹窗
-    selector: ".el-dialog"
-    selector_type: CSS_SELECTOR
-    element_type: dialog
-    el_component: el-dialog
-    interaction: wait
-    wait_strategy: "WebDriverWait 3s + wait_vue_stable"
-    locator_notes: "el-dialog Teleport 到 body 下，需等待动画完成"
-    risk_level: high
-    risk_reason: "el-dialog Teleport 渲染 + Vue transition 动画"
+| 元素ID | 定位策略 | 定位值 | 稳定性评级 | 备用方案 |
+| :--- | :--- | :--- | :--- | :--- |
+| `data-table` | **A级**: data-testid | `css: [data-testid="camera-table"]` | ★★★ | 如添加该属性 |
+| | **B级**: CSS Class | `css: .el-table` | ★★★ | 页面中唯一的表格 |
+| | **C级**: XPath | `xpath: //div[contains(@class, 'main-content')]//table` | ★ | 需确保`main-content`类稳定 |
+| `col-name` | **A级**: 列索引 + CSS | `css: .el-table__body-wrapper tbody tr td:nth-child(1) .cell` | ★★ | 基于列顺序，顺序变化会失效 |
+| | **B级**: 列头文本 + CSS | `xpath: //th[contains(@class, 'el-table__cell') and .//div[text()='摄像头名称']]/following-sibling::td` | ★★ | 更稳定，不依赖列序号 |
+| | **C级**: XPath | `xpath: (//div[@class='el-table__body-wrapper']//tr/td[1])[1]` | ★ | 绝对位置，高度不稳定 |
+| `col-ip` | **A级**: 列索引 + CSS | `css: .el-table__body-wrapper tbody tr td:nth-child(2) .cell` | ★★ | |
+| | **B级**: 列头文本 + CSS | `xpath: //th[.//div[text()='IP地址']]/following-sibling::td` | ★★ | |
+| | **C级**: XPath | `xpath: (//div[@class='el-table__body-wrapper']//tr/td[2])[1]` | ★ | |
+| `col-status` | **A级**: 列索引 + CSS | `css: .el-table__body-wrapper tbody tr td:nth-child(4) .el-tag` | ★★ | |
+| | **B级**: 列头文本 + CSS | `xpath: //th[.//div[text()='状态']]/following-sibling::td//span[contains(@class, 'el-tag')]` | ★★ | |
+| | **C级**: XPath | `xpath: (//div[@class='el-table__body-wrapper']//tr/td[4])[1]//span` | ★ | |
+| `btn-edit` | **A级**: Button Text | `xpath: //button[contains(text(), '编辑')]` | ★★★ | 同一行内最稳定 |
+| | **B级**: CSS Class + Text | `css: button.el-button--text:has-text("编辑")` | ★★ | 需结合行上下文 |
+| | **C级**: XPath | `xpath: (//div[@class='el-table__body-wrapper']//tr/td[last()]//span[text()='编辑'])[1]` | ★ | |
+| `btn-delete` | **A级**: Button Text | `xpath: //button[contains(text(), '删除')]` | ★★★ | |
+| | **B级**: CSS Class + Text | `css: button.el-button--text:has-text("删除")` | ★★ | |
+| | **C级**: XPath | `xpath: (//div[@class='el-table__body-wrapper']//tr/td[last()]//span[text()='删除'])[1]` | ★ | |
 
-  - name: 弹窗关闭按钮
-    selector: ".el-dialog__headerbtn"
-    selector_type: CSS_SELECTOR
-    element_type: button
-    el_component: null
-    interaction: click
-    wait_strategy: "wait_until_gone(.el-dialog)"
-    locator_notes: ""
-    risk_level: low
-    risk_reason: ""
+**等待策略:**
+- 等待表格数据加载完成：等待 `data-table` 内的行元素存在 (`presence_of_element_located`)，并结合 `staleness_of` 等待加载动画消失（如果有v-loading）。
+- 对于行内操作按钮 (`btn-edit`, `btn-delete`)：需先定位到特定行，再等待按钮可点击。
 
-test_scenarios:
-  - id: TC-CM-001
-    title: 页面正常加载
-    priority: P0
-    type: smoke
-    preconditions:
-      - "admin 账号已登录"
-    steps_summary: "navigate_to('设备管理','摄像头管理') → 等待 monitor-cell 出现"
-    expected: "统计卡片 + 摄像头网格 + 分页均可见，无 console 报错"
-    relates_to_elements:
-      - "统计卡片-总数"
-      - "摄像头网格容器"
+## 3. 弹窗/对话框
 
-  - id: TC-CM-002
-    title: 统计卡片数据校验
-    priority: P0
-    type: positive
-    preconditions:
-      - "页面已加载"
-    steps_summary: "读取 4 张统计卡片数值 → 校验 总数=在线+离线+故障"
-    expected: "四卡片数值非空且逻辑一致"
-    relates_to_elements:
-      - "统计卡片-总数"
-      - "统计卡片-在线"
-      - "统计卡片-离线"
-      - "统计卡片-故障"
+| 元素ID | 定位策略 | 定位值 | 稳定性评级 | 备用方案 |
+| :--- | :--- | :--- | :--- | :--- |
+| `camera-dialog` | **A级**: data-testid | `css: [data-testid="camera-dialog"]` | ★★★ | 如添加该属性 |
+| | **B级**: CSS Class | `css: .el-dialog` | ★★★ | 页面唯一弹窗 |
+| | **C级**: XPath | `xpath: //div[contains(@class, 'el-dialog') and .//span[contains(text(), '摄像头')]]` | ★ | 通过标题文字定位 |
+| `dialog-name-input` | **A级**: label + input | `css: .el-dialog .el-form-item:has(label:has-text("摄像头名称")) input` | ★★ | |
+| | **B级**: placeholder | `css: .el-dialog [placeholder="请输入摄像头名称"]` | ★★ | |
+| | **C级**: XPath | `xpath: //div[contains(@class, 'el-dialog')]//label[contains(text(), '名称')]/following-sibling::div//input` | ★ | |
+| `dialog-ip-input` | **A级**: label + input | `css: .el-dialog .el-form-item:has(label:has-text("IP地址")) input` | ★★ | |
+| | **B级**: placeholder | `css: .el-dialog [placeholder="请输入IP地址"]` | ★★ | |
+| | **C级**: XPath | `xpath: //div[contains(@class, 'el-dialog')]//label[contains(text(), 'IP')]/following-sibling::div//input` | ★ | |
+| `dialog-group-select` | **A级**: label + select | `css: .el-dialog .el-form-item:has(label:has-text("所属分组")) .el-select` | ★★ | |
+| | **B级**: XPath | `xpath: //div[contains(@class, 'el-dialog')]//label[contains(text(), '分组')]/following-sibling::div//input` | ★ | |
+| | **C级**: XPath | `xpath: (//div[contains(@class, 'el-dialog')]//div[contains(@class, 'el-select')])[1]` | ★ | |
+| `dialog-save-btn` | **A级**: Button Text | `xpath: //div[contains(@class, 'el-dialog')]//button[contains(text(), '确定') or contains(text(), '保存')]` | ★★★ | |
+| | **B级**: CSS Class + Text | `css: .el-dialog .el-button--primary:has-text("确定")` | ★★ | |
+| | **C级**: XPath | `xpath: //div[contains(@class, 'el-dialog__footer')]//button[contains(@class, 'el-button--primary')]` | ★ | |
+| `dialog-cancel-btn` | **A级**: Button Text | `xpath: //div[contains(@class, 'el-dialog')]//button[contains(text(), '取消')]` | ★★★ | |
+| | **B级**: CSS Class + Text | `css: .el-dialog .el-button--default:has-text("取消")` | ★★ | |
+| | **C级**: XPath | `xpath: //div[contains(@class, 'el-dialog__footer')]//button[contains(@class, 'el-button--default')]` | ★ | |
 
-  - id: TC-CM-003
-    title: 摄像头网格展示
-    priority: P0
-    type: positive
-    preconditions:
-      - "页面已加载"
-    steps_summary: "计数 monitor-cell → 校验 ≥1 个，每格含标题/画面/IP"
-    expected: "≥1 个摄像头卡片，每个包含基本信息"
-    relates_to_elements:
-      - "摄像头网格容器"
+**等待策略:**
+- 等待弹窗出现：等待 `camera-dialog` 元素可见 (`visibility_of_element_located`)，或者等待其 `style.display` 不为 `none`。
+- 对于弹窗内输入框：等待元素可交互 (`element_to_be_clickable`) 后再输入。
+- 对于弹窗按钮：等待元素可点击 (`element_to_be_clickable`)。
 
-  - id: TC-CM-004
-    title: 关键词搜索
-    priority: P1
-    type: positive
-    preconditions:
-      - "存在目标摄像头名称"
-    steps_summary: "搜索框输入关键词 → 点击搜索"
-    expected: "网格更新，仅显示匹配结果"
-    relates_to_elements:
-      - "搜索输入框"
-      - "搜索按钮"
+## 4. 页内其他元素
 
-  - id: TC-CM-005
-    title: 在线状态筛选
-    priority: P1
-    type: positive
-    preconditions:
-      - "存在在线摄像头"
-    steps_summary: "状态筛选选择'在线' → 等待网格刷新"
-    expected: "结果均为在线状态"
-    relates_to_elements:
-      - "状态筛选下拉"
+| 元素ID | 定位策略 | 定位值 | 稳定性评级 | 备用方案 |
+| :--- | :--- | :--- | :--- | :--- |
+| `pagination` | **A级**: data-testid | `css: [data-testid="pagination"]` | ★★★ | |
+| | **B级**: CSS Class | `css: .el-pagination` | ★★★ | 页面唯一 |
+| | **C级**: XPath | `xpath: //div[contains(@class, 'el-pagination')]` | ★ | |
+| `loading-mask` | **A级**: CSS Class | `css: .el-loading-mask` | ★★★ | 常用于等待表格数据加载完成 |
+| `empty-state` | **A级**: data-testid | `css: [data-testid="empty-state"]` | ★★★ | |
+| | **B级**: CSS Class | `css: .el-empty` | ★★★ | 符合Element Plus规范 |
+| | **C级**: XPath | `xpath: //div[contains(@class, 'el-empty')]` | ★ | |
 
-  - id: TC-CM-006
-    title: 故障状态筛选
-    priority: P1
-    type: positive
-    preconditions:
-      - "存在故障摄像头"
-    steps_summary: "状态筛选选择'故障' → 等待网格刷新"
-    expected: "结果均为故障状态"
-    relates_to_elements:
-      - "状态筛选下拉"
+**等待策略:**
+- 等待加载完成：使用 `invisibility_of_element_located` 等待 `loading-mask` 消失。
+- 等待空数据状态：使用 `visibility_of_element_located` 等待 `empty-state` 出现。
 
-  - id: TC-CM-007
-    title: 分页翻页
-    priority: P1
-    type: positive
-    preconditions:
-      - "摄像头数量 > 单页容量"
-    steps_summary: "点击下一页 → 校验 monitor-cell 变化"
-    expected: "monitor-cell 内容变化，页码更新"
-    relates_to_elements:
-      - "分页组件"
+---
 
-  - id: TC-CM-008
-    title: 详情弹窗
-    priority: P2
-    type: positive
-    preconditions:
-      - "页面已加载"
-    steps_summary: "点击摄像头 → 等待详情弹窗出现 → 关闭弹窗"
-    expected: "弹窗出现含摄像头详细信息，关闭后消失"
-    relates_to_elements:
-      - "摄像头详情弹窗"
-      - "弹窗关闭按钮"
+## 重要说明
 
-page_behaviors:
-  - behavior: "摄像头网格异步加载"
-    triggers:
-      - "页面加载"
-      - "搜索后"
-      - "筛选后"
-    wait_required: true
-    wait_suggestion: "等待 monitor-cell 出现后 wait_vue_stable"
-
-  - behavior: "el-select 下拉筛选 Teleport 渲染"
-    triggers:
-      - "点击状态筛选下拉"
-    wait_required: true
-    wait_suggestion: "WebDriverWait 等待 body 下 .el-select-dropdown 可见"
-
-  - behavior: "详情弹窗 Teleport 动画"
-    triggers:
-      - "点击摄像头卡片"
-    wait_required: true
-    wait_suggestion: "WebDriverWait 等待 .el-dialog 可见后 wait_vue_stable"
-
-  - behavior: "搜索后网格刷新"
-    triggers:
-      - "点击搜索按钮"
-    wait_required: true
-    wait_suggestion: "wait_loading_gone + monitor-cell 数量变化检测"
+1.  **版本标记**: 本文件标记为 `source: ai`，表示所有定位器均为**AI推测版本**。在将其用于自动化脚本之前，必须在目标环境上进行严格验证。依赖于 `placeholder`、`aria-label`、`text()` 或特定CSS类名的定位器可能会因为前端代码的微小变动而失败。
+2.  **真实环境验证**: 强烈建议在真实的页面上（或开发/测试环境中）使用浏览器开发者工具（Elements面板）检查上述定位器是否能正确定位到目标元素。
+3.  **优先级选择**: 在编写Page Object时，应优先使用稳定性评级最高的定位器（A级）。如果A级定位器不存在或不稳定，再选择B级或C级定位器。
+4.  **权限元素**: `add-camera-btn` 和行内 `btn-edit`、`btn-delete` 可能受权限控制。在自动化脚本中，需要预先判断这些元素是否存在或可见，以确定当前用户的权限状态。
+5.  **动态内容**: 表格内容、弹窗、下拉框选项等都是动态渲染的。所有对应的定位策略（如 `col-name`, `dialog-name-input`, `dialog-group-select`）都依赖于这些动态内容正确加载。因此，在尝试与这些元素交互之前，必须使用恰当的WebDriverWait策略等待它们变得可用。
+```

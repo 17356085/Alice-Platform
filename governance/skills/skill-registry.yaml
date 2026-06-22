@@ -13,6 +13,8 @@ skills:
     status: active
   workflows:
   - project-takeover
+  risk_level: low
+  needs_confirm: false
 - id: context-sync
   category: project
   status: active
@@ -26,6 +28,8 @@ skills:
     status: active
   workflows:
   - session-sync
+  risk_level: low
+  needs_confirm: false
 - id: hygiene-check
   category: project
   status: active
@@ -40,6 +44,8 @@ skills:
   note: 目录/文件级卫生检查 — 重复检测/废弃标记/大文件告警/孤儿引用/格式漂移/Token预算
   workflows:
   - project-takeover
+  risk_level: low
+  needs_confirm: false
 - id: module-modeling
   category: requirements
   status: active
@@ -53,6 +59,8 @@ skills:
     status: active
   workflows:
   - module-onboarding
+  risk_level: low
+  needs_confirm: false
 - id: requirement-analysis
   category: requirements
   status: active
@@ -66,6 +74,8 @@ skills:
     status: active
   workflows:
   - module-onboarding
+  risk_level: low
+  needs_confirm: false
 - id: page-analysis
   category: test-design
   status: active
@@ -84,6 +94,8 @@ skills:
     status: active
   workflows:
   - module-onboarding
+  risk_level: low
+  needs_confirm: false
 - id: page-observe
   category: test-design
   status: active
@@ -100,6 +112,8 @@ skills:
   note: BrowserUse AI Agent 自动探索页面，提取 search_fields / buttons / columns / pagination。作为 page-analysis 的 BrowserUse 驱动后处理。
   workflows:
   - module-onboarding
+  risk_level: medium
+  needs_confirm: false
 - id: pair-seed
   category: test-design
   status: active
@@ -116,6 +130,8 @@ skills:
   note: 在 testcase-design 之前执行。检测 PAIR_SEEDS.md，校验种子完整性，注入 pipeline_context.pair_seeds。无种子时正常跳过。
   workflows:
   - module-test-design
+  risk_level: low
+  needs_confirm: false
 - id: risk-modeling
   category: test-design
   status: active
@@ -131,6 +147,8 @@ skills:
   - page-analysis
   workflows:
   - module-onboarding
+  risk_level: low
+  needs_confirm: false
 - id: testcase-design
   category: test-design
   status: active
@@ -147,12 +165,16 @@ skills:
   file: skills/test-design/testcase-design.md
   workflows:
   - module-test-design
+  risk_level: low
+  needs_confirm: false
 - id: page-interface-generator
   category: test-design
   status: deprecated
   file: skills/test-design/page-interface-generator.md
   note: P1-2 (2026-06-13) 合并到 page-analysis 的后处理步骤。不再作为独立 Skill。
   merged_into: test-design/page-analysis
+  risk_level: low
+  needs_confirm: false
 - id: test-data-generation
   category: test-design
   status: active
@@ -164,6 +186,8 @@ skills:
     released: '2026-05-01'
     changelog: 初始版本
     status: active
+  risk_level: medium
+  needs_confirm: false
 - id: api-testing
   category: test-design
   status: experimental
@@ -178,6 +202,8 @@ skills:
   note: 无 SOP 图调用路径（Phase 6 接口测试未实现）。保留供未来扩展。
   workflows:
   - api-test-design
+  risk_level: medium
+  needs_confirm: false
 - id: miniapp-testing
   category: test-design
   status: experimental
@@ -190,6 +216,8 @@ skills:
     changelog: 实验版本
     status: experimental
   note: 无 SOP 图调用路径。小程序测试为独立项目。
+  risk_level: medium
+  needs_confirm: false
 - id: tech-analysis
   category: automation
   status: active
@@ -204,6 +232,8 @@ skills:
   note: 已合并 element-plus-locator 的深度定位能力
   workflows:
   - automation-implementation
+  risk_level: low
+  needs_confirm: false
 - id: auto-strategy
   category: automation
   status: active
@@ -219,6 +249,8 @@ skills:
   - tech-analysis
   workflows:
   - automation-implementation
+  risk_level: low
+  needs_confirm: false
 - id: page-object-generator
   category: automation
   status: active
@@ -235,6 +267,8 @@ skills:
   - auto-strategy
   workflows:
   - automation-implementation
+  risk_level: medium
+  needs_confirm: false
 - id: test-script-generator
   category: automation
   status: active
@@ -251,12 +285,16 @@ skills:
   note: 'P1-2: conftest-generator merged into this skill'
   workflows:
   - automation-implementation
+  risk_level: medium
+  needs_confirm: false
 - id: conftest-generator
   category: automation
   status: deprecated
   file: skills/automation/conftest-generator.md
   note: P1-2 (2026-06-13) 合并到 test-script-generator。conftest.py 作为测试脚本基础设施的一部分统一生成。
   merged_into: automation/test-script-generator
+  risk_level: low
+  needs_confirm: false
 - id: code-consistency-checker
   category: automation
   status: active
@@ -274,6 +312,8 @@ skills:
   workflows:
   - automation-implementation
   - code-health-check
+  risk_level: low
+  needs_confirm: false
 - id: allure-report-analyzer
   category: execution
   status: active
@@ -287,6 +327,8 @@ skills:
     status: active
   workflows:
   - test-cycle-closure
+  risk_level: low
+  needs_confirm: false
 - id: excel-exporter
   category: execution
   status: active
@@ -301,6 +343,8 @@ skills:
   workflows:
   - module-test-design
   - test-cycle-closure
+  risk_level: low
+  needs_confirm: false
 - id: data-sanitization
   category: execution
   status: active
@@ -315,6 +359,8 @@ skills:
   workflows:
   - test-cycle-closure
   note: 当前由 sop_graph.py data_sanitization_node 直接调用 scan_and_clean.py。Skill 文件提供 Prompt 文档参考。
+  risk_level: high
+  needs_confirm: true
 - id: bug-analysis
   category: diagnosis
   status: active
@@ -333,6 +379,8 @@ skills:
     status: active
   workflows:
   - automation-failure-closure
+  risk_level: low
+  needs_confirm: false
 - id: ci-pipeline-analysis
   category: diagnosis
   status: active
@@ -346,6 +394,8 @@ skills:
     status: active
   workflows:
   - automation-failure-closure
+  risk_level: low
+  needs_confirm: false
 - id: jenkinsfile-generator
   category: diagnosis
   status: experimental
@@ -360,6 +410,8 @@ skills:
   note: 无 SOP 图调用路径。CI pipeline 编排为独立工作流。
   workflows:
   - ci-pipeline-orchestration
+  risk_level: medium
+  needs_confirm: false
 - id: knowledge-manager
   category: knowledge
   status: active
@@ -371,8 +423,7 @@ skills:
     released: '2026-05-01'
     changelog: 初始版本 — extract + precipitate 双模式
     status: active
-  note: '合并 knowledge-extractor (Bug→坑位) + knowledge-precipitation (周期→沉淀) 为双模式 Skill
-    (mode: extract | precipitate)'
+  note: '合并 knowledge-extractor (Bug→坑位) + knowledge-precipitation (周期→沉淀) 为双模式 Skill (mode: extract | precipitate)'
   replaced:
   - knowledge-extractor
   - knowledge-precipitation
@@ -380,6 +431,8 @@ skills:
   - automation-failure-closure
   - test-cycle-closure
   - session-sync
+  risk_level: medium
+  needs_confirm: false
 - id: completeness-check
   category: knowledge
   status: active
@@ -392,6 +445,8 @@ skills:
     changelog: 初始版本
     status: active
   note: Primary Owner = Project Agent；Knowledge Agent 为 Secondary
+  risk_level: low
+  needs_confirm: false
 - id: report-generator
   category: reporting
   status: active
@@ -403,13 +458,14 @@ skills:
     released: '2026-05-01'
     changelog: 初始版本 — test-summary + progress + excel 三模式
     status: active
-  note: '合并 test-summary + progress-report 为三模式 Skill (mode: test-summary | progress
-    | excel)。excel-exporter 仍为独立 Skill'
+  note: '合并 test-summary + progress-report 为三模式 Skill (mode: test-summary | progress | excel)。excel-exporter 仍为独立 Skill'
   replaced:
   - test-summary
   - progress-report
   workflows:
   - test-cycle-closure
+  risk_level: low
+  needs_confirm: false
 - id: caveman
   category: productivity
   status: active
@@ -422,4 +478,6 @@ skills:
     changelog: 初始版本 — 来源 mattpocock/skills /caveman，适配 AITest Platform；三级强度(lite/full/ultra)，横向贯穿所有 Agent
     status: active
   note: 横向贯穿 Skill，不绑定特定 Agent。所有 Agent 在任何 Phase 均可使用。长会话/批量 Bug 分析时推荐开启。
+  risk_level: low
+  needs_confirm: false
 variants: null

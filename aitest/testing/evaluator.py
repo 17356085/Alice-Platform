@@ -697,3 +697,241 @@ class CompositeJudge:
             passed=composite_overall >= 0.6,
             errors=rule_errors + llm_result.errors,
         )
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  P1 (Phase 4): 正确失败 vs 错误失败分类
+# ══════════════════════════════════════════════════════════════════════════
+
+# 正确失败的标记: Agent 诚实说明原因/追问/停止
+CORRECT_FAILURE_MARKERS = [
+    r"(?i)(无法|不能|无法完成|cannot|unable to|not possible)",
+    r"(?i)(缺少(必要)?信息|需要更多|need more|missing (required |necessary )?information)",
+    r"(?i)(请提供|请补充|please provide|需要.*参数|requires? .* parameter)",
+    r"(?i)(超出.*(范围|能力)|beyond.*(scope|capability)|not supported)",
+    r"(?i)(建议|推荐|suggest|recommend|alternatively)",
+    r"(?i)(当前.*限制|current limitation|目前仅|currently only)",
+    r"(?i)(抱歉|遗憾|sorry|unfortunately)",
+]
+
+# 错误失败的标记: 编造/伪造/给出不可验证的结论
+WRONG_FAILURE_MARKERS = [
+    r"(?i)(已经(完成|执行|处理|删除|修改)|(has been|was) (completed|executed|processed|deleted|modified))",
+    r"(?i)(结果(如下|为|是)|the (result|answer) is|结果是)",
+    r"(?i)(确认|验证通过|confirmed|verified|validated).*(但|but|however)",
+    r"(?i)(确认|verified|validated).*(已生效|已完成|成功|completed|success|passed|updated)",
+    r"(?i)(数据(显示|表明)|data (shows|indicates|suggests)).*(?=.*(但|but|however))",
+    r"(?i)(fabricat|hallucinat|confabulat|编造|虚构|捏造)",
+]
+
+
+def classify_failure_type(output: str, error_summary: str = "") -> str:
+    """
+    P1 (Phase 4): 区分正确失败 vs 错误失败。
+
+    正确失败 (correct_failure): 任务未完成但诚实说明原因
+    错误失败 (wrong_failure): 任务未完成且给出错误/编造结论
+
+    返回: "correct_failure" | "wrong_failure"
+    """
+    combined = f"{output} {error_summary}"
+
+    # 先检查错误失败标记（更危险）
+    wrong_hits = 0
+    for pattern in WRONG_FAILURE_MARKERS:
+        if re.search(pattern, combined):
+            wrong_hits += 1
+
+    # 检查正确失败标记
+    correct_hits = 0
+    for pattern in CORRECT_FAILURE_MARKERS:
+        if re.search(pattern, combined):
+            correct_hits += 1
+
+    # 决策逻辑
+    if wrong_hits > correct_hits:
+        return "wrong_failure"
+    elif correct_hits > 0:
+        return "correct_failure"
+    elif wrong_hits > 0:
+        return "wrong_failure"
+
+    # 启发式: 输出包含具体数据/结论但缺少证据链 → wrong
+    has_concrete_data = bool(re.search(
+        r'(?i)(\d{2,}.*(条|个|项|次|records?|items?|results?|entries?))|'
+        r'(ID[:\s]+\w+|编号[:\s]+\w+)',
+        output
+    ))
+    has_evidence = bool(re.search(
+        r'(?i)(根据|依据|来源|引用|based on|according to|referenc|source)',
+        output
+    ))
+    if has_concrete_data and not has_evidence:
+        return "wrong_failure"
+
+    return "correct_failure"  # 默认: 疑罪从无
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  P2 (Phase 7): AdversarialJudge — 多模型对抗评估
+# ══════════════════════════════════════════════════════════════════════════
+
+@dataclass
+class AdversarialResult:
+    """对抗评估的综合结果。"""
+    passed: bool                     # 是否通过（多数模型确认）
+    confirmed_by: int                # 确认的模型数
+    refuted_by: int                  # 反驳的模型数
+    total_judges: int                # 总 judge 数
+    scores: dict[str, float]         # {model_name: score}
+    refutations: list[str]           # 每个模型的反驳理由
+    overall_score: float             # 平均分
+    verdict: str                     # "confirmed" | "refuted" | "split"
+    summary: str = ""
+
+
+class AdversarialJudge:
+    """
+    P2 (Phase 7): 多模型对抗评估器。
+
+    从单模型 (haiku) 改为多模型 panel，每个 judge 同时给出:
+      - 评分
+      - 是否 refute (反驳)
+
+    综合规则: ≥2/3 确认 → 通过，≥2/3 refute → 驳回。
+
+    用法:
+        judge = AdversarialJudge(
+            models=["claude-haiku-4-5", "claude-sonnet-4-6"],
+        )
+        result = judge.evaluate(output, golden, dimensions=["accuracy", "completeness"])
+        print(result.verdict, result.overall_score)
+    """
+
+    ADVERSARIAL_PROMPT = """You are an adversarial evaluator. Your job is to:
+1. Score the OUTPUT against the GOLDEN reference on each dimension (0.0-1.0)
+2. Determine whether the output should be REFUTED (contains false claims, fabrications, or critical errors)
+
+{dimensions}
+
+OUTPUT:
+{output}
+
+GOLDEN REFERENCE:
+{golden}
+
+CRITICAL: If the output contains fabricated data, unsupported claims, or assertions
+that contradict the golden reference, you MUST set refute=true and explain why.
+
+Respond in JSON:
+{{"dimensions": {{"dim1": 0.X, ...}}, "overall": 0.Z, "refute": true|false, "refute_reason": "..."}}"""
+
+    def __init__(self, models: list[str] = None, provider: str = "claude"):
+        """
+        参数:
+            models: 评估模型列表 (默认 haiku + sonnet)
+            provider: LLM provider
+        """
+        self.models = models or ["claude-haiku-4-5", "claude-sonnet-4-6"]
+        self.provider = provider
+
+    def evaluate(
+        self,
+        output: str,
+        golden: str = "",
+        dimensions: list[str] = None,
+    ) -> AdversarialResult:
+        """
+        多模型对抗评估。
+
+        参数:
+            output:     待评估输出
+            golden:     Golden reference
+            dimensions: 评估维度列表
+
+        返回:
+            AdversarialResult
+        """
+        if dimensions is None:
+            dimensions = ["accuracy", "completeness", "clarity"]
+
+        dims_text = "\n".join(f"  - {d}" for d in dimensions)
+
+        scores = {}
+        refutations = []
+        confirmed = 0
+        refuted = 0
+
+        for model in self.models:
+            try:
+                result = self._judge_with_model(
+                    model=model,
+                    output=output,
+                    golden=golden,
+                    dims_text=dims_text,
+                )
+                scores[model] = result.get("overall", 0.0)
+                is_refute = result.get("refute", False)
+                if is_refute:
+                    refuted += 1
+                    refutations.append(
+                        f"[{model}] REFUTED: {result.get('refute_reason', 'no reason given')[:200]}"
+                    )
+                else:
+                    confirmed += 1
+            except Exception as e:
+                scores[model] = 0.0
+                refutations.append(f"[{model}] ERROR: {str(e)[:100]}")
+                refuted += 1
+
+        total = len(self.models)
+        overall = sum(scores.values()) / max(len(scores), 1)
+
+        # 综合裁决
+        if confirmed >= total * 2 / 3:
+            verdict = "confirmed"
+            passed = True
+        elif refuted >= total * 2 / 3:
+            verdict = "refuted"
+            passed = False
+        else:
+            verdict = "split"
+            passed = overall >= 0.5
+
+        return AdversarialResult(
+            passed=passed,
+            confirmed_by=confirmed,
+            refuted_by=refuted,
+            total_judges=total,
+            scores=scores,
+            refutations=refutations,
+            overall_score=round(overall, 3),
+            verdict=verdict,
+            summary=f"{verdict}: {confirmed}/{total} confirmed, {refuted}/{total} refuted",
+        )
+
+    def _judge_with_model(self, model: str, output: str, golden: str,
+                          dims_text: str) -> dict:
+        """用指定模型执行单次判断。"""
+        from aitest.llm.provider import get_provider
+
+        prompt = self.ADVERSARIAL_PROMPT.format(
+            dimensions=dims_text,
+            output=output[:8000],
+            golden=golden[:4000] if golden else "(no golden reference)",
+        )
+
+        llm = get_provider(self.provider)
+        response = llm.complete(
+            system_prompt=prompt,
+            user_prompt="Evaluate and determine if the output should be refuted. Respond with JSON only.",
+            temperature=0.1,
+            max_tokens=1024,
+            model=model,
+        )
+        content = response.content or "{}"
+
+        json_match = re.search(r'\{[\s\S]*\}', content)
+        if json_match:
+            return json.loads(json_match.group())
+        return json.loads(content)

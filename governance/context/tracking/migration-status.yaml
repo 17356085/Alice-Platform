@@ -1,6 +1,6 @@
 version: 0.3
 description: 旧资产→治理层迁移状态结构化追踪。AI 可据此判断模块是否可安全写入。
-last_updated: 2026-06-17
+last_updated: 2026-06-18
 source: SOP_STATUS batch 3 + governance artifacts count + test file count
 
 # ── 迁移完成度阈值 ──────────────────────────────────────────────────
@@ -11,7 +11,7 @@ thresholds:
 
 # ── Web 自动化项目 ───────────────────────────────────────────────────
 web-automation:
-  overall_percentage: 81  # 2×100% + 7×89% + 1×56% + 1×0% + 1×80% ≈ 78%
+  overall_percentage: 83  # 2×100% + 7×89% + 1×56% + 1×0% + 1×80% ≈ 78%
   modules:
     equipment:
       percentage: 89

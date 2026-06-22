@@ -4,6 +4,7 @@
   2026-06-11: 继承 BasePage，去绝对XPath，去time.sleep→BasePage等待方法
 """
 import logging
+import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait

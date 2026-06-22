@@ -1,0 +1,107 @@
+{
+  "module": "lab",
+  "status": "failed",
+  "completed_phases": [
+    "Automation",
+    "Project Init",
+    "Requirement",
+    "Test Design"
+  ],
+  "failed_phases": [
+    "Automation"
+  ],
+  "pages_processed": [
+    "gas-analysis-report",
+    "gas-compare",
+    "gas-indicator",
+    "water-compare",
+    "water-indicator",
+    "water-report"
+  ],
+  "per_page_results": [
+    {
+      "page_slug": "gas-analysis-report",
+      "status": "?",
+      "artifacts": [
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-analysis-report\\PAGE_CONTEXT.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-analysis-report\\TEST_CASES.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-analysis-report\\TECH_ANALYSIS.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-analysis-report\\AUTO_STRATEGY.md"
+      ]
+    },
+    {
+      "page_slug": "gas-compare",
+      "status": "?",
+      "artifacts": [
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-compare\\PAGE_CONTEXT.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-compare\\TEST_CASES.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-compare\\TECH_ANALYSIS.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-compare\\AUTO_STRATEGY.md"
+      ]
+    },
+    {
+      "page_slug": "gas-indicator",
+      "status": "?",
+      "artifacts": [
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-indicator\\PAGE_CONTEXT.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-indicator\\TEST_CASES.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-indicator\\TECH_ANALYSIS.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\gas-indicator\\AUTO_STRATEGY.md"
+      ]
+    },
+    {
+      "page_slug": "water-compare",
+      "status": "?",
+      "artifacts": [
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-compare\\PAGE_CONTEXT.md"
+      ]
+    },
+    {
+      "page_slug": "water-indicator",
+      "status": "?",
+      "artifacts": [
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-indicator\\PAGE_CONTEXT.md"
+      ]
+    },
+    {
+      "page_slug": "water-report",
+      "status": "?",
+      "artifacts": [
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-report\\PAGE_CONTEXT.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-report\\TEST_CASES.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-report\\TECH_ANALYSIS.md",
+        "D:\\Desktop\\WorkStudy\\governance\\context\\projects\\web-automation\\modules\\lab\\pages\\water-report\\AUTO_STRATEGY.md"
+      ]
+    }
+  ],
+  "agent_summary": {
+    "preflight_auto_detect": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": ""
+    },
+    "project-agent": {
+      "success": true,
+      "skills_completed": 4,
+      "termination": "all_skills_completed"
+    },
+    "requirement-agent": {
+      "success": true,
+      "skills_completed": 2,
+      "termination": "all_skills_completed"
+    },
+    "test-design-agent": {
+      "success": true,
+      "skills_completed": 7,
+      "termination": "all_skills_completed"
+    },
+    "automation-agent": {
+      "success": false,
+      "skills_completed": 1,
+      "termination": "max_steps_reached"
+    }
+  },
+  "run_id": "sop-lab-full-1781770992",
+  "updated_at": "2026-06-18T17:12:24",
+  "engine": "langgraph"
+}

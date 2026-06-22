@@ -1,0 +1,79 @@
+{
+  "module": "tank",
+  "audit_time": "2026-06-22T12:28:23.907614",
+  "audit_type": "safety",
+  "overall_status": "error",
+  "safety_score": 55,
+  "total_violations": 3,
+  "critical_count": 0,
+  "high_count": 3,
+  "medium_count": 0,
+  "warning_count": 0,
+  "violations": [
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "project/context-sync",
+      "description": "高风险操作 'project/context-sync' 在 run 'sop-tank-1781678947' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录 (risk_level=low)",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-tank-1781678947",
+        "skill_id": "project/context-sync",
+        "timestamp": "2026-06-17T14:49:43.963529"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/miniapp-testing",
+      "description": "高风险操作 'test-design/miniapp-testing' 在 run 'sop-tank-1781679821' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录 (risk_level=medium)",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-tank-1781679821",
+        "skill_id": "test-design/miniapp-testing",
+        "timestamp": "2026-06-17T15:06:50.469127"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/test-data-generation",
+      "description": "高风险操作 'test-design/test-data-generation' 在 run 'sop-tank-1781683314' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录 (risk_level=medium)",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-tank-1781683314",
+        "skill_id": "test-design/test-data-generation",
+        "timestamp": "2026-06-17T16:05:02.052276"
+      }
+    }
+  ],
+  "checks": {
+    "high_risk_confirm": {
+      "total": 3,
+      "critical": 0,
+      "high": 3,
+      "ok": false
+    },
+    "sensitive_leak": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    },
+    "permission_bypass": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    },
+    "audit_trail": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    }
+  }
+}

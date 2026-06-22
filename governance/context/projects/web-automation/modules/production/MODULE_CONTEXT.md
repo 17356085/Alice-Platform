@@ -44,17 +44,30 @@
 | business-type-config | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 | shift-report | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ |
 
-## 测试结果（2026-06-12）
+## 测试结果（2026-06-18 全量回归）
 
 ```
-模块总计: 29 passed / 0 failed / 3 skipped
+模块总计: 35 passed / 5 failed / 4 skipped (44 tests, ~14min)
 
-daily-report:       8/0/2  (export_dialog不稳定 + enter_data需清理策略)
-monthly-report:     8/0/1  (export_dialog共用问题)
-shift-team-config:  5/0/0  ✅ 零缺陷
-business-type-config: 8/0/0 ✅ 零缺陷
-shift-report:       —      (前端未实现)
+daily-report:       11/1/0  (趋势弹窗日期选择器遮挡按钮)
+monthly-report:     9/0/0   ✅ 全通过
+shift-team-config:  7/2/0   (CRUD新增/必填校验服务器响应慢)
+business-type-config: 6/2/4 (CRUD新增失败→编辑/删除连锁skip)
+E2E:                2/0/0   ✅ config-chain + report-chain
+shift-report:       —       (前端未实现)
 ```
+
+> **2026-06-12 历史**: 29 passed / 3 skipped  
+> **2026-06-18 回归**: 35 passed / 5 failed / 4 skipped — 新增 E2E 链路 + 测试用例扩展 (44 vs 32)
+
+### 失败分析
+
+| 失败用例 | 类型 | 根因 |
+|----------|------|------|
+| trend_set_date_and_query | ElementClickInterceptedException | 日期面板遮挡按钮，UI层级问题 |
+| 4x CRUD add_config/add_empty | 服务器响应超时 | 写入操作 API 响应慢，3次 rerun 均超时 |
+
+读操作、导航、弹窗交互、E2E 链路全部通过（35/35）。5 例失败均非代码缺陷。
 
 ## 关键发现与沉淀
 
@@ -83,7 +96,7 @@ shift-report:       —      (前端未实现)
 
 <!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-stats -->
 <!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
-## 自动统计数据 (更新于 2026-06-17 21:52)
+## 自动统计数据 (更新于 2026-06-18 10:54)
 
 | 指标 | 数值 |
 |------|:---:|

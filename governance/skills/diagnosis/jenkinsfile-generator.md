@@ -156,6 +156,6 @@ stage('Destructive Tests (Serial)') {
 → 参考模板：`ZJSN_Test-master526/Jenkinsfile`。
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **0.1-exp** | experimental | diagnosis | synced 2026-06-17 21:52
+> **0.1-exp** | experimental | diagnosis | synced 2026-06-18 10:54
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

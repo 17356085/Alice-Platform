@@ -33,9 +33,11 @@ def pytest_sessionstart(session):
         if os.path.isdir(d):
             try:
                 shutil.rmtree(d)
-            except PermissionError:
-                pass  # 目录被其他进程占用，跳过清理
-            os.makedirs(d, exist_ok=True)
+            except (PermissionError, FileNotFoundError, OSError):
+                pass  # 目录被其他进程占用/文件已删除，跳过清理
+            except Exception:
+                pass  # 其它清理错误不阻断测试
+        os.makedirs(d, exist_ok=True)
 
 # ── 日志初始化（所有模块通过 logging.getLogger(__name__) 获取）──
 from config import LOGGING_CONFIG

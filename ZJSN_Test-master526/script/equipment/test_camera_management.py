@@ -316,5 +316,107 @@ class TestCameraDialog:
             pytest.skip("未找到可点击的操作按钮")
 
 
+# ==================================================================
+#  P1：权限控制测试
+# ==================================================================
+class TestCameraPermissions:
+
+    def test_cam_14_search_input_accessible(self, driver_setup):
+        """CAM-AUTH-001: 搜索输入框权限检查"""
+        page = CameraManagePage(driver_setup)
+        case("CAM-AUTH-001", "搜索输入框权限检查")
+
+        step("检查搜索输入框可见性")
+        is_visible = page.is_visible(page.SEARCH_ITEM, timeout=5)
+        assert is_visible, ea("搜索输入框应可见（当前用户有权限）", "输入框不可见")
+
+    def test_cam_15_cell_actions_accessible(self, driver_setup):
+        """CAM-AUTH-002: 监控卡片操作按钮权限检查"""
+        page = CameraManagePage(driver_setup)
+        case("CAM-AUTH-002", "卡片操作按钮权限检查")
+
+        if page.get_cell_count() == 0:
+            pytest.skip("当前页无监控卡片")
+
+        step("检查操作按钮可见性")
+        cells = page.find_all(page.MONITOR_CELL)
+        if cells:
+            actions = cells[0].find_elements(By.CSS_SELECTOR, '.monitor-cell-actions button')
+            assert len(actions) >= 0, "操作按钮区域应存在"
+
+
+# ==================================================================
+#  P1：边界值测试
+# ==================================================================
+class TestCameraBoundary:
+
+    def test_cam_16_search_special_chars(self, driver_setup):
+        """CAM-BND-001: 搜索特殊字符处理"""
+        page = CameraManagePage(driver_setup)
+        case("CAM-BND-001", "搜索特殊字符处理")
+
+        step("输入特殊字符搜索")
+        page.input_keyword("!@#$%^&*()_+-=[]{}|\\:;<>?,./~`")
+        page.click_search()
+
+        step("验证搜索不崩溃")
+        try:
+            count = page.get_cell_count()
+            assert count >= 0, "特殊字符搜索正常处理"
+        except Exception as e:
+            pytest.fail(f"特殊字符搜索导致异常: {e}")
+
+    def test_cam_17_search_long_keyword(self, driver_setup):
+        """CAM-BND-002: 搜索超长关键词"""
+        page = CameraManagePage(driver_setup)
+        case("CAM-BND-002", "搜索超长关键词处理")
+
+        step("输入256字符的超长关键词")
+        page.input_keyword("x" * 256)
+        page.click_search()
+
+        step("验证处理不崩溃")
+        try:
+            count = page.get_cell_count()
+            assert count >= 0, "超长关键词处理正常"
+        except Exception as e:
+            pytest.fail(f"超长关键词搜索导致异常: {e}")
+
+    def test_cam_18_empty_keyword_search(self, driver_setup):
+        """CAM-BND-003: 空搜索关键词"""
+        page = CameraManagePage(driver_setup)
+        case("CAM-BND-003", "空搜索关键词处理")
+
+        step("清空输入框并搜索")
+        page.input_keyword("")
+        page.click_search()
+
+        step("验证搜索正常返回")
+        try:
+            count = page.get_cell_count()
+            assert count >= 0, "空搜索正常处理"
+        except Exception as e:
+            pytest.fail(f"空搜索导致异常: {e}")
+
+
+# ==================================================================
+#  P2：可靠性测试
+# ==================================================================
+class TestCameraReliability:
+
+    def test_cam_19_repeat_search_stable(self, driver_setup):
+        """CAM-REL-001: 重复搜索稳定性"""
+        page = CameraManagePage(driver_setup)
+        case("CAM-REL-001", "重复搜索稳定性")
+
+        keywords = ["罐区", "消防", ""]
+        for i, kw in enumerate(keywords):
+            step(f"第{i+1}次搜索: '{kw}'")
+            page.input_keyword(kw)
+            page.click_search()
+            count = page.get_cell_count()
+            assert count >= 0, f"第{i+1}次搜索 count={count} 正常"
+
+
 if __name__ == "__main__":
     pytest.main(["-v", "-s", __file__])

@@ -1,0 +1,37 @@
+page: reagent-fill
+route: 库管管理 > 三剂消耗管理 > 装填管理
+
+elements:
+  search:
+    - name: item_name
+      label: 请输入三剂名称
+      type: el-input
+      locator: '//input[@placeholder="请输入三剂名称"]'
+
+  buttons:
+    - name: query
+      label: 查询
+      locator: '//button[contains(.,"查询")]'
+    - name: reset
+      label: 重置
+      locator: '//button[contains(.,"重置")]'
+    - name: add
+      label: 新增
+      locator: '//button[contains(.,"新增")]'
+
+  table:
+    - column: 三剂名称
+      type: text
+      source: dialog_field_inference
+    - column: (其他列未在PO中定义)
+      type: unknown
+      source: not_available
+
+  dialogs:
+    - name: add_dialog
+      trigger: BTN_ADD
+      fields:
+        - name: item_name
+          type: el-input
+          placeholder: 三剂名称
+          locator: '//input[@placeholder="三剂名称"]'

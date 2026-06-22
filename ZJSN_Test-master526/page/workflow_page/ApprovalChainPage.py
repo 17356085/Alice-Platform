@@ -4,6 +4,7 @@
   2026-06-12: 新建，继承 BasePage，遵循代码红线规范
 """
 import logging
+import time
 import time as _time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -533,14 +534,21 @@ class ApprovalChainPage(BasePage):
         """获取指定行 '步骤配置' 按钮的中心坐标 (1-indexed)。无按钮返回 None。"""
         return self.driver.execute_script("""
             var rows = document.querySelectorAll('.el-table__body-wrapper tbody tr');
+            // Fallback: try without wrapper class
+            if (rows.length === 0) rows = document.querySelectorAll('table.el-table__body tbody tr');
+            if (rows.length === 0) rows = document.querySelectorAll('.el-table tbody tr');
             if (arguments[0] > rows.length) return null;
-            var cells = rows[arguments[0]-1].querySelectorAll('td .cell');
-            var lastCell = cells[cells.length-1];
-            var btns = lastCell.querySelectorAll('button');
-            for (var i=0; i<btns.length; i++) {
-                if (btns[i].textContent.indexOf('步骤配置') !== -1) {
-                    var r = btns[i].getBoundingClientRect();
-                    return {x: r.left + r.width/2, y: r.top + r.height/2};
+            var row = rows[arguments[0]-1];
+            // Search ALL cells, not just last
+            var cells = row.querySelectorAll('td');
+            for (var c=0; c<cells.length; c++) {
+                var btns = cells[c].querySelectorAll('button, a, span.el-link');
+                for (var i=0; i<btns.length; i++) {
+                    var txt = (btns[i].textContent || '').trim();
+                    if (txt.indexOf('步骤配置') !== -1 || txt.indexOf('步骤设置') !== -1 || txt.indexOf('审批步骤') !== -1) {
+                        var r = btns[i].getBoundingClientRect();
+                        return {x: r.left + r.width/2, y: r.top + r.height/2};
+                    }
                 }
             }
             return null;
@@ -554,9 +562,31 @@ class ApprovalChainPage(BasePage):
         """
         rect = self._get_step_btn_rect(row_index)
         if not rect:
-            logger.warning("步骤配置按钮未找到: row=%s", row_index)
-            return False
-        self._cdp_click_at(rect['x'], rect['y'])
+            # Fallback: try JS click on the button directly
+            logger.warning("CDP rect not found for step_config row=%s, trying JS fallback", row_index)
+            clicked = self.driver.execute_script("""
+                var rows = document.querySelectorAll('.el-table__body-wrapper tbody tr');
+                if (rows.length === 0) rows = document.querySelectorAll('.el-table tbody tr');
+                if (arguments[0] > rows.length) return false;
+                var row = rows[arguments[0]-1];
+                var cells = row.querySelectorAll('td');
+                for (var c=0; c<cells.length; c++) {
+                    var btns = cells[c].querySelectorAll('button, a, span.el-link');
+                    for (var i=0; i<btns.length; i++) {
+                        var txt = (btns[i].textContent || '').trim();
+                        if (txt.indexOf('步骤') !== -1 || txt.indexOf('配置') !== -1) {
+                            btns[i].click();
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            """, row_index)
+            if not clicked:
+                logger.warning("步骤配置按钮未找到: row=%s (both CDP and JS)", row_index)
+                return False
+        else:
+            self._cdp_click_at(rect['x'], rect['y'])
         _time.sleep(3)
         return True
 
@@ -615,6 +645,10 @@ class ApprovalChainPage(BasePage):
         """步骤配置面板是否可见"""
         return self.driver.execute_script("""
             var editor = document.querySelector('.step-editor');
+            if (!editor) editor = document.querySelector('.step-config-panel');
+            if (!editor) editor = document.querySelector('[class*="step-editor"]');
+            if (!editor) editor = document.querySelector('[class*="step-config"]');
+            if (!editor) editor = document.querySelector('.el-drawer');
             return !!(editor && editor.offsetParent !== null);
         """)
 
@@ -622,6 +656,15 @@ class ApprovalChainPage(BasePage):
         """获取步骤卡片数量"""
         return self.driver.execute_script("""
             var editor = document.querySelector('.step-editor');
+            if (!editor || editor.offsetParent === null) {
+                editor = document.querySelector('.step-config-panel');
+                if (!editor || editor.offsetParent === null) {
+                    editor = document.querySelector('[class*="step-editor"]');
+                    if (!editor || editor.offsetParent === null) {
+                        editor = document.querySelector('[class*="step-config"]');
+                    }
+                }
+            }
             if (!editor || editor.offsetParent === null) return 0;
             return editor.querySelectorAll('.step-card').length;
         """)
@@ -630,6 +673,14 @@ class ApprovalChainPage(BasePage):
         """是否显示'添加步骤'按钮"""
         return self.driver.execute_script("""
             var bar = document.querySelector('.add-step-bar');
+            if (!bar) bar = document.querySelector('[class*="add-step"]');
+            if (!bar) {
+                // Try inside step editor
+                var editor = document.querySelector('.step-editor, .step-config-panel, [class*="step-editor"], [class*="step-config"], .el-drawer');
+                if (editor && editor.offsetParent !== null) {
+                    bar = editor.querySelector('[class*="add-step"], .add-step-bar, button:has(span:contains("添加"))');
+                }
+            }
             return !!(bar && bar.offsetParent !== null);
         """)
 
@@ -637,19 +688,31 @@ class ApprovalChainPage(BasePage):
         """尝试关闭步骤配置面板（点击返回/取消按钮或关闭图标）"""
         return self.driver.execute_script("""
             var editor = document.querySelector('.step-editor');
+            if (!editor || editor.offsetParent === null) {
+                editor = document.querySelector('.step-config-panel');
+                if (!editor || editor.offsetParent === null) {
+                    editor = document.querySelector('[class*="step-editor"]');
+                    if (!editor || editor.offsetParent === null) {
+                        editor = document.querySelector('[class*="step-config"]');
+                        if (!editor || editor.offsetParent === null) {
+                            editor = document.querySelector('.el-drawer');
+                        }
+                    }
+                }
+            }
             if (!editor || editor.offsetParent === null) return 'not_open';
 
             // 尝试找关闭按钮
             var btns = editor.querySelectorAll('button');
             for (var i=0; i<btns.length; i++) {
                 var txt = btns[i].textContent.trim();
-                if (txt === '返回' || txt === '取消' || txt === '关闭') {
+                if (txt === '返回' || txt === '取消' || txt === '关闭' || txt === '取 消') {
                     btns[i].click();
                     return 'clicked_' + txt;
                 }
             }
             // 尝试找 X 图标
-            var closeIcon = editor.querySelector('[class*="close"], .el-icon-close');
+            var closeIcon = editor.querySelector('[class*="close"], .el-icon-close, .el-drawer__close-btn');
             if (closeIcon) { closeIcon.click(); return 'clicked_close_icon'; }
             return 'no_close_found';
         """)

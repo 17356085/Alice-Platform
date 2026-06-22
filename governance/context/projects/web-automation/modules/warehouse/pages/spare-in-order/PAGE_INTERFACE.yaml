@@ -1,0 +1,43 @@
+page: spare-in-order
+route: 库管管理 > 备品备件管理 > 入库
+approval_chain: 备件入库审批链 (admin 会签)
+
+elements:
+  search:
+    - name: handler
+      label: 请输入经办人
+      type: el-input
+      locator: '//input[@placeholder="请输入经办人"]'
+    - name: date
+      label: 选择日期
+      type: el-date-picker
+      locator: '//input[@placeholder="选择日期"]'
+
+  buttons:
+    - name: query
+      label: 查询
+      locator: '//button[contains(.,"查询")]'
+    - name: reset
+      label: 重置
+      locator: '//button[contains(.,"重置")]'
+    - name: add
+      label: 新增入库
+      locator: '//button[contains(.,"新增入库")]'
+    - name: view
+      label: 查看
+      locator: '//button[contains(.,"查看")]'
+
+  table:
+    - column: (列1-列8)
+      type: text
+      source: not_available_in_po
+    - note: 表格共计8列，列头数量在6-12范围内验证
+
+  dialogs:
+    - name: add_dialog
+      trigger: BTN_ADD
+      fields:
+        - name: handler
+          type: el-input
+          placeholder: 经办人
+          locator: '//input[@placeholder="经办人"]'

@@ -12,6 +12,7 @@
     - 无 time.sleep，使用 BasePage 等待方法
 """
 import logging
+import time
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
@@ -71,10 +72,10 @@ class ExamRecordPage(BasePage):
     )
 
     def navigate(self) -> "ExamRecordPage":
-        """导航至考试记录页面（通过侧边栏菜单）"""
-        self.navigate_to("人员管理", "考试记录")
+        """JS hash 导航至考试记录页面（SPA 内无刷新）"""
+        self.driver.execute_script("window.location.hash = '#/personnel/training/examRecord'")
         self.wait_vue_stable()
-        self.logger.info("已导航至考试记录页面")
+        logger.info("已导航至考试记录页面")
         return self
 
     # ==================== 搜索操作 ====================
@@ -96,14 +97,14 @@ class ExamRecordPage(BasePage):
 
         self.click(self.BTN_SEARCH)
         self.wait_vue_stable()
-        self.logger.info("已执行搜索（姓名=%s, 类型=%s, 状态=%s）", person_name, exam_type, status)
+        logger.info("已执行搜索（姓名=%s, 类型=%s, 状态=%s）", person_name, exam_type, status)
         return self
 
     def reset_search(self) -> "ExamRecordPage":
         """重置搜索条件"""
         self.click(self.BTN_RESET)
         self.wait_vue_stable()
-        self.logger.info("已重置搜索条件")
+        logger.info("已重置搜索条件")
         return self
 
     # ==================== 表格数据 ====================
@@ -125,7 +126,7 @@ class ExamRecordPage(BasePage):
                     row_dict[headers[idx]] = cell.text
             if row_dict:
                 data.append(row_dict)
-        self.logger.info("获取到 %d 行表格数据", len(data))
+        logger.info("获取到 %d 行表格数据", len(data))
         return data
 
     def _get_table_headers(self) -> list[str]:
@@ -144,14 +145,14 @@ class ExamRecordPage(BasePage):
         action_button = self._get_row_action_button(row_index, "查看详情")
         self.click(action_button)
         self.wait_for_visible(self.DIALOG_DETAIL)
-        self.logger.info("已点击第 %d 行的查看详情按钮", row_index)
+        logger.info("已点击第 %d 行的查看详情按钮", row_index)
         return self
 
     def close_detail_dialog(self) -> "ExamRecordPage":
         """关闭考试记录详情弹窗"""
         self.click(self.DIALOG_DETAIL_BTN_CONFIRM)
         self.wait_for_invisible(self.DIALOG_DETAIL)
-        self.logger.info("已关闭考试记录详情弹窗")
+        logger.info("已关闭考试记录详情弹窗")
         return self
 
     # ==================== 导出 ====================
@@ -159,7 +160,7 @@ class ExamRecordPage(BasePage):
     def export(self) -> "ExamRecordPage":
         """点击导出按钮（可能触发文件下载）"""
         self.click(self.BTN_EXPORT)
-        self.logger.info("已点击导出按钮")
+        logger.info("已点击导出按钮")
         # 注意：导出功能可能需要处理文件下载或额外的确认弹窗，此处仅做点击操作
         return self
 
@@ -172,7 +173,7 @@ class ExamRecordPage(BasePage):
         :return: dict，包含 total, current_page, page_size
         """
         info = self.get_pagination_text(self.PAGINATION)
-        self.logger.info("获取分页信息: %s", info)
+        logger.info("获取分页信息: %s", info)
         return info
 
     # ==================== 辅助方法 ====================

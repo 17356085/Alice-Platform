@@ -6,6 +6,7 @@
 """
 
 import logging
+import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
@@ -70,10 +71,10 @@ class OnlineStudyPage(BasePage):
     # 导航入口
     # ==================================================================
     def navigate(self) -> "OnlineStudyPage":
-        """导航到在线学习管理页面"""
-        self.navigate_to("人员管理", "在线学习")
+        """JS hash 导航到在线学习页面（SPA 内无刷新）"""
+        self.driver.execute_script("window.location.hash = '#/personnel/training/onlineStudy'")
         self.wait_vue_stable()
-        self.wait_loading_disappear(self.TABLE_LOADING)
+        self._wait_loading_gone(timeout=10)
         logger.info("导航到在线学习管理页面成功")
         return self
 
@@ -91,7 +92,7 @@ class OnlineStudyPage(BasePage):
         :param date_range: 创建日期范围 [开始日期, 结束日期]
         """
         if course_name is not None:
-            self.fill_input(self.SEARCH_COURSE_NAME_INPUT, course_name)
+            self.js_fill_input(self.SEARCH_COURSE_NAME_INPUT, course_name)
             logger.info(f"输入课程名称: {course_name}")
 
         if category is not None:
@@ -109,7 +110,7 @@ class OnlineStudyPage(BasePage):
         if date_range is not None and len(date_range) == 2:
             self.click_element(self.SEARCH_DATE_RANGE)
             # 日期范围使用 send_keys 填入格式 "开始 ~ 结束"
-            self.fill_input(self.SEARCH_DATE_RANGE, f"{date_range[0]} ~ {date_range[1]}")
+            self.js_fill_input(self.SEARCH_DATE_RANGE, f"{date_range[0]} ~ {date_range[1]}")
             self.click_element(self.SEARCH_DATE_RANGE)  # 关闭面板
             logger.info(f"选择日期范围: {date_range[0]} ~ {date_range[1]}")
 
@@ -186,7 +187,7 @@ class OnlineStudyPage(BasePage):
         }
         """
         if "courseName" in data:
-            self.fill_input(self.FORM_COURSE_NAME_INPUT, data["courseName"])
+            self.js_fill_input(self.FORM_COURSE_NAME_INPUT, data["courseName"])
             logger.info(f"填写课程名称: {data['courseName']}")
         if "category" in data:
             self.click_element(self.FORM_CATEGORY_SELECT)
@@ -194,10 +195,10 @@ class OnlineStudyPage(BasePage):
             self.click_by_text(data["category"])
             logger.info(f"选择分类: {data['category']}")
         if "teacher" in data:
-            self.fill_input(self.FORM_TEACHER_INPUT, data["teacher"])
+            self.js_fill_input(self.FORM_TEACHER_INPUT, data["teacher"])
             logger.info(f"填写授课老师: {data['teacher']}")
         if "description" in data:
-            self.fill_input(self.FORM_DESCRIPTION_TEXTAREA, data["description"])
+            self.js_fill_input(self.FORM_DESCRIPTION_TEXTAREA, data["description"])
             logger.info(f"填写描述: {data['description']}")
         if "status" in data:
             current_class = self.get_attribute(self.FORM_STATUS_SWITCH, "class")

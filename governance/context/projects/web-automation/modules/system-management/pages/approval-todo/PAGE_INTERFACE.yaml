@@ -1,0 +1,203 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:26"
+
+meta:
+  module: "system-management"
+  page_name: "ApprovalTodo"
+  page_slug: "approval-todo"
+  page_url: "#/system/workflow/todo"
+  vue_components:
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-select
+      count: 1
+      risk_flags: ["搜索字段非标题，需通过label关联"]
+    - component: el-date-range-picker
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 4
+      risk_flags: ["搜索/重置可能被拦截，使用JS点击"]
+    - component: el-dialog
+      count: 1
+      risk_flags: ["审批弹窗确认按钮可能被overlay拦截，需JS点击"]
+    - component: el-input
+      count: 1
+      risk_flags: ["textarea用于审批意见"]
+
+elements:
+  - name: "工厂代码下拉框"
+    selector: "//label[contains(text(),'工厂')]/following-sibling::div//input"
+    selector_type: XPATH
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "用label文本定位，父级关联el-select中的input"
+    risk_level: medium
+    risk_reason: "非标准标题字段，JS遍历label定位，可能因DOM结构变化失效"
+
+  - name: "报表日期范围选择器"
+    selector: ".el-date-range-picker"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-range-picker
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "BasePage通用方法，类名为.el-date-range-picker或.el-date-editor--daterange"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "搜索按钮"
+    selector: "//button[text()='搜索']"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "JS点击绕过拦截，通过文本定位"
+    risk_level: high
+    risk_reason: "可能被overlay拦截，需使用JS点击方法_js_click_search_or_reset"
+
+  - name: "重置按钮"
+    selector: "//button[text()='重置']"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "JS点击绕过拦截，通过文本定位"
+    risk_level: high
+    risk_reason: "同搜索按钮，可能被overlay拦截"
+
+  - name: "审批操作-通过按钮"
+    selector: "//span[contains(text(),'通过')]/ancestor::button"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格行内按钮，文本为'通过'"
+    risk_level: medium
+    risk_reason: "行索引需动态处理，点击后触发弹窗"
+
+  - name: "审批操作-驳回按钮"
+    selector: "//span[contains(text(),'驳回')]/ancestor::button"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格行内按钮，文本为'驳回'"
+    risk_level: medium
+    risk_reason: "同通过按钮"
+
+  - name: "审批操作-查看详情按钮"
+    selector: "//span[contains(text(),'查看详情')]/ancestor::button"
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格行内按钮，文本为'查看详情'"
+    risk_level: medium
+    risk_reason: "行索引需动态处理"
+
+  - name: "审批弹窗"
+    selector: ".el-dialog"
+    selector_type: CSS_SELECTOR
+    element_type: dialog
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: WebDriverWait
+    locator_notes: "审批操作后弹出，含审批意见textarea和确认取消按钮"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "审批意见输入框"
+    selector: ".el-dialog textarea"
+    selector_type: CSS_SELECTOR
+    element_type: textarea
+    el_component: el-input (type="textarea")
+    interaction: input
+    wait_strategy: WebDriverWait
+    locator_notes: "审批弹窗内必填文本域"
+    risk_level: medium
+    risk_reason: "必填项，输入后需验证"
+
+  - name: "审批弹窗确认按钮"
+    selector: ".el-dialog .el-button--primary"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "主按钮，可能被overlay拦截，需JS点击"
+    risk_level: high
+    risk_reason: "可能被overlay拦截"
+
+  - name: "审批弹窗取消按钮"
+    selector: ".el-dialog .el-button:not(.el-button--primary)"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "取消关闭弹窗"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "表格主体"
+    selector: ".el-table__body"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "表格数据区域"
+    risk_level: low
+    risk_reason: ""
+
+  - name: "表格空状态提示"
+    selector: ".el-table__empty-text"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-table
+    interaction: wait
+    wait_strategy: WebDriverWait
+    locator_notes: "空数据时显示，文案可能为'暂无待审批项'或'暂无数据'"
+    risk_level: high
+    risk_reason: "空状态文案变体，断言需用'暂无'前缀匹配"
+
+test_scenarios: []
+# TEST_CASES.md 文件为空，无提取内容
+
+page_behaviors:
+  - behavior: "表格加载后渲染"
+    triggers: ["页面加载", "筛选搜索后", "审批操作后"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable 或等待表格加载完成"
+
+  - behavior: "审批弹窗弹出"
+    triggers: ["点击通过/驳回按钮"]
+    wait_required: true
+    wait_suggestion: "WebDriverWait 等待 .el-dialog 可见"
+
+  - behavior: "搜索区表单重置"
+    triggers: ["点击重置按钮"]
+    wait_required: true
+    wait_suggestion: "等待表单控件恢复默认值，然后 wait_vue_stable"
+
+  - behavior: "审批操作后列表刷新"
+    triggers: ["审批通过/驳回确认后"]
+    wait_required: true
+    wait_suggestion: "等待 loading 消失或表格重新渲染，使用 wait_loading_gone"
+
+  - behavior: "搜索字段非标题（与CRUD不同）"
+    triggers: ["页面初始化"]
+    wait_required: false
+    wait_suggestion: "注意定位策略，避免与通用CRUD页面混淆"

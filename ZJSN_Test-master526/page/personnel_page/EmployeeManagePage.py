@@ -5,6 +5,7 @@
                 新增 navigate() 方法, 添加统一日志记录.
 """
 import logging
+import time
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys

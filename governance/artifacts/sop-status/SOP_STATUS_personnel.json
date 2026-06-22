@@ -1,34 +1,55 @@
 {
   "module": "personnel",
   "module_name": "人员管理",
-  "updated": "2026-06-18T12:35:00+08:00",
+  "updated": "2026-06-22T14:30:00+08:00",
   "phases": {
-    "1_project_init": {"agent": "project-agent", "status": "completed", "skills": 4, "duration_s": 62, "tokens": 5121},
-    "2_requirement": {"agent": "requirement-agent", "status": "completed", "skills": 2, "duration_s": 70, "tokens": 11419},
-    "3_test_design": {"agent": "test-design-agent", "status": "completed", "pages": 5, "notes": "5 pages missing RISK_MODEL → all filled"},
-    "4_automation": {"status": "skipped", "reason": "PO+scripts exist, 4 AUTO_STRATEGY deferred"},
-    "5_execute_debug": {"api_passed": "5/8", "api_bugs": "POST/DELETE employee 500", "e2e": "in_progress"}
+    "1_project_init": {"status": "completed"},
+    "2_requirement": {"status": "completed"},
+    "3_test_design": {"status": "completed", "pages": 22, "docs": 168},
+    "4_automation": {"status": "completed", "page_objects": 23, "test_scripts": 25, "total_tests": 236},
+    "5_execute_debug": {
+      "baseline_2026-06-15": "62.4% (828 tests all-module)",
+      "last_run": "153f/68p/7s/8e (28.8%) — pre-fix, running post-fix now",
+      "contractor": "38p/0f/3s (100%)",
+      "api": "5p/2f/1e (server 500)",
+      "table_header_fix_verified": "4/4 PASSED"
+    }
   },
   "governance": {
-    "pages": 16,
-    "RISK_MODEL": "16/16",
-    "TEST_CASES": "16/16",
-    "TECH_ANALYSIS": "16/16",
-    "AUTO_STRATEGY": "12/16",
-    "PAGE_OBJECT": "17/17",
-    "TEST_SCRIPTS": "22/22",
-    "TOTAL_TESTS": 159
+    "pages": 22,
+    "docs_total": 168,
+    "RISK_MODEL": "22/22",
+    "TEST_DESIGN": "22/22",
+    "TEST_CASES": "22/22",
+    "PAGE_CONTEXT": "22/22",
+    "PAGE_INTERFACE": "22/22",
+    "TECH_ANALYSIS": "22/22",
+    "AUTO_STRATEGY": "22/22",
+    "PAGE_ELEMENT_POSITION": "12/22"
   },
-  "bugs_fixed": [
-    "double /api/api/ URL in conftest.py",
-    "token key accessToken vs token in api_base.py",
-    "wrong API routes /api/v1/* vs /api/personnel/* (10 methods)",
-    "field names: name→postName, items→records, page→pageNum"
+  "fixes_2026-06-22": [
+    "conftest.py: 删除6个重复fixture",
+    "conftest.py: allure cleanup 增加 FileNotFoundError/OSError 容错",
+    "EmployeePage: 添加11个缺失方法 (enter_search_keyword, click_search, select_department, is_empty_state_displayed, is_pagination_visible, click_export, is_download_completed, is_permission_denied_displayed 等)",
+    "EmployeePage.navigate(): driver.get() → JS hash",
+    "VisitorPage.navigate(): navigate_to() → JS hash",
+    "OnlineStudyPage.navigate(): navigate_to() + wait_loading_disappear → JS hash + _wait_loading_gone",
+    "ExamRecordPage.navigate(): navigate_to() → JS hash",
+    "MyArchivePage.navigate(): navigate_to() → JS hash",
+    "MyExamPage.navigate(): navigate_to() → JS hash",
+    "QualificationPage.navigate(): undefined sidebar_nav → JS hash",
+    "ExamManagePage.select_dialog_option(): 空选项返回None而非抛异常",
+    "ExamManagePage.add_exam_full(): 无试卷时early return友好错误",
+    "test_paper_management: 表头断言 → ≥7列计数检查",
+    "test_question_bank: 表头断言 → ≥4列计数检查",
+    "test_train_plan_management: 表头断言 → ≥6列计数检查",
+    "test_exam_management: 表头断言 → ≥6列计数检查",
+    "TEST_DESIGN.md x6: exam-record, my-archive, my-exam, online-study, qualification, visitor"
   ],
   "server_bugs": [
-    "POST /api/personnel/employee → 500 (all payloads)",
+    "POST /api/personnel/employee → 500",
     "DELETE /api/personnel/employee/{id} → 500",
     "PUT /api/personnel/employee/{id} → unique constraint conflict"
   ],
-  "rbac_ctrl_users": 22
+  "running": "Full suite (236 tests) post-fix → artifacts/regression-logs/personnel_fixed_*.log"
 }

@@ -1,0 +1,1431 @@
+{
+  "module": "warehouse",
+  "audit_time": "2026-06-22T12:12:38.946964",
+  "audit_type": "safety",
+  "overall_status": "error",
+  "safety_score": 0,
+  "total_violations": 107,
+  "critical_count": 0,
+  "high_count": 107,
+  "medium_count": 0,
+  "warning_count": 0,
+  "violations": [
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781678501' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781678501",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:42:26.616620"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "requirements/requirement-analysis",
+      "description": "高风险操作 'requirements/requirement-analysis' 在 run 'sop-warehouse-1781678501' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781678501",
+        "skill_id": "requirements/requirement-analysis",
+        "timestamp": "2026-06-17T14:42:26.617145"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781678546' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781678546",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:43:02.602486"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781678546' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781678546",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T14:43:02.603397"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781678546' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781678546",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:44:00.086131"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/testcase-design",
+      "description": "高风险操作 'test-design/testcase-design' 在 run 'sop-warehouse-1781678546' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781678546",
+        "skill_id": "test-design/testcase-design",
+        "timestamp": "2026-06-17T14:44:00.087138"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781678546' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781678546",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:44:27.714146"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781678546' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781678546",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T14:44:27.714755"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781678770' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781678770",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:46:54.874948"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781678770' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781678770",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T14:46:54.875537"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781678959' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781678959",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:49:40.150759"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "project/project-context-manager",
+      "description": "高风险操作 'project/project-context-manager' 在 run 'sop-warehouse-1781678959' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781678959",
+        "skill_id": "project/project-context-manager",
+        "timestamp": "2026-06-17T14:49:40.150759"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781679065' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679065",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:52:19.791796"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781679065' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679065",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T14:52:19.792361"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781679065' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679065",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:53:25.911602"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/test-data-generation",
+      "description": "高风险操作 'test-design/test-data-generation' 在 run 'sop-warehouse-1781679065' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679065",
+        "skill_id": "test-design/test-data-generation",
+        "timestamp": "2026-06-17T14:53:25.912324"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781679065' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679065",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:53:59.993732"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781679065' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679065",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T14:53:59.994331"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781679274' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679274",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:55:44.532025"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781679274' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679274",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T14:55:44.532565"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781679274' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679274",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:57:26.808341"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781679274' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679274",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T14:57:26.808341"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781679274' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679274",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:58:32.742372"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/miniapp-testing",
+      "description": "高风险操作 'test-design/miniapp-testing' 在 run 'sop-warehouse-1781679274' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679274",
+        "skill_id": "test-design/miniapp-testing",
+        "timestamp": "2026-06-17T14:58:32.742948"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781679512' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679512",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:59:52.604312"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781679512' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679512",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T14:59:52.605423"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781679512' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679512",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:00:58.739938"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/testcase-design",
+      "description": "高风险操作 'test-design/testcase-design' 在 run 'sop-warehouse-1781679512' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679512",
+        "skill_id": "test-design/testcase-design",
+        "timestamp": "2026-06-17T15:00:58.740976"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781679512' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679512",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:01:58.481916"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781679512' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781679512",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T15:01:58.483041"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781680030' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680030",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:09:50.634770"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781680030' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680030",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T15:09:50.635918"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781680030' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680030",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:10:43.940412"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/miniapp-testing",
+      "description": "高风险操作 'test-design/miniapp-testing' 在 run 'sop-warehouse-1781680030' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680030",
+        "skill_id": "test-design/miniapp-testing",
+        "timestamp": "2026-06-17T15:10:43.940933"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680107",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:09:43.709044"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680107",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T15:09:43.709580"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680107",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:11:05.022337"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/testcase-design",
+      "description": "高风险操作 'test-design/testcase-design' 在 run 'sop-warehouse-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680107",
+        "skill_id": "test-design/testcase-design",
+        "timestamp": "2026-06-17T15:11:05.023405"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680107",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:12:32.644962"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/miniapp-testing",
+      "description": "高风险操作 'test-design/miniapp-testing' 在 run 'sop-warehouse-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680107",
+        "skill_id": "test-design/miniapp-testing",
+        "timestamp": "2026-06-17T15:12:32.645523"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781680362' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680362",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:13:56.791722"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781680362' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680362",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T15:13:56.793123"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781680605' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680605",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:18:04.707433"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781680605' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680605",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T15:18:04.707997"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781680856' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680856",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:23:45.426877"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/test-data-generation",
+      "description": "高风险操作 'test-design/test-data-generation' 在 run 'sop-warehouse-1781680856' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680856",
+        "skill_id": "test-design/test-data-generation",
+        "timestamp": "2026-06-17T15:23:45.427432"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781680856' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680856",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:24:41.509906"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/miniapp-testing",
+      "description": "高风险操作 'test-design/miniapp-testing' 在 run 'sop-warehouse-1781680856' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781680856",
+        "skill_id": "test-design/miniapp-testing",
+        "timestamp": "2026-06-17T15:24:41.510488"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781681081' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781681081",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:25:52.418899"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781681081' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781681081",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T15:25:52.418899"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781681081' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781681081",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:27:29.968611"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781681081' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781681081",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T15:27:29.969711"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781683082' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683082",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:59:22.957828"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781683082' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683082",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T15:59:22.958351"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "",
+        "timestamp": "2026-06-17T16:02:31.256673"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/page-analysis",
+      "description": "高风险操作 'test-design/page-analysis' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "test-design/page-analysis",
+        "timestamp": "2026-06-17T16:02:31.257365"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "",
+        "timestamp": "2026-06-17T16:02:57.214794"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T16:02:57.215794"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "",
+        "timestamp": "2026-06-17T16:03:24.623977"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T16:03:24.624976"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "",
+        "timestamp": "2026-06-17T16:04:16.381762"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/test-data-generation",
+      "description": "高风险操作 'test-design/test-data-generation' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "test-design/test-data-generation",
+        "timestamp": "2026-06-17T16:04:16.383047"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "",
+        "timestamp": "2026-06-17T16:04:25.536958"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/testcase-design",
+      "description": "高风险操作 'test-design/testcase-design' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "test-design/testcase-design",
+        "timestamp": "2026-06-17T16:04:25.537484"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "",
+        "timestamp": "2026-06-17T16:04:46.083821"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/test-data-generation",
+      "description": "高风险操作 'test-design/test-data-generation' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "test-design/test-data-generation",
+        "timestamp": "2026-06-17T16:04:46.083821"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "",
+        "timestamp": "2026-06-17T16:05:42.336361"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/miniapp-testing",
+      "description": "高风险操作 'test-design/miniapp-testing' 在 run 'sop-warehouse-1781683312' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683312",
+        "skill_id": "test-design/miniapp-testing",
+        "timestamp": "2026-06-17T16:05:42.337425"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781683542' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683542",
+        "skill_id": "",
+        "timestamp": "2026-06-17T16:06:41.272110"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781683542' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683542",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T16:06:41.273189"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781683542' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683542",
+        "skill_id": "",
+        "timestamp": "2026-06-17T16:08:22.544301"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781683542' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781683542",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T16:08:22.545304"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781689339' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781689339",
+        "skill_id": "",
+        "timestamp": "2026-06-17T17:42:31.173047"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/page-analysis",
+      "description": "高风险操作 'test-design/page-analysis' 在 run 'sop-warehouse-1781689339' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781689339",
+        "skill_id": "test-design/page-analysis",
+        "timestamp": "2026-06-17T17:42:31.173574"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781689861' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781689861",
+        "skill_id": "",
+        "timestamp": "2026-06-17T17:54:32.096107"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781689861' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781689861",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T17:54:32.097130"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781690454' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781690454",
+        "skill_id": "",
+        "timestamp": "2026-06-17T18:04:31.803497"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781690454' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781690454",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T18:04:31.804098"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781690980' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781690980",
+        "skill_id": "",
+        "timestamp": "2026-06-17T18:10:16.341421"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/page-analysis",
+      "description": "高风险操作 'test-design/page-analysis' 在 run 'sop-warehouse-1781690980' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781690980",
+        "skill_id": "test-design/page-analysis",
+        "timestamp": "2026-06-17T18:10:16.341421"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781690980' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781690980",
+        "skill_id": "",
+        "timestamp": "2026-06-17T18:11:22.189746"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781690980' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781690980",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T18:11:22.190823"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781691118' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781691118",
+        "skill_id": "",
+        "timestamp": "2026-06-17T18:13:59.841476"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781691118' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781691118",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T18:13:59.841476"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781691273' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781691273",
+        "skill_id": "",
+        "timestamp": "2026-06-17T18:16:14.852011"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/testcase-design",
+      "description": "高风险操作 'test-design/testcase-design' 在 run 'sop-warehouse-1781691273' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781691273",
+        "skill_id": "test-design/testcase-design",
+        "timestamp": "2026-06-17T18:16:14.853028"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781698746' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781698746",
+        "skill_id": "",
+        "timestamp": "2026-06-17T20:20:02.584373"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "requirements/requirement-analysis",
+      "description": "高风险操作 'requirements/requirement-analysis' 在 run 'sop-warehouse-1781698746' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781698746",
+        "skill_id": "requirements/requirement-analysis",
+        "timestamp": "2026-06-17T20:20:02.584906"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781699039' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781699039",
+        "skill_id": "",
+        "timestamp": "2026-06-17T20:26:49.340512"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781700412' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781700412",
+        "skill_id": "",
+        "timestamp": "2026-06-17T20:50:26.511286"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781700412' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781700412",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T20:50:26.511845"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781701813' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781701813",
+        "skill_id": "",
+        "timestamp": "2026-06-17T21:14:38.543639"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/miniapp-testing",
+      "description": "高风险操作 'test-design/miniapp-testing' 在 run 'sop-warehouse-1781701813' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781701813",
+        "skill_id": "test-design/miniapp-testing",
+        "timestamp": "2026-06-17T21:14:38.544193"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781702880' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781702880",
+        "skill_id": "",
+        "timestamp": "2026-06-17T21:28:34.923627"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/page-analysis",
+      "description": "高风险操作 'test-design/page-analysis' 在 run 'sop-warehouse-1781702880' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781702880",
+        "skill_id": "test-design/page-analysis",
+        "timestamp": "2026-06-17T21:28:34.924251"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781702880' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781702880",
+        "skill_id": "",
+        "timestamp": "2026-06-17T21:29:30.829333"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-warehouse-1781702880' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781702880",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T21:29:30.829920"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781702880' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781702880",
+        "skill_id": "",
+        "timestamp": "2026-06-17T21:30:39.634987"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/testcase-design",
+      "description": "高风险操作 'test-design/testcase-design' 在 run 'sop-warehouse-1781702880' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781702880",
+        "skill_id": "test-design/testcase-design",
+        "timestamp": "2026-06-17T21:30:39.635531"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781702880' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781702880",
+        "skill_id": "",
+        "timestamp": "2026-06-17T21:31:06.354076"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/test-data-generation",
+      "description": "高风险操作 'test-design/test-data-generation' 在 run 'sop-warehouse-1781702880' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781702880",
+        "skill_id": "test-design/test-data-generation",
+        "timestamp": "2026-06-17T21:31:06.355307"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781702880' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781702880",
+        "skill_id": "",
+        "timestamp": "2026-06-17T21:31:30.313607"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781702880' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781702880",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T21:31:30.314205"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781703176' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781703176",
+        "skill_id": "",
+        "timestamp": "2026-06-17T21:33:42.889620"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "automation/page-object-generator",
+      "description": "高风险操作 'automation/page-object-generator' 在 run 'sop-warehouse-1781703176' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781703176",
+        "skill_id": "automation/page-object-generator",
+        "timestamp": "2026-06-17T21:33:42.889620"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-warehouse-1781703276' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781703276",
+        "skill_id": "",
+        "timestamp": "2026-06-17T21:38:57.087914"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-warehouse-1781703276' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-warehouse-1781703276",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T21:38:57.088454"
+      }
+    }
+  ],
+  "checks": {
+    "high_risk_confirm": {
+      "total": 107,
+      "critical": 0,
+      "high": 107,
+      "ok": false
+    },
+    "sensitive_leak": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    },
+    "permission_bypass": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    },
+    "audit_trail": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    }
+  }
+}

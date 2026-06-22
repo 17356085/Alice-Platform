@@ -1024,7 +1024,10 @@ def data_sanitization_node(state: SOPState) -> dict:
 # ══════════════════════════════════════════════════════════════════════════
 
 def page_advance_node(state: SOPState) -> dict:
-    """Automation 完成后推进页面索引，支持跨页迭代。"""
+    """Automation 完成后推进页面索引，支持跨页迭代。
+    若 force_retry_phase 已设置 → 当前页面产物缺失，不推进页码。"""
+    if state.get("force_retry_phase"):
+        return {}  # 重试中 — 不推进页码
     pages = state.get("pages", [])
     idx = state.get("current_page_index", 0)
     next_idx = min(idx + 1, len(pages))
@@ -1032,7 +1035,13 @@ def page_advance_node(state: SOPState) -> dict:
 
 
 def _route_after_page_advance(state: SOPState) -> str:
-    """页面推进后：有下页→回 test_design_agent 重新走测试设计+自动化，无→继续下一个 Phase。"""
+    """页面推进后：有下页→回 test_design_agent 重新走测试设计+自动化，无→继续下一个 Phase。
+    若 force_retry_phase 已设置 → 优先送回到重试目标节点。"""
+    force_retry = state.get("force_retry_phase")
+    if force_retry:
+        node_name = PHASE_TO_NODE.get(force_retry)
+        if node_name:
+            return node_name
     pages = state.get("pages", [])
     idx = state.get("current_page_index", 0)
     if idx < len(pages):

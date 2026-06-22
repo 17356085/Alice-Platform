@@ -279,6 +279,6 @@ file={{file}} changes={{changes}}
 | B | known-issues.yaml 更新 + PROJECT_CONTEXT 更新 + 模块状态更新 + 进度追踪更新 |
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | knowledge | synced 2026-06-17 21:52
+> **1.0** | active | knowledge | synced 2026-06-18 10:54
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

@@ -7,6 +7,7 @@ Covers:
 """
 import time
 import pytest
+import allure
 import logging
 
 from base.sidebar_navigator import SidebarNavigator
@@ -21,10 +22,18 @@ logger = logging.getLogger(__name__)
 
 def step(text):
     print(f"  -> {text}")
+    try:
+        allure.step(text)
+    except Exception:
+        pass
 
 
 def case(case_id, title):
     print(f"\n{'='*60}\n{case_id}: {title}\n{'='*60}")
+    try:
+        allure.dynamic.title(f"{case_id} {title}")
+    except Exception:
+        pass
 
 
 def ea(expected, actual):
@@ -39,6 +48,10 @@ def nav_to(driver, href, label=""):
 
 
 @pytest.mark.smoke
+@allure.epic("Sales Management")
+@allure.feature("Business Management")
+@allure.story("Cross-page: Customer→Contract→Order chain")
+@allure.severity(allure.severity_level.CRITICAL)
 def test_e2e_sales_001_customer_contract_order(driver_setup):
     """E2E-SALES-001: 客户→合同→订单完整链路 (P0)
 
@@ -130,6 +143,10 @@ def test_e2e_sales_001_customer_contract_order(driver_setup):
 
 
 @pytest.mark.smoke
+@allure.epic("Sales Management")
+@allure.feature("Business Management")
+@allure.story("Contract search & filters")
+@allure.severity(allure.severity_level.NORMAL)
 def test_e2e_sales_003_contract_search_filters(driver_setup):
     """E2E-SALES-003: Contract page search/filter/pagination (P1)
 
@@ -209,6 +226,10 @@ def test_e2e_sales_003_contract_search_filters(driver_setup):
     step("E2E-SALES-003 OK")
 
 
+@allure.epic("Sales Management")
+@allure.feature("Data Reports")
+@allure.story("Cross-page: Daily report with consistency")
+@allure.severity(allure.severity_level.NORMAL)
 def test_e2e_sales_002_daily_report_consistency(driver_setup):
     """E2E-SALES-002: Customer -> Daily Report with data consistency (P1)
 

@@ -1,0 +1,1458 @@
+{
+  "module": "equipment",
+  "audit_time": "2026-06-22T12:12:35.664000",
+  "audit_type": "safety",
+  "overall_status": "error",
+  "safety_score": 0,
+  "total_violations": 108,
+  "critical_count": 0,
+  "high_count": 108,
+  "medium_count": 0,
+  "warning_count": 0,
+  "violations": [
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781677446' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677446",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:24:44.281155"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "project/project-context-manager",
+      "description": "高风险操作 'project/project-context-manager' 在 run 'sop-equipment-1781677446' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677446",
+        "skill_id": "project/project-context-manager",
+        "timestamp": "2026-06-17T14:24:44.284826"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781677549' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677549",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:26:47.722603"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "project/hygiene-check",
+      "description": "高风险操作 'project/hygiene-check' 在 run 'sop-equipment-1781677549' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677549",
+        "skill_id": "project/hygiene-check",
+        "timestamp": "2026-06-17T14:26:47.723159"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781677566' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677566",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:27:07.881877"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-equipment-1781677566' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677566",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T14:27:07.881877"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781677566' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677566",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:29:22.137556"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-equipment-1781677566' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677566",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T14:29:22.138113"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781677678' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677678",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:28:38.404441"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/page-analysis",
+      "description": "高风险操作 'test-design/page-analysis' 在 run 'sop-equipment-1781677678' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677678",
+        "skill_id": "test-design/page-analysis",
+        "timestamp": "2026-06-17T14:28:38.404979"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781677678' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677678",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:29:24.044732"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-equipment-1781677678' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677678",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T14:29:24.045262"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781677678' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677678",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:30:59.462442"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-equipment-1781677678' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781677678",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T14:30:59.463518"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781678450' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781678450",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:41:19.839653"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "requirements/module-modeling",
+      "description": "高风险操作 'requirements/module-modeling' 在 run 'sop-equipment-1781678450' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781678450",
+        "skill_id": "requirements/module-modeling",
+        "timestamp": "2026-06-17T14:41:19.840219"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781678498' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781678498",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:44:17.916977"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-equipment-1781678498' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781678498",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T14:44:17.918007"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781678688' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781678688",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:45:35.917550"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-equipment-1781678688' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781678688",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T14:45:35.918107"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781678845' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781678845",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:48:06.067362"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/page-analysis",
+      "description": "高风险操作 'test-design/page-analysis' 在 run 'sop-equipment-1781678845' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781678845",
+        "skill_id": "test-design/page-analysis",
+        "timestamp": "2026-06-17T14:48:06.067971"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781679016' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781679016",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:50:45.238020"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "requirements/module-modeling",
+      "description": "高风险操作 'requirements/module-modeling' 在 run 'sop-equipment-1781679016' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781679016",
+        "skill_id": "requirements/module-modeling",
+        "timestamp": "2026-06-17T14:50:45.238558"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781679068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781679068",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:51:33.300910"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/page-analysis",
+      "description": "高风险操作 'test-design/page-analysis' 在 run 'sop-equipment-1781679068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781679068",
+        "skill_id": "test-design/page-analysis",
+        "timestamp": "2026-06-17T14:51:33.301484"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781679068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781679068",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:51:56.576163"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-equipment-1781679068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781679068",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T14:51:56.576163"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781679068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781679068",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:53:04.550017"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-equipment-1781679068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781679068",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T14:53:04.550596"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781679068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781679068",
+        "skill_id": "",
+        "timestamp": "2026-06-17T14:53:44.054812"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/miniapp-testing",
+      "description": "高风险操作 'test-design/miniapp-testing' 在 run 'sop-equipment-1781679068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781679068",
+        "skill_id": "test-design/miniapp-testing",
+        "timestamp": "2026-06-17T14:53:44.056090"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781679987' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781679987",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:07:28.106654"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "project/hygiene-check",
+      "description": "高风险操作 'project/hygiene-check' 在 run 'sop-equipment-1781679987' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781679987",
+        "skill_id": "project/hygiene-check",
+        "timestamp": "2026-06-17T15:07:28.107158"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680107",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:10:14.813680"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-equipment-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680107",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T15:10:14.814547"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680107",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:11:20.652910"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/testcase-design",
+      "description": "高风险操作 'test-design/testcase-design' 在 run 'sop-equipment-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680107",
+        "skill_id": "test-design/testcase-design",
+        "timestamp": "2026-06-17T15:11:20.653441"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680107",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:11:53.139621"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-equipment-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680107",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T15:11:53.139621"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680107",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:12:26.767151"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/miniapp-testing",
+      "description": "高风险操作 'test-design/miniapp-testing' 在 run 'sop-equipment-1781680107' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680107",
+        "skill_id": "test-design/miniapp-testing",
+        "timestamp": "2026-06-17T15:12:26.767671"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781680346' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680346",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:13:06.904879"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/page-analysis",
+      "description": "高风险操作 'test-design/page-analysis' 在 run 'sop-equipment-1781680346' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680346",
+        "skill_id": "test-design/page-analysis",
+        "timestamp": "2026-06-17T15:13:06.905390"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781680346' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680346",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:14:16.573440"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/testcase-design",
+      "description": "高风险操作 'test-design/testcase-design' 在 run 'sop-equipment-1781680346' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680346",
+        "skill_id": "test-design/testcase-design",
+        "timestamp": "2026-06-17T15:14:16.574142"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781680346' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680346",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:15:09.478227"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-equipment-1781680346' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680346",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T15:15:09.479240"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781680554' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680554",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:19:38.674140"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/miniapp-testing",
+      "description": "高风险操作 'test-design/miniapp-testing' 在 run 'sop-equipment-1781680554' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781680554",
+        "skill_id": "test-design/miniapp-testing",
+        "timestamp": "2026-06-17T15:19:38.675224"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781683011' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781683011",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:57:59.886086"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "requirements/requirement-analysis",
+      "description": "高风险操作 'requirements/requirement-analysis' 在 run 'sop-equipment-1781683011' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781683011",
+        "skill_id": "requirements/requirement-analysis",
+        "timestamp": "2026-06-17T15:57:59.886622"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781683079' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781683079",
+        "skill_id": "",
+        "timestamp": "2026-06-17T15:59:36.315920"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-equipment-1781683079' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781683079",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T15:59:36.317123"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781683079' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781683079",
+        "skill_id": "",
+        "timestamp": "2026-06-17T16:01:28.345912"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-equipment-1781683079' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781683079",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T16:01:28.347005"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781683323' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781683323",
+        "skill_id": "",
+        "timestamp": "2026-06-17T16:03:37.718754"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-equipment-1781683323' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781683323",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-17T16:03:37.719322"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781683323' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781683323",
+        "skill_id": "",
+        "timestamp": "2026-06-17T16:05:21.262430"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-equipment-1781683323' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781683323",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-17T16:05:21.264038"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1781683559' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781683559",
+        "skill_id": "",
+        "timestamp": "2026-06-17T16:07:48.324448"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/testcase-design",
+      "description": "高风险操作 'test-design/testcase-design' 在 run 'sop-equipment-1781683559' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1781683559",
+        "skill_id": "test-design/testcase-design",
+        "timestamp": "2026-06-17T16:07:48.325022"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782092761' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782092761",
+        "skill_id": "",
+        "timestamp": "2026-06-22T09:49:23.543778"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/test-data-generation",
+      "description": "高风险操作 'test-design/test-data-generation' 在 run 'sop-equipment-1782092761' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782092761",
+        "skill_id": "test-design/test-data-generation",
+        "timestamp": "2026-06-22T09:49:23.543778"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782093774' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782093774",
+        "skill_id": "",
+        "timestamp": "2026-06-22T10:07:22.586815"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-equipment-1782093774' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782093774",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-22T10:07:22.587855"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782094068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094068",
+        "skill_id": "",
+        "timestamp": "2026-06-22T10:08:03.300505"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/page-analysis",
+      "description": "高风险操作 'test-design/page-analysis' 在 run 'sop-equipment-1782094068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094068",
+        "skill_id": "test-design/page-analysis",
+        "timestamp": "2026-06-22T10:08:03.301511"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782094068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094068",
+        "skill_id": "",
+        "timestamp": "2026-06-22T10:09:02.024195"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-equipment-1782094068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094068",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-22T10:09:02.025201"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782094068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094068",
+        "skill_id": "",
+        "timestamp": "2026-06-22T10:10:34.726582"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/test-data-generation",
+      "description": "高风险操作 'test-design/test-data-generation' 在 run 'sop-equipment-1782094068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094068",
+        "skill_id": "test-design/test-data-generation",
+        "timestamp": "2026-06-22T10:10:34.727579"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782094068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094068",
+        "skill_id": "",
+        "timestamp": "2026-06-22T10:11:16.308010"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-equipment-1782094068' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094068",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-22T10:11:16.309016"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782094303' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094303",
+        "skill_id": "",
+        "timestamp": "2026-06-22T10:14:04.720294"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-equipment-1782094303' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094303",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-22T10:14:04.721302"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782094303' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094303",
+        "skill_id": "",
+        "timestamp": "2026-06-22T10:14:18.649201"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/miniapp-testing",
+      "description": "高风险操作 'test-design/miniapp-testing' 在 run 'sop-equipment-1782094303' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094303",
+        "skill_id": "test-design/miniapp-testing",
+        "timestamp": "2026-06-22T10:14:18.650206"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782094458' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094458",
+        "skill_id": "",
+        "timestamp": "2026-06-22T10:16:16.409155"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-equipment-1782094458' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094458",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-22T10:16:16.409155"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782094458' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094458",
+        "skill_id": "",
+        "timestamp": "2026-06-22T10:17:47.205313"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/test-data-generation",
+      "description": "高风险操作 'test-design/test-data-generation' 在 run 'sop-equipment-1782094458' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782094458",
+        "skill_id": "test-design/test-data-generation",
+        "timestamp": "2026-06-22T10:17:47.206305"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782095461' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782095461",
+        "skill_id": "",
+        "timestamp": "2026-06-22T10:33:11.439299"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/risk-modeling",
+      "description": "高风险操作 'test-design/risk-modeling' 在 run 'sop-equipment-1782095461' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782095461",
+        "skill_id": "test-design/risk-modeling",
+        "timestamp": "2026-06-22T10:33:11.441303"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782095461' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782095461",
+        "skill_id": "",
+        "timestamp": "2026-06-22T10:35:58.547865"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/miniapp-testing",
+      "description": "高风险操作 'test-design/miniapp-testing' 在 run 'sop-equipment-1782095461' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782095461",
+        "skill_id": "test-design/miniapp-testing",
+        "timestamp": "2026-06-22T10:35:58.548422"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782097655' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782097655",
+        "skill_id": "",
+        "timestamp": "2026-06-22T11:08:46.313452"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/page-observe",
+      "description": "高风险操作 'test-design/page-observe' 在 run 'sop-equipment-1782097655' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782097655",
+        "skill_id": "test-design/page-observe",
+        "timestamp": "2026-06-22T11:08:46.313452"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782097655' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782097655",
+        "skill_id": "",
+        "timestamp": "2026-06-22T11:12:00.091880"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/test-data-generation",
+      "description": "高风险操作 'test-design/test-data-generation' 在 run 'sop-equipment-1782097655' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782097655",
+        "skill_id": "test-design/test-data-generation",
+        "timestamp": "2026-06-22T11:12:00.092890"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782097655' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782097655",
+        "skill_id": "",
+        "timestamp": "2026-06-22T11:12:41.703214"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-equipment-1782097655' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782097655",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-22T11:12:41.704228"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "",
+      "description": "高风险操作 '' 在 run 'sop-equipment-1782098676' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782098676",
+        "skill_id": "",
+        "timestamp": "2026-06-22T11:28:19.252404"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "HIGH_RISK_NO_CONFIRM",
+      "skill_id": "test-design/api-testing",
+      "description": "高风险操作 'test-design/api-testing' 在 run 'sop-equipment-1782098676' 中未确认即执行",
+      "finding": "Skill 涉及高风险操作但无前置确认记录",
+      "suggestion": "高风险 Skill 必须在执行前经过 HITL 确认节点",
+      "evidence": {
+        "run_id": "sop-equipment-1782098676",
+        "skill_id": "test-design/api-testing",
+        "timestamp": "2026-06-22T11:28:19.252404"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.10...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782093774",
+        "skill_id": "",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.10"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "test-design/test-data-generation",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.10...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782093774",
+        "skill_id": "test-design/test-data-generation",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.10"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.100...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782094458",
+        "skill_id": "",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.100"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "test-design/pair-seed",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.100...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782094458",
+        "skill_id": "test-design/pair-seed",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.100"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.100...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782095461",
+        "skill_id": "",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.100"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "test-design/pair-seed",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.100...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782095461",
+        "skill_id": "test-design/pair-seed",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.100"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.100...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782096123",
+        "skill_id": "",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.100"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "test-design/pair-seed",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.100...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782096123",
+        "skill_id": "test-design/pair-seed",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.100"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.1...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782097023",
+        "skill_id": "",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.1"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "test-design/pair-seed",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.1...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782097023",
+        "skill_id": "test-design/pair-seed",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.1"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.10...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782097655",
+        "skill_id": "",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.10"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "test-design/pair-seed",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.10...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782097655",
+        "skill_id": "test-design/pair-seed",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.10"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.100...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782098405",
+        "skill_id": "",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.100"
+      }
+    },
+    {
+      "severity": "high",
+      "rule_id": "SENSITIVE_LEAK",
+      "skill_id": "test-design/test-data-generation",
+      "description": "检测到敏感信息泄露: 内网 IP 地址",
+      "finding": "Skill 输出中包含 内网 IP 地址: ...192.168.1.100...",
+      "suggestion": "从输出中移除 内网 IP 地址，使用占位符代替",
+      "evidence": {
+        "run_id": "sop-equipment-1782098405",
+        "skill_id": "test-design/test-data-generation",
+        "pattern": "内网 IP 地址",
+        "match_preview": "192.168.1.100"
+      }
+    }
+  ],
+  "checks": {
+    "high_risk_confirm": {
+      "total": 94,
+      "critical": 0,
+      "high": 94,
+      "ok": false
+    },
+    "sensitive_leak": {
+      "total": 14,
+      "critical": 0,
+      "high": 14,
+      "ok": false
+    },
+    "permission_bypass": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    },
+    "audit_trail": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "ok": true
+    }
+  }
+}

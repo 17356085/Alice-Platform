@@ -15,9 +15,11 @@
         ...
 """
 import logging
-import time
 
 import pytest
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from base.browser_driver import BaseDriver, ensure_logged_in
 from page.dcs_page.MonitorPage import DcsMonitorPage
@@ -50,7 +52,11 @@ def driver_setup(request):
         if route:
             logger.info("导航: %s → %s", name, route)
             driver.execute_script(f"window.location.hash = '{route}';")
-            time.sleep(2)
+            WebDriverWait(driver, 15).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, '.el-table, .el-card, .el-pagination'))
+            )
+            # 等待 Vue 3 响应式渲染完成
+            driver.execute_script("return new Promise(r => setTimeout(r, 500));")
         else:
             logger.warning("未配置 DCS 模块导航: %s", name)
 
@@ -125,19 +131,17 @@ def setup_cleanup_test_point(point_config_page: "PointConfigPage"):
         "description": "自动化测试编辑/删除用"
     }
     # Setup: create test point
-    point_config_page.click_add_button()
-    point_config_page.fill_point_form(point_data)
-    point_config_page.submit()
+    point_config_page.click_add()
+    point_config_page.fill_form(point_data)
+    point_config_page.submit_form()
     logger.info("setup_cleanup_test_point: 已创建测试点 '%s'", point_name)
     yield point_name
     # Teardown: delete the test point
     try:
         point_config_page.search(point_name)
-        import time
-        time.sleep(0.5)
-        if point_config_page.is_row_exists(point_name):
-            point_config_page.select_row(point_name)
-            point_config_page.click_delete_button()
+        point_config_page.wait_vue_stable()
+        if point_config_page.is_point_in_table(point_name):
+            point_config_page.click_delete(point_name)
             point_config_page.confirm_delete()
             logger.info("setup_cleanup_test_point: 已清理测试点 '%s'", point_name)
     except Exception as e:

@@ -97,6 +97,6 @@
 - [ ] 给出了 Web-小程序联动测试点
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **0.1-exp** | experimental | test-design | synced 2026-06-17 21:52
+> **0.1-exp** | experimental | test-design | synced 2026-06-18 10:54
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

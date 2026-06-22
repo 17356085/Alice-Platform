@@ -1,804 +1,888 @@
-# Dev Skill Registry — 完整版
-# Phase 1→2: 从 11 Skill 扩展到 32 Skill
-# P0-1 (2026-06-15): 增加 Prompt Versioning — current_version + versions[] per skill
-
-version: "2.2"
-last_updated: "2026-06-17"
-
+version: '2.2'
+last_updated: '2026-06-17'
 skills:
-  # ── plan (4) ──
   plan/create-project-plan:
     id: plan/create-project-plan
     category: plan
     status: active
     file: governance/skills-dev/plan/create-project-plan.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/plan/create-project-plan.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [architecture/project-scanner]
-    description: "任务分解、里程碑规划、依赖关系图"
-
+    - version: '1.0'
+      file: governance/skills-dev/plan/create-project-plan.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - architecture/project-scanner
+    description: 任务分解、里程碑规划、依赖关系图
+    risk_level: low
+    needs_confirm: false
   plan/progress-tracker:
     id: plan/progress-tracker
     category: plan
     status: active
     file: governance/skills-dev/plan/progress-tracker.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/plan/progress-tracker.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [plan/create-project-plan]
-    description: "对比计划 vs 实际产物，输出进度报告"
-
+    - version: '1.0'
+      file: governance/skills-dev/plan/progress-tracker.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - plan/create-project-plan
+    description: 对比计划 vs 实际产物，输出进度报告
+    risk_level: low
+    needs_confirm: false
   plan/risk-analyzer:
     id: plan/risk-analyzer
     category: plan
     status: active
     file: governance/skills-dev/plan/risk-analyzer.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/plan/risk-analyzer.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [plan/create-project-plan]
-    description: "风险矩阵分析，标注高等级风险缓解措施"
-
+    - version: '1.0'
+      file: governance/skills-dev/plan/risk-analyzer.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - plan/create-project-plan
+    description: 风险矩阵分析，标注高等级风险缓解措施
+    risk_level: low
+    needs_confirm: false
   plan/sprint-planner:
     id: plan/sprint-planner
     category: plan
     status: active
     file: governance/skills-dev/plan/sprint-planner.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/plan/sprint-planner.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [plan/create-project-plan]
-    description: "Sprint 规划，任务优先级排序，工时估算"
-
-  # ── requirements-dev (4) ──
+    - version: '1.0'
+      file: governance/skills-dev/plan/sprint-planner.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - plan/create-project-plan
+    description: Sprint 规划，任务优先级排序，工时估算
+    risk_level: low
+    needs_confirm: false
   requirements-dev/feature-spec:
     id: requirements-dev/feature-spec
     category: requirements-dev
     status: active
     file: governance/skills-dev/requirements-dev/feature-spec.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/requirements-dev/feature-spec.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/requirements-dev/feature-spec.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
     dependencies: []
-    description: "结构化功能规格，优先级分类，MVP 边界"
-
+    description: 结构化功能规格，优先级分类，MVP 边界
+    risk_level: low
+    needs_confirm: false
   requirements-dev/user-story-writer:
     id: requirements-dev/user-story-writer
     category: requirements-dev
     status: active
     file: governance/skills-dev/requirements-dev/user-story-writer.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/requirements-dev/user-story-writer.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [requirements-dev/feature-spec]
-    description: "As a/I want/So that 格式用户故事"
-
+    - version: '1.0'
+      file: governance/skills-dev/requirements-dev/user-story-writer.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - requirements-dev/feature-spec
+    description: As a/I want/So that 格式用户故事
+    risk_level: low
+    needs_confirm: false
   requirements-dev/acceptance-criteria:
     id: requirements-dev/acceptance-criteria
     category: requirements-dev
     status: active
     file: governance/skills-dev/requirements-dev/acceptance-criteria.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/requirements-dev/acceptance-criteria.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [requirements-dev/user-story-writer]
-    description: "Given/When/Then 验收标准，含边界和异常"
-
+    - version: '1.0'
+      file: governance/skills-dev/requirements-dev/acceptance-criteria.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - requirements-dev/user-story-writer
+    description: Given/When/Then 验收标准，含边界和异常
+    risk_level: low
+    needs_confirm: false
   requirements-dev/data-model-spec:
     id: requirements-dev/data-model-spec
     category: requirements-dev
     status: active
     file: governance/skills-dev/requirements-dev/data-model-spec.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/requirements-dev/data-model-spec.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [requirements-dev/feature-spec]
-    description: "ERD 图 + 实体字段定义"
-
-  # ── architecture (4) ──
+    - version: '1.0'
+      file: governance/skills-dev/requirements-dev/data-model-spec.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - requirements-dev/feature-spec
+    description: ERD 图 + 实体字段定义
+    risk_level: low
+    needs_confirm: false
   architecture/project-scanner:
     id: architecture/project-scanner
     category: architecture
     status: active
     file: governance/skills-dev/architecture/project-scanner.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/architecture/project-scanner.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/architecture/project-scanner.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
     dependencies: []
+    risk_level: low
+    needs_confirm: false
   architecture/tech-stack-decider:
     id: architecture/tech-stack-decider
     category: architecture
     status: active
     file: governance/skills-dev/architecture/tech-stack-decider.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/architecture/tech-stack-decider.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [architecture/project-scanner]
+    - version: '1.0'
+      file: governance/skills-dev/architecture/tech-stack-decider.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - architecture/project-scanner
+    risk_level: low
+    needs_confirm: false
   architecture/component-tree-designer:
     id: architecture/component-tree-designer
     category: architecture
     status: active
     file: governance/skills-dev/architecture/component-tree-designer.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/architecture/component-tree-designer.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [architecture/tech-stack-decider]
+    - version: '1.0'
+      file: governance/skills-dev/architecture/component-tree-designer.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - architecture/tech-stack-decider
+    risk_level: low
+    needs_confirm: false
   architecture/api-contract-designer:
     id: architecture/api-contract-designer
     category: architecture
     status: active
     file: governance/skills-dev/architecture/api-contract-designer.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/architecture/api-contract-designer.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [architecture/component-tree-designer]
-
-  # ── component-design (4) ──
+    - version: '1.0'
+      file: governance/skills-dev/architecture/api-contract-designer.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - architecture/component-tree-designer
+    risk_level: low
+    needs_confirm: false
   component-design/component-spec:
     id: component-design/component-spec
     category: component-design
     status: active
     file: governance/skills-dev/component-design/component-spec.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/component-design/component-spec.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [architecture/component-tree-designer]
+    - version: '1.0'
+      file: governance/skills-dev/component-design/component-spec.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - architecture/component-tree-designer
+    risk_level: low
+    needs_confirm: false
   component-design/props-interface:
     id: component-design/props-interface
     category: component-design
     status: active
     file: governance/skills-dev/component-design/props-interface.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/component-design/props-interface.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [component-design/component-spec]
+    - version: '1.0'
+      file: governance/skills-dev/component-design/props-interface.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - component-design/component-spec
+    risk_level: low
+    needs_confirm: false
   component-design/data-flow:
     id: component-design/data-flow
     category: component-design
     status: active
     file: governance/skills-dev/component-design/data-flow.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/component-design/data-flow.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [component-design/props-interface]
+    - version: '1.0'
+      file: governance/skills-dev/component-design/data-flow.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - component-design/props-interface
+    risk_level: low
+    needs_confirm: false
   component-design/layout-mockup:
     id: component-design/layout-mockup
     category: component-design
     status: active
     file: governance/skills-dev/component-design/layout-mockup.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/component-design/layout-mockup.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-    dependencies: [component-design/component-spec]
-
-  # ── frontend (5) ──
+    - version: '1.0'
+      file: governance/skills-dev/component-design/layout-mockup.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    dependencies:
+    - component-design/component-spec
+    risk_level: low
+    needs_confirm: false
   frontend/vue-component-generator:
     id: frontend/vue-component-generator
     category: frontend
     status: active
     file: governance/skills-dev/frontend/vue-component-generator.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/frontend/vue-component-generator.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/frontend/vue-component-generator.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: medium
+    needs_confirm: false
   frontend/page-implementer:
     id: frontend/page-implementer
     category: frontend
     status: active
     file: governance/skills-dev/frontend/page-implementer.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/frontend/page-implementer.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/frontend/page-implementer.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: medium
+    needs_confirm: false
   frontend/vuex-pinia-store:
     id: frontend/vuex-pinia-store
     category: frontend
     status: active
     file: governance/skills-dev/frontend/vuex-pinia-store.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/frontend/vuex-pinia-store.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/frontend/vuex-pinia-store.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: medium
+    needs_confirm: false
   frontend/router-config:
     id: frontend/router-config
     category: frontend
     status: active
     file: governance/skills-dev/frontend/router-config.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/frontend/router-config.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/frontend/router-config.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: medium
+    needs_confirm: false
   frontend/frontend-lint-checker:
     id: frontend/frontend-lint-checker
     category: frontend
     status: active
     file: governance/skills-dev/frontend/frontend-lint-checker.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/frontend/frontend-lint-checker.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-
-  # ── backend (6) ──
+    - version: '1.0'
+      file: governance/skills-dev/frontend/frontend-lint-checker.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: low
+    needs_confirm: false
   backend/fastapi-router-generator:
     id: backend/fastapi-router-generator
     category: backend
     status: active
     file: governance/skills-dev/backend/fastapi-router-generator.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/backend/fastapi-router-generator.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/backend/fastapi-router-generator.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: medium
+    needs_confirm: false
   backend/pydantic-schema-generator:
     id: backend/pydantic-schema-generator
     category: backend
     status: active
     file: governance/skills-dev/backend/pydantic-schema-generator.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/backend/pydantic-schema-generator.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/backend/pydantic-schema-generator.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: medium
+    needs_confirm: false
   backend/sqlalchemy-model-generator:
     id: backend/sqlalchemy-model-generator
     category: backend
     status: active
     file: governance/skills-dev/backend/sqlalchemy-model-generator.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/backend/sqlalchemy-model-generator.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/backend/sqlalchemy-model-generator.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: medium
+    needs_confirm: false
   backend/crud-generator:
     id: backend/crud-generator
     category: backend
     status: active
     file: governance/skills-dev/backend/crud-generator.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/backend/crud-generator.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/backend/crud-generator.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: high
+    needs_confirm: true
   backend/unit-test-generator:
     id: backend/unit-test-generator
     category: backend
     status: active
     file: governance/skills-dev/backend/unit-test-generator.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/backend/unit-test-generator.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/backend/unit-test-generator.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: medium
+    needs_confirm: false
   backend/backend-consistency-checker:
     id: backend/backend-consistency-checker
     category: backend
     status: active
     file: governance/skills-dev/backend/backend-consistency-checker.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/backend/backend-consistency-checker.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-
-  # ── code-review (4) ──
+    - version: '1.0'
+      file: governance/skills-dev/backend/backend-consistency-checker.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: low
+    needs_confirm: false
   code-review/source-code-reviewer:
     id: code-review/source-code-reviewer
     category: code-review
     status: active
     file: governance/skills-dev/code-review/source-code-reviewer.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/code-review/source-code-reviewer.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/code-review/source-code-reviewer.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: low
+    needs_confirm: false
   code-review/performance-analyzer:
     id: code-review/performance-analyzer
     category: code-review
     status: active
     file: governance/skills-dev/code-review/performance-analyzer.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/code-review/performance-analyzer.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/code-review/performance-analyzer.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: low
+    needs_confirm: false
   code-review/security-scanner:
     id: code-review/security-scanner
     category: code-review
     status: active
     file: governance/skills-dev/code-review/security-scanner.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/code-review/security-scanner.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/code-review/security-scanner.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: medium
+    needs_confirm: false
   code-review/consistency-enforcer:
     id: code-review/consistency-enforcer
     category: code-review
     status: active
     file: governance/skills-dev/code-review/consistency-enforcer.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/code-review/consistency-enforcer.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-
-  # ── test-dev (3) ──
+    - version: '1.0'
+      file: governance/skills-dev/code-review/consistency-enforcer.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: low
+    needs_confirm: false
   test-dev/unit-test-generator:
     id: test-dev/unit-test-generator
     category: test-dev
     status: active
     file: governance/skills-dev/test-dev/unit-test-generator.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/test-dev/unit-test-generator.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/test-dev/unit-test-generator.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: medium
+    needs_confirm: false
   test-dev/integration-test-generator:
     id: test-dev/integration-test-generator
     category: test-dev
     status: active
     file: governance/skills-dev/test-dev/integration-test-generator.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/test-dev/integration-test-generator.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/test-dev/integration-test-generator.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: medium
+    needs_confirm: false
   test-dev/coverage-checker:
     id: test-dev/coverage-checker
     category: test-dev
     status: active
     file: governance/skills-dev/test-dev/coverage-checker.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/test-dev/coverage-checker.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-
-  # ── debug (4) ──
+    - version: '1.0'
+      file: governance/skills-dev/test-dev/coverage-checker.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: low
+    needs_confirm: false
   debug/error-locator:
     id: debug/error-locator
     category: debug
     status: active
     file: governance/skills-dev/debug/error-locator.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/debug/error-locator.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/debug/error-locator.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: low
+    needs_confirm: false
   debug/stack-trace-analyzer:
     id: debug/stack-trace-analyzer
     category: debug
     status: active
     file: governance/skills-dev/debug/stack-trace-analyzer.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/debug/stack-trace-analyzer.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/debug/stack-trace-analyzer.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: low
+    needs_confirm: false
   debug/fix-suggester:
     id: debug/fix-suggester
     category: debug
     status: active
     file: governance/skills-dev/debug/fix-suggester.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/debug/fix-suggester.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/debug/fix-suggester.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: low
+    needs_confirm: false
   debug/regression-verifier:
     id: debug/regression-verifier
     category: debug
     status: active
     file: governance/skills-dev/debug/regression-verifier.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/debug/regression-verifier.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-
-  # ── build (4) ──
+    - version: '1.0'
+      file: governance/skills-dev/debug/regression-verifier.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: low
+    needs_confirm: false
   build/type-checker:
     id: build/type-checker
     category: build
     status: active
     file: governance/skills-dev/build/type-checker.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/build/type-checker.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/build/type-checker.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: low
+    needs_confirm: false
   build/lint-executor:
     id: build/lint-executor
     category: build
     status: active
     file: governance/skills-dev/build/lint-executor.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/build/lint-executor.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/build/lint-executor.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: low
+    needs_confirm: false
   build/test-runner:
     id: build/test-runner
     category: build
     status: active
     file: governance/skills-dev/build/test-runner.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/build/test-runner.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/build/test-runner.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: high
+    needs_confirm: true
   build/package-bundler:
     id: build/package-bundler
     category: build
     status: active
     file: governance/skills-dev/build/package-bundler.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/build/package-bundler.md
-        released: "2026-06-14"
-        changelog: "初始版本"
-        status: active
-
-  # ── review (5) — P0 Meta-Governance Review Skills ──
+    - version: '1.0'
+      file: governance/skills-dev/build/package-bundler.md
+      released: '2026-06-14'
+      changelog: 初始版本
+      status: active
+    risk_level: medium
+    needs_confirm: false
   review/architecture-assessment:
     id: review/architecture-assessment
     category: review
     status: active
     file: governance/skills-dev/review/architecture-assessment.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/architecture-assessment.md
-        released: "2026-06-16"
-        changelog: "初始版本: 6维度架构评审 (边界/数据流/耦合/扩展性/一致性/技术债务)"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/review/architecture-assessment.md
+      released: '2026-06-16'
+      changelog: '初始版本: 6维度架构评审 (边界/数据流/耦合/扩展性/一致性/技术债务)'
+      status: active
     dependencies: []
-    description: "评估系统架构质量: 组件边界、数据流、耦合度、扩展性、一致性、技术债务。输出架构评分卡和 ADR。"
-
+    description: '评估系统架构质量: 组件边界、数据流、耦合度、扩展性、一致性、技术债务。输出架构评分卡和 ADR。'
+    risk_level: low
+    needs_confirm: false
   review/token-efficiency:
     id: review/token-efficiency
     category: review
     status: active
     file: governance/skills-dev/review/token-efficiency.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/token-efficiency.md
-        released: "2026-06-16"
-        changelog: "初始版本: Token效率分析 (上下文膨胀/Prompt效率/模型选择/调用合并/消耗热力图)"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/review/token-efficiency.md
+      released: '2026-06-16'
+      changelog: '初始版本: Token效率分析 (上下文膨胀/Prompt效率/模型选择/调用合并/消耗热力图)'
+      status: active
     dependencies: []
-    description: "评估Token使用效率: 上下文膨胀检测、Prompt效率分析、模型选择审计、调用合并机会、成本优化建议。"
-
+    description: '评估Token使用效率: 上下文膨胀检测、Prompt效率分析、模型选择审计、调用合并机会、成本优化建议。'
+    risk_level: low
+    needs_confirm: false
   review/governance-coverage:
     id: review/governance-coverage
     category: review
     status: active
     file: governance/skills-dev/review/governance-coverage.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/governance-coverage.md
-        released: "2026-06-16"
-        changelog: "初始版本: 治理覆盖评估 (模块/Agent/Skill/事件 × 5治理维度)"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/review/governance-coverage.md
+      released: '2026-06-16'
+      changelog: '初始版本: 治理覆盖评估 (模块/Agent/Skill/事件 × 5治理维度)'
+      status: active
     dependencies: []
-    description: "评估治理覆盖完整性: 模块×治理维度矩阵、盲区清单、覆盖补全路线图。"
-
+    description: '评估治理覆盖完整性: 模块×治理维度矩阵、盲区清单、覆盖补全路线图。'
+    risk_level: low
+    needs_confirm: false
   review/prompt-engineering:
     id: review/prompt-engineering
     category: review
     status: active
     file: governance/skills-dev/review/prompt-engineering.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/prompt-engineering.md
-        released: "2026-06-16"
-        changelog: "初始版本: Prompt质量评审 (结构/清晰度/示例/模板/效率/版本/生产就绪)"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/review/prompt-engineering.md
+      released: '2026-06-16'
+      changelog: '初始版本: Prompt质量评审 (结构/清晰度/示例/模板/效率/版本/生产就绪)'
+      status: active
     dependencies: []
-    description: "评审Skill Prompt质量: 结构完整性、指令清晰度、示例质量、版本演进。含before/after改进建议。"
-
+    description: '评审Skill Prompt质量: 结构完整性、指令清晰度、示例质量、版本演进。含before/after改进建议。'
+    risk_level: low
+    needs_confirm: false
   review/production-readiness:
     id: review/production-readiness
     category: review
     status: active
     file: governance/skills-dev/review/production-readiness.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/production-readiness.md
-        released: "2026-06-16"
-        changelog: "初始版本: 生产就绪度评估 (错误处理/可观测性/回滚/SLA/安全/配置/依赖)"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/review/production-readiness.md
+      released: '2026-06-16'
+      changelog: '初始版本: 生产就绪度评估 (错误处理/可观测性/回滚/SLA/安全/配置/依赖)'
+      status: active
     dependencies: []
-    description: "评估生产就绪度: 错误处理、可观测性、回滚能力、SLA合规、安全态势。输出Go/No-Go建议。"
-
-  # ── review (10) — P1 Expansion: remaining review skills (total review: 5 P0 + 10 P1 = 15) ──
+    description: '评估生产就绪度: 错误处理、可观测性、回滚能力、SLA合规、安全态势。输出Go/No-Go建议。'
+    risk_level: low
+    needs_confirm: false
   review/tech-debt-inventory:
     id: review/tech-debt-inventory
     category: review
     status: active
     file: governance/skills-dev/review/tech-debt-inventory.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/tech-debt-inventory.md
-        released: "2026-06-16"
-        changelog: "初始版本: 技术债务盘点 (代码/架构/文档/测试/配置5类债务)"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/review/tech-debt-inventory.md
+      released: '2026-06-16'
+      changelog: '初始版本: 技术债务盘点 (代码/架构/文档/测试/配置5类债务)'
+      status: active
     dependencies: []
-    description: "盘点技术债务: 代码债务、架构债务、文档债务、测试债务、配置债务。含偿还优先级路线图。"
-
+    description: '盘点技术债务: 代码债务、架构债务、文档债务、测试债务、配置债务。含偿还优先级路线图。'
+    risk_level: low
+    needs_confirm: false
   review/component-cohesion:
     id: review/component-cohesion
     category: review
     status: active
     file: governance/skills-dev/review/component-cohesion.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/component-cohesion.md
-        released: "2026-06-16"
-        changelog: "初始版本: 组件内聚性分析 (Agent/Skill/Module内聚评分+拆分合并建议)"
-        status: active
-    dependencies: [review/architecture-assessment]
-    description: "评估组件内聚性: Agent职责边界、Skill归属合理性、模块划分一致性、职责重叠/真空检测。"
-
+    - version: '1.0'
+      file: governance/skills-dev/review/component-cohesion.md
+      released: '2026-06-16'
+      changelog: '初始版本: 组件内聚性分析 (Agent/Skill/Module内聚评分+拆分合并建议)'
+      status: active
+    dependencies:
+    - review/architecture-assessment
+    description: '评估组件内聚性: Agent职责边界、Skill归属合理性、模块划分一致性、职责重叠/真空检测。'
+    risk_level: low
+    needs_confirm: false
   review/quality-regression-analysis:
     id: review/quality-regression-analysis
     category: review
     status: active
     file: governance/skills-dev/review/quality-regression-analysis.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/quality-regression-analysis.md
-        released: "2026-06-16"
-        changelog: "初始版本: 质量趋势分析 (综合State+SOP+Cost审计+KPI时序)"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/review/quality-regression-analysis.md
+      released: '2026-06-16'
+      changelog: '初始版本: 质量趋势分析 (综合State+SOP+Cost审计+KPI时序)'
+      status: active
     dependencies: []
-    description: "跨版本质量趋势: 测试基线趋势、审计事件频率、恶化加速检测、质量预测。"
-
+    description: '跨版本质量趋势: 测试基线趋势、审计事件频率、恶化加速检测、质量预测。'
+    risk_level: low
+    needs_confirm: false
   review/sop-effectiveness:
     id: review/sop-effectiveness
     category: review
     status: active
     file: governance/skills-dev/review/sop-effectiveness.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/sop-effectiveness.md
-        released: "2026-06-16"
-        changelog: "初始版本: SOP有效性评估 (门禁有效性/流程瓶颈/循环效率/SOP ROI)"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/review/sop-effectiveness.md
+      released: '2026-06-16'
+      changelog: '初始版本: SOP有效性评估 (门禁有效性/流程瓶颈/循环效率/SOP ROI)'
+      status: active
     dependencies: []
-    description: "评估SOP有效性: 门禁是否形同虚设、流程瓶颈识别、Bug fix循环效率、SOP投入产出比。"
-
+    description: '评估SOP有效性: 门禁是否形同虚设、流程瓶颈识别、Bug fix循环效率、SOP投入产出比。'
+    risk_level: low
+    needs_confirm: false
   review/model-selection:
     id: review/model-selection
     category: review
     status: active
     file: governance/skills-dev/review/model-selection.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/model-selection.md
-        released: "2026-06-16"
-        changelog: "初始版本: 模型选择审计 (降级候选/升级需求/路由策略/成本效益)"
-        status: active
-    dependencies: [review/token-efficiency]
-    description: "评估模型选择: 使用分布、降级候选（含节省估算）、升级需求、动态路由策略建议。"
-
+    - version: '1.0'
+      file: governance/skills-dev/review/model-selection.md
+      released: '2026-06-16'
+      changelog: '初始版本: 模型选择审计 (降级候选/升级需求/路由策略/成本效益)'
+      status: active
+    dependencies:
+    - review/token-efficiency
+    description: '评估模型选择: 使用分布、降级候选（含节省估算）、升级需求、动态路由策略建议。'
+    risk_level: low
+    needs_confirm: false
   review/observability-gap:
     id: review/observability-gap
     category: review
     status: active
     file: governance/skills-dev/review/observability-gap.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/observability-gap.md
-        released: "2026-06-16"
-        changelog: "初始版本: 可观测性差距评估 (日志/指标/追踪/告警4维覆盖矩阵)"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/review/observability-gap.md
+      released: '2026-06-16'
+      changelog: '初始版本: 可观测性差距评估 (日志/指标/追踪/告警4维覆盖矩阵)'
+      status: active
     dependencies: []
-    description: "评估可观测性: 日志覆盖、指标暴露、追踪链路、告警配置。输出盲区清单和补全建议。"
-
+    description: '评估可观测性: 日志覆盖、指标暴露、追踪链路、告警配置。输出盲区清单和补全建议。'
+    risk_level: low
+    needs_confirm: false
   review/security-posture:
     id: review/security-posture
     category: review
     status: active
     file: governance/skills-dev/review/security-posture.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/security-posture.md
-        released: "2026-06-16"
-        changelog: "初始版本: 安全态势评估 (密钥/依赖/权限/输入验证/数据保护)"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/review/security-posture.md
+      released: '2026-06-16'
+      changelog: '初始版本: 安全态势评估 (密钥/依赖/权限/输入验证/数据保护)'
+      status: active
     dependencies: []
-    description: "评估安全态势: 密钥管理、依赖漏洞、最小权限、输入验证、数据保护。"
-
+    description: '评估安全态势: 密钥管理、依赖漏洞、最小权限、输入验证、数据保护。'
+    risk_level: low
+    needs_confirm: false
   review/skill-health:
     id: review/skill-health
     category: review
     status: active
     file: governance/skills-dev/review/skill-health.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/skill-health.md
-        released: "2026-06-16"
-        changelog: "初始版本: Skill健康度评估 (活跃度/成功率/效率/版本健康排名)"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/review/skill-health.md
+      released: '2026-06-16'
+      changelog: '初始版本: Skill健康度评估 (活跃度/成功率/效率/版本健康排名)'
+      status: active
     dependencies: []
-    description: "评估Skill健康度: 使用频率、成功率、Token效率、版本状态。输出废弃/合并建议。"
-
+    description: '评估Skill健康度: 使用频率、成功率、Token效率、版本状态。输出废弃/合并建议。'
+    risk_level: low
+    needs_confirm: false
   review/agent-health:
     id: review/agent-health
     category: review
     status: active
     file: governance/skills-dev/review/agent-health.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/agent-health.md
-        released: "2026-06-16"
-        changelog: "初始版本: Agent健康度评估 (成功率/效率/Skill链完整性/边界合规)"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/review/agent-health.md
+      released: '2026-06-16'
+      changelog: '初始版本: Agent健康度评估 (成功率/效率/Skill链完整性/边界合规)'
+      status: active
     dependencies: []
-    description: "评估Agent健康度: 执行成功率、平均耗时、Token趋势、Skill链完整性、使用频率。"
-
+    description: '评估Agent健康度: 执行成功率、平均耗时、Token趋势、Skill链完整性、使用频率。'
+    risk_level: low
+    needs_confirm: false
   review/memory-quality:
     id: review/memory-quality
     category: review
     status: active
     file: governance/skills-dev/review/memory-quality.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/review/memory-quality.md
-        released: "2026-06-16"
-        changelog: "初始版本: Memory质量评估 (过期/矛盾/冗余/链接完整性)"
-        status: active
+    - version: '1.0'
+      file: governance/skills-dev/review/memory-quality.md
+      released: '2026-06-16'
+      changelog: '初始版本: Memory质量评估 (过期/矛盾/冗余/链接完整性)'
+      status: active
     dependencies: []
-    description: "评估Memory质量: 过期检测、矛盾检测、冗余检测、链接完整性、价值评估。"
-
-  # ── automation (1) — PE Expert: active prompt optimization ──
+    description: '评估Memory质量: 过期检测、矛盾检测、冗余检测、链接完整性、价值评估。'
+    risk_level: low
+    needs_confirm: false
   automation/prompt-engineering-expert:
     id: automation/prompt-engineering-expert
     category: automation
     status: active
     file: governance/skills-dev/automation/prompt-engineering-expert.md
-    current_version: "1.0"
+    current_version: '1.0'
     versions:
-      - version: "1.0"
-        file: governance/skills-dev/automation/prompt-engineering-expert.md
-        released: "2026-06-17"
-        changelog: "初始版本: PE技术应用 (dair-ai分类法→决策树→技术选择→prompt改写). 支持17种技术, ≤3种叠加, 输出优化后prompt+报告."
-        status: active
-    dependencies: [review/prompt-engineering]
-    description: "应用Prompt Engineering技术主动优化Skill Prompt: 基于dair-ai技术分类法选择技术组合, 输出优化后prompt和before/after报告。与review/prompt-engineering互补—评审vs应用。"
+    - version: '1.0'
+      file: governance/skills-dev/automation/prompt-engineering-expert.md
+      released: '2026-06-17'
+      changelog: '初始版本: PE技术应用 (dair-ai分类法→决策树→技术选择→prompt改写). 支持17种技术, ≤3种叠加, 输出优化后prompt+报告.'
+      status: active
+    dependencies:
+    - review/prompt-engineering
+    description: '应用Prompt Engineering技术主动优化Skill Prompt: 基于dair-ai技术分类法选择技术组合, 输出优化后prompt和before/after报告。与review/prompt-engineering互补—评审vs应用。'
+    risk_level: high
+    needs_confirm: true

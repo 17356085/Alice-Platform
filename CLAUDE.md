@@ -50,7 +50,7 @@ governance/skills-dev/  ← 开发 Skill 提示 (32 个)
 
 ```bash
 # 测试
-cd ZJSN_Test-master526 && pytest script/<m>/test_*.py -v --alluredir=allure-results
+cd ZJSN_Test-master526 && pytest script/<m>/test_*.py -v --alluredir=../allure-results/json
 
 # 平台
 aitest server start

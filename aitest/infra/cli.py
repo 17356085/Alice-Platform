@@ -736,11 +736,12 @@ def cmd_graph(args):
                         if isinstance(payload, dict):
                             itype = payload.get('type', 'Approval Required')
                             if non_interactive:
-                                # ★ 非交互模式：自动批准
-                                answer = "approve"
+                                # ★ 非交互模式：自动选第一个选项（approve/force_continue 等）
+                                opts = payload.get('options', ['approve'])
+                                answer = opts[0] if opts else "approve"
                                 hitl_log.append({
                                     "type": itype,
-                                    "decision": "auto_approved",
+                                    "decision": f"auto_{answer}",
                                     "reason": "non-interactive mode",
                                     "details": str(payload.get('hint', ''))[:200],
                                 })
@@ -865,6 +866,8 @@ def cmd_graph(args):
         print(f"  Current phase: {state.get('current_phase', '?')}")
         print("-" * 60)
 
+        non_interactive = getattr(args, 'non_interactive', False)
+        hitl_log = []
         try:
             from langgraph.types import Command
 
@@ -874,9 +877,21 @@ def cmd_graph(args):
                     for item in event["__interrupt__"]:
                         payload = getattr(item, 'value', None) or item
                         if isinstance(payload, dict):
-                            print(f"\n  [HITL] {payload.get('type', 'Approval')}")
-                            print(f"  Fix: {payload.get('fix_summary', '')[:200]}")
-                            answer = input("  > approve/reject/skip: ").strip().lower()
+                            itype = payload.get('type', 'Approval')
+                            if non_interactive:
+                                # ★ 非交互模式：自动选第一个选项
+                                opts = payload.get('options', ['approve'])
+                                answer = opts[0] if opts else "approve"
+                                hitl_log.append({
+                                    "type": itype,
+                                    "decision": f"auto_{answer}",
+                                    "reason": "non-interactive mode",
+                                    "details": str(payload.get('hint', ''))[:200],
+                                })
+                            else:
+                                print(f"\n  [HITL] {itype}")
+                                print(f"  Fix: {payload.get('fix_summary', '')[:200]}")
+                                answer = input("  > approve/reject/skip: ").strip().lower()
                             for resume_event in compiled.stream(
                                 Command(resume=answer), thread, stream_mode="updates"
                             ):
@@ -884,17 +899,38 @@ def cmd_graph(args):
                                     if rn == "__interrupt__":
                                         continue
                                     completed = ru.get("completed_phases", []) if isinstance(ru, dict) else []
-                                    if completed:
+                                    if completed and not non_interactive:
                                         print(f"  [{rn}] {completed}")
                     continue
 
                 for node_name, update in event.items():
+                    if non_interactive:
+                        continue
                     if node_name == "exit":
                         print(f"  [exit] Status: {update.get('status', '?') if isinstance(update, dict) else '?'}")
                     else:
                         completed = update.get("completed_phases", []) if isinstance(update, dict) else []
                         if completed:
                             print(f"  [{node_name}] Completed: {completed}")
+
+            # Output final result
+            final = compiled.get_state(thread)
+            if final and final.values:
+                fv = final.values
+                if non_interactive:
+                    import json as _json
+                    result = {
+                        "status": fv.get("status", "?"),
+                        "module": fv.get("module", state.get('module', '?')),
+                        "run_id": run_id,
+                        "completed_phases": fv.get("completed_phases", []),
+                        "failed_phases": fv.get("failed_phases", []),
+                        "pages_processed": fv.get("pages", []),
+                        "fatal_error": fv.get("fatal_error"),
+                        "hitl_decisions": hitl_log,
+                        "engine": "langgraph",
+                    }
+                    print(_json.dumps(result, ensure_ascii=False, indent=2))
         except KeyboardInterrupt:
             print(f"\n  Interrupted. Resume again with:")
             print(f"  aitest graph resume --run-id={run_id}")

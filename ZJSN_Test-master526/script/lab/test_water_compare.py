@@ -1,30 +1,37 @@
-"""水质分析对比 — 测试脚本"""
+"""化验室取样模块 conftest — 水质分析对比
+
+提供 module-scope driver 和 Page Object fixture。
+"""
+
 import pytest
 import allure
+from selenium import webdriver
+from base.browser_driver import BaseDriver
+from page.lab_page.LabComparePage import LabComparePage as WaterComparePage
 
 
-def step(text):
+@pytest.fixture(scope="module")
+def driver_setup():
+    """Module-scope 浏览器驱动，确保统一登录与页面准备"""
+    base_driver = BaseDriver()
+    driver = base_driver.open_browser()
     try:
-        with allure.step(text):
-            print(f"步骤：{text}")
-    except Exception:
-        print(f"步骤：{text}")
+        base_driver.ensure_logged_in(driver)
+        yield driver
+    finally:
+        driver.quit()
 
 
-class TestWaterCompare:
-    @allure.epic("化验室取样")
-    @allure.feature("水质分析对比")
-    def test_wc_01_page_display(self, water_compare_page):
-        """WC-01: 正常显示水质分析对比页面"""
-        page = water_compare_page
-        step("验证页面加载")
-        assert page.is_page_loaded(), "页面应正常加载"
-
-    def test_wc_02_date_search(self, water_compare_page):
-        """WC-02: 日期范围查询"""
-        page = water_compare_page
-        step("设置日期范围并查询")
-        page.set_start_date("2026-01-01")
-        page.set_end_date("2026-06-12")
-        page.click_query()
-        assert page.is_page_loaded(), "查询后页面应正常"
+@pytest.fixture(scope="module")
+def water_compare_page(driver_setup):
+    """水质分析对比 Page Object fixture，自动导航到页面"""
+    driver = driver_setup
+    page = WaterComparePage(driver=driver)
+    page.navigate()
+    yield page
+    # 数据清理：查询操作不产生数据，无清理逻辑
+    # 若后续增加增删改操作，请在此处添加清理逻辑
+    # try:
+    #     page.click_reset()
+    # except Exception as e:
+    #     print(f"[WARNING] 清理失败: {e}")

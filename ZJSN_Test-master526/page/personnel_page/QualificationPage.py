@@ -61,9 +61,10 @@ class QualificationManagePage(BasePage):
 
     # ==================== 页面操作 ====================
     def navigate(self):
-        """导航到资质管理页面"""
-        self.logger.info("导航到：人员管理 > 资质管理")
-        self.sidebar_nav.navigate_to("人员管理", "资质管理")
+        """JS hash 导航到资质管理页面（SPA 内无刷新）"""
+        logger.info("导航到：人员管理 > 资质管理")
+        self.driver.execute_script("window.location.hash = '#/personnel/qualification'")
+        self.wait_vue_stable()
         return self
 
     # ---------- 搜索操作 ----------
@@ -76,7 +77,7 @@ class QualificationManagePage(BasePage):
             q_type: 资质类型（如：学历证书）
             status: 资质状态（如：有效）
         """
-        self.logger.info(f"执行搜索: name='{name}', type='{q_type}', status='{status}'")
+        logger.info(f"执行搜索: name='{name}', type='{q_type}', status='{status}'")
         if name is not None:
             self.input_text(self.SEARCH_NAME_INPUT, name)
         if q_type is not None:
@@ -90,26 +91,26 @@ class QualificationManagePage(BasePage):
 
     def reset_search(self):
         """重置搜索条件"""
-        self.logger.info("重置搜索条件")
+        logger.info("重置搜索条件")
         self.click_element(self.RESET_BUTTON)
         return self
 
     # ---------- 表格操作 ----------
     def get_table_data(self) -> list:
         """获取表格所有行的数据"""
-        self.logger.info("获取表格数据")
+        logger.info("获取表格数据")
         # 等待表格数据加载完成（先等待加载动画消失）
         self.wait_element_hide(self.TABLE_LOADING, timeout=10)
         rows = self.find_elements(self.TABLE_ROWS)
         if not rows:
-            self.logger.warning("表格无数据或未找到表格行")
+            logger.warning("表格无数据或未找到表格行")
             return []
         # 使用 BasePage 提供的通用表格数据提取方法
         return self.get_table_all_rows_data(self.TABLE_QUALIFICATION)
 
     def click_add(self):
         """点击新增按钮"""
-        self.logger.info("点击【新增资质】按钮")
+        logger.info("点击【新增资质】按钮")
         self.click_element(self.ADD_BUTTON)
         return self
 
@@ -119,7 +120,7 @@ class QualificationManagePage(BasePage):
         Args:
             row_index: 行索引（从0开始）
         """
-        self.logger.info(f"点击第 {row_index + 1} 行的【查看详情】")
+        logger.info(f"点击第 {row_index + 1} 行的【查看详情】")
         row = self.find_elements(self.TABLE_ROWS)[row_index]
         view_btn = row.find_element(*self.ACTION_VIEW_BTN)
         view_btn.click()
@@ -131,7 +132,7 @@ class QualificationManagePage(BasePage):
         Args:
             row_index: 行索引（从0开始）
         """
-        self.logger.info(f"点击第 {row_index + 1} 行的【编辑】")
+        logger.info(f"点击第 {row_index + 1} 行的【编辑】")
         row = self.find_elements(self.TABLE_ROWS)[row_index]
         edit_btn = row.find_element(*self.ACTION_EDIT_BTN)
         edit_btn.click()
@@ -143,7 +144,7 @@ class QualificationManagePage(BasePage):
         Args:
             row_index: 行索引（从0开始）
         """
-        self.logger.info(f"点击第 {row_index + 1} 行的【删除】")
+        logger.info(f"点击第 {row_index + 1} 行的【删除】")
         row = self.find_elements(self.TABLE_ROWS)[row_index]
         delete_btn = row.find_element(*self.ACTION_DELETE_BTN)
         delete_btn.click()
@@ -153,7 +154,7 @@ class QualificationManagePage(BasePage):
 
     def open_add_dialog(self):
         """打开新增资质的弹窗（新增操作和fill_form组合）"""
-        self.logger.info("打开新增资质弹窗")
+        logger.info("打开新增资质弹窗")
         self.click_add()
         return self
 
@@ -173,7 +174,7 @@ class QualificationManagePage(BasePage):
                     'remark': '备注信息'
                 }
         """
-        self.logger.info(f"填写弹窗表单: {data}")
+        logger.info(f"填写弹窗表单: {data}")
         for field, value in data.items():
             if value is None:
                 continue
@@ -196,7 +197,7 @@ class QualificationManagePage(BasePage):
 
     def confirm_dialog(self):
         """点击弹窗中的【保存】按钮并等待弹窗关闭"""
-        self.logger.info("确认弹窗（点击保存）")
+        logger.info("确认弹窗（点击保存）")
         self.click_element(self.DIALOG_SAVE_BTN)
         # 等待弹窗关闭
         self.wait_element_hide(self.DIALOG_QUALIFICATION, timeout=10)
@@ -204,7 +205,7 @@ class QualificationManagePage(BasePage):
 
     def cancel_dialog(self):
         """点击弹窗中的【取消】按钮"""
-        self.logger.info("取消弹窗（点击取消）")
+        logger.info("取消弹窗（点击取消）")
         self.click_element(self.DIALOG_CANCEL_BTN)
         return self
 
@@ -215,7 +216,7 @@ class QualificationManagePage(BasePage):
         Returns:
             {'total': int, 'page_size': int, 'current_page': int}
         """
-        self.logger.info("获取分页信息")
+        logger.info("获取分页信息")
         return self.get_pagination_data(self.PAGINATION)
 
     def switch_page(self, page_number: int):
@@ -224,7 +225,7 @@ class QualificationManagePage(BasePage):
         Args:
             page_number: 目标页码（从1开始）
         """
-        self.logger.info(f"切换到第 {page_number} 页")
+        logger.info(f"切换到第 {page_number} 页")
         # 点击对应的页码按钮
         page_btn = (By.XPATH, f"//ul[contains(@class, 'el-pager')]//li[text()='{page_number}']")
         self.click_element(page_btn)

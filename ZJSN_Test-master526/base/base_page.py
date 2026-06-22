@@ -104,6 +104,57 @@ class BasePage:
         nav = SidebarNavigator(self.driver, self.timeout)
         return nav.navigate_to(*menu_path)
 
+    def navigate_to_by_hash(self, href: str, label: str = ""):
+        """直接通过 window.location.hash 导航（绕过侧边栏菜单文本匹配）
+
+        适用场景：菜单文本有歧义（如"关键参数监控"同时存在于设备管理和DCS数据）
+
+        实现：_ensure_on_welcome → set hash → wait page ready
+        与 SidebarNavigator._navigate_by_js_hash 同逻辑
+        """
+        import time
+        from selenium.webdriver.support.ui import WebDriverWait
+
+        logger.info("Hash 导航: %s → %s", label, href)
+
+        # Ensure on app base (not login page)
+        for _ in range(3):
+            h = self.driver.execute_script("return window.location.hash;")
+            if h in ("", "#/", "#/welcome", "#/index"):
+                break
+            self.driver.execute_script("window.location.hash = '#/welcome';")
+            time.sleep(0.5)
+
+        # Set target hash
+        self.driver.execute_script(f"window.location.hash = '{href}';")
+
+        # Wait for hash to take effect (Vue Router)
+        try:
+            WebDriverWait(self.driver, 10).until(
+                lambda d: href in d.execute_script("return window.location.hash;")
+            )
+        except Exception:
+            logger.warning("hash 未在 10s 内生效，当前: %s",
+                           self.driver.execute_script("return window.location.hash;"))
+
+        self._wait_page_content_ready()
+        return True
+
+    def _wait_page_content_ready(self):
+        """等待页面主要内容渲染完成"""
+        import time
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+
+        try:
+            WebDriverWait(self.driver, 15).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, '.el-table, .el-card, .el-pagination, .stat-card'))
+            )
+        except Exception:
+            pass
+        time.sleep(0.5)
+
     # ==================================================================
     #  核心定位方法
     # ==================================================================

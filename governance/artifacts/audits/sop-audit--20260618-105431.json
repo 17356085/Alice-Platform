@@ -1,0 +1,103 @@
+{
+  "module": "",
+  "audit_time": "2026-06-18T10:54:31.418610",
+  "period": "1d",
+  "overall_compliance": 0.75,
+  "total_violations": 3,
+  "error_count": 1,
+  "warning_count": 2,
+  "violations": [
+    {
+      "check_type": "baseline_check",
+      "severity": "error",
+      "violation_type": "no_sop_status",
+      "detail": "模块  没有 SOP_STATUS JSON 文件 — 未纳入 SOP 追踪",
+      "run_id": "",
+      "evidence": {},
+      "suggestion": "运行 SOP batch 或手动生成 SOP_STATUS_{self.module}.json"
+    },
+    {
+      "check_type": "l_check",
+      "severity": "warning",
+      "violation_type": "loop_exhaustion",
+      "detail": "Bug fix 循环耗尽率 100% (1/1)，平均循环 3.0 次，首次修复率 0%",
+      "run_id": "",
+      "evidence": {
+        "total_incidents": 1,
+        "avg_cycles": 3.0,
+        "first_fix_rate": 0.0,
+        "exhausted_count": 1
+      },
+      "suggestion": "建议升级 debug-agent 的修复策略或增加已知问题库覆盖"
+    },
+    {
+      "check_type": "l_check",
+      "severity": "info",
+      "violation_type": "loop_inefficiency",
+      "detail": "Bug fix 平均需要 3.0 次循环",
+      "run_id": "",
+      "evidence": {
+        "avg_cycles": 3.0
+      },
+      "suggestion": "考虑在首次修复失败后增加更详细的错误分析指导"
+    }
+  ],
+  "checks": {
+    "baseline_check": {
+      "total": 1,
+      "errors": 1,
+      "warnings": 0,
+      "infos": 0,
+      "ok": false
+    },
+    "p_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "s_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "g_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "h_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "b_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    },
+    "l_check": {
+      "total": 2,
+      "errors": 0,
+      "warnings": 1,
+      "infos": 1,
+      "ok": false
+    },
+    "x_check": {
+      "total": 0,
+      "errors": 0,
+      "warnings": 0,
+      "infos": 0,
+      "ok": true
+    }
+  }
+}

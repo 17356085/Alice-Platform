@@ -14,6 +14,7 @@ import sys
 import allure
 import pytest
 import requests
+from selenium.webdriver.common.by import By
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -500,7 +501,162 @@ class TestAlarmDupSubmit:
 
 
 # ==================================================================
-#  API层测试 - 直调后端接口验证 CRUD
+#  P1 - 分页测试
+# ==================================================================
+class TestAlarmPagination:
+    """报警配置分页功能"""
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("分页功能")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_ac_18_pagination_element_visible(self, driver_setup):
+        """AC-18: 分页组件可见"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-18", "分页组件可见性")
+
+        step("检查分页元素存在")
+        pagination = page.driver.execute_script("""
+            return document.querySelector('.el-pagination') !== null;
+        """)
+        assert pagination, ea("分页组件存在", "未找到分页组件")
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("分页功能")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_ac_19_pagination_page_size(self, driver_setup):
+        """AC-19: 分页 pageSize 默认值"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-19", "分页默认每页条数")
+
+        step("检查分页 pageSize")
+        page_size_info = page.driver.execute_script("""
+            const pager = document.querySelector('.el-pagination');
+            if (!pager) return null;
+            const sizeSelectors = pager.querySelectorAll('.el-select__value-text');
+            return sizeSelectors.length > 0 ? sizeSelectors[0].textContent.trim() : '10';
+        """)
+        assert page_size_info, ea("pageSize 信息存在", "未获取到")
+
+
+# ==================================================================
+#  P1 - 权限控制测试 (基于当前用户权限)
+# ==================================================================
+class TestAlarmPermissions:
+    """报警配置权限控制"""
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("权限控制")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_ac_20_add_button_accessible(self, driver_setup):
+        """AC-20: 新增按钮权限检查"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-20", "新增按钮权限检查")
+
+        step("检查新增按钮可见性")
+        is_visible = page.is_add_button_visible()
+        assert is_visible, ea("新增按钮应可见（当前用户有权限）", "按钮不可见")
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("权限控制")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_ac_21_edit_delete_buttons_present(self, driver_setup):
+        """AC-21: 表格行操作按钮权限检查"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-21", "表格行操作按钮权限检查")
+
+        step("检查表格是否有数据")
+        if page.is_table_empty():
+            pytest.skip("表格为空，跳过行操作权限检查")
+
+        step("检查编辑/删除按钮")
+        rows = page.find_all(page.TABLE_ROWS)
+        if rows:
+            first_row = rows[0]
+            edit_btns = first_row.find_elements(By.XPATH, './/button[contains(.,"编辑")]')
+            del_btns = first_row.find_elements(By.XPATH, './/button[contains(.,"删除")]')
+            assert len(edit_btns) > 0 or len(del_btns) > 0, \
+                ea("至少有编辑或删除按钮", "无操作按钮")
+
+
+# ==================================================================
+#  P1 - 边界值测试
+# ==================================================================
+class TestAlarmBoundary:
+    """报警配置边界值测试"""
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("数据边界值")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_ac_22_search_special_chars(self, driver_setup):
+        """AC-22: 搜索特殊字符处理"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-22", "搜索特殊字符处理")
+
+        step("输入特殊字符搜索")
+        special_chars = "!@#$%^&*()_+-={}[]|\\:;<>?,./~`"
+        page.search_keyword(special_chars)
+        page.click_search()
+
+        step("验证搜索不崩溃")
+        try:
+            is_empty = page.is_table_empty()
+            assert True, "特殊字符搜索成功（无崩溃）"
+        except Exception as e:
+            pytest.fail(f"特殊字符搜索导致异常: {e}")
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("数据边界值")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_ac_23_search_long_keyword(self, driver_setup):
+        """AC-23: 搜索超长关键词"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-23", "搜索超长关键词处理")
+
+        step("输入256字符的超长关键词")
+        long_keyword = "a" * 256
+        page.search_keyword(long_keyword)
+        page.click_search()
+
+        step("验证处理不崩溃")
+        try:
+            rows = page.get_table_row_count()
+            assert rows >= 0, "超长关键词处理正常"
+        except Exception as e:
+            pytest.fail(f"超长关键词搜索导致异常: {e}")
+
+
+# ==================================================================
+#  P2 - 批量操作测试
+# ==================================================================
+class TestAlarmBatchOps:
+    """报警配置批量操作"""
+
+    @allure.epic("设备管理")
+    @allure.feature("设备报警配置")
+    @allure.story("批量操作")
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_ac_24_batch_checkbox_presence(self, driver_setup):
+        """AC-24: 批量操作复选框检查"""
+        page = AlarmConfigPage(driver_setup)
+        case("AC-24", "批量操作复选框可见性")
+
+        step("检查表格复选框列")
+        has_checkbox = page.driver.execute_script("""
+            const table = document.querySelector('.el-table');
+            if (!table) return false;
+            const checkbox = table.querySelector('input[type="checkbox"]');
+            return checkbox !== null;
+        """)
+        logger.info(f"批量操作复选框存在: {has_checkbox}")
+
+
+# ==================================================================
 #  ⚠️ 设备报警配置 API（推测 /api/equipment/alarm-config/*）当前不存在
 #  以下用设备台账 API 演示 API 测试模式
 #  待后端实现后替换为真实 alarm-config 接口

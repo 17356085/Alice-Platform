@@ -21,6 +21,13 @@ Event Bus — 轻量事件系统（文件持久化 + 订阅者模式）
   - WorkflowCoverageInsufficient(module, page_count, cross_page_scenarios)
   - TestDesignQualityRegressed(module, page, old_score, new_score, delta)
 
+  ── Safety Events (P0: Safety Auditor) ──
+  - SafetyViolation(module, severity, rule_id, violation_count, critical_count, description, suggestion)
+  - SafetyAuditCompleted(module, overall_status, safety_score, violation_count)
+
+  ── Online Monitoring Events (P0: Online Monitor) ──
+  - OnlineMetricAnomaly(module, metric, current_value, threshold, direction, suggestion)
+
   ── Meta-Governance Review Events (P0: Architecture Review Skills) ──
   - ArchitectureRiskDetected(module, risk_type, severity, description, recommendation)
   - GovernanceGapDetected(gap_type, affected_modules, risk_level, recommendation)
@@ -119,6 +126,25 @@ EVENT_ACTIONS = {
         "trigger": "knowledge-manager (审计沉淀)",
         "condition": "overall_status != 'ok'",
         "prompt_template": "审计完成: Type={audit_type}, Module={module}, Status={overall_status}。报告: {report_path}。沉淀审计发现。"
+    },
+
+    # ── Safety Events (P0: Safety Auditor) ──
+    "SafetyViolation": {
+        "trigger": "safety-auditor (安全违规告警)",
+        "condition": "severity == 'critical'",
+        "prompt_template": "检测到安全违规: Module={module}, Severity={severity}, Rule={rule_id}, Count={violation_count}。{description}。建议: {suggestion}。"
+    },
+    "SafetyAuditCompleted": {
+        "trigger": "knowledge-manager (安全审计沉淀)",
+        "condition": "overall_status != 'ok'",
+        "prompt_template": "安全审计完成: Module={module}, Status={overall_status}, Score={safety_score}, Violations={violation_count}。沉淀安全发现。"
+    },
+
+    # ── Online Monitoring Events (P0: Online Monitor) ──
+    "OnlineMetricAnomaly": {
+        "trigger": "online-monitor (指标异常告警)",
+        "condition": "always",
+        "prompt_template": "在线指标异常: Module={module}, Metric={metric}, Current={current_value}, Threshold={threshold}, Direction={direction}。{suggestion}。"
     },
 
     # ── Meta-Governance Review Events (P0: Architecture Review Skills) ──
@@ -412,6 +438,11 @@ class ReviewAgentSubscriber:
         "EvalRegressed":    "architecture",
         "PromptChanged":    "quality",
         "AuditCompleted":   "architecture",
+        # Safety events → review mode
+        "SafetyViolation":       "security",
+        "SafetyAuditCompleted":  "security",
+        # Online monitoring → review mode
+        "OnlineMetricAnomaly":   "architecture",
         # Meta-review events → review mode (P0: close audit loop)
         "ArchitectureRiskDetected":   "architecture",
         "GovernanceGapDetected":      "governance",

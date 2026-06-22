@@ -182,6 +182,6 @@ Glob 扫描 `governance/skills/` 和 `governance/skills/_deprecated/`：
 → 报告包含 6 项检查的 PASS/FAIL 状态 + 具体问题清单 + Token 预算 TOP 10
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | project | synced 2026-06-17 21:52
+> **1.0** | active | project | synced 2026-06-18 10:54
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

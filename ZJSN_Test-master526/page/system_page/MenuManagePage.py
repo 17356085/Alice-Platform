@@ -4,6 +4,7 @@
   2026-06-11: 继承 BasePage，去绝对 XPath，去 time.sleep → BasePage 等待方法
 """
 import logging
+import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -69,10 +70,19 @@ class MenuManagePage(BasePage):
         return self
 
     def _get_form_item(self, label_text):
+        """Find a VISIBLE form item by label text. Falls back to any presence if none visible."""
         xpath = (
             f'//div[contains(@class,"el-form-item")]'
             f'[.//label[contains(@class,"el-form-item__label") and contains(normalize-space(.), "{label_text}")]]'
         )
+        items = self.driver.find_elements(By.XPATH, xpath)
+        for item in items:
+            try:
+                if item.is_displayed():
+                    return item
+            except Exception:
+                continue
+        # Fallback to any (first) matching item
         return self.wait.until(EC.presence_of_element_located((By.XPATH, xpath)))
 
     def input_menu_name(self, name):
@@ -627,45 +637,76 @@ class MenuManagePage(BasePage):
                 last_error = e
                 continue
 
-        # Final fallback: use JS to set the select value and dispatch input
-        step = (last_error is not None) and hasattr(last_error, 'msg')
+        # Final fallback: use JS to set the select value synchronously (no setTimeout)
         try:
-            self.driver.execute_script("""
-                var label = arguments[0];
+            result = self.driver.execute_script("""
+                var typeText = arguments[0];
                 var selects = document.querySelectorAll('.el-select');
                 for (var s of selects) {
                     var item = s.closest('.el-form-item');
                     if (item && item.querySelector('.el-form-item__label') &&
                         item.querySelector('.el-form-item__label').textContent.indexOf('类型') >= 0) {
-                        // Found the type select - trigger dropdown
+                        // Click the trigger to open dropdown
                         var wrapper = s.querySelector('.el-select__wrapper');
-                        if (wrapper) {
-                            wrapper.click();
-                            setTimeout(function() {
-                                var items = document.querySelectorAll('.el-select-dropdown__item');
-                                for (var i of items) {
-                                    if (i.textContent.trim().indexOf(arguments[1]) >= 0) {
-                                        i.click();
-                                        break;
-                                    }
-                                }
-                            }, 300);
-                        }
+                        if (!wrapper) wrapper = s;
+                        wrapper.click();
+                        return 'clicked';
+                    }
+                }
+                return 'not_found';
+            """, type_text)
+            if result == 'not_found':
+                raise TimeoutException(f"未找到类型下拉框")
+            # Wait for dropdown to appear synchronously
+            _time.sleep(0.5)
+            # Click the option synchronously
+            clicked = self.driver.execute_script("""
+                var typeText = arguments[0];
+                var items = document.querySelectorAll('.el-select-dropdown__item:not(.is-disabled)');
+                for (var i = 0; i < items.length; i++) {
+                    if ((items[i].textContent || '').trim().indexOf(typeText) >= 0) {
+                        items[i].click();
+                        return true;
+                    }
+                }
+                // Try li items
+                var lis = document.querySelectorAll('.el-select-dropdown li:not(.is-disabled)');
+                for (var j = 0; j < lis.length; j++) {
+                    if ((lis[j].textContent || '').trim().indexOf(typeText) >= 0) {
+                        lis[j].click();
                         return true;
                     }
                 }
                 return false;
-            """, item, type_text)
+            """, type_text)
+            if not clicked:
+                raise TimeoutException(f"类型下拉选项未找到: {type_text}")
             self._wait_loading_gone(timeout=5)
             self.wait_vue_stable()
-            # Check if dropdown is now visible and option was set
-            current = self.driver.execute_script("""
-                var sel = document.querySelector('.el-form-item__content .el-select__placeholder');
-                return sel ? sel.textContent.trim() : '';
+            # Verify selection was applied
+            current_val = self.driver.execute_script("""
+                var selects = document.querySelectorAll('.el-select');
+                for (var s of selects) {
+                    var item = s.closest('.el-form-item');
+                    if (item && item.querySelector('.el-form-item__label') &&
+                        item.querySelector('.el-form-item__label').textContent.indexOf('类型') >= 0) {
+                        var sel = s.querySelector('.el-select__selected-item');
+                        if (sel) return sel.textContent.trim();
+                        var input = s.querySelector('input');
+                        if (input && input.value) return input.value;
+                        var placeholder = s.querySelector('.el-select__placeholder');
+                        if (!placeholder || !placeholder.offsetParent || placeholder.offsetParent === null) {
+                            // placeholder hidden = value selected, check inner input
+                            var inner = s.querySelector('.el-select__input');
+                            if (inner) return inner.value || inner.getAttribute('value') || '';
+                        }
+                        return placeholder ? placeholder.textContent.trim() : '';
+                    }
+                }
+                return '';
             """)
-            if current == type_text:
-                return
-            raise TimeoutException(f"类型下拉JS fallback未生效: type_text={type_text}")
+            logger.info("select_type('%s') applied, current: '%s'", type_text, current_val)
+            return
         except Exception as e:
             raise TimeoutException(f"类型下拉未找到选项: {type_text} (last={last_error}, fallback={e})")
 

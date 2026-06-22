@@ -1,0 +1,85 @@
+page:
+  name: 环保库存查询
+  module: warehouse
+  route: 库管管理 > 环保危废管理 > 库存查询
+  hash_route: "#/warehouse/hazard/stock"   # 从 conftest.py 推断
+  type: read_only_list
+
+elements:
+  search:
+    - id: FILTER_ITEM_NAME
+      description: 危废品名称搜索框
+      locator: '//input[@placeholder="请输入危废品名称"]'
+      strategy: xpath_placeholder
+      ui_component: el-input
+      stability: A
+      source: PO 代码
+
+    - id: BTN_QUERY
+      description: 查询按钮
+      locator: '//button[contains(.,"查询")]'
+      strategy: xpath_contains_text
+      ui_component: el-button
+      stability: A
+      source: PO 代码
+
+    - id: BTN_RESET
+      description: 重置按钮
+      locator: '//button[contains(.,"重置")]'
+      strategy: xpath_contains_text
+      ui_component: el-button
+      stability: A
+      source: PO 代码
+
+  table:
+    - id: TABLE
+      description: 数据表格容器
+      ui_component: el-table
+      source: 从 BasePage 继承推断
+
+    - id: TABLE_HEADER
+      description: 表头行
+      ui_component: el-table__header-wrapper
+      source: 从 BasePage 继承推断
+
+    - id: TABLE_ROWS
+      description: 所有数据行
+      locator: '.el-table__body-wrapper tbody tr.el-table__row'
+      strategy: css_selector
+      ui_component: el-table__row
+      stability: B
+      source: 从 BasePage 继承
+
+    - id: TOTAL_COUNT
+      description: 分页总条数
+      locator: '.el-pagination__total'
+      strategy: css_selector
+      ui_component: el-pagination__total
+      stability: B
+      source: 从 BasePage 继承
+
+  dialogs: []    # 无弹窗，只读页面
+
+methods:
+  - name: navigate
+    description: 通过侧栏导航到库存查询页面
+    calls: ["navigate_to(库管管理, 环保危废管理, 库存查询)", "_wait_page_ready()"]
+    source: PO 代码
+
+  - name: search_by_item_name
+    description: 按危废品名称搜索
+    parameters:
+      - name: name
+        type: string
+    steps:
+      - input_text(FILTER_ITEM_NAME, name)
+      - click(BTN_QUERY)
+      - wait_vue_stable()
+    source: PO 代码
+
+  - name: reset_search
+    description: 重置搜索条件
+    steps:
+      - click(BTN_RESET)
+      - wait_vue_stable()
+    source: PO 代码

@@ -1,0 +1,97 @@
+page:
+  name: spare-out-order
+  module: warehouse
+  description: 备品出库 (Spare Out Order)
+  approval_chain: 备件出库审批链 (admin+chenqian 会签)
+  po_class: SpareOutOrderPage
+  po_file: page/warehouse_page/SpareOutOrderPage.py
+  test_file: script/warehouse/test_spare_out_order.py
+  route: 库管管理 > 备品备件管理 > 出库
+
+elements:
+  search:
+    - name: 经办人
+      label: 请输入经办人
+      type: el-input
+      locator: '//input[@placeholder="请输入经办人"]'
+      po_constant: FILTER_HANDLER
+      note: 模糊搜索，按经办人姓名或关键字
+
+    - name: 日期
+      label: 选择日期
+      type: el-date-picker
+      locator: '//input[@placeholder="选择日期"]'
+      po_constant: FILTER_DATE
+      note: 日期选择器，测试中未直接使用
+
+  buttons:
+    - name: 查询
+      locator: '//button[contains(.,"查询")]'
+      po_constant: BTN_QUERY
+      scope: toolbar
+      action: 搜索
+
+    - name: 重置
+      locator: '//button[contains(.,"重置")]'
+      po_constant: BTN_RESET
+      scope: toolbar
+      action: 重置搜索条件
+
+    - name: 新增
+      locator: '//button[contains(.,"新增")]'
+      po_constant: BTN_ADD
+      scope: toolbar
+      action: 打开新增弹窗
+
+    - name: 备件查询
+      locator: '//button[contains(.,"备件查询")]'
+      po_constant: BTN_SPARE_QUERY
+      scope: toolbar
+      action: 导航到备件查询页面（非弹窗）
+      note: 点击后导航到不同页面，不是弹窗操作
+
+    - name: 查看
+      locator: '//button[contains(.,"查看")]'
+      po_constant: BTN_VIEW
+      scope: row_action
+      action: 打开查看详情弹窗
+
+    - name: 删除
+      locator: 通过 click_row_button 通用方法按文本定位
+      po_constant: 无独立常量
+      scope: row_action
+      action: 删除记录（需确认）
+      note: 使用 BasePage.click_row_button 方法，无独立 PO 常量
+
+  table:
+    columns:
+      - name: LY 单号
+        type: link
+        note: 可点击的链接按钮，CSS 类 .el-button--primary.is-link，文本以 LY 开头
+        action: click_ly_link(ly_number)
+      - name: 经办人
+        type: text
+        note: 搜索字段之一（从 PO 搜索方法推断）
+      - name: (其他列)
+        type: text
+        note: 共 8-28 列，具体列名未在 PO 中定义（从列数断言推断）
+
+  dialogs:
+    - name: 新增弹窗
+      trigger: click_add()
+      fields:
+        - name: 经办人
+          type: el-input
+          placeholder: 经办人
+          fill_method: fill_out_order_handler(name)
+          required: true
+      actions:
+        - save: click_dialog_save()
+        - cancel: click_dialog_cancel()
+      note: JS fill 机制，无 fallback
+
+    - name: 查看弹窗
+      trigger: click_view_first()
+      actions:
+        - cancel: click_dialog_cancel()
+      note: 只读弹窗，无表单操作

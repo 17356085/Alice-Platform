@@ -4,6 +4,7 @@
   2026-06-11: 继承 BasePage，去绝对XPath，去time.sleep→BasePage等待方法
 """
 import logging
+import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -34,8 +35,12 @@ class NoticeManagePage(BasePage):
     # 工具栏 - 新增按钮
     TOOLBAR_ADD = (
         By.XPATH,
+        '//button[contains(normalize-space(.),"新增")]',
+    )
+    TOOLBAR_ADD_TOOLBAR = (
+        By.XPATH,
         '//div[contains(@class,"el-table__toolbar") or contains(@class,"table-toolbar")]'
-        '//button[.//span[contains(text(),"新增")]]',
+        '//button[contains(normalize-space(.),"新增")]',
     )
 
     # 弹窗

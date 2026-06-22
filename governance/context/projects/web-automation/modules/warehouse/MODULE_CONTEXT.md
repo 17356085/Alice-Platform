@@ -1,106 +1,141 @@
-好的，我将遵循 **module-modeling** Skill 的规则，仅从您提供的代码中提取信息，不编造任何内容，为您生成 `warehouse` 模块下的 `hazard-in-order` 子页面的模块上下文文档。
+# 模块上下文：warehouse（库管管理）
 
----
+## 1. 模块概述
 
-## 模块上下文：warehouse/hazard-in-order
+- **模块名**: `warehouse`（库管管理）
+- **路由前缀**: `#/warehouse/`
+- **权限要求**: 需登录 + 库管管理相关角色权限
+- **子模块**: 3 个 — 备品备件管理、环保危废管理、三剂消耗管理
 
-### 1. 模块概述
+## 2. 页面清单
 
-- **模块名**: `warehouse`
-- **子页面**: `hazard-in-order`（环保危废入库）
-- **推测的路由前缀**: `/wh/` 或 `/warehouse/`（待确认，基于项目通用的路由命名习惯）
-- **推测的权限要求**: 需要登录，并拥有“库管管理 - 环保危废管理”相关权限。完整的审批链为 `chenqian → admin`。
+### 2.1 备品备件管理（spare）
 
-### 2. 子页面清单
+| 页面名称 | slug | Page Object 类 | 路由 hash | PO | 测试 | 治理 | 审批链 |
+|---------|------|---------------|-----------|:--:|:--:|:--:|-------|
+| 库存查询 | spare-stock | `SpareStockPage` | `#/warehouse/spare/stock` | ✅ | ✅ | 🔄 | — |
+| 库存盘点 | spare-stocktake | `SpareStocktakePage` | `#/warehouse/spare/stocktake` | ✅ | ✅ | 🔄 | chenqian → tjw |
+| 盘点调整 | spare-stock-adjust | `SpareStockAdjustPage` | `#/warehouse/spare/stock_adjust` | ✅ | ✅ | 🔄 | — |
+| 出入库记录 | spare-io-record | `SpareIORecordPage` | `#/warehouse/spare/io_record` | ✅ | ✅ | 🔄 | — |
+| 入库 | spare-in-order | `SpareInOrderPage` | `#/warehouse/spare/in_order` | ✅ | ✅ | 🔄 | admin 会签 |
+| 出库 | spare-out-order | `SpareOutOrderPage` | `#/warehouse/spare/out_order` | ✅ | ✅ | 🔄 | admin+chenqian 会签 |
+| 领用申请 | spare-requisition | `SpareRequisitionPage` | `#/warehouse/spare/requisition` | ✅ | ✅ | 🔄 | admin+chenqian → tjw |
+| 物品管理 | spare-item | `SpareItemPage` | `#/warehouse/spare/item` | ✅ | ✅ | ✅ | — |
 
-| 页面名称 | Page Object 类 | 推测路由 | PO状态 | 测试状态 | 备注 |
-|:---|---|:---:|:---:|:---:|:---|
-| 环保危废入库 | `HazardInOrderPage` | 待确认 (`navigate` 方法通过侧边栏导航，无直接URL暴露) | ✅ (完整) | ✅ (有test) | 8列表格，含嵌套弹窗 |
-| 环保危废出库 | `HazardOutOrderPage` (推测) | 待确认 | ⏳ (仅目录占位) | ⏳ (仅目录占位) | 当前模块仅提供了入库页面的资产 |
+### 2.2 环保危废管理（hazard）
+
+| 页面名称 | slug | Page Object 类 | 路由 hash | PO | 测试 | 治理 | 审批链 |
+|---------|------|---------------|-----------|:--:|:--:|:--:|-------|
+| 库存查询 | hazard-stock | `HazardStockPage` | `#/warehouse/hazard/stock` | ✅ | ✅ | 🔄 | — |
+| 危废品管理 | hazard-item | `HazardItemPage` | `#/warehouse/hazard/item` | ✅ | ✅ | ✅ | — |
+| 入库 | hazard-in-order | `HazardInOrderPage` | `#/warehouse/hazard/in_order` | ✅ | ✅ | ✅ | chenqian → admin |
+| 出入库记录 | hazard-io-record | `HazardIORecordPage` | `#/warehouse/hazard/io_record` | ✅ | ✅ | ✅ | — |
+| 出库 | hazard-out-order | `HazardOutOrderPage` | `#/warehouse/hazard/out_order` | ✅ | ✅ | ✅ | chenqian → admin |
+
+### 2.3 三剂消耗管理（reagent）
+
+| 页面名称 | slug | Page Object 类 | 路由 hash | PO | 测试 | 治理 | 审批链 |
+|---------|------|---------------|-----------|:--:|:--:|:--:|-------|
+| 物品管理 | reagent-item | `ReagentItemPage` | `#/warehouse/reagent/item` | ✅ | ✅ | 🔄 | — |
+| 装填管理 | reagent-fill | `ReagentFillPage` | `#/warehouse/reagent/fill` | ✅ | ✅ | 🔄 | — |
 
 **状态说明**:
-- ✅: 同时存在 `Page Object` 文件和对应的 `test_*.py` 文件。
-- 🔄: 存在 `Page Object` 文件，但无对应的测试脚本文件。
-- ⏳: 仅在目录中存在占位文件或从上下文推断存在，但无实际代码资产。
+- ✅: 完整（有代码 + 有治理文档）
+- 🔄: 代码完整，治理文档生成中（本次 SOP 补齐）
+- ⚠️: 仅有治理文档，无 PO 代码和测试（orphan docs）
+- ❌: 缺失
 
-### 3. 页面关系图
-
-基于 `HazardInOrderPage` 的 `navigate()` 方法和代码中的业务逻辑，页面间的关系可以推断如下：
+## 3. 页面关系图
 
 ```mermaid
 graph TD
-    A[环保危废管理 主页面] --> B[库管管理 侧边栏];
-    B --> C[环保危废管理 下拉菜单];
-    C --> D[入库];
-    C --> E[出库];
-    D --> F[HazardInOrderPage];
-    F --> G[弹窗A: 新增入库单];
-    G --> H[弹窗B: 选择危废品];
+    A[库管管理 侧边栏] --> B[备品备件管理]
+    A --> C[环保危废管理]
+    A --> D[三剂消耗管理]
     
-    style F fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
-    style G fill:#fff9c4,stroke:#fbc02d
-    style H fill:#fff9c4,stroke:#fbc02d
+    B --> B1[库存查询 SpareStockPage]
+    B --> B2[库存盘点 SpareStocktakePage]
+    B --> B3[盘点调整 SpareStockAdjustPage]
+    B --> B4[出入库记录 SpareIORecordPage]
+    B --> B5[入库 SpareInOrderPage]
+    B --> B6[出库 SpareOutOrderPage]
+    B --> B7[领用申请 SpareRequisitionPage]
+    B --> B8[物品管理 SpareItemPage]
+    
+    C --> C1[库存查询 HazardStockPage]
+    C --> C2[危废品管理 HazardItemPage]
+    C --> C3[入库 HazardInOrderPage]
+    C --> C4[出库 HazardOutOrderPage]
+    C --> C5[出入库记录 HazardIORecordPage]
+    
+    D --> D1[物品管理 ReagentItemPage]
+    D --> D2[装填管理 ReagentFillPage]
+    
+    B2 -.->|审批链| AP1[chenqian → tjw]
+    B5 -.->|审批链| AP2[admin 会签]
+    B6 -.->|审批链| AP3[admin+chenqian 会签]
+    B7 -.->|审批链| AP4[admin+chenqian → tjw]
+    C3 -.->|审批链| AP5[chenqian → admin]
 ```
 
-### 4. 核心数据实体
+## 4. 公共模式
 
-从 `HazardInOrderPage` 和测试脚本中推断出以下核心数据实体：
+### 4.1 页面复杂度分三层
 
-| 实体名称 | 属性 | 类型 | 来源 |
-|:---|:---|:---|:---|
-| `入库单 (Inbound Order)` | 经办人 (handler) `FILTER_HANDLER / FIELD_HANDLER` | 文本 | PO 定位器 |
-| `入库单 (Inbound Order)` | 日期 (in_time) `FIELD_IN_TIME` | 日期 | PO 定位器 |
-| `危废品 (Waste)` | 危废品列表 | 表格 | PO 注释描述（弹窗B内选择）|
-| `入库单 (Inbound Order)` | 状态 (status) | 状态 | PO 定位器 `FILTER_STATUS` |
-| `入库单 (Inbound Order)` | 操作 (action) | 按钮组 | PO 定位器 `BTN_VIEW`, `BTN_EDIT` |
+| 层级 | 特征 | 页面数 | 页面 |
+|------|------|:-----:|------|
+| Tier 1 — 只读查询 | 搜索+重置，无 CRUD，无审批 | 5 | spare-stock, spare-stocktake, spare-stock-adjust, spare-io-record, hazard-stock |
+| Tier 2 — 标准 CRUD | 搜索+新增+查看+删除，弹窗表单 | 6 | hazard-in-order, hazard-out-order, spare-in-order, spare-out-order, reagent-item, reagent-fill |
+| Tier 3 — CRUD + 工作流 | 全部操作 + 行内操作按钮 + 状态感知 + 审批链 | 2 | spare-requisition, spare-item |
 
-### 5. 模块级风险点
+### 4.2 JS 弹窗填充模式
 
-基于现有代码的实际情况，识别以下风险点：
+5 个 CRUD 页面使用 `_fill_dialog_by_placeholder(placeholder_contains, value)` 通用模式：
+- 查找所有 `.el-dialog` 可见元素
+- 匹配 placeholder 子串定位 input
+- 通过 JS `dispatchEvent(new Event('input'))` + `dispatchEvent(new Event('change'))` 设置值
+- `SpareInOrderPage` 有 fallback（无匹配时填充第一个可见 input）；其他页面仅 warn
 
-1.  **定位器脆弱性**:
-    - 大量使用 **XPath** 进行元素定位（如 `BTN_ADD`, `BTN_SUBMIT`, `FILTER_HANDLER`），尤其是基于文本的XPath (`//button[contains(.,"新增入库")]`)，对UI文案变化非常敏感。
-    - **字段定位器** (`FILTER_HANDLER`, `FIELD_HANDLER`, `FIELD_IN_TIME`) 使用了 `//input[@placeholder="..."]` 形式，虽然比基于文本的 XPath 稍好，但仍不如 ID 或 data-* 属性稳定。
+### 4.3 清理模式
 
-2.  **BasePage 依赖**:
-    - `HazardInOrderPage` 正确继承自 `BasePage`，并使用了 `wait_vue_stable()`, `click()`, `navigate_to()` 等封装的父类方法，这是一个好的模式。
+CRUD 页面统一: `search_by_*(name)` → `click_row_button(name, "删除")` → `confirm_message_box()` → `cleanup_tracker.register_entity()` 作为 fallback
 
-3.  **并发与清理风险**:
-    - 测试脚本 `test_hazard_in_order.py` 中，虽然 `TestHazardInOrderInteraction.test_select_waste_dialog` 有打开弹窗，但未进行完整的新增-提交-清理流程。`CleanupTracker` 虽然被 `import`，但尚未在现有测试中实际使用（如创建并销毁一个入库单）。如果后续加入完整CRUD的测试，需要确保所有创建的数据都在teardown中被清理，遵循“**谁创建，谁清理**”的原则。
+## 5. 模块级风险点
 
-4.  **审批链外部依赖**:
-    - 注释中明确提到审批链为 `危废出库审批链 (chenqian → admin)`。这意味着自动化测试若需要验证完整的“新增 → 提交审核 → 审批通过”流程，将**依赖外部角色**（`admin` 用户的登录和操作）。当前的测试脚本并未覆盖这部分，仅停留在页面加载、搜索和部分弹窗操作，减少了对外部系统的依赖，但也降低了端到端业务的覆盖度。
+1. **自定义 UI 组件**: `SpareRequisitionPage` 使用 `wh-filter-toolbar` 非标准 Element Plus 搜索栏，定位器脆弱
+2. **多层弹窗**: CRUD 页面弹窗可能叠加，需关注 z-index 和 Teleport 渲染
+3. **审批链依赖**: 4 个页面有审批流，完整 E2E 需多角色协作，当前测试仅覆盖到提交
+4. **JS 事件驱动填充**: `_fill_dialog_by_placeholder` 依赖 JS 事件而非 Selenium send_keys，Vue 版本升级可能改变事件行为
+5. **日期筛选未充分测试**: 多个页面有 FILTER_DATE，但测试仅 smoke — 未验证实际过滤效果
 
-5.  **表格交互待增强**:
-    - `HazardInOrderPage` 目前没有封装表格相关的通用操作方法（如获取所有行、点击指定行）。`TABLE_ROWS` 定位器也未在PO中定义。这限制了与表格内部元素交互的能力，测试脚本中是通过直接调用 `driver.find_elements()` 来绕过PO封装的，增加了维护成本。
+## 6. 自动化价值评估
 
-### 6. 自动化价值评估
-
-| 评估维度 | 分值 (1-5) | 说明 |
-|:---|---|:---|
-| **UI稳定性** | 3 | XPath定位器在UI变更时稳定性中等，但核心交互流程（搜索、弹窗）已覆盖。 |
-| **业务覆盖度** | 3 | 已覆盖核心页面的加载、搜索、新增弹窗打开。但仍缺少 **CRUD链路**、**嵌套弹窗选择**、**审批流**、**错误场景** 的测试。 |
-| **维护效率** | 4 | 代码结构和POM模式清晰，有基础方法封装，便于后续扩展。 |
-| **风险发现能力** | 3 | 当前测试可以捕获页面渲染和基础功能的中断性缺陷，但深层次的逻辑和业务联动缺陷较难发现。 |
-
-**总体评价**：该子页面的自动化程度处于“**基础功能覆盖**”阶段。可以高效地作为集成测试中的烟雾测试，验证核心模块是否正常。如需提升自动化价值，需要在**数据构造与清理**、**复杂业务路径**（特别是审批流）上投入更多资源。
-
+| 维度 | 分值 (1-5) | 说明 |
+|------|:----------:|------|
+| UI 稳定性 | 3 | XPath 定位器为主，但 Element Plus 组件规范统一 |
+| 业务覆盖度 | 4 | 15 页面 17 测试文件 90+ 用例，覆盖加载/搜索/CRUD/工作流 |
+| 维护效率 | 4 | POM 模式清晰，BasePage 继承统一 |
+| 风险发现能力 | 3 | 基础功能覆盖好，深层业务逻辑和审批流覆盖不足 |
 
 <!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-stats -->
 <!-- Source: tools/sync_progress.py — regenerated on each SOP run -->
-## 自动统计数据 (更新于 2026-06-17 21:52)
+## 自动统计数据 (更新于 2026-06-22)
 
 | 指标 | 数值 |
 |------|:---:|
-| 测试文件 | 16 (script/warehouse/test_*.py) |
-| Page Object | 14 (page/warehouse_page/*.py) |
-| 治理文档 | 26 .md 文件 |
-| TECH_ANALYSIS | 5 |
-| AUTO_STRATEGY | 5 |
-| RISK_MODEL | 5 |
-| PAGE_CONTEXT | 6 |
-| SOP 状态 | completed |
+| 测试文件 | 17 (script/warehouse/test_*.py) |
+| Page Object | 15 (page/warehouse_page/*.py) |
+| 治理文档 | 90 .md/.yaml 文件 (6 per page × 15 pages) |
+| TECH_ANALYSIS | 15 |
+| AUTO_STRATEGY | 15 |
+| RISK_MODEL | 15 |
+| PAGE_CONTEXT | 15 |
+| PAGE_INTERFACE | 15 |
+| TEST_CASES | 15 |
+| consistency-check | 14 |
+| SOP 状态 | all-gaps-closed |
 | Phase 完成 | Automation, Bug Analysis, Data Sanitization, Execute & Debug, Knowledge, Project Init, Report, Requirement, Test Design |
+| 治理完整页面 | 15/15 (全量覆盖) |
 
 > 此段由 sync_progress.py 自动更新。手动编辑会被覆盖。
 <!-- ⚠️ AUTO-GENERATED SECTION END: module-stats -->

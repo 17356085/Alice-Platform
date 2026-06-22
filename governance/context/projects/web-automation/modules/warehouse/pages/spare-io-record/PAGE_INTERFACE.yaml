@@ -1,0 +1,79 @@
+# 备品出入库记录 — 页面接口定义
+# 来源: SpareIORecordPage PO 代码 + 测试脚本
+# 页面类型: 只读审计日志页面
+
+page:
+  name: 备品出入库记录
+  module: warehouse
+  sub_module: 备品备件管理
+  type: read_only_audit_log
+  hash_route: "#/warehouse/spare/io_record"
+  class_name: SpareIORecordPage
+  test_file: test_spare_io_record.py
+  has_crud: false
+  has_approval: false
+  has_dialogs: false
+
+search_fields:
+  - name: FILTER_ITEM_NAME
+    label: 物品名称
+    component: el-input
+    placeholder: "请输入物品名称"
+    locator:
+      by: XPATH
+      value: '//input[@placeholder="请输入物品名称"]'
+    data_type: string
+    required: false
+
+buttons:
+  - name: BTN_QUERY
+    label: 查询
+    action: filter
+    locator:
+      by: XPATH
+      value: '//button[contains(.,"查询")]'
+
+  - name: BTN_RESET
+    label: 重置
+    action: reset
+    locator:
+      by: XPATH
+      value: '//button[contains(.,"重置")]'
+
+table:
+  component: el-table
+  row_locator:
+    by: CSS_SELECTOR
+    value: ".el-table__body-wrapper tbody tr.el-table__row"
+    source: BasePage.TABLE_ROWS
+  columns:
+    - title: 物品名称
+      data_type: string
+      confidence: inferred
+    - title: 物品编号
+      data_type: string
+      confidence: inferred
+    - title: 出入库类型
+      data_type: enum
+      confidence: inferred
+    - title: 数量
+      data_type: number
+      confidence: inferred
+    - title: 操作人
+      data_type: string
+      confidence: inferred
+    - title: 操作时间
+      data_type: datetime
+      confidence: inferred
+    - title: 备注
+      data_type: string
+      confidence: inferred
+
+pagination:
+  component: el-pagination
+  total_locator:
+    by: CSS_SELECTOR
+    value: ".el-pagination__total"
+    source: BasePage.TOTAL_COUNT
+
+dialogs: []

@@ -6,7 +6,7 @@
 <!-- ⚠️ AUTO-GENERATED SECTION BEGIN: progress-table -->
 <!-- Source: governance/artifacts/sop-status/SOP_STATUS_*.json + script/ test file counts -->
 <!-- Regenerate: python tools/sync_progress.py -->
-> 最后更新：2026-06-17 21:52 (auto-sync)
+> 最后更新：2026-06-18 12:37 (auto-sync)
 
 ---
 
@@ -23,7 +23,7 @@
 | sales | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ | 89% |
 | **lab** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **100%** |
 | production | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ | 89% |
-| dcs | ✅ | ⏳ | ⏳ | ⏳ | ✅ | ✅ | ✅ | ✅ | ⏳ | 56% |
+| dcs | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ | 89% |
 | warehouse | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ⚠️ | ✅ | ⏳ | 89% |
 | workflow | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | ✅ | ⏳ | 89% |
 
@@ -38,13 +38,13 @@
 | 模块 | 测试文件 | Page Object | 治理文档 | 备注 |
 |------|:-------:|:----------:|:------:|------|
 | system (user+role+mgmt) | 23 | 16 | 47 | 16+6+1 test files; system-management 已重置 |
-| equipment | 8 | 7 | 30 | TECH=4; AUTO=4; RISK=4; unit/device/sensor/alarm/maint/camera/keyparam + unit-manage |
+| equipment | 9 | 7 | 30 | TECH=4; AUTO=4; RISK=4; unit/device/sensor/alarm/maint/camera/keyparam + unit-manage |
 | tank | 6 | 4 | 21 | TECH=3; AUTO=3; RISK=3; monitor/report/alarm-config |
-| personnel | 18 | 17 | 99 | TECH=16; AUTO=12; RISK=11; 16 页面全覆盖 |
+| personnel | 19 | 17 | 105 | TECH=16; AUTO=12; RISK=16; 16 页面全覆盖 |
 | sales | 20 | 4 | 29 | TECH=4; AUTO=4; RISK=4; customer/contract/order/daily-report |
 | lab | 9 | 9 | 40 | TECH=5; AUTO=5; RISK=5; gas/water 全覆盖 |
 | production | 5 | 4 | 27 | TECH=4; AUTO=4; RISK=4; daily/monthly/business/shift |
-| dcs | 5 | 5 | 11 | TECH=5; AUTO=5; all-data/common-data/monitor/point-config/upload-log; 无 SOP_STATUS |
+| dcs | 5 | 5 | 31 | TECH=6; AUTO=6; RISK=6; all-data/common-data/monitor/point-config/upload-log; 无 SOP_STATUS |
 | warehouse | 16 | 14 | 26 | TECH=5; AUTO=5; RISK=5; hazard/spare/reagent 系列 |
 | workflow | 6 | 5 | 21 | TECH=2; AUTO=2; RISK=3; approval-chain/history/todo/my-application/sap-push-log |
 
@@ -117,4 +117,4 @@
 - 自动：每次 `aitest graph run` 完成时调用 (SOP runner post-hook)
 - 门禁：`check_sop_gate.py --check-progress-sync` 检测过期
 
-<!-- FOOTER: last_sync=2026-06-17T21:52:20+0800 sync_source=auto -->
+<!-- FOOTER: last_sync=2026-06-18T12:37:17+0800 sync_source=auto -->

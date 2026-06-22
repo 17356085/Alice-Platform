@@ -1,0 +1,176 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-13 12:27"
+
+meta:
+  module: "system-management"
+  page_name: "MonitorManagement"
+  page_slug: "monitor-management"
+  page_url: "/system-management/monitor-management"
+  vue_components:
+    - component: el-button
+      count: 1
+      risk_flags: []
+    - component: el-progress
+      count: 1
+      risk_flags: []
+    - component: el-tag
+      count: 1
+      risk_flags: []
+    - component: el-card
+      count: 4
+      risk_flags: []
+    - component: el-chart (custom)
+      count: 2
+      risk_flags: [environment-dependent]
+
+elements:
+  - name: "页面主容器"
+    selector: ".monitor-dashboard"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "仪表盘根元素，用于检测页面主要区域是否渲染"
+    risk_level: high
+    risk_reason: "全量回归时可能完全空白，无法找到该元素"
+
+  - name: "服务状态标签"
+    selector: ".metric-card .status-tag"
+    selector_type: CSS_SELECTOR
+    element_type: tag
+    el_component: el-tag
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "显示服务运行/停止状态"
+    risk_level: medium
+    risk_reason: "页面空白时可能不存在"
+
+  - name: "内存使用进度条"
+    selector: ".metric-card .el-progress"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-progress
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "JVM/系统内存使用进度条"
+    risk_level: medium
+    risk_reason: "可能为0值，但元素应存在"
+
+  - name: "请求统计数值"
+    selector: ".metric-card .request-count"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "QPS/总请求数显示区域"
+    risk_level: medium
+    risk_reason: "数据可能为空，元素可能不渲染"
+
+  - name: "在线用户数值"
+    selector: ".metric-card .online-count"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "当前在线用户数显示"
+    risk_level: medium
+    risk_reason: "同上"
+
+  - name: "请求趋势图表"
+    selector: ".chart-container #request-trend-chart"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "折线图容器，使用ID定位"
+    risk_level: high
+    risk_reason: "依赖后端数据推送，可能不出现"
+
+  - name: "响应时间柱状图"
+    selector: ".chart-container #response-time-chart"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: null
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "柱状图容器"
+    risk_level: high
+    risk_reason: "同上"
+
+  - name: "刷新按钮"
+    selector: "button.el-button:has-text('刷新')"
+    selector_type: CSS_SELECTOR
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "手动刷新监控数据的按钮，使用文本内容定位"
+    risk_level: high
+    risk_reason: "页面空白时刷新按钮可能不存在"
+
+test_scenarios:
+  - id: TC-001
+    title: "页面加载成功 - 基本元素存在检测"
+    priority: P0
+    type: smoke
+    preconditions: ["监控服务正常运行", "页面路由为#/system/monitor"]
+    steps_summary: "导航到监控页，等待页面加载后检查主容器、指标卡片区、图表区是否渲染"
+    expected: "页面主容器可见，至少一个指标卡片或图表元素存在，且刷新按钮可见可点击"
+    relates_to_elements:
+      - "页面主容器"
+      - "刷新按钮"
+
+  - id: TC-002
+    title: "指标数值获取与合理性验证"
+    priority: P1
+    type: positive
+    preconditions: ["页面加载成功"]
+    steps_summary: "获取所有指标卡片中的数值（内存使用百分比、请求数、在线用户数），检查数值是否为0或合理范围"
+    expected: "每个指标数值均存在且为非负整数，内存使用在0-100之间"
+    relates_to_elements:
+      - "内存使用进度条"
+      - "请求统计数值"
+      - "在线用户数值"
+
+  - id: TC-003
+    title: "刷新按钮触发数据更新"
+    priority: P1
+    type: positive
+    preconditions: ["页面加载成功，有初始数据"]
+    steps_summary: "记录当前某个指标数值，点击刷新按钮，等待数据重新加载后再次获取同一指标数值"
+    expected: "刷新后数值可能发生变化，至少页面无报错且指标卡片依然存在"
+    relates_to_elements:
+      - "刷新按钮"
+      - "请求统计数值"
+
+  - id: TC-004
+    title: "图表渲染验证"
+    priority: P2
+    type: positive
+    preconditions: ["页面加载成功，后端返回图表数据"]
+    steps_summary: "检查请求趋势图和响应时间图容器是否在DOM中存在且可见"
+    expected: "两个图表容器均加载，内部包含svg或canvas元素"
+    relates_to_elements:
+      - "请求趋势图表"
+      - "响应时间柱状图"
+
+page_behaviors:
+  - behavior: "页面加载后渲染指标卡片和图表"
+    triggers: ["路由跳转到监控页"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable（等待Vue组件渲染完成）"
+  - behavior: "刷新操作后重新请求后端监控数据"
+    triggers: ["点击刷新按钮"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable 或等待图表数据重新绘制（可能需要自定义等待）"
+  - behavior: "因环境依赖导致页面内容空白"
+    triggers: ["全量回归测试", "监控服务未启动"]
+    wait_required: false
+    wait_suggestion: "页面加载后检查元素是否存在，如不存在则跳过后续测试（pytest.mark.skipif）"

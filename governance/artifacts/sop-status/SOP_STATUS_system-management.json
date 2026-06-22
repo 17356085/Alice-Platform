@@ -1,27 +1,88 @@
 {
   "module": "system-management",
-  "status": "pending",
-  "completed_phases": [],
+  "status": "completed_with_issues",
+  "completed_phases": ["Project Init", "Requirement", "Test Design", "Automation", "Execute & Debug", "Bug Analysis", "Data Sanitization", "Report", "Knowledge"],
   "failed_phases": [],
   "pages_processed": ["menu-management", "api-management", "monitor-management", "approval-todo", "approval-history", "my-application", "approval-chain", "sap-push-log"],
-  "artifact_count": 0,
-  "pages_awaiting_reset": 8,
-  "run_id": "",
-  "updated_at": "2026-06-17",
-  "engine": "langgraph",
-  "reset_at": "2026-06-17T14:18:44.262970",
-  "reset_reason": "Full SOP re-run — business-driven test rewrite",
-  "note": "2026-06-17 重置 — 等待 batch 4。8 页面全部 code_complete_docs_pending：代码已存在但治理文档需重生成。",
-  "pre_reset_state": {
-    "completed_phases": ["Project Init", "Requirement", "Test Design", "Automation", "Execute & Debug", "Bug Analysis", "Data Sanitization", "Report", "Knowledge"],
-    "execution_results": {
-      "date": "2026-06-16",
-      "full_suite": "828 collected | 361P/345F/90S/29E/3X | 760 rerun | 8h12m"
-    }
+  "artifact_count": 24,
+  "reports_generated": 8,
+  "bugs_logged": 4,
+  "pages_awaiting_reset": 0,
+  "run_id": "sop-system-management-1782098393",
+  "updated_at": "2026-06-22",
+  "engine": "langgraph + direct execution",
+  "execution_results": {
+    "date": "2026-06-22",
+    "suite": "65 tests across 8 files",
+    "result": "43P/10F/12S/21 rerun",
+    "pass_rate": "81.1% (excluding skipped)",
+    "duration": "14m06s",
+    "env": "HEADLESS=true, Windows 11, Chrome"
+  },
+  "bug_analysis": {
+    "total_failures": 10,
+    "bug_ids": ["BUG-20260622-15dd95", "BUG-20260622-b8f445", "BUG-20260622-e16df5", "BUG-20260622-d7d5b8"],
+    "categories": [
+      {
+        "category": "Filter/Type mismatch",
+        "pages": ["menu-management"],
+        "tests": ["test_sy_menu_05", "test_sy_menu_11", "test_sy_menu_12"],
+        "severity": "medium",
+        "bug_id": "BUG-20260622-15dd95"
+      },
+      {
+        "category": "Page data not loading",
+        "pages": ["api-management"],
+        "tests": ["test_sy_api_02"],
+        "severity": "medium",
+        "bug_id": "BUG-20260622-b8f445"
+      },
+      {
+        "category": "UI component visibility",
+        "pages": ["approval-chain"],
+        "tests": ["test_sy_apchain_10", "test_sy_apchain_11", "test_sy_apchain_12", "test_sy_apchain_13"],
+        "severity": "high",
+        "bug_id": "BUG-20260622-e16df5"
+      },
+      {
+        "category": "Timeout/Interaction",
+        "pages": ["sap-push-log"],
+        "tests": ["test_sy_saplog_03", "test_sy_saplog_04"],
+        "severity": "low",
+        "bug_id": "BUG-20260622-d7d5b8"
+      }
+    ]
+  },
+  "governance_docs": {
+    "system-management/pages/menu-management": 8,
+    "system-management/pages/api-management": 7,
+    "system-management/pages/monitor-management": 3,
+    "system-management/pages/approval-todo": 3,
+    "system-management/pages/approval-history": 7,
+    "system-management/pages/my-application": 3,
+    "system-management/pages/approval-chain": 7,
+    "system-management/pages/sap-push-log": 3
+  },
+  "knowledge": {
+    "rag_indexed": true,
+    "known_issues": 24,
+    "tech_analysis": 401,
+    "page_context": 581,
+    "page_objects": 103
   },
   "next_steps": [
-    "Run batch 4 SOP for system-management",
-    "Regenerate all 8 pages governance docs from code state",
-    "Re-sync pages with system/ module"
+    "Fix approval-chain step editor (5 tests blocked, P0)",
+    "Fix menu filter-by-type assertion (3 tests, P1)",
+    "Re-run failed tests after fixes"
+  ],
+  "note": "2026-06-22: Full 9-phase SOP cycle complete. 81.1% pass rate. 4 bugs logged. 8 Excel reports. RAG indexed.",
+  "cli_fixes_applied": [
+    "aitest/cli.py — entry point redirect",
+    "cli.py resume — non-interactive HITL for resume",
+    "cli.py HITL answer — opts[0] instead of hardcoded 'approve'"
+  ],
+  "infra_fixes_applied": [
+    "page/system-management_page/ — PO bridge for virtual module (8 files)",
+    "governance/.../system-management/pages/ — 41 governance docs"
   ]
 }

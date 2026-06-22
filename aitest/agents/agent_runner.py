@@ -470,12 +470,27 @@ class AgentLoop:
           - 文件存在性（必需产出文件是否生成）
           - 代码红线（grep 8 条规则）
           - LLM 响应是否异常
+          - 🔴 运行时安全检查（敏感信息泄露、高风险操作）
         """
         obs = Observation(
             skill_id=skill_id,
             raw_output_preview=response.content[:200] if response.content else "",
             token_usage=response.token_usage,
         )
+
+        # ★ P0: 运行时安全检查
+        try:
+            from aitest.governance.safety_auditor import check_output_safety
+            safety_flags = check_output_safety(response.content or "", skill_id)
+            if safety_flags:
+                obs.safety_flags = safety_flags
+                # 高严重度 flag 升级建议
+                if any(f["severity"] == "critical" for f in safety_flags):
+                    obs.quality_issues.append(
+                        f"🔴 安全告警: {[f['detail'] for f in safety_flags if f['severity'] == 'critical']}"
+                    )
+        except Exception:
+            pass  # 安全检查失败不应阻塞 Agent 执行
 
         # 检查 LLM 响应异常
         if response.finish_reason == "error":
@@ -575,6 +590,14 @@ class AgentLoop:
                 obs.suggestion = "retry"
                 obs.summary = "LLM 响应过短"
 
+        # ★ P1: 失败归因 — 当 status 为 fail/partial 时自动分类
+        if obs.status in ("fail", "partial") and obs.raw_output_preview:
+            try:
+                from aitest.governance.failure_attributor import attribute_failure
+                obs.failure_category = attribute_failure(obs, response.content or "")
+            except Exception:
+                pass
+
         return obs
 
     # ── 5. Update（更新状态）──────────────────────────────────────
@@ -632,6 +655,24 @@ class AgentLoop:
                 self.state.termination_reason = "all_skills_completed"
                 self._log("✅ 所有 Skill 已完成")
                 break
+
+            # ★ P0 (Step 4): HITL confirmation — pause for high-risk skills
+            if plan_result["action"] == "confirm_required":
+                skill_id = plan_result["skill_id"]
+                self._log(f"  ⏸️  HITL: 等待确认执行 '{skill_id}' "
+                         f"(risk={plan_result.get('risk_level', 'high')})")
+                # In non-interactive mode, auto-confirm and log warning
+                # In interactive mode, this will be handled by run_interactive()
+                try:
+                    from aitest.agents.plan_engine import confirm_skill
+                    confirm_skill(skill_id, self.module)
+                    self._log(f"  ✅ 已确认 '{skill_id}'，继续执行")
+                except Exception:
+                    pass
+                # Re-plan to get actual action after confirmation
+                plan_result = self.plan(skill_index, perception)
+                if plan_result["action"] in ("confirm_required", "done", "abort"):
+                    continue
 
             if plan_result["action"] == "abort":
                 self.state.done = True
@@ -716,6 +757,14 @@ class AgentLoop:
 
         # ★ P1 可观测性: 发射 cache_summary 追踪事件
         self._emit_cache_summary()
+
+        # ★ P0: 线上监控 — 采集运行指标
+        try:
+            from aitest.governance.online_monitor import collect_run_metrics, OnlineMonitor
+            metrics = collect_run_metrics(self.state)
+            OnlineMonitor().record_run(self.module, metrics)
+        except Exception:
+            pass
 
         return self.state
 

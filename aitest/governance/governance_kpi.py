@@ -30,7 +30,7 @@ KPI_DATA_DIR.mkdir(parents=True, exist_ok=True)
 class KPIDataPoint:
     """单个 KPI 数据点。"""
     timestamp: str
-    audit_type: str       # "state" | "sop" | "cost"
+    audit_type: str       # "state" | "sop" | "cost" | "safety" | "online"
     module: str
     # State KPI
     drift_count: int = 0
@@ -44,6 +44,19 @@ class KPIDataPoint:
     total_cost: float = 0.0
     alert_count: int = 0
     event_count: int = 0
+    # Safety KPI
+    safety_violation_count: int = 0
+    safety_critical_count: int = 0
+    safety_score: int = 100
+    # Step Efficiency KPI
+    step_efficiency: float = 0.0
+    invalid_call_rate: float = 0.0
+    duplicate_call_rate: float = 0.0
+    # Online KPI
+    task_completion_rate: float = 0.0
+    avg_steps_per_run: float = 0.0
+    tool_failure_rate: float = 0.0
+    timeout_rate: float = 0.0
 
 
 @dataclass
@@ -83,6 +96,16 @@ class KPICollector:
             dp.total_cost = report.get("total_cost", 0.0)
             dp.alert_count = report.get("alert_count", 0)
             dp.event_count = report.get("total_events", 0)
+        elif audit_type == "safety":
+            dp.safety_violation_count = report.get("total_violations", 0)
+            dp.safety_critical_count = report.get("critical_count", 0)
+            dp.safety_score = report.get("safety_score", 100)
+            dp.overall_status = report.get("overall_status", "ok")
+        elif audit_type == "online":
+            dp.task_completion_rate = report.get("task_completion_rate", 0.0)
+            dp.avg_steps_per_run = report.get("avg_steps_per_run", 0.0)
+            dp.tool_failure_rate = report.get("tool_failure_rate", 0.0)
+            dp.timeout_rate = report.get("timeout_rate", 0.0)
 
         # 持久化
         date_str = datetime.now().strftime("%Y-%m-%d")
@@ -222,6 +245,10 @@ class KPICollector:
             return ["compliance_score", "violation_count"]
         elif audit_type == "cost":
             return ["total_cost", "alert_count"]
+        elif audit_type == "safety":
+            return ["safety_violation_count", "safety_critical_count", "safety_score"]
+        elif audit_type == "online":
+            return ["task_completion_rate", "avg_steps_per_run", "tool_failure_rate", "timeout_rate"]
         return []
 
     @staticmethod
@@ -234,8 +261,12 @@ class KPICollector:
     def _metric_is_bad(metric: str, direction: str) -> bool:
         """指标上升是否代表退化。"""
         bad_when_up = {"drift_count", "error_count", "warning_count",
-                       "violation_count", "total_cost", "alert_count"}
-        bad_when_down = {"compliance_score"}
+                       "violation_count", "total_cost", "alert_count",
+                       "safety_violation_count", "safety_critical_count",
+                       "tool_failure_rate", "timeout_rate", "invalid_call_rate",
+                       "duplicate_call_rate"}
+        bad_when_down = {"compliance_score", "safety_score",
+                        "task_completion_rate", "step_efficiency"}
         return (metric in bad_when_up and direction == "up") or \
                (metric in bad_when_down and direction == "down")
 

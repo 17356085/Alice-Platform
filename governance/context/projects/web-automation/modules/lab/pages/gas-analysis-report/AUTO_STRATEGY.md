@@ -1,31 +1,96 @@
-# AUTO_STRATEGY — lab / gas-analysis-report
+好的，遵照指示。我将基于提供的测试脚本、Page Object 代码和页面上下文，制定自动化覆盖策略并输出 `AUTO_STRATEGY.md`。
 
-> 自动化策略 | 2026-06-11
+---
 
-## PageObject 拆分
-- **单PO策略** ✅：GasAnalysisReportPage (27方法)，页面功能集中，无需拆分
-- navigate_to_gas_analysis_report() — JS hash路由直达
+## AUTO_STRATEGY.md
 
-## 覆盖矩阵
-| 功能 | 方法 | 测试覆盖 | ROI |
-|------|------|:--:|:--:|
-| 导航 | navigate_to_gas_analysis_report | ✅ GAS-01 | 高 |
-| 取样位置 | click_location_tab / get_active_location | ✅ GAS-06/07 | 高 |
-| 日期筛选 | filter_by_date_range / click_query / click_reset | ✅ GAS-04/05 | 高 |
-| 新增弹窗 | click_add / fill_report_form / save_report | ✅ GAS-08 | 高 |
-| 表格数据 | get_table_headers / get_column_data_by_header | ✅ GAS-01/04 | 高 |
-| 统计行 | get_statistics_data / get_average_value | ✅ GAS-09 | 中 |
-| 导出 | click_export | ✅ GAS-10 | 中 |
+### 1. 自动化覆盖矩阵
 
-## 合规状态
-- 继承BasePage ✅
-- CSS/相对XPATH，无绝对XPATH ✅
-- wait_vue_stable/WebDriverWait，time.sleep 已治理（仅 TIMEOUT_CONFIG["micro_wait"] 轮询间隔） ✅ (2026-06-12 修复)
-- navigate_to() 导航 ✅
-- 无print()，使用logger ✅
-- PageObject无assert ✅
+| 用例编号 | 标题 | 优先级 | 是否自动化 | 理由 |
+|---------|------|--------|-----------|------|
+| GAS-01 | 页面正常显示，表头包含关键业务字段 | P0 (smoke) | ✅ | 基础冒烟，验证页面可访问及核心列存在，定位器稳定 |
+| GAS-02 | 页面加载后表格有数据或显示取样位置 | P0 | ✅ | 确认表格渲染正常，是后续操作的前提 |
+| GAS-03 | 表格有数据或显示空状态 | P1 | ✅ | 验证数据加载状态，成本低，可辅助定位环境问题 |
+| GAS-04 | 按日期范围筛选 | P1 | ✅ | 核心功能，日期选择器定位器稳定（placeholder） |
+| GAS-05 | 重置筛选条件 | P1 | ✅ | 与查询联动，验证重置后数据恢复，依赖查询按钮 |
+| GAS-06 | 新增报告单（闭环数据） | P1 | ✅ | 复杂操作涉及弹窗和表单，需自动化验证闭环 |
+| GAS-07 | 导出报告单 | P1 | ✅ | 导出功能触发下载，自动化可验证按钮存在及点击不报错 |
+| GAS-08 | 切换取样位置标签 | P1 | ✅ | 自定义 Tab 定位风险较高，但仍需覆盖核心交互 |
+| GAS-09 | 表格分页（如存在） | P2 | ❌ | 分页行为可手动验证，自动化维护成本高，且若默认只有一页则无收益 |
+| GAS-10 | 无权限用户隐藏新增/导出按钮 | P2 | ⚠️ | 依赖权限数据准备，定位器稳定但需复杂前置条件，标注风险: 权限数据难模拟 |
 
-## ROI评估
-- 已有10条用例，100%自动化覆盖
-- 核心功能全量覆盖（展示/筛选/切换/新增）
-- 缺失：权限场景、异常场景（P1优先级，非阻塞）
+**风险说明**:
+- **GAS-08 (切换取样位置)**：自定义 Tab 组件的定位器依赖 `contains(@class,"tab")` 或 `contains(@class,"tag")` 类名，可能随前端重构变化，标注为 **高风险**，建议加强前端约束（添加 `data-testid` 属性）。
+- **GAS-06 (新增报告单)**：目前代码中未定义弹窗定位器，需补充 `GasAnalysisReportDialog` 类，预计开发成本较高。
+
+---
+
+### 2. PageObject 拆分方案
+
+| Page 类 | 职责 | 说明 |
+|---------|------|------|
+| `GasAnalysisReportPage` | 搜索区操作、表格数据读取、取样位置切换、工具栏按钮点击、导航 | 现有类，保留所有页面级操作 |
+| `GasAnalysisReportDialog` (新建) | 新增/编辑弹窗内的表单填写、提交、取消 | 代码中未定义，根据测试脚本 `test_gas_06` 需要补充，独立类便于维护 |
+
+**拆分原则**:
+- 弹窗作为独立页面片段，与主页面解耦，避免定位器冲突。
+- `GasAnalysisReportPage` 负责打开弹窗，`GasAnalysisReportDialog` 负责弹窗内交互。
+
+---
+
+### 3. 公共组件复用分析
+
+| 操作 | 可复用的 BasePage 方法 | 需要扩展吗？ |
+|------|------------------------|-------------|
+| 获取表格表头 | `get_table_headers()` | 无需扩展 |
+| 获取表格数据行 | `get_table_data()` | 无需扩展 |
+| 获取分页信息 | `get_pagination_info()` | 无需扩展 |
+| 日期输入 | `set_date_input(start_date, end_date)` 或 `filter_by_date_range()` | 已在 `GasAnalysisReportPage` 中封装，可直接复用 |
+| 点击查询/重置 | 通用 `click_element()` | 无需扩展 |
+| 新增按钮点击 | 通用 `click_element()` | 无需扩展 |
+| 导出按钮点击 | 通用 `click_element()` | 无需扩展，但需处理文件下载（涉及 `BaseDriver` 的下载配置） |
+| **取样位置标签切换** | 无通用方法 | 需在 `GasAnalysisReportPage` 中新增 `switch_location_tab(location_text)`，封装自定义 Tab 等待策略 |
+| **弹窗操作** | `wait_until_element_visible()`、`input_text()` 等基础方法 | 需要新建 `GasAnalysisReportDialog` 类，组合基础方法 |
+
+**是否需扩展 ElementPlusHelper**:
+- `ElementPlusHelper` 主要封装 Element Plus 标准组件（el-select, el-date-picker 等），当前页面主要使用标准组件，无需扩展。
+- 但若未来出现非标准组件（如自定义 Tab），建议在 `ElementPlusHelper` 中增加通用等待方法（如 `wait_for_custom_tab_active`），提高复用性。
+
+---
+
+### 4. 等待策略建议
+
+| 异步行为 | 触发条件 | 等待策略 | 建议封装 |
+|----------|----------|----------|----------|
+| 表格数据加载 | 页面初始加载、查询、重置、切换取样位置 | 等待表格行出现（`get_table_row_count() > 0` 或空状态文本出现） | `_wait_for_table_loaded()` 方法，轮询等待最多 `TIMEOUT` 秒 |
+| 取样位置切换后数据刷新 | 点击取样位置标签 | 显式等待表格行数或第一行数据变化，同时配合 `invisibility_of_element`（若旧数据行移除） | `switch_location_tab(text)` 内集成等待 |
+| 新增报告单弹窗打开 | 点击新增按钮 | 等待弹窗定位器可见（`wait.until(EC.visibility_of_element_located(...))`） | `GasAnalysisReportDialog` 初始化方法中自动等待弹窗出现 |
+| 导出文件下载 | 点击导出按钮 | 不能等待页面元素，需通过 `BaseDriver` 下载监听或文件系统轮询 | 在测试脚本中使用 `wait_for_download()`（假设已在 `BaseDriver` 中实现） |
+
+**页面特有等待重点**:
+- 取样位置切换后，表格数据完全替换，应等待旧数据行消失或新数据行出现，避免断言错误。
+- 新增报告单提交后，需等待弹窗关闭并刷新表格，使用 `wait_for_element_invisibility` + `wait_for_table_loaded`。
+
+---
+
+### 5. ROI 分析
+
+| 项目 | 估算值 | 说明 |
+|------|--------|------|
+| **预估开发时间** | 10 小时 | 包含补充弹窗PageObject（3h）、定位器优化（1h）、等待策略实现（2h）、7个用例自动化脚本编写（3h）、调试与测试（1h） |
+| **预估维护成本** | 2 小时/月 | 页面重构风险中等（自定义Tab），定位器微调预计每月1-2次，每次约1小时 |
+| **手工执行时间** | 15 分钟/次 | 手动执行全部7个P0/P1用例（包括数据准备、检查、记录） |
+| **执行频率** | 每天2次（回归） + 每周1次冒烟 | 每月约60次（工作日） |
+| **ROI 计算** | `(15 × 60) - (10 + 2 × 3)` = 900 - 16 = **884 分钟/月** | 约14.7小时/月净节省，投资回收期 < 1个月 |
+
+**ROI 结论**: 强烈建议自动化，尤其是 P0/P1 用例，月节省工时显著。仅 GAS-09 (分页)、GAS-10 (权限) 可排除。
+
+---
+
+### 附录：风险用例
+
+| 用例编号 | 风险等级 | 风险描述 | 建议缓解措施 |
+|----------|----------|----------|--------------|
+| GAS-08 | 高 | 自定义 Tab 定位器依赖类名模糊匹配 | 推动前端开发添加 `data-testid="location-tab-{名称}"` 属性 |
+| GAS-06 | 中 | 弹窗定位器未定义，新增表单字段未知 | 先基于 UI 实测补充定位器，若字段超过 10 项则考虑单独 PageObject 类 |
+| GAS-07 | 低 | 导出依赖浏览器下载配置，CI 环境可能不支持 | 使用 `BaseDriver` 的下载目录配置，断言文件存在而非实际打开 |

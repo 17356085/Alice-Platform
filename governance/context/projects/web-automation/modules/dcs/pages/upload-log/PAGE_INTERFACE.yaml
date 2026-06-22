@@ -1,0 +1,368 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-22 10:00"
+
+meta:
+  module: "dcs"
+  page_name: "UploadLogPage"
+  page_slug: "upload-log"
+  page_url: "/dcs/upload-log"
+  page_type: "日志列表页（筛选 + 统计卡片 + 详情弹窗）"
+  vue_components:
+    - component: el-input
+      count: 1
+      risk_flags: []
+    - component: el-button
+      count: 4
+      risk_flags: []
+    - component: el-select
+      count: 2
+      risk_flags: []
+    - component: el-date-picker
+      count: 2
+      risk_flags: ["日期范围选择"]
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-statistic
+      count: 4
+      risk_flags: ["统计卡片"]
+    - component: el-dialog
+      count: 1
+      risk_flags: ["日志详情弹窗"]
+
+elements:
+  - name: "开始日期选择器"
+    selector: ".el-date-editor input:first-of-type"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "日期范围的第一输入框"
+    risk_level: medium
+
+  - name: "结束日期选择器"
+    selector: ".el-date-editor input:last-of-type"
+    selector_type: CSS_SELECTOR
+    element_type: datepicker
+    el_component: el-date-picker
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "日期范围的第二输入框"
+    risk_level: medium
+
+  - name: "设备筛选下拉"
+    selector: ".el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_loading_gone
+    locator_notes: "页面上第一个 el-select"
+    risk_level: low
+
+  - name: "状态筛选下拉"
+    selector: ".el-select:nth-of-type(2), .status-filter .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_loading_gone
+    locator_notes: "成功/失败/超时/异常"
+    risk_level: low
+
+  - name: "搜索输入框"
+    selector: 'input[placeholder*="点位名称" i], input[placeholder*="错误" i]'
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "按错误信息/点位ID搜索"
+    risk_level: low
+
+  - name: "搜索按钮"
+    selector: '//button[normalize-space(.//span)="搜索"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "DOM 可能不匹配，需诊断"
+    risk_level: medium
+    risk_reason: "搜索按钮 DOM 不匹配，需页面诊断"
+
+  - name: "重置按钮"
+    selector: '//button[normalize-space(.//span)="重置"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "导出按钮"
+    selector: '//button[normalize-space(.//span)="导出"] | //button[.//span[text()="导出日志"]]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+
+  - name: "清空按钮"
+    selector: '//button[.//span[text()="清空"]] | //button[.//span[text()="清空日志"]]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: "破坏性操作"
+    risk_level: medium
+    risk_reason: "清空日志不可逆"
+
+  - name: "统计总数卡片"
+    selector: ".stat-total .el-statistic__content, .total-count"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: el-statistic
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "上传总次数"
+    risk_level: low
+
+  - name: "统计成功卡片"
+    selector: ".stat-success .el-statistic__content, .success-count"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: el-statistic
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "成功次数"
+    risk_level: low
+
+  - name: "统计失败卡片"
+    selector: ".stat-fail .el-statistic__content, .fail-count"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: el-statistic
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "失败次数"
+    risk_level: low
+
+  - name: "统计异常卡片"
+    selector: ".stat-abnormal .el-statistic__content, .abnormal-count"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: el-statistic
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: "异常次数"
+    risk_level: low
+
+  - name: "数据表格"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_element_visible
+    locator_notes: ""
+    risk_level: low
+
+  - name: "表格行"
+    selector: ".el-table__body-wrapper tbody tr.el-table__row"
+    selector_type: CSS_SELECTOR
+    element_type: row
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "表格空数据提示"
+    selector: ".el-table__empty-text"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "分页器"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "分页总数"
+    selector: ".el-pagination__total"
+    selector_type: CSS_SELECTOR
+    element_type: text
+    el_component: el-pagination
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "详情弹窗体"
+    selector: ".el-dialog__body"
+    selector_type: CSS_SELECTOR
+    element_type: other
+    el_component: el-dialog
+    interaction: wait
+    wait_strategy: wait_dialog_open
+    locator_notes: "日志详情内容区域"
+    risk_level: low
+
+test_scenarios:
+  - id: TC-DCS-LOG-001
+    title: "页面正常加载"
+    priority: P0
+    type: positive
+    preconditions: ["admin登录"]
+    steps_summary: "导航到 DCS 数据监控 → 上传日志"
+    expected: "统计卡片 + 表格 + 筛选区均可见"
+    relates_to_elements:
+      - "统计总数卡片"
+      - "统计成功卡片"
+      - "统计失败卡片"
+      - "统计异常卡片"
+      - "数据表格"
+
+  - id: TC-DCS-LOG-002
+    title: "统计卡片显示"
+    priority: P1
+    type: positive
+    preconditions: ["页面加载"]
+    steps_summary: "读取四个统计卡片数值"
+    expected: "总数≥成功+失败+异常"
+    relates_to_elements:
+      - "统计总数卡片"
+      - "统计成功卡片"
+      - "统计失败卡片"
+      - "统计异常卡片"
+
+  - id: TC-DCS-LOG-003
+    title: "日志搜索"
+    priority: P0
+    type: positive
+    preconditions: ["存在日志数据"]
+    steps_summary: "搜索框输入关键词 → 搜索"
+    expected: "表格仅显示匹配记录"
+    relates_to_elements:
+      - "搜索输入框"
+      - "搜索按钮"
+      - "数据表格"
+
+  - id: TC-DCS-LOG-004
+    title: "按状态筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在多种状态日志"]
+    steps_summary: "选择状态=失败 → 查询"
+    expected: "仅显示失败日志"
+    relates_to_elements:
+      - "状态筛选下拉"
+      - "数据表格"
+
+  - id: TC-DCS-LOG-005
+    title: "按设备筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在多设备日志"]
+    steps_summary: "选择设备 → 查询"
+    expected: "仅显示该设备日志"
+    relates_to_elements:
+      - "设备筛选下拉"
+      - "数据表格"
+
+  - id: TC-DCS-LOG-006
+    title: "日期范围筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在跨日期日志"]
+    steps_summary: "设置开始/结束日期 → 查询"
+    expected: "仅显示日期范围内日志"
+    relates_to_elements:
+      - "开始日期选择器"
+      - "结束日期选择器"
+      - "搜索按钮"
+      - "数据表格"
+
+  - id: TC-DCS-LOG-007
+    title: "查看日志详情"
+    priority: P1
+    type: positive
+    preconditions: ["有日志数据"]
+    steps_summary: "点击行内详情按钮"
+    expected: "弹窗打开，显示日志完整内容"
+    relates_to_elements:
+      - "数据表格"
+      - "详情弹窗体"
+
+  - id: TC-DCS-LOG-008
+    title: "分页导航"
+    priority: P1
+    type: positive
+    preconditions: ["数据超过一页"]
+    steps_summary: "点击下一页 → 上一页"
+    expected: "页码切换正常"
+    relates_to_elements:
+      - "分页器"
+      - "数据表格"
+
+  - id: TC-DCS-LOG-009
+    title: "重试失败上传"
+    priority: P2
+    type: positive
+    preconditions: ["存在失败日志"]
+    steps_summary: "点击失败行的重试按钮"
+    expected: "重试触发"
+    relates_to_elements:
+      - "数据表格"
+
+page_behaviors:
+  - behavior: "页面初始加载"
+    triggers: ["页面导航"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable → _wait_loading_gone"
+
+  - behavior: "搜索刷新表格"
+    triggers: ["点击搜索"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable → _wait_loading_gone"
+
+  - behavior: "日期范围选择"
+    triggers: ["输入开始/结束日期"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable（日期选择器弹出面板需处理）"
+
+  - behavior: "统计卡片联动更新"
+    triggers: ["筛选条件变化"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable"
+
+  - behavior: "详情弹窗"
+    triggers: ["点击详情按钮"]
+    wait_required: true
+    wait_suggestion: "wait_dialog_open"
+
+  - behavior: "清空日志确认"
+    triggers: ["点击清空按钮"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable（等待 message-box 确认）"

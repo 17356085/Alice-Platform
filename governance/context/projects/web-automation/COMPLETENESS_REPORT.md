@@ -340,12 +340,16 @@
 
 
 
+
+
+
+
 <!-- ⚠️ AUTO-GENERATED SECTION BEGIN: completeness-stats -->
-## Auto Stats (2026-06-17 21:52)
+## Auto Stats (2026-06-18 10:54)
 
 | Modules | 100% | Tests | Docs | Overall |
 |:---:|:---:|:---:|:---:|:---:|
-| 12 | 2 | 116 | 351 | 81% |
+| 12 | 2 | 118 | 364 | 83% |
 
 ### Per-Module
 
@@ -354,13 +358,13 @@
 | system-user | completed | 16 | 32 | 3 | 3 | 5 | 89% |
 | system-role | completed | 6 | 15 | 1 | 1 | 2 | 89% |
 | system-management | pending | 1 | 0 | 0 | 0 | 0 | 0% |
-| equipment | completed | 8 | 30 | 4 | 4 | 4 | 89% |
+| equipment | completed | 9 | 30 | 4 | 4 | 4 | 89% |
 | tank | completed | 6 | 21 | 3 | 3 | 3 | **100%** |
-| personnel | completed | 18 | 99 | 16 | 12 | 11 | 89% |
+| personnel | completed | 19 | 102 | 16 | 12 | 13 | 89% |
 | sales | completed | 20 | 29 | 4 | 4 | 4 | 89% |
 | lab | completed | 9 | 40 | 5 | 5 | 5 | **100%** |
 | production | completed | 5 | 27 | 4 | 4 | 4 | 89% |
-| dcs | partial | 5 | 11 | 5 | 5 | 0 | 56% |
+| dcs | partial | 5 | 21 | 6 | 6 | 1 | 89% |
 | warehouse | completed | 16 | 26 | 5 | 5 | 5 | 89% |
 | workflow | completed | 6 | 21 | 2 | 2 | 3 | 89% |
 

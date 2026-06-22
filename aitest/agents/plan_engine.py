@@ -15,11 +15,19 @@ def plan_next_action(skill_index: int, perception: dict, skills: list,
                      max_retries: int, provider: str, logger=None) -> dict:
     """Rule-based + LLM decision for next action. Replaces AgentLoop.plan().
 
-    Returns: {"action": "retry"|"execute"|"skip"|"abort"|"done",
+    Returns: {"action": "retry"|"execute"|"skip"|"abort"|"done"|"confirm_required",
               "skill_id": str, "reason": str}
     """
     last_obs = perception.get("last_obs")
     retries = state.retry_counts.get(last_obs.skill_id, 0) if last_obs else 0
+
+    # ★ P0 (Step 4): HITL confirmation check for high-risk skills
+    # Before executing, check if the skill needs user confirmation
+    next_skill = skills[skill_index] if skill_index < len(skills) else ""
+    if next_skill and not _is_retry_action(last_obs, retries, max_retries):
+        confirm_result = _check_skill_confirmation(next_skill, state, logger)
+        if confirm_result:
+            return confirm_result
 
     # Rule 1: retry on failure (with limits)
     if last_obs and last_obs.status in ("fail", "partial") and retries < max_retries:
@@ -60,6 +68,134 @@ def plan_next_action(skill_index: int, perception: dict, skills: list,
 def _advance(skills: list, idx: int, reason: str) -> dict:
     sid = skills[idx] if idx < len(skills) else ""
     return {"action": "execute", "skill_id": sid, "reason": reason}
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  P0 (Step 4): HITL Confirmation — 高风险 Skill 执行前确认
+# ══════════════════════════════════════════════════════════════════════════
+
+# Skills that have been confirmed in this run (session-level cache)
+_confirmed_skills: set = set()
+
+
+def _is_retry_action(last_obs, retries: int, max_retries: int) -> bool:
+    """Check if next action is a retry (pass-through confirmation)."""
+    if not last_obs:
+        return False
+    return (last_obs.status in ("fail", "partial") and retries < max_retries)
+
+
+def _skill_matches(registry_id: str, skill_id: str) -> bool:
+    """
+    Match registry ID against full skill ID.
+    Handles cases where registry stores 'data-sanitization'
+    but skill_id is 'execution/data-sanitization'.
+    """
+    if not registry_id or not skill_id:
+        return False
+    # Exact match
+    if registry_id == skill_id:
+        return True
+    # Registry ID is suffix (e.g., 'data-sanitization' in 'execution/data-sanitization')
+    if skill_id.endswith("/" + registry_id):
+        return True
+    # Registry ID contains category prefix
+    if skill_id.startswith(registry_id):
+        return True
+    return False
+
+
+def check_skill_risk_level(skill_id: str) -> tuple:
+    """
+    从 registry 查询 skill 的风险级别。
+
+    返回: (risk_level: str, needs_confirm: bool)
+    """
+    if not skill_id:
+        return ("low", False)
+
+    # Try production registry
+    try:
+        import yaml
+        from pathlib import Path
+        registries = [
+            Path(__file__).resolve().parent.parent.parent / "governance" / "skills" / "skill-registry.yaml",
+            Path(__file__).resolve().parent.parent.parent / "governance" / "skills-dev" / "skill-registry-dev.yaml",
+        ]
+        for rp in registries:
+            if not rp.exists():
+                continue
+            with open(rp, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+            skills = data.get("skills", {})
+            if isinstance(skills, list):
+                for s in skills:
+                    sid = s.get("id", "")
+                    if _skill_matches(sid, skill_id):
+                        return (s.get("risk_level", "low"), s.get("needs_confirm", False))
+            elif isinstance(skills, dict):
+                for sid, s in skills.items():
+                    if _skill_matches(sid, skill_id):
+                        return (s.get("risk_level", "low"), s.get("needs_confirm", False))
+    except Exception:
+        pass
+
+    return ("low", False)
+
+
+def _check_skill_confirmation(skill_id: str, state, logger=None) -> dict | None:
+    """
+    检查高风险 skill 是否需要用户确认。
+
+    如果 skill 需要确认但尚未确认，返回 confirm_required action。
+    返回 None 表示不需要确认或已确认，可以继续执行。
+    """
+    risk_level, needs_confirm = check_skill_risk_level(skill_id)
+
+    # 低/中风险不需要确认
+    if risk_level not in ("high", "critical") and not needs_confirm:
+        return None
+
+    # 已确认过的跳过
+    confirm_key = f"{state.module}:{skill_id}"
+    if confirm_key in _confirmed_skills:
+        return None
+
+    # 检查是否在 memory 中有确认记录
+    if state.memory.get("confirmed_skills", {}).get(skill_id):
+        _confirmed_skills.add(confirm_key)
+        return None
+
+    if logger:
+        logger(f"  ⚠️  HITL: Skill '{skill_id}' risk={risk_level}, needs_confirm={needs_confirm}")
+        logger(f"      等待用户确认后继续...")
+
+    return {
+        "action": "confirm_required",
+        "skill_id": skill_id,
+        "reason": f"HITL confirmation required: risk_level={risk_level}, needs_confirm={needs_confirm}",
+        "risk_level": risk_level,
+        "needs_confirm": needs_confirm,
+    }
+
+
+def confirm_skill(skill_id: str, module: str = "") -> None:
+    """
+    用户确认高风险 skill 可以执行。
+
+    在 HITL 交互中调用，使后续该 skill 不再需要确认。
+
+    用法:
+        from aitest.agents.plan_engine import confirm_skill
+        confirm_skill("automation/test-script-generator", "equipment")
+    """
+    key = f"{module}:{skill_id}" if module else skill_id
+    _confirmed_skills.add(key)
+
+
+def reset_confirmations() -> None:
+    """重置所有确认状态（新 run 开始时调用）。"""
+    _confirmed_skills.clear()
 
 
 def _llm_decide(skill_index: int, perception: dict, skills: list,

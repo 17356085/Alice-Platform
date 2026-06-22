@@ -1,0 +1,403 @@
+interface: page-to-automation
+version: "1.0"
+source_agent: test-design-agent
+target_agent: automation-agent
+generated_at: "2026-06-22 10:00"
+
+meta:
+  module: "dcs"
+  page_name: "PointConfigPage"
+  page_slug: "point-config"
+  page_url: "/dcs/point-config"
+  page_type: "列表页（CRUD + 告警规则配置 + 批量导入导出）"
+  vue_components:
+    - component: el-input
+      count: 7
+      risk_flags: []
+    - component: el-button
+      count: 6
+      risk_flags: []
+    - component: el-select
+      count: 5
+      risk_flags: []
+    - component: el-table
+      count: 1
+      risk_flags: []
+    - component: el-pagination
+      count: 1
+      risk_flags: []
+    - component: el-dialog
+      count: 1
+      risk_flags: ["嵌套多字段表单"]
+    - component: el-switch
+      count: 1
+      risk_flags: []
+    - component: el-checkbox
+      count: 1
+      risk_flags: []
+
+elements:
+  - name: "搜索输入框"
+    selector: 'input[placeholder*="点位" i], input[placeholder*="名称" i], input[placeholder*="点位名称" i]'
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: "多级 fallback"
+    risk_level: low
+
+  - name: "搜索按钮"
+    selector: '//button[normalize-space(.//span)="搜索"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_loading_gone
+    locator_notes: "DOM 可能与 common-data 不同，需页面诊断"
+    risk_level: medium
+    risk_reason: "搜索按钮 DOM 结构可能不一致"
+
+  - name: "重置按钮"
+    selector: '//button[normalize-space(.//span)="重置"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "新增按钮"
+    selector: '//button[normalize-space(.//span)="新增"] | //button[normalize-space(.//span)="新增点位"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_dialog_open
+    locator_notes: "实际可能无此按钮（只读查询页）"
+    risk_level: high
+    risk_reason: "页面可能为只读查询页，无'新增'按钮"
+
+  - name: "导入按钮"
+    selector: '//button[normalize-space(.//span)="导入"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+
+  - name: "导出按钮"
+    selector: '//button[normalize-space(.//span)="导出"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+
+  - name: "批量删除按钮"
+    selector: '//button[.//span[text()="批量删除"]]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: medium
+
+  - name: "刷新按钮"
+    selector: '//button[normalize-space(.//span)="刷新"]'
+    selector_type: XPATH
+    element_type: button
+    el_component: el-button
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "类型筛选下拉"
+    selector: ".search-area .el-select, .filter-bar .el-select"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_loading_gone
+    locator_notes: ""
+    risk_level: low
+
+  - name: "数据表格"
+    selector: ".el-table"
+    selector_type: CSS_SELECTOR
+    element_type: table
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_element_visible
+    locator_notes: ""
+    risk_level: low
+
+  - name: "表格行"
+    selector: ".el-table__body-wrapper tbody tr.el-table__row"
+    selector_type: CSS_SELECTOR
+    element_type: row
+    el_component: el-table
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "表格复选框"
+    selector: ".el-checkbox__input"
+    selector_type: CSS_SELECTOR
+    element_type: checkbox
+    el_component: el-checkbox
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "分页器"
+    selector: ".el-pagination"
+    selector_type: CSS_SELECTOR
+    element_type: pagination
+    el_component: el-pagination
+    interaction: wait
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "弹窗名称输入"
+    selector: '.el-dialog input[placeholder*="名称" i]'
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_dialog_open
+    locator_notes: ""
+    risk_level: low
+
+  - name: "弹窗ID输入"
+    selector: '.el-dialog input[placeholder*="ID" i]'
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_dialog_open
+    locator_notes: ""
+    risk_level: low
+
+  - name: "弹窗类型下拉"
+    selector: ".el-dialog .el-select:nth-of-type(1)"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗内第一个 el-select"
+    risk_level: low
+
+  - name: "弹窗设备下拉"
+    selector: ".el-dialog .el-select:nth-of-type(2)"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "弹窗内第二个 el-select"
+    risk_level: low
+
+  - name: "采集周期输入"
+    selector: '.el-dialog input[placeholder*="周期" i], .el-dialog input[placeholder*="ms" i]'
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "单位输入"
+    selector: '.el-dialog input[placeholder*="单位" i]'
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "告警规则下拉"
+    selector: ".el-dialog .el-select:nth-of-type(3)"
+    selector_type: CSS_SELECTOR
+    element_type: select
+    el_component: el-select
+    interaction: select
+    wait_strategy: wait_vue_stable
+    locator_notes: "无/上限/下限/双限"
+    risk_level: low
+
+  - name: "告警上限输入"
+    selector: '.el-dialog input[placeholder*="上限" i]'
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "告警下限输入"
+    selector: '.el-dialog input[placeholder*="下限" i]'
+    selector_type: CSS_SELECTOR
+    element_type: input
+    el_component: el-input
+    interaction: input
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+  - name: "启用开关"
+    selector: ".el-dialog .el-switch"
+    selector_type: CSS_SELECTOR
+    element_type: switch
+    el_component: el-switch
+    interaction: click
+    wait_strategy: wait_vue_stable
+    locator_notes: ""
+    risk_level: low
+
+test_scenarios:
+  - id: TC-DCS-CFG-001
+    title: "页面正常加载"
+    priority: P0
+    type: positive
+    preconditions: ["admin登录"]
+    steps_summary: "导航到 DCS 数据监控 → 点位配置"
+    expected: "搜索区、表格、分页器均可见"
+    relates_to_elements:
+      - "搜索输入框"
+      - "搜索按钮"
+      - "数据表格"
+      - "分页器"
+
+  - id: TC-DCS-CFG-002
+    title: "点位搜索"
+    priority: P0
+    type: positive
+    preconditions: ["存在点位数据"]
+    steps_summary: "搜索框输入关键词 → 搜索"
+    expected: "表格仅显示匹配记录"
+    relates_to_elements:
+      - "搜索输入框"
+      - "搜索按钮"
+      - "数据表格"
+
+  - id: TC-DCS-CFG-003
+    title: "重置搜索"
+    priority: P1
+    type: positive
+    preconditions: ["已执行搜索"]
+    steps_summary: "点击重置"
+    expected: "搜索框清空，表格恢复全量"
+    relates_to_elements:
+      - "重置按钮"
+      - "数据表格"
+
+  - id: TC-DCS-CFG-004
+    title: "分页导航"
+    priority: P1
+    type: positive
+    preconditions: ["数据超过一页"]
+    steps_summary: "点击下一页 → 上一页"
+    expected: "页码切换正常"
+    relates_to_elements:
+      - "分页器"
+      - "数据表格"
+
+  - id: TC-DCS-CFG-005
+    title: "类型筛选"
+    priority: P1
+    type: positive
+    preconditions: ["存在多种类型"]
+    steps_summary: "选择类型 → 查询"
+    expected: "仅显示该类型"
+    relates_to_elements:
+      - "类型筛选下拉"
+      - "数据表格"
+
+  - id: TC-DCS-CFG-006
+    title: "新增点位弹窗"
+    priority: P0
+    type: positive
+    preconditions: []
+    steps_summary: "点击新增 → 填写表单 → 提交"
+    expected: "弹窗打开，表单字段完整，提交成功"
+    relates_to_elements:
+      - "新增按钮"
+      - "弹窗名称输入"
+      - "弹窗类型下拉"
+      - "弹窗设备下拉"
+      - "采集周期输入"
+      - "告警规则下拉"
+
+  - id: TC-DCS-CFG-007
+    title: "告警规则配置"
+    priority: P1
+    type: positive
+    preconditions: ["打开新增/编辑弹窗"]
+    steps_summary: "选择告警规则 → 填写上下限"
+    expected: "告警上下限输入框显示/隐藏，保存成功"
+    relates_to_elements:
+      - "告警规则下拉"
+      - "告警上限输入"
+      - "告警下限输入"
+
+  - id: TC-DCS-CFG-008
+    title: "编辑点位"
+    priority: P0
+    type: positive
+    preconditions: ["存在点位数据"]
+    steps_summary: "点击行内编辑 → 修改 → 提交"
+    expected: "弹窗打开，数据回填，修改成功"
+    relates_to_elements:
+      - "数据表格"
+      - "弹窗名称输入"
+
+  - id: TC-DCS-CFG-009
+    title: "删除点位"
+    priority: P1
+    type: destructive
+    preconditions: ["存在可删除点位"]
+    steps_summary: "点击删除 → 确认"
+    expected: "Toast 提示删除成功，记录消失"
+    relates_to_elements:
+      - "数据表格"
+
+page_behaviors:
+  - behavior: "页面初始加载"
+    triggers: ["页面导航"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable → _wait_loading_gone"
+
+  - behavior: "搜索刷新表格"
+    triggers: ["点击搜索"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable → _wait_loading_gone"
+
+  - behavior: "弹窗打开/关闭"
+    triggers: ["点击新增/编辑", "点击保存/取消"]
+    wait_required: true
+    wait_suggestion: "wait_dialog_open / wait_dialog_close"
+
+  - behavior: "告警规则联动"
+    triggers: ["选择告警规则类型"]
+    wait_required: true
+    wait_suggestion: "wait_vue_stable（上下限输入框显示/隐藏）"
+
+  - behavior: "分页切换"
+    triggers: ["点击下一页/上一页"]
+    wait_required: true
+    wait_suggestion: "_wait_loading_gone"

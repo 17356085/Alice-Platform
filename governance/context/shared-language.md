@@ -169,14 +169,14 @@ Bug ──matched via──▶ RAG (known_issues) ──returns──▶ EP-001~
 | "页面" | 歧义：业务页面 vs HTML 页面 | **Page**（业务页面，如 alarm-config），**网页/HTML**（浏览器端） |
 <!-- ⚠️ AUTO-GENERATED SECTION BEGIN: module-list -->
 <!-- Source: tools/sync_progress.py -->
-## 模块清单 (自动生成 — 更新于 2026-06-17 21:52)
+## 模块清单 (自动生成 — 更新于 2026-06-18 10:54)
 
 - **system-user** (系统-用户): 5 pages, 16 tests, SOP: completed
 - **system-role** (角色管理): 1 pages, 6 tests, SOP: completed
 - **system-management** (系统管理(重置)): 8 pages, 1 tests, SOP: pending
-- **equipment** (设备管理): 4 pages, 8 tests, SOP: completed
+- **equipment** (设备管理): 4 pages, 9 tests, SOP: completed
 - **tank** (储罐管理): 3 pages, 6 tests, SOP: completed
-- **personnel** (人员管理): 16 pages, 18 tests, SOP: completed
+- **personnel** (人员管理): 16 pages, 19 tests, SOP: completed
 - **sales** (销售管理): 4 pages, 20 tests, SOP: completed
 - **lab** (化验室取样): 6 pages, 9 tests, SOP: completed
 - **production** (生产管理): 4 pages, 5 tests, SOP: completed

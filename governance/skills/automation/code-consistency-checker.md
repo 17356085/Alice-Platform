@@ -94,6 +94,6 @@ Read `governance/context/projects/web-automation/element-plus-pitfalls.md` — �
 → 规范来源参见 `PROJECT_CONTEXT.md` § 编码强制规范。
 <!-- ⚠️ AUTO-GENERATED HEADER BEGIN: skill-meta -->
 <!-- Source: skill-registry -->
-> **1.0** | active | automation | synced 2026-06-17 21:52
+> **1.0** | active | automation | synced 2026-06-18 10:54
 
 <!-- ⚠️ AUTO-GENERATED HEADER END: skill-meta -->

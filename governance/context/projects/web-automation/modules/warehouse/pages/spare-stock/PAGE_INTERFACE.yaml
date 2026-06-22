@@ -1,0 +1,17 @@
+page: spare-stock
+route: 库管管理 > 备品备件管理 > 库存查询
+elements:
+  search:
+    - name: 物品名称
+      label: 物品名称
+      type: el-input
+      locator: "//input[@placeholder=\"请输入物品名称\"]"
+  buttons:
+    - name: 查询
+      locator: "//button[contains(.,\"查询\")]"
+    - name: 重置
+      locator: "//button[contains(.,\"重置\")]"
+  table:
+    - column: 物品名称
+      type: text
+  dialogs: []
