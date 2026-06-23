@@ -259,6 +259,19 @@ body {
 .progress-fill.info { background: var(--info); }
 .kanban-card .phase-label { font-size: 10px; color: var(--muted-foreground); margin-top: 4px; }
 
+/* ── Drag & Drop ── */
+.kanban-card.dragging { opacity: 0.4; transform: scale(0.95); }
+.kanban-card[draggable="true"] { cursor: grab; }
+.kanban-card[draggable="true"]:active { cursor: grabbing; }
+.kanban-col.drag-over { background: var(--accent); border: 2px dashed var(--ring); border-radius: var(--radius-lg); }
+.kanban-col.drag-over .kanban-col-header { color: var(--primary); }
+
+/* ── WS indicator ── */
+.ws-indicator { display:inline-flex; align-items:center; gap:4px; font-size:10px; margin-left:8px; }
+.ws-dot { width:6px; height:6px; border-radius:50%; }
+.ws-dot.on { background:var(--success); }
+.ws-dot.off { background:var(--destructive); }
+
 /* ── View panels ── */
 .view { display: none; }
 .view.active { display: block; }
@@ -472,6 +485,99 @@ function toggleTheme() {
   }
 })();
 
+/* ═══════════════ WebSocket ═══════════════ */
+let ws = null;
+let wsConnected = false;
+
+function connectWS() {
+  if (ws && ws.readyState === WebSocket.OPEN) return;
+  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${protocol}//${location.host}/ws/kanban`;
+  try {
+    ws = new WebSocket(wsUrl);
+    ws.onopen = () => {
+      wsConnected = true;
+      updateWSIndicator();
+      console.log('[WS] Kanban connected');
+    };
+    ws.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'card_moved') {
+        // Remote card move → refresh Kanban
+        loadKanban(true);
+      } else if (msg.type === 'connected') {
+        console.log(`[WS] ${msg.connections} client(s) connected`);
+      }
+    };
+    ws.onclose = () => {
+      wsConnected = false;
+      updateWSIndicator();
+      // Auto-reconnect after 3s
+      setTimeout(connectWS, 3000);
+    };
+    ws.onerror = () => { wsConnected = false; updateWSIndicator(); };
+  } catch(e) {
+    wsConnected = false;
+    updateWSIndicator();
+  }
+}
+
+function updateWSIndicator() {
+  const el = document.getElementById('ws-indicator');
+  if (el) {
+    el.innerHTML = wsConnected
+      ? '<span class="ws-dot on"></span> Live'
+      : '<span class="ws-dot off"></span> Off';
+    el.title = wsConnected ? 'WebSocket connected' : 'WebSocket disconnected';
+  }
+}
+
+function sendCardMove(mod, fromStage, toStage) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ action: 'card_move', module: mod, from_stage: fromStage, to_stage: toStage }));
+  }
+  // Also update via REST as fallback
+  fetch(API + '/api/sop-status', { method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ module: mod, stage: toStage }) }).catch(() => {});
+}
+
+/* ═══════════════ Drag & Drop ═══════════════ */
+let dragMod = null, dragFromStage = null;
+
+function handleDragStart(e, mod, stage) {
+  dragMod = mod; dragFromStage = stage;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', mod);
+}
+function handleDragEnd(e) { e.target.classList.remove('dragging'); }
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+function handleDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+
+function handleDrop(e, toStage) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (dragMod && dragFromStage && dragFromStage !== toStage) {
+    // Update local state
+    const info = moduleData[dragMod];
+    if (info) {
+      const stageStatusMap = { pending:'pending', planning:'ready', executing:'in_progress', analyzing:'completed_with_issues', completed:'completed' };
+      info.status = stageStatusMap[toStage] || info.status;
+      info._kanban_stage = toStage;
+    }
+    // Broadcast to server + other clients
+    sendCardMove(dragMod, dragFromStage, toStage);
+    // Re-render
+    loadKanban(true);
+  }
+  dragMod = null; dragFromStage = null;
+}
+
 /* ═══════════════ View Switching ═══════════════ */
 const titles = {
   kanban: ['📋 Kanban 看板', '测试生命周期管理器'],
@@ -496,9 +602,12 @@ function switchView(view) {
 }
 
 /* ═══════════════ Kanban ═══════════════ */
-async function loadKanban() {
+async function loadKanban(silent = false) {
   const board = document.getElementById('kanban-board');
   const ts = document.getElementById('kanban-ts');
+  if (!silent) {
+    board.innerHTML = '<div class="kanban-col" style="grid-column:1/-1;"><div class="loading">加载中...</div></div>';
+  }
   try {
     const res = await fetch(API + '/api/sop-status');
     const data = await res.json();
@@ -506,15 +615,14 @@ async function loadKanban() {
 
     const cols = { pending:[], planning:[], executing:[], analyzing:[], completed:[] };
     for (const [mod, info] of Object.entries(moduleData)) {
-      const s = info.status;
+      const s = info._kanban_stage || info.status;
       if (s === 'completed') cols.completed.push([mod, info]);
-      else if (s === 'completed_with_issues') cols.analyzing.push([mod, info]);
-      else if (s === 'ready') cols.planning.push([mod, info]);
+      else if (s === 'completed_with_issues' || s === 'analyzing') cols.analyzing.push([mod, info]);
+      else if (s === 'ready' || s === 'planning') cols.planning.push([mod, info]);
+      else if (s === 'in_progress' || s === 'executing') cols.executing.push([mod, info]);
       else cols.pending.push([mod, info]);
     }
 
-    // If a module has recent execution data, it might be executing
-    // For now, use status-based mapping
     const colDefs = [
       ['⏳ Pending', 'pending', cols.pending],
       ['📝 Planning', 'planning', cols.planning],
@@ -525,26 +633,34 @@ async function loadKanban() {
 
     board.innerHTML = colDefs.map(([title, key, items]) => {
       const cards = items.length ? items.map(([mod, info]) => `
-        <div class="kanban-card slide-up" onclick="openModuleDetail('${mod}')">
+        <div class="kanban-card slide-up" draggable="true"
+             ondragstart="handleDragStart(event, '${mod}', '${key}')"
+             ondragend="handleDragEnd(event)"
+             onclick="openModuleDetail('${mod}')">
           <div class="mod-name">${mod}</div>
           <div class="mod-meta">
             <span>📄 ${info.pages || 0} pages</span>
             <span>🔧 ${info.phases || 0}/9 phases</span>
           </div>
           <div class="progress-bar">
-            <div class="progress-fill ${info.status === 'completed' ? 'ok' : info.status === 'completed_with_issues' ? 'warn' : 'info'}"
+            <div class="progress-fill ${key === 'completed' ? 'ok' : key === 'analyzing' ? 'warn' : 'info'}"
                  style="width:${(info.phases||0)/9*100}%"></div>
           </div>
-          <div class="phase-label">${info.status === 'completed' ? '✅ 完成' : info.status === 'completed_with_issues' ? '⚠️ 有问题' : info.status === 'ready' ? '📝 就绪' : '⏳ 待开始'}</div>
+          <div class="phase-label">${key === 'completed' ? '✅ 完成' : key === 'analyzing' ? '⚠️ 有问题' : key === 'planning' ? '📝 就绪' : key === 'executing' ? '▶️ 执行中' : '⏳ 待开始'}</div>
         </div>
       `).join('') : '<div style="padding:16px;text-align:center;color:var(--muted-foreground);font-size:12px;">— 空 —</div>';
-      return `<div class="kanban-col">
+      return `<div class="kanban-col"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)"
+          ondrop="handleDrop(event, '${key}')">
         <div class="kanban-col-header">${title}<span class="count">${items.length}</span></div>
         ${cards}
       </div>`;
     }).join('');
 
-    ts.textContent = new Date().toLocaleTimeString('zh-CN');
+    ts.innerHTML = new Date().toLocaleTimeString('zh-CN') +
+      '<span class="ws-indicator" id="ws-indicator"><span class="ws-dot on"></span> Live</span>';
+    updateWSIndicator();
   } catch(e) {
     board.innerHTML = '<div class="kanban-col" style="grid-column:1/-1;"><div class="error-msg">Kanban 数据不可用: ' + e.message + '</div></div>';
   }
@@ -650,6 +766,7 @@ function saveSettings() {
 })();
 
 /* ═══════════════ Boot ═══════════════ */
+connectWS();
 loadKanban();
 </script>
 </body>

@@ -464,6 +464,116 @@ async def tlo_ui():
     return {"message": f"tlo.html not found at {_STATIC_DIR}"}
 
 
+# ══════════════════════════════════════════════════════════════════════════
+#  🆕 TLO Kanban WebSocket — 实时推送生命周期状态变更
+# ══════════════════════════════════════════════════════════════════════════
+
+import json as _json
+from fastapi import WebSocket, WebSocketDisconnect
+
+
+class KanbanWSManager:
+    """WebSocket 连接管理器 — 广播生命周期状态变更到所有已连接的 Kanban 客户端。"""
+
+    def __init__(self):
+        self._connections: list[WebSocket] = []
+
+    async def connect(self, ws: WebSocket):
+        await ws.accept()
+        self._connections.append(ws)
+
+    def disconnect(self, ws: WebSocket):
+        if ws in self._connections:
+            self._connections.remove(ws)
+
+    async def broadcast(self, event: dict):
+        """向所有连接的 Kanban 客户端广播事件。"""
+        stale = []
+        for ws in self._connections:
+            try:
+                await ws.send_text(_json.dumps(event, ensure_ascii=False, default=str))
+            except Exception:
+                stale.append(ws)
+        for ws in stale:
+            self.disconnect(ws)
+
+    @property
+    def active_connections(self) -> int:
+        return len(self._connections)
+
+
+_kanban_ws = KanbanWSManager()
+
+
+@app.websocket("/ws/kanban")
+async def kanban_websocket(ws: WebSocket):
+    """Kanban 实时更新 WebSocket — 客户端连接后接收生命周期事件推送。"""
+    await _kanban_ws.connect(ws)
+    try:
+        # 发送初始连接确认
+        await ws.send_text(_json.dumps({
+            "type": "connected",
+            "connections": _kanban_ws.active_connections,
+            "timestamp": datetime.now().isoformat(),
+        }))
+        # 保持连接，等待客户端消息
+        while True:
+            data = await ws.receive_text()
+            msg = _json.loads(data)
+            action = msg.get("action", "")
+            if action == "ping":
+                await ws.send_text(_json.dumps({"type": "pong"}))
+            elif action == "card_move":
+                # 客户端拖拽卡片到新列 → 广播给所有客户端
+                await _kanban_ws.broadcast({
+                    "type": "card_moved",
+                    "module": msg.get("module", ""),
+                    "from_stage": msg.get("from_stage", ""),
+                    "to_stage": msg.get("to_stage", ""),
+                    "timestamp": datetime.now().isoformat(),
+                })
+                # 更新 SOP_STATUS (写入新状态)
+                _update_module_stage(msg.get("module", ""), msg.get("to_stage", ""))
+    except WebSocketDisconnect:
+        _kanban_ws.disconnect(ws)
+    except Exception:
+        _kanban_ws.disconnect(ws)
+
+
+@app.get("/api/kanban/status")
+async def kanban_status():
+    """返回 Kanban WebSocket 连接状态。"""
+    return {
+        "active_connections": _kanban_ws.active_connections,
+        "timestamp": datetime.now().isoformat(),
+    }
+
+
+def _update_module_stage(module: str, new_stage: str):
+    """更新模块 SOP_STATUS 的阶段标记（卡片拖拽后持久化）。"""
+    import json as _j
+    sop_dir = Path(__file__).resolve().parent.parent.parent / "governance" / "artifacts" / "sop-status"
+    status_file = sop_dir / f"SOP_STATUS_{module}.json"
+    if not status_file.exists():
+        return
+    try:
+        data = _j.loads(status_file.read_text(encoding="utf-8"))
+        stage_map = {
+            "pending": "pending",
+            "planning": "ready",
+            "executing": "in_progress",
+            "analyzing": "completed_with_issues",
+            "completed": "completed",
+        }
+        new_status = stage_map.get(new_stage, data.get("status", "completed"))
+        data["status"] = new_status
+        data["kanban_stage"] = new_stage
+        data["kanban_updated_at"] = datetime.now().isoformat()
+        status_file.write_text(_j.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass  # 非阻塞
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
