@@ -417,6 +417,66 @@ skills:
   note: 当前由 sop_graph.py data_sanitization_node 直接调用 scan_and_clean.py。Skill 文件提供 Prompt 文档参考。
   risk_level: high
   needs_confirm: true
+- id: evidence-collector
+  category: diagnosis
+  status: active
+  file: skills/diagnosis/evidence-collector.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/diagnosis/evidence-collector.md
+    released: '2026-06-23'
+    changelog: "TLO: Failure Analyst — 多维证据采集 (截图+DOM+Console+Network+Timeline)"
+    status: active
+  note: "Failure Analyst Agent 调用。输出 EVIDENCE_BUNDLE.json ≤2MB。"
+  risk_level: low
+  needs_confirm: false
+- id: root-cause-analyzer
+  category: diagnosis
+  status: active
+  file: skills/diagnosis/root-cause-analyzer.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/diagnosis/root-cause-analyzer.md
+    released: '2026-06-23'
+    changelog: "TLO: Failure Analyst — LLM 深度根因分析 + 跨模块影响"
+    status: active
+  note: "Failure Analyst Agent 调用。confidence<0.5 标记需人工。"
+  risk_level: low
+  needs_confirm: false
+- id: env-checker
+  category: execution
+  status: active
+  file: skills/execution/env-checker.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/execution/env-checker.md
+    released: '2026-06-23'
+    changelog: "TLO: Environment Preparer Agent — 浏览器/驱动/系统/登录可达性检查"
+    status: active
+  note: "Environment Preparer Agent 调用。检查全部通过 env_ready=true 才进入执行阶段。"
+  workflows:
+  - module-onboarding
+  risk_level: low
+  needs_confirm: false
+- id: data-preparer
+  category: execution
+  status: active
+  file: skills/execution/data-preparer.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/execution/data-preparer.md
+    released: '2026-06-23'
+    changelog: "TLO: Environment Preparer Agent — 测试数据生成/刷新/清理"
+    status: active
+  note: "Environment Preparer Agent 调用。数据生成失败 → env_ready=false 阻止执行。"
+  workflows:
+  - module-onboarding
+  risk_level: medium
+  needs_confirm: false
 - id: bug-analysis
   category: diagnosis
   status: active
@@ -501,6 +561,22 @@ skills:
     changelog: 初始版本
     status: active
   note: Primary Owner = Project Agent；Knowledge Agent 为 Secondary
+  risk_level: low
+  needs_confirm: false
+- id: regression-scope
+  category: knowledge
+  status: active
+  file: skills/knowledge/regression-scope.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/knowledge/regression-scope.md
+    released: '2026-06-23'
+    changelog: "TLO: Regression Advisor Agent — Git diff + 历史缺陷 + 执行趋势 → 回归范围推荐"
+    status: active
+  note: "Regression Advisor Agent 调用。Risk_Score = diff(0.4) + defect_heat(0.35) + fail_rate(0.25)"
+  workflows:
+  - test-cycle-closure
   risk_level: low
   needs_confirm: false
 - id: report-generator

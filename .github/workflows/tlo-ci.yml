@@ -1,0 +1,103 @@
+# TLO CI/CD — GitHub Actions
+# 触发: PR → 分析 diff → 运行受影响模块 SOP → 回归推荐 → PR Comment
+
+name: TLO CI
+
+on:
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'ZJSN_Test-master526/script/**'
+      - 'ZJSN_Test-master526/base/**'
+      - 'ZJSN_Test-master526/page/**'
+      - 'ZJSN_Test-master526/config/**'
+      - 'aitest/**'
+      - 'governance/agents/**'
+      - 'governance/skills/**'
+  push:
+    branches: [main, master]
+    paths:
+      - 'ZJSN_Test-master526/script/**'
+      - 'aitest/graphs/**'
+
+jobs:
+  # ── Job 1: 快速门禁 ──
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.diff.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r ZJSN_Test-master526/requirements.txt
+
+      - name: Detect affected modules
+        id: diff
+        run: |
+          python ZJSN_Test-master526/ci/tlo_ci_entrypoint.py diff --format=json > modules.json
+          cat modules.json
+          echo "modules=$(cat modules.json)" >> $GITHUB_OUTPUT
+
+  # ── Job 2: 受影响模块 SOP 运行 ──
+  sop-run:
+    needs: gate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: ${{ fromJson(needs.gate.outputs.modules) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: pip install -r ZJSN_Test-master526/requirements.txt
+      - name: Run TLO SOP
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python -m aitest.infra.cli sop run \
+            --module=${{ matrix.module }} \
+            --mode=full --non-interactive \
+            --output=json > sop-output-${{ matrix.module }}.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sop-${{ matrix.module }}
+          path: sop-output-${{ matrix.module }}.json
+
+  # ── Job 3: 回归推荐 ──
+  regression:
+    needs: [gate, sop-run]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Regression Advisor
+        run: |
+          python -m aitest.infra.cli regression \
+            --base-ref=origin/${{ github.base_ref }} \
+            --format=markdown > regression.md
+      - name: Post PR Comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('regression.md', 'utf8');
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body,
+            });
