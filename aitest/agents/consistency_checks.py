@@ -14,8 +14,8 @@ from aitest.agents.output_persistence import (
     persist_consistency_report, persist_review_report,
 )
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-ZJSN_TEST = WORKSTUDY / "ZJSN_Test-master526"
+from aitest.platform.paths import get_workstudy, get_test_project_root
+WORKSTUDY = get_workstudy()
 
 
 def run_mechanical_consistency_check(module: str, page: str,
@@ -33,8 +33,9 @@ def run_mechanical_consistency_check(module: str, page: str,
         LLMResponse with model='mechanical'
     """
     page_name = _slug_to_page_name(page)
-    po_file = ZJSN_TEST / "page" / f"{module}_page" / f"{page_name}Page.py"
-    test_file = ZJSN_TEST / "script" / module / f"test_{_page_slug_to_underscore(page)}.py"
+    zjsn = get_test_project_root()
+    po_file = zjsn / "page" / f"{module}_page" / f"{page_name}Page.py" if zjsn else Path(f"page/{module}_page/{page_name}Page.py")
+    test_file = zjsn / "script" / module / f"test_{_page_slug_to_underscore(page)}.py" if zjsn else Path(f"script/{module}/test_{_page_slug_to_underscore(page)}.py")
 
     issues = []
     for fpath in [po_file, test_file]:
@@ -92,8 +93,9 @@ def run_llm_consistency_review(module: str, page: str, provider: str,
         LLMResponse with review results.
     """
     page_name = _slug_to_page_name(page)
-    po_file = ZJSN_TEST / "page" / f"{module}_page" / f"{page_name}Page.py"
-    test_file = ZJSN_TEST / "script" / module / f"test_{_page_slug_to_underscore(page)}.py"
+    zjsn = get_test_project_root()
+    po_file = zjsn / "page" / f"{module}_page" / f"{page_name}Page.py" if zjsn else Path(f"page/{module}_page/{page_name}Page.py")
+    test_file = zjsn / "script" / module / f"test_{_page_slug_to_underscore(page)}.py" if zjsn else Path(f"script/{module}/test_{_page_slug_to_underscore(page)}.py")
 
     code_snippets = []
     for fpath in [po_file, test_file]:

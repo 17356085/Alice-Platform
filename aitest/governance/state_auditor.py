@@ -46,9 +46,10 @@ from datetime import datetime
 from aitest.graphs.state import get_module_dir, get_page_dir
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-GOVERNANCE = WORKSTUDY / "governance"
-CONTEXT_MODULES = GOVERNANCE / "context" / "projects" / "web-automation" / "modules"
+from aitest.platform.paths import get_workstudy, get_context_modules, get_governance_dir
+WORKSTUDY = get_workstudy()
+GOVERNANCE = get_governance_dir()
+CONTEXT_MODULES = get_context_modules()
 ARTIFACTS_DIR = GOVERNANCE / "artifacts"
 SOP_STATUS_DIR = ARTIFACTS_DIR / "sop-status"
 CHECKPOINT_DB = GOVERNANCE / ".graph_state" / "checkpoints.sqlite"

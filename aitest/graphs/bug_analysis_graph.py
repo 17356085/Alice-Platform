@@ -21,9 +21,9 @@ from langgraph.types import interrupt
 
 from aitest.graphs.state import SOPState, GateResult, GateLevel
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-ZJSN_TEST = WORKSTUDY / "ZJSN_Test-master526"
-GOVERNANCE = WORKSTUDY / "governance"
+from aitest.platform.paths import get_workstudy, get_test_project_root, get_governance_dir
+WORKSTUDY = get_workstudy()
+GOVERNANCE = get_governance_dir()
 
 
 def _get_first_page(state: dict) -> str:
@@ -289,14 +289,15 @@ def verify_node(state: SOPState) -> dict:
     # 运行 pytest
     import subprocess
 
-    test_file = ZJSN_TEST / "script" / module / f"test_{page.replace('-', '_')}.py"
+    zjsn = get_test_project_root()
+    test_file = zjsn / "script" / module / f"test_{page.replace('-', '_')}.py" if zjsn else None
     results = {"passed": False, "output": "", "error": ""}
 
-    if test_file.exists():
+    if test_file and test_file.exists() and zjsn:
         try:
             result = subprocess.run(
                 ["pytest", str(test_file), "-v", "--tb=short"],
-                cwd=str(ZJSN_TEST),
+                cwd=str(zjsn),
                 capture_output=True,
                 text=True,
                 timeout=120,

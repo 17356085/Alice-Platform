@@ -20,8 +20,8 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-CONTEXT_MODULES = WORKSTUDY / "governance" / "context" / "projects" / "web-automation" / "modules"
+from aitest.platform.paths import get_context_modules
+CONTEXT_MODULES = get_context_modules()
 
 # 默认审计间隔（秒）
 DEFAULT_INTERVAL = 86400  # 24h

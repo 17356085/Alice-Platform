@@ -49,9 +49,9 @@ from aitest.agents.consistency_checks import (
 )
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-ZJSN_TEST = WORKSTUDY / "ZJSN_Test-master526"
-CONTEXT_MODULES = GOVERNANCE / "context" / "projects" / "web-automation" / "modules"
+from aitest.platform.paths import get_workstudy, get_test_project_root, get_context_modules, get_project_dir
+WORKSTUDY = get_workstudy()
+CONTEXT_MODULES = get_context_modules()  # resolves from active project
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -208,12 +208,17 @@ class AgentLoop:
         resolved = resolved.replace("{page}", self.page)
         resolved = resolved.replace("{PageName}", page_name)
         resolved = resolved.replace("{page_underscore}", self._page_slug_to_underscore(self.page))
+        # Replace {test_project_root} with actual test project root (from project.yaml)
+        zjsn = get_test_project_root()
+        if zjsn:
+            resolved = resolved.replace("{test_project_root}", str(zjsn))
         return resolved
 
     def _resolve_path(self, pattern: str) -> Path:
         """将 pattern 解析为绝对路径。"""
         resolved = self._resolve_artifact_path(pattern)
-        if resolved.startswith("ZJSN_Test-master526"):
+        # If path is relative (starts with project name), resolve from WORKSTUDY
+        if not Path(resolved).is_absolute() and not resolved.startswith(str(WORKSTUDY)):
             resolved = str(WORKSTUDY / resolved)
         return Path(resolved)
 
@@ -237,31 +242,33 @@ class AgentLoop:
         if self.module:
             page_name = self._slug_to_page_name(self.page) if self.page else ""
             page_underscore = self._page_slug_to_underscore(self.page) if self.page else ""
+            zjsn = get_test_project_root()
 
             # PROJECT_CONTEXT 路径
-            project_ctx = GOVERNANCE / "context" / "projects" / "web-automation" / "PROJECT_CONTEXT.md"
+            project_ctx = get_project_dir() / "PROJECT_CONTEXT.md"
             if project_ctx.exists():
                 vars_["project_context_path"] = str(project_ctx)
 
-            # Page Object 路径
-            po_path = ZJSN_TEST / "page" / f"{self.module}_page" / f"{page_name}Page.py"
-            if page_name and po_path.exists():
-                vars_["po_path"] = str(po_path)
+            # Page Object 路径 (from test project root)
+            if zjsn:
+                po_path = zjsn / "page" / f"{self.module}_page" / f"{page_name}Page.py"
+                if page_name and po_path.exists():
+                    vars_["po_path"] = str(po_path)
 
-            # 测试脚本路径
-            test_path = ZJSN_TEST / "script" / self.module / f"test_{page_underscore}.py"
-            if page_underscore and test_path.exists():
-                vars_["test_path"] = str(test_path)
+                # 测试脚本路径
+                test_path = zjsn / "script" / self.module / f"test_{page_underscore}.py"
+                if page_underscore and test_path.exists():
+                    vars_["test_path"] = str(test_path)
 
-            # Page Object 目录（用于 module-modeling 发现页面）
-            po_dir = ZJSN_TEST / "page" / f"{self.module}_page"
-            if po_dir.exists():
-                vars_["po_dir"] = str(po_dir)
+                # Page Object 目录（用于 module-modeling 发现页面）
+                po_dir = zjsn / "page" / f"{self.module}_page"
+                if po_dir.exists():
+                    vars_["po_dir"] = str(po_dir)
 
-            # 测试脚本目录
-            test_dir = ZJSN_TEST / "script" / self.module
-            if test_dir.exists():
-                vars_["test_dir"] = str(test_dir)
+                # 测试脚本目录
+                test_dir = zjsn / "script" / self.module
+                if test_dir.exists():
+                    vars_["test_dir"] = str(test_dir)
 
             # 页面目录（治理文档目标路径）
             page_dir = CONTEXT_MODULES / self.module / "pages" / self.page
@@ -303,22 +310,24 @@ class AgentLoop:
         if any(c in skill_id for c in _CODE_SKILL_CATEGORIES) and self.module and self.page:
             page_name = self._slug_to_page_name(self.page)
             page_underscore = self._page_slug_to_underscore(self.page)
-            # Read PO file
-            po_path = ZJSN_TEST / "page" / f"{self.module}_page" / f"{page_name}Page.py"
-            if po_path.exists():
-                try:
-                    po_content = po_path.read_text(encoding="utf-8")
-                    parts.append(f"\n## Page Object 代码 ({page_name}Page.py)\n```python\n{po_content[:6000]}\n```")
-                except Exception:
-                    pass
-            # Read test file
-            test_path = ZJSN_TEST / "script" / self.module / f"test_{page_underscore}.py"
-            if test_path.exists():
-                try:
-                    test_content = test_path.read_text(encoding="utf-8")
-                    parts.append(f"\n## 测试脚本 (test_{page_underscore}.py)\n```python\n{test_content[:4000]}\n```")
-                except Exception:
-                    pass
+            zjsn = get_test_project_root()
+            if zjsn:
+                # Read PO file
+                po_path = zjsn / "page" / f"{self.module}_page" / f"{page_name}Page.py"
+                if po_path.exists():
+                    try:
+                        po_content = po_path.read_text(encoding="utf-8")
+                        parts.append(f"\n## Page Object 代码 ({page_name}Page.py)\n```python\n{po_content[:6000]}\n```")
+                    except Exception:
+                        pass
+                # Read test file
+                test_path = zjsn / "script" / self.module / f"test_{page_underscore}.py"
+                if test_path.exists():
+                    try:
+                        test_content = test_path.read_text(encoding="utf-8")
+                        parts.append(f"\n## 测试脚本 (test_{page_underscore}.py)\n```python\n{test_content[:4000]}\n```")
+                    except Exception:
+                        pass
             # Read PAGE_CONTEXT if it exists (from requirement phase)
             page_ctx = CONTEXT_MODULES / self.module / "pages" / self.page / "PAGE_CONTEXT.md"
             if page_ctx.exists():

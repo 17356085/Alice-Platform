@@ -13,21 +13,30 @@ import operator
 
 
 # ══════════════════════════════════════════════════════════════════════════
-#  路径工具 — 消除 state_auditor._module_dir() / sop_graph 的重复路径构造
+#  路径工具 — delegate to aitest.platform.ProjectContext (single source of truth)
+#  Backward compat: get_module_dir() / get_page_dir() kept, now route through ProjectContext.
+#  New code should use: from aitest.platform import get_project; ctx = get_project()
 # ══════════════════════════════════════════════════════════════════════════
 
 _PATH_BASE = Path(__file__).resolve().parent.parent.parent
-_CONTEXT_MODULES = _PATH_BASE / "governance" / "context" / "projects" / "web-automation" / "modules"
+
+# Legacy constants — derived from ProjectContext, kept for backward compat
+from aitest.platform.paths import get_context_modules as _get_context_modules, get_test_project_root as _get_test_project_root
+_CONTEXT_MODULES = _get_context_modules()
 
 
-def get_module_dir(module: str) -> Path:
-    """模块治理文档目录 (governance/context/.../modules/<module>)。"""
-    return _CONTEXT_MODULES / module
+def get_module_dir(module: str, project_id: str = None) -> Path:
+    """模块治理文档目录。Delegates to ProjectContext for path resolution."""
+    from aitest.platform.context import get_project
+    ctx = get_project(project_id)
+    return ctx.module_dir(module)
 
 
-def get_page_dir(module: str, page: str) -> Path:
-    """页面治理文档目录 (governance/context/.../modules/<module>/pages/<page>)。"""
-    return _CONTEXT_MODULES / module / "pages" / page
+def get_page_dir(module: str, page: str, project_id: str = None) -> Path:
+    """页面治理文档目录。Delegates to ProjectContext for path resolution."""
+    from aitest.platform.context import get_project
+    ctx = get_project(project_id)
+    return ctx.page_dir(module, page)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -288,7 +297,7 @@ AGENT_PHASE_MAP: dict[AgentName, PhaseName] = {
 MAX_PHASE_RETRY_ROUNDS: int = 2
 
 # 产物路径（与 _PATH_BASE / _CONTEXT_MODULES 对齐）
-_ZJSN_TEST = _PATH_BASE / "ZJSN_Test-master526"
+# _ZJSN_TEST resolved lazily via get_test_project_root()
 _KPI_REPORTS = _PATH_BASE / "governance" / "kpi" / "reports"
 _KPI_TESTCASES = _PATH_BASE / "governance" / "kpi" / "testcases"
 _EXECUTION_REPORTS = _PATH_BASE / "governance" / "artifacts" / "execution-reports"
@@ -309,12 +318,14 @@ def _check_test_design_artifacts(module: str, pages: list[str]) -> list[tuple[bo
 def _check_automation_artifacts(module: str, pages: list[str]) -> list[tuple[bool, str, str]]:
     """Check per-module Automation artifacts: *Page.py + test_*.py exist."""
     results = []
-    po_dir = _ZJSN_TEST / "page" / f"{module}_page"
-    test_dir = _ZJSN_TEST / "script" / module
-    has_po = po_dir.exists() and any(po_dir.glob("*Page.py"))
-    has_test = test_dir.exists() and any(test_dir.glob("test_*.py"))
-    results.append((has_po, str(po_dir), f"PageObject (*Page.py) in page/{module}_page"))
-    results.append((has_test, str(test_dir), f"Test scripts (test_*.py) in script/{module}"))
+    zjsn = _get_test_project_root()
+    if zjsn:
+        po_dir = zjsn / "page" / f"{module}_page"
+        test_dir = zjsn / "script" / module
+        has_po = po_dir.exists() and any(po_dir.glob("*Page.py"))
+        has_test = test_dir.exists() and any(test_dir.glob("test_*.py"))
+        results.append((has_po, str(po_dir), f"PageObject (*Page.py) in page/{module}_page"))
+        results.append((has_test, str(test_dir), f"Test scripts (test_*.py) in script/{module}"))
     return results
 
 

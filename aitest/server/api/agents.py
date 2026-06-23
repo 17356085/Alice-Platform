@@ -127,7 +127,8 @@ async def all_modules_status():
     from pathlib import Path
 
     governance = Path(__file__).resolve().parent.parent.parent.parent / "governance"
-    modules_dir = governance / "context" / "projects" / "web-automation" / "modules"
+    from aitest.platform.paths import get_project_dir
+    modules_dir = get_project_dir() / "modules"
 
     result = {}
     if modules_dir.exists():

@@ -28,10 +28,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-GOVERNANCE = WORKSTUDY / "governance"
-ZJSN_TEST = WORKSTUDY / "ZJSN_Test-master526"
-CONTEXT_MODULES = GOVERNANCE / "context" / "projects" / "web-automation" / "modules"
+from aitest.platform.paths import get_workstudy, get_test_project_root, get_context_modules, get_governance_dir
+WORKSTUDY = get_workstudy()
+GOVERNANCE = get_governance_dir()
+CONTEXT_MODULES = get_context_modules()
 ARTIFACTS_DIR = GOVERNANCE / "artifacts"
 SOP_STATUS_DIR = ARTIFACTS_DIR / "sop-status"
 
@@ -96,16 +96,15 @@ class FocusedContext:
 
     def to_skill_variables(self) -> dict:
         """转换为 ContextInjector 变量格式。"""
+        zjsn = get_test_project_root()
+        po_path_str = str(zjsn / "page" / f"{self.module}_page" / f"{self.page.replace('-', '_')}_page.py") if zjsn else ""
+        test_path_str = str(zjsn / "script" / self.module / f"test_{self.page.replace('-', '_')}.py") if zjsn else ""
         return {
             "module": self.module,
             "page": self.page,
             "module_dir": str(CONTEXT_MODULES / self.module),
-            "po_path": str(
-                ZJSN_TEST / "page" / f"{self.module}_page" / f"{self.page.replace('-', '_')}_page.py"
-            ),
-            "test_path": str(
-                ZJSN_TEST / "script" / self.module / f"test_{self.page.replace('-', '_')}.py"
-            ),
+            "po_path": po_path_str,
+            "test_path": test_path_str,
         }
 
     def to_inline_context(self) -> str:

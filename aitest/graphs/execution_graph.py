@@ -12,9 +12,9 @@ from langgraph.graph import StateGraph, END
 
 from aitest.graphs.state import SOPState, GateResult, GateLevel
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-ZJSN_TEST = WORKSTUDY / "ZJSN_Test-master526"
-GOVERNANCE = WORKSTUDY / "governance"
+from aitest.platform.paths import get_workstudy, get_test_project_root, get_governance_dir
+WORKSTUDY = get_workstudy()
+GOVERNANCE = get_governance_dir()
 
 
 def _get_page(state: dict) -> str:
@@ -67,7 +67,8 @@ def exec_act(state: SOPState) -> dict:
 
 def exec_gate(state: SOPState) -> dict:
     module = state["module"]
-    allure_dir = ZJSN_TEST / "allure-results"
+    zjsn = get_test_project_root()
+    allure_dir = zjsn / "allure-results" if zjsn else Path("allure-results")
     ok = allure_dir.exists() and any(allure_dir.iterdir())
     return {"gate_results": [GateResult(
         level=GateLevel.L2_AGENT, phase="Execute & Debug", ok=ok,

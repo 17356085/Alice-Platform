@@ -24,11 +24,12 @@ from typing import Optional
 
 import yaml
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-GOVERNANCE = WORKSTUDY / "governance"
+from aitest.platform.paths import get_workstudy, get_context_modules, get_governance_dir
+WORKSTUDY = get_workstudy()
+GOVERNANCE = get_governance_dir()
 AGENT_DEFS = GOVERNANCE / "agents" / "agent-definitions.yaml"
 SKILL_REGISTRY = GOVERNANCE / "skills" / "skill-registry.yaml"
-CONTEXT_MODULES = GOVERNANCE / "context" / "projects" / "web-automation" / "modules"
+CONTEXT_MODULES = get_context_modules()
 
 
 @dataclass

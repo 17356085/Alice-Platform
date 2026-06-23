@@ -22,9 +22,11 @@ import time as _time_module
 from pathlib import Path
 
 # ── 路径配置 ──
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+from aitest.platform.paths import get_workstudy, get_project_dir, get_context_modules
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
-CONTEXT_MODULES = GOVERNANCE / "context" / "projects" / "web-automation" / "modules"
+CONTEXT_MODULES = get_context_modules()
+_PROJECT_CONTEXT_PATH = get_project_dir() / "PROJECT_CONTEXT.md"
 
 # ── Skill → 上下文需求映射 ──
 # 每个条目定义该 Skill 需要的上下文类型及如何获取
@@ -155,7 +157,7 @@ DEV_SKILL_CONTEXT_MAP: dict[str, list[dict]] = {
 # ── 固定基座文件路径 ──────────────────────────────────────────────────
 _SHARED_LANGUAGE_PATH = GOVERNANCE / "context" / "shared-language.md"
 _PROJECT_CONTEXT_PATH = (
-    GOVERNANCE / "context" / "projects" / "web-automation" / "PROJECT_CONTEXT.md"
+    _PROJECT_CONTEXT_PATH
 )
 _FIXED_BASE_MAX_CHARS = 1500  # PROJECT_CONTEXT 摘要截断（含架构图和核心规范）
 

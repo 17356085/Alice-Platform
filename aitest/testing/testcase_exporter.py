@@ -15,11 +15,13 @@ from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Optional
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-GOVERNANCE = WORKSTUDY / "governance"
-CONTEXT_MODULES = GOVERNANCE / "context" / "projects" / "web-automation" / "modules"
-ALLURE_RESULTS = WORKSTUDY / "ZJSN_Test-master526" / "allure-results"
-TEST_SCRIPTS = WORKSTUDY / "ZJSN_Test-master526" / "script"
+from aitest.platform.paths import get_workstudy, get_test_project_root, get_context_modules, get_governance_dir
+WORKSTUDY = get_workstudy()
+GOVERNANCE = get_governance_dir()
+CONTEXT_MODULES = get_context_modules()
+_zjsn = get_test_project_root()
+ALLURE_RESULTS = (_zjsn / "allure-results") if _zjsn else (WORKSTUDY / "ZJSN_Test-master526" / "allure-results")
+TEST_SCRIPTS = (_zjsn / "script") if _zjsn else (WORKSTUDY / "ZJSN_Test-master526" / "script")
 EXPORT_DIR = GOVERNANCE / "kpi" / "testcases"  # 测试用例报表按模块分目录
 
 

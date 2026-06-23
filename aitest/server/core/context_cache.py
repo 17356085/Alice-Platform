@@ -89,7 +89,8 @@ class ContextCache:
         heading = parts[1] if len(parts) > 1 else ""
 
         # 查找文件
-        file_path = GOVERNANCE / "context" / "projects" / "web-automation" / file_name
+        from aitest.platform.paths import get_project_dir
+        file_path = get_project_dir() / file_name
         if not file_path.exists():
             # 尝试在 context/ 下搜索
             candidates = list(GOVERNANCE.rglob(file_name))

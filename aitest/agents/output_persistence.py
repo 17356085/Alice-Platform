@@ -11,9 +11,9 @@ from pathlib import Path
 from aitest.llm.provider import LLMResponse
 
 # ── Paths ────────────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-ZJSN_TEST = WORKSTUDY / "ZJSN_Test-master526"
-CONTEXT_MODULES = WORKSTUDY / "governance" / "context" / "projects" / "web-automation" / "modules"
+from aitest.platform.paths import get_workstudy, get_test_project_root, get_context_modules
+WORKSTUDY = get_workstudy()
+CONTEXT_MODULES = get_context_modules()
 
 
 def _slug_to_page_name(slug: str) -> str:
@@ -32,8 +32,14 @@ def build_skill_output_map(module: str, page: str) -> dict:
     """Build skill_id → (file_path, file_type) mapping for a module/page."""
     page_name = _slug_to_page_name(page)
     page_underscore = _page_slug_to_underscore(page)
+    zjsn = get_test_project_root()
 
-    return {
+    po_path = zjsn / "page" / f"{module}_page" / f"{page_name}Page.py" if zjsn else None
+    test_path = zjsn / "script" / module / f"test_{page_underscore}.py" if zjsn else None
+    conftest_path = zjsn / "script" / module / "conftest.py" if zjsn else None
+
+    # Build output map — automation entries depend on test project availability
+    output_map = {
         # ── Requirement phase ──
         "requirements/module-modeling": (
             CONTEXT_MODULES / module / "MODULE_CONTEXT.md", "md"
@@ -63,14 +69,15 @@ def build_skill_output_map(module: str, page: str) -> dict:
         "automation/auto-strategy": (
             CONTEXT_MODULES / module / "pages" / page / "AUTO_STRATEGY.md", "md"
         ),
-        "automation/page-object-generator": (
-            ZJSN_TEST / "page" / f"{module}_page" / f"{page_name}Page.py", "py"
-        ),
-        "automation/test-script-generator": [
-            (ZJSN_TEST / "script" / module / f"test_{page_underscore}.py", "py"),
-            (ZJSN_TEST / "script" / module / "conftest.py", "py"),
-        ],
     }
+    if po_path:
+        output_map["automation/page-object-generator"] = (po_path, "py")
+    if test_path:
+        items = [(test_path, "py")]
+        if conftest_path:
+            items.append((conftest_path, "py"))
+        output_map["automation/test-script-generator"] = items
+    return output_map
 
 
 def extract_code_block(text: str, language: str = "python") -> str:

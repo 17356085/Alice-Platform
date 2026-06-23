@@ -21,7 +21,8 @@ from typing import Optional
 
 def _get_known_modules() -> list[str]:
     governance = Path(__file__).resolve().parent.parent.parent / "governance"
-    modules_dir = governance / "context" / "projects" / "web-automation" / "modules"
+    from aitest.platform.paths import get_project_dir
+    modules_dir = get_project_dir() / "modules"
     if modules_dir.exists():
         return sorted([d.name for d in modules_dir.iterdir() if d.is_dir()])
     return []

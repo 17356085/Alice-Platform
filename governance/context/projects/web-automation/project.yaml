@@ -1,0 +1,30 @@
+# TLO Project Configuration — web-automation
+# 鞍集涂源管理系统 (Vue 3 + Element Plus)
+#
+# This file is the single config source for ProjectContext.
+# Module/page lists are Discovery output (.discovery/), not defined here.
+
+project:
+  id: "web-automation"
+  name: "鞍集涂源管理系统"
+
+application:
+  type: "web"
+  runtime: "browser"
+
+connection:
+  base_url: "https://aiwechatminidemo.cimc-digital.com/"
+  login_required: true
+  login_method: "form"
+
+discovery:
+  strategy: "browser-use"
+
+knowledge:
+  chroma_namespace: "web-automation"
+
+test_project:
+  type: "pytest-selenium"
+  code_path: "../WorkStudy2/ZJSN_Test-master526"
+  page_objects_path: "page/"
+  scripts_path: "script/"

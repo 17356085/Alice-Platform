@@ -17,13 +17,15 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Resource, ResourceTemplate, TextResourceContents
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+from aitest.platform.paths import get_workstudy, get_project_dir
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
-PROJECT_CONTEXT = GOVERNANCE / "context" / "projects" / "web-automation" / "PROJECT_CONTEXT.md"
+_resolved_dir = get_project_dir()
+PROJECT_CONTEXT = _resolved_dir / "PROJECT_CONTEXT.md"
 KNOWN_ISSUES = GOVERNANCE / "context" / "known-issues.yaml"
-MODULE_INDEX = GOVERNANCE / "context" / "projects" / "web-automation" / "MODULE_INDEX.md"
+MODULE_INDEX = _resolved_dir / "MODULE_INDEX.md"
 ENVIRONMENTS = GOVERNANCE / "context" / "environments.yaml"
-CONTEXT_MODULES = GOVERNANCE / "context" / "projects" / "web-automation" / "modules"
+CONTEXT_MODULES = _resolved_dir / "modules"
 
 server = Server("aitest-knowledge")
 

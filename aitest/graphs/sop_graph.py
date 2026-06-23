@@ -51,10 +51,10 @@ from aitest.graphs.state import (
 from aitest.graphs.nodes import make_agent_loop_node
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-ZJSN_TEST = WORKSTUDY / "ZJSN_Test-master526"
-GOVERNANCE = WORKSTUDY / "governance"
-CONTEXT_MODULES = GOVERNANCE / "context" / "projects" / "web-automation" / "modules"
+from aitest.platform.paths import get_workstudy, get_test_project_root, get_context_modules, get_governance_dir
+WORKSTUDY = get_workstudy()
+GOVERNANCE = get_governance_dir()
+CONTEXT_MODULES = get_context_modules()
 ARTIFACTS_DIR = GOVERNANCE / "artifacts"
 
 
@@ -84,12 +84,13 @@ def _get_max_mtime(module: str) -> float:
     max_mtime = 0.0
     dirs_to_check = [
         get_module_dir(module),
-        GOVERNANCE / "context" / "projects" / "web-automation",
+        get_project_dir(),
     ]
+    zjsn = get_test_project_root()
     code_dirs = [
-        ZJSN_TEST / "page" / f"{module}_page",
-        ZJSN_TEST / "script" / module,
-    ]
+        zjsn / "page" / f"{module}_page",
+        zjsn / "script" / module,
+    ] if zjsn else []
 
     for d in dirs_to_check + code_dirs:
         if not d.exists():
@@ -176,7 +177,7 @@ def preflight_node(state: SOPState) -> dict:
     artifact_map: dict = {}
 
     # ── 检查 PROJECT_CONTEXT ──
-    project_context = GOVERNANCE / "context" / "projects" / "web-automation" / "PROJECT_CONTEXT.md"
+    project_context = get_project_dir() / "PROJECT_CONTEXT.md"
     if project_context.exists():
         artifact_map["Project Init"] = [str(project_context)]
 

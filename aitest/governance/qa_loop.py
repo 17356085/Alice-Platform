@@ -31,6 +31,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+from aitest.platform.paths import get_test_project_root
 _WORKSTUDY = Path(__file__).resolve().parent.parent.parent
 
 
@@ -112,7 +113,8 @@ class QALoop:
         self.max_rounds = max_rounds
         self.worktree = worktree
         self.provider = provider
-        self._script_dir = _WORKSTUDY / "ZJSN_Test-master526" / "script" / module
+        zjsn = get_test_project_root()
+        self._script_dir = (zjsn / "script" / module) if zjsn else (_WORKSTUDY / "ZJSN_Test-master526" / "script" / module)
 
     # ── Public API ──
 
@@ -234,7 +236,8 @@ class QALoop:
                 return "\n".join(recent_errors[-5:])  # last 5 errors
 
         # Fallback: read from pytest log
-        log_dir = _WORKSTUDY / "ZJSN_Test-master526"
+        zjsn = get_test_project_root()
+        log_dir = zjsn if zjsn else _WORKSTUDY / "ZJSN_Test-master526"
         log_files = sorted(log_dir.glob("*.log"), key=os.path.getmtime, reverse=True)
         if log_files:
             with open(log_files[0], encoding="utf-8", errors="ignore") as f:
@@ -398,10 +401,11 @@ class QALoop:
         if extra_args:
             cmd.extend(extra_args.split())
 
+        zjsn_cwd = get_test_project_root() or (_WORKSTUDY / "ZJSN_Test-master526")
         try:
             proc = subprocess.run(
                 cmd,
-                cwd=str(_WORKSTUDY / "ZJSN_Test-master526"),
+                cwd=str(zjsn_cwd),
                 capture_output=True,
                 text=True,
                 timeout=300,  # 5 min timeout

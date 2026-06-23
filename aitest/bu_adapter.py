@@ -2,7 +2,7 @@
 """BrowserUse Skill Adapter — bridge between Skills/Fixtures and BrowserUseDriver.
 
 Location: aitest/bu_adapter.py (peer to agent_runner.py per ARCH_REVIEW C2)
-Depends: ZJSN_Test-master526/base/bu_driver.py
+Depends: aitest/integrations/bu_driver.py (platform-owned, no ZJSN dependency)
 
 Each public method maps to a Skill or Fixture scenario:
   observe_page_structure  → page-observe Skill (test-design-agent)
@@ -20,17 +20,11 @@ Usage:
 import asyncio
 import json
 import logging
-import sys
 import time
 from pathlib import Path
 from typing import Optional
 
-# Ensure ZJSN project in path
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent / "ZJSN_Test-master526"
-if str(_PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(_PROJECT_ROOT))
-
-from base.bu_driver import BrowserUseDriver
+from aitest.integrations.bu_driver import BrowserUseDriver
 
 logger = logging.getLogger(__name__)
 

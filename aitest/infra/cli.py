@@ -25,9 +25,20 @@ import time
 import argparse
 from pathlib import Path
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-ZJSN_TEST = WORKSTUDY / "ZJSN_Test-master526"
-GOVERNANCE = WORKSTUDY / "governance"
+from aitest.platform.paths import get_workstudy, get_test_project_root, get_governance_dir, get_project_dir
+
+WORKSTUDY = get_workstudy()
+GOVERNANCE = get_governance_dir()
+
+
+def _zjsn():
+    """Resolve test project root lazily. Returns fallback if not configured."""
+    import os
+    root = get_test_project_root()
+    if root:
+        return root
+    # Fallback: look for ZJSN_Test in the WORKSTUDY parent directory
+    return WORKSTUDY / "ZJSN_Test-master526"
 
 
 def cmd_check(args):
@@ -69,19 +80,19 @@ def cmd_check(args):
         return
 
     # 代码质量检查
-    tool = ZJSN_TEST / "tools" / "check_code_quality.py"
+    tool = _zjsn() / "tools" / "check_code_quality.py"
     cmd = ["python", str(tool)]
     if args.staged:
         cmd.append("--staged")
     if args.json_output:
         cmd.append("--json")
     if args.module:
-        page_dir = ZJSN_TEST / "page" / f"{args.module}_page"
+        page_dir = _zjsn() / "page" / f"{args.module}_page"
         if page_dir.exists():
             cmd.append(str(page_dir))
         else:
             print(f"Warning: page/{args.module}_page not found, scanning all")
-    subprocess.run(cmd, cwd=str(ZJSN_TEST))
+    subprocess.run(cmd, cwd=str(_zjsn()))
 
 
 def cmd_status(args):
@@ -137,7 +148,7 @@ def cmd_sync(args):
         return
 
     template_path = GOVERNANCE / "templates" / "current-task.template.md"
-    task_path = GOVERNANCE / "context" / "projects" / "web-automation" / "modules" / module / "CURRENT_TASK.md"
+    task_path = get_project_dir() / "modules" / module / "CURRENT_TASK.md"
 
     if args.start:
         if task_path.exists():
@@ -166,12 +177,12 @@ def cmd_sync(args):
 def cmd_run(args):
     """执行测试。"""
     module = args.module
-    script_dir = ZJSN_TEST / "script" / module
+    script_dir = _zjsn() / "script" / module
     if not script_dir.exists():
         print(f"Error: script/{module}/ not found")
         return
 
-    cmd = ["pytest", str(script_dir), "-v", f"--alluredir={ZJSN_TEST}/allure-results"]
+    cmd = ["pytest", str(script_dir), "-v", f"--alluredir={_zjsn()}/allure-results"]
     if args.smoke:
         cmd.extend(["-m", "smoke"])
     if args.parallel:
@@ -180,7 +191,7 @@ def cmd_run(args):
         cmd.extend(["-m", "destructive", "-q"])
 
     print(f"Running: {' '.join(cmd)}")
-    subprocess.run(cmd, cwd=str(ZJSN_TEST))
+    subprocess.run(cmd, cwd=str(_zjsn()))
 
 
 def cmd_report(args):
@@ -200,9 +211,9 @@ def cmd_report(args):
 
     elif mode == "excel":
         print(f"Generating Excel report for {module or 'all modules'}...")
-        excel_tool = ZJSN_TEST / "tools" / "report" / "generate_excel.py"
+        excel_tool = _zjsn() / "tools" / "report" / "generate_excel.py"
         if excel_tool.exists():
-            subprocess.run(["python", str(excel_tool)], cwd=str(ZJSN_TEST))
+            subprocess.run(["python", str(excel_tool)], cwd=str(_zjsn()))
         else:
             print("Excel generation tool not found. Using excel-exporter Skill via /report-agent")
 
@@ -501,7 +512,7 @@ def cmd_bus(args):
 def cmd_dashboard(args):
     """平台总览面板。"""
     sys.path.insert(0, str(WORKSTUDY))
-    CONTEXT_MODULES = GOVERNANCE / "context" / "projects" / "web-automation" / "modules"
+    CONTEXT_MODULES = get_project_dir() / "modules"
 
     width = 70
     print()
@@ -540,8 +551,9 @@ def cmd_dashboard(args):
                 phase = "?"
 
             # 代码状态
-            page_code = WORKSTUDY / "ZJSN_Test-master526" / "page" / f"{mod}_page"
-            script_code = WORKSTUDY / "ZJSN_Test-master526" / "script" / mod
+            zjsn = _zjsn()
+            page_code = zjsn / "page" / f"{mod}_page"
+            script_code = zjsn / "script" / mod
             code_icon = ""
             if page_code.exists() and script_code.exists():
                 code_icon = "[OK]"
@@ -640,7 +652,8 @@ def _run_preflight_gate(module: str, mode: str, pages: list[str]) -> None:
     """U9: SOP 门禁前置检查 — 在编排启动前验证前置条件。"""
     try:
         import subprocess
-        script = WORKSTUDY / "ZJSN_Test-master526" / "tools" / "check_sop_gate.py"
+        zjsn = _zjsn()
+        script = zjsn / "tools" / "check_sop_gate.py"
         if not script.exists():
             return  # 门禁脚本不存在，静默跳过
 
@@ -656,7 +669,7 @@ def _run_preflight_gate(module: str, mode: str, pages: list[str]) -> None:
         result = subprocess.run(
             ["python", str(script), "--module", module, "--agent", agent, "--json"],
             capture_output=True, text=True, timeout=30,
-            cwd=str(WORKSTUDY / "ZJSN_Test-master526"),
+            cwd=str(zjsn),
         )
         if result.returncode != 0 and result.stdout:
             import json as _json

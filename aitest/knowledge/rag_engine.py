@@ -23,12 +23,13 @@ from chromadb.config import Settings
 RAG_DISTANCE_THRESHOLD = 1.5
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+from aitest.platform.paths import get_workstudy, get_project_dir, get_test_project_root
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 CHROMA_DIR = GOVERNANCE / ".chroma"
-PROJECT_CONTEXT = GOVERNANCE / "context" / "projects" / "web-automation" / "PROJECT_CONTEXT.md"
+PROJECT_CONTEXT = get_project_dir() / "PROJECT_CONTEXT.md"
 KNOWN_ISSUES = GOVERNANCE / "context" / "known-issues.yaml"
-MODULES_DIR = GOVERNANCE / "context" / "projects" / "web-automation" / "modules"
+MODULES_DIR = get_project_dir() / "modules"
 
 # ── 分块工具 ──────────────────────────────────────────────────────────
 
@@ -404,7 +405,8 @@ def index_page_objects(client: chromadb.PersistentClient = None) -> int:
         metadata={"description": "Page Object .py — 定位器写法 + 方法签名 + 等待策略示例"}
     )
 
-    page_dir = WORKSTUDY / "ZJSN_Test-master526" / "page"
+    zjsn = get_test_project_root()
+    page_dir = zjsn / "page" if zjsn else WORKSTUDY / "ZJSN_Test-master526" / "page"
     docs, ids, metadatas = [], [], []
     idx = 0
 

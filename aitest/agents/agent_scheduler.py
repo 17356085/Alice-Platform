@@ -32,10 +32,10 @@ from governance.validators.sop_validator import (
 )
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-GOVERNANCE = WORKSTUDY / "governance"
-CONTEXT_MODULES = GOVERNANCE / "context" / "projects" / "web-automation" / "modules"
-ZJSN_TEST = WORKSTUDY / "ZJSN_Test-master526"
+from aitest.platform.paths import get_workstudy, get_test_project_root, get_context_modules, get_governance_dir
+WORKSTUDY = get_workstudy()
+GOVERNANCE = get_governance_dir()
+CONTEXT_MODULES = get_context_modules()
 
 # ── Agent 前置条件定义 ────────────────────────────────────────────────
 
