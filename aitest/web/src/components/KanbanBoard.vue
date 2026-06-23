@@ -4,111 +4,75 @@ import { ref } from 'vue'
 const props = defineProps<{
   columns: Record<string, [string, { status: string; phases: number; pages: number; failed: number; updated: string }][]>
 }>()
+const emit = defineEmits<{ 'card-move': [mod: string, from: string, to: string]; 'card-click': [mod: string, info: any] }>()
 
-const emit = defineEmits<{
-  'card-move': [mod: string, from: string, to: string]
-  'card-click': [mod: string, info: any]
-}>()
+const dragMod = ref(''); const dragFrom = ref(''); const dragOverCol = ref('')
 
-const dragMod = ref('')
-const dragFrom = ref('')
-const dragOverCol = ref('')
-const draggedEl = ref<HTMLElement | null>(null)
-
-const colDefs: [string, string, string][] = [
-  ['⏳ Pending', 'pending', '模块待测试'],
-  ['📝 Planning', 'planning', '策略制定中'],
-  ['▶️ Executing', 'executing', 'Agent 执行中'],
-  ['🔍 Analyzing', 'analyzing', 'QA Loop 分析'],
-  ['✅ Completed', 'completed', '报告已生成'],
+const colDefs: [string, string, string, string][] = [
+  ['⏳', 'pending', 'Pending', 'bg-muted/50'], ['📝', 'planning', 'Planning', 'bg-blue-50/50 dark:bg-blue-950/20'],
+  ['▶️', 'executing', 'Executing', 'bg-amber-50/50 dark:bg-amber-950/20'], ['🔍', 'analyzing', 'Analyzing', 'bg-red-50/50 dark:bg-red-950/20'],
+  ['✅', 'completed', 'Completed', 'bg-emerald-50/50 dark:bg-emerald-950/20'],
 ]
 
 function onDragStart(e: DragEvent, mod: string, stage: string) {
-  dragMod.value = mod
-  dragFrom.value = stage
-  draggedEl.value = e.target as HTMLElement
-  draggedEl.value?.classList.add('scale-95', 'opacity-50', 'rotate-1', 'shadow-lg')
+  dragMod.value = mod; dragFrom.value = stage
+  const el = e.target as HTMLElement
+  el.classList.add('scale-95', 'opacity-40', 'rotate-1', 'shadow-xl')
   e.dataTransfer!.effectAllowed = 'move'
 }
-
-function onDragEnd() {
-  draggedEl.value?.classList.remove('scale-95', 'opacity-50', 'rotate-1', 'shadow-lg')
-  draggedEl.value = null
-  dragOverCol.value = ''
-}
-
+function onDragEnd(e: DragEvent) { (e.target as HTMLElement).classList.remove('scale-95', 'opacity-40', 'rotate-1', 'shadow-xl'); dragOverCol.value = '' }
 function onDrop(stage: string) {
   dragOverCol.value = ''
   if (dragMod.value && dragFrom.value !== stage) {
     emit('card-move', dragMod.value, dragFrom.value, stage)
-    ;(window as any).__tlo_toast?.add(
-      `${dragMod.value}: ${dragFrom.value} → ${stage}`,
-      'success'
-    )
+    ;(window as any).__tlo_toast?.add(`${dragMod.value}: ${dragFrom.value} → ${stage}`, 'success')
   }
-  dragMod.value = ''
-  dragFrom.value = ''
+  dragMod.value = ''; dragFrom.value = ''
 }
 </script>
 
 <template>
-  <div class="grid grid-cols-5 gap-3.5 min-h-[calc(100vh-160px)] max-lg:grid-cols-3 max-md:grid-cols-1">
+  <div class="grid grid-cols-5 gap-4 min-h-[calc(100vh-180px)] max-lg:grid-cols-3 max-md:grid-cols-1">
     <div
-      v-for="[title, key, desc] in colDefs"
-      :key="key"
-      :class="[
-        'rounded-xl p-3 flex flex-col gap-2.5 transition-all duration-200',
-        dragOverCol === key
-          ? 'bg-accent/50 scale-[1.02] border-2 border-dashed border-ring shadow-lg'
-          : 'bg-muted/70 border-2 border-transparent'
-      ]"
+      v-for="[icon, key, label, bg] in colDefs" :key="key"
+      :class="['rounded-2xl p-3.5 flex flex-col gap-2.5 transition-all duration-300 border-2',
+        dragOverCol === key ? 'scale-[1.02] border-dashed border-ring shadow-lg ' + bg : 'border-transparent ' + bg]"
       @dragover.prevent="dragOverCol = key"
       @dragleave.prevent="dragOverCol = dragOverCol === key ? '' : dragOverCol"
       @drop.prevent="onDrop(key)"
     >
-      <div class="text-[11px] font-bold uppercase tracking-wider text-muted-foreground px-1.5 py-1 flex items-center gap-1.5">
-        {{ title }}
-        <span class="text-[10px] text-muted-foreground/50 hidden sm:inline">{{ desc }}</span>
-        <span class="ml-auto bg-card border border-border px-1.5 py-px rounded-full text-[11px] font-semibold shadow-sm">
-          {{ columns[key]?.length || 0 }}
-        </span>
+      <div class="flex items-center gap-2 px-1.5">
+        <span class="text-sm">{{ icon }}</span>
+        <span class="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{{ label }}</span>
+        <span class="ml-auto glass-card !rounded-full !px-2 !py-0.5 text-[10px] font-bold shadow-sm">{{ columns[key]?.length || 0 }}</span>
       </div>
 
       <div
-        v-for="[mod, info] in columns[key] || []"
-        :key="mod"
+        v-for="[mod, info] in columns[key] || []" :key="mod"
         draggable="true"
         @dragstart="onDragStart($event, mod, key)"
         @dragend="onDragEnd"
         @click="emit('card-click', mod, info)"
-        class="bg-card border border-border rounded-lg p-3.5 cursor-grab active:cursor-grabbing
-               hover:border-ring hover:shadow-md hover:-translate-y-0.5
-               transition-all duration-200 select-none"
+        class="glass-card !rounded-xl p-4 cursor-grab active:cursor-grabbing select-none transition-all duration-200"
       >
-        <div class="font-semibold text-[13px] mb-2 flex items-center gap-1.5">
-          {{ mod }}
-          <span v-if="info.failed" class="ml-auto w-1.5 h-1.5 rounded-full bg-destructive" title="Has failures" />
+        <div class="flex items-start justify-between mb-2.5">
+          <span class="font-semibold text-[13px]">{{ mod }}</span>
+          <span v-if="info.failed" class="w-2 h-2 rounded-full bg-destructive animate-pulse flex-shrink-0" title="Has failures" />
         </div>
-
-        <div class="text-[11px] text-muted-foreground flex gap-3 mb-2.5">
-          <span>📄 {{ info.pages || 0 }}p</span>
+        <div class="flex gap-3 text-[11px] text-muted-foreground mb-3">
+          <span>📄 {{ info.pages }}p</span>
           <span>🔧 {{ info.phases }}/9</span>
         </div>
-
-        <div class="h-1.5 bg-muted rounded-full overflow-hidden">
+        <div class="h-1.5 bg-muted/50 rounded-full overflow-hidden">
           <div
-            :class="[
-              'h-full rounded-full transition-all duration-700 ease-out',
-              key === 'completed' ? 'bg-success' : key === 'analyzing' ? 'bg-warning' : 'bg-info'
-            ]"
-            :style="{ width: `${(info.phases || 0) / 9 * 100}%` }"
+            :class="['h-full rounded-full transition-all duration-700 ease-out',
+              key === 'completed' ? '!bg-success' : key === 'analyzing' ? '!bg-warning' : '!bg-primary']"
+            :style="{ width: `${(info.phases || 0) / 9 * 100}%`, background: key === 'executing' ? 'var(--primary-gradient)' : '' }"
           />
         </div>
       </div>
 
-      <div v-if="!columns[key]?.length" class="py-6 text-center text-muted-foreground/40 text-xs italic">
-        Drop modules here
-      </div>
+      <div v-if="!columns[key]?.length" class="py-8 text-center text-muted-foreground/30 text-xs italic">Drop here</div>
     </div>
   </div>
 </template>

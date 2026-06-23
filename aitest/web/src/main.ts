@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { createI18n } from 'vue-i18n'
 import App from './App.vue'
 import './styles/tokens.css'
@@ -17,7 +17,7 @@ const i18n = createI18n({
 })
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes: [
     { path: '/', name: 'kanban', component: () => import('./views/KanbanView.vue') },
     { path: '/gaps', name: 'gaps', component: () => import('./views/GapDiscoveryView.vue') },
