@@ -1,0 +1,36 @@
+{
+  "name": "tlo-platform",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "TLO — Testing Lifecycle Orchestrator (Vue 3 + shadcn-vue)",
+  "scripts": {
+    "dev": "vite --port 5173",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.5",
+    "vue-router": "^4.4",
+    "pinia": "^2.1",
+    "@vueuse/core": "^10.11",
+    "@vueuse/integrations": "^10.11",
+    "radix-vue": "^1.9",
+    "class-variance-authority": "^0.7",
+    "clsx": "^2.1",
+    "tailwind-merge": "^2.5",
+    "lucide-vue-next": "^0.441",
+    "vee-validate": "^4.13",
+    "@vee-validate/zod": "^4.13",
+    "zod": "^3.23"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.1",
+    "vite": "^5.4",
+    "vue-tsc": "^2.1",
+    "typescript": "^5.5",
+    "tailwindcss": "^3.4",
+    "postcss": "^8.4",
+    "autoprefixer": "^10.4"
+  }
+}

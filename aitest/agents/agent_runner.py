@@ -90,6 +90,7 @@ class AgentLoop:
         deep_review: bool = True,   # ★ #6: code-consistency-checker 通过后触发 LLM 对抗性审查（默认开启）
         focused_context: str = None,  # ContextAgent 注入的精准 context（跳过全文读取）
         token_budget: int = None,     # ★ P2 RAG: Token 预算感知（默认 30000）
+        use_worktree: bool = False,   # 🆕 TLO: Git Worktree 隔离 (automation-agent 等写文件 Agent)
         **context,
     ):
         if agent_name not in AGENT_SKILL_MAP and agent_name not in DEV_AGENT_SKILL_MAP:
@@ -109,6 +110,8 @@ class AgentLoop:
         self.token_budget = token_budget or 30000  # ★ P2 RAG: Token 预算（默认 30k）
         self._review_triggered = False      # 防止重复触发
         self._interaction_queue: queue.Queue = queue.Queue()  # 交互式模式暂停通信
+        self.use_worktree = use_worktree    # 🆕 TLO: Worktree 隔离 (仅写文件 Agent)
+        self._worktree_ctx = None           # 🆕 TLO: 当前 Worktree 上下文
 
         module = context.get("module", "")
         page = context.get("page", "")
@@ -633,6 +636,18 @@ class AgentLoop:
           - 达到最大步数
           - Agent 决定中止
         """
+        # 🆕 TLO: Worktree 隔离 — 写文件 Agent 在独立 worktree 中执行
+        wt_mgr = None
+        if self.use_worktree:
+            from aitest.infra.worktree_manager import WorktreeManager
+            wt_mgr = WorktreeManager()
+            self._worktree_ctx = wt_mgr.create(
+                name=None,
+                agent=self.agent_name,
+            )
+            self._log(f"🔒 Worktree: {self._worktree_ctx.path}")
+            self._log(f"   分支: {self._worktree_ctx.branch} (from {self._worktree_ctx.base_branch})")
+
         self._log(f"🤖 Agent: {self.agent_name} | Provider: {self.provider}")
         self._log(f"  目标: {self.state.goal}")
         self._log(f"  Skill 链: {' → '.join(self.skills)}")
@@ -765,6 +780,21 @@ class AgentLoop:
             OnlineMonitor().record_run(self.module, metrics)
         except Exception:
             pass
+
+        # 🆕 TLO: Worktree cleanup — 成功则合并，失败则保留供检查
+        if wt_mgr and self._worktree_ctx:
+            has_writes = any(
+                s in self.state.completed_skills
+                for s in self.skills
+                if "automation" in s or "code" in s or "generator" in s or "page-object" in s
+            )
+            if self.state.success and has_writes:
+                self._worktree_ctx.mark_success()
+            wt_mgr.merge_and_cleanup(self._worktree_ctx)
+            self._log(
+                f"🔓 Worktree: {'merged ✅' if self._worktree_ctx.success else 'kept for inspection'}"
+                f" — {self._worktree_ctx.name}"
+            )
 
         return self.state
 
