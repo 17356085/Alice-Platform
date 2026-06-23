@@ -348,25 +348,58 @@ async def audit_governance(module: str = "equipment", days: int = 7):
 
 @app.get("/api/sop-status")
 async def sop_status_all():
-    """返回全部模块 SOP 状态 — 用于治理仪表板模块矩阵。"""
+    """返回全部模块 SOP 状态 — 用于 Kanban 看板。"""
     import json
     from pathlib import Path
+    from collections import OrderedDict
+
+    # SOP canonical phases (from agent-definitions.yaml)
+    SOP_PHASES = [
+        "Preflight", "Project Init", "Requirement", "Test Design",
+        "Automation", "Execute & Debug", "Bug Analysis",
+        "Data Sanitization", "Report", "Knowledge",
+    ]
+
     sop_dir = Path("governance/artifacts/sop-status")
-    modules = {}
+    modules = OrderedDict()
     for f in sorted(sop_dir.glob("SOP_STATUS_*.json")):
         mod = f.stem.replace("SOP_STATUS_", "")
         try:
             data = json.loads(f.read_text(encoding="utf-8"))
+            completed = data.get("completed_phases", [])
+            pages = data.get("pages_processed", [])
+            # Map actual phases to canonical list
+            phase_status = {p: (p in completed) for p in SOP_PHASES}
+            # Map status to SOP stage
+            status = data.get("status", "?")
+            if status == "completed":
+                stage = "complete"
+            elif status == "completed_with_issues":
+                stage = "analysis"
+            elif status == "ready":
+                stage = "automation"
+            elif status == "in_progress":
+                stage = "execution"
+            else:
+                stage = "init"
+
             modules[mod] = {
-                "status": data.get("status", "?"),
-                "phases": len(data.get("completed_phases", [])),
-                "pages": len(data.get("pages_processed", [])),
+                "status": status,
+                "stage": stage,
+                "phase_status": phase_status,
+                "phases_done": len(completed),
+                "phases_total": len(SOP_PHASES),
+                "pages": len(pages),
+                "pages_list": pages,
+                "artifacts": data.get("artifact_count", 0),
                 "failed": len(data.get("failed_phases", [])),
+                "run_id": data.get("run_id", ""),
                 "updated": data.get("updated_at", ""),
+                "note": (data.get("note", "") or "")[:80],
             }
         except Exception:
-            modules[mod] = {"status": "error", "phases": 0, "pages": 0, "failed": 0, "updated": ""}
-    return {"modules": modules, "total": len(modules)}
+            modules[mod] = {"status": "error", "stage": "init", "phase_status": {}, "phases_done": 0, "phases_total": 10, "pages": 0, "pages_list": [], "artifacts": 0, "failed": 0, "run_id": "", "updated": "", "note": ""}
+    return {"modules": modules, "total": len(modules), "sop_phases": SOP_PHASES}
 
 
 @app.get("/api/kpi/summary")
