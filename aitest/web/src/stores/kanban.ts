@@ -25,19 +25,18 @@ const SOP_COLS: { key: string; label: string; icon: string; idx: number }[] = [
 ]
 
 function computeStage(info: ModuleInfo, running: Set<string>): string {
-  // Find current phase: last completed phase determines which column
   if (!info.phase_status || Object.keys(info.phase_status).length === 0) return 'Project Init'
-  const phases = Object.entries(info.phase_status)
+  // If all phases done → Knowledge column
+  if (info.phases_done >= info.phases_total) return 'Knowledge'
   // Find last completed phase
-  let currentPhase = 'Project Init'
-  for (const [phase, done] of phases) {
-    if (done) currentPhase = phase
+  let current = 'Project Init'
+  for (const [phase, done] of Object.entries(info.phase_status)) {
+    if (done) current = phase
   }
-  // If running, show at the currently executing phase
   if (running.has(info._kanban_stage || '') && info.current_phase) {
-    return info.current_phase in info.phase_status ? info.current_phase : currentPhase
+    return info.current_phase in info.phase_status ? info.current_phase : current
   }
-  return currentPhase
+  return current
 }
 
 export const useKanbanStore = defineStore('kanban', () => {

@@ -49,11 +49,12 @@ function onDrop(stage: string) {
       @drop.prevent="onDrop(col.key)"
     >
       <!-- Column header -->
-      <div class="flex items-center gap-2 px-1.5">
-        <span class="text-sm">{{ col.icon }}</span>
-        <span class="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{{ col.label }}</span>
-        <span class="text-[9px] text-muted-foreground/40 hidden xl:inline">{{ col.phases.join(', ') }}</span>
-        <span class="ml-auto glass-card !rounded-full !px-2 !py-0.5 text-[10px] font-bold shadow-sm">{{ (columns[col.key] || []).length }}</span>
+      <div class="flex items-center gap-1.5 px-1 pb-2 border-b mb-1" style="border-color:var(--border)">
+        <span class="text-base">{{ col.icon }}</span>
+        <div>
+          <div class="text-[10px] font-bold uppercase tracking-wider leading-tight" :style="{color: 'var(--primary)'}">{{ col.label }}</div>
+        </div>
+        <span class="ml-auto text-[10px] font-bold opacity-40">{{ (columns[col.key] || []).length }}</span>
       </div>
 
       <!-- Cards -->

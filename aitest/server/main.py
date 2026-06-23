@@ -371,24 +371,27 @@ async def sop_status_all():
             pages = data.get("pages_processed", [])
             # Map actual phases to canonical list
             phase_status = {p: (p in completed) for p in SOP_PHASES}
-            # Map status to SOP stage
-            status = data.get("status", "?")
-            if status == "completed":
+            phases_done = len(completed)
+
+            # Stage: if all phases done → complete, otherwise use SOP_STATUS field
+            if phases_done >= len(SOP_PHASES):
                 stage = "complete"
-            elif status == "completed_with_issues":
-                stage = "analysis"
-            elif status == "ready":
-                stage = "automation"
-            elif status == "in_progress":
-                stage = "execution"
             else:
-                stage = "init"
+                status = data.get("status", "?")
+                if status == "completed" or status == "completed_with_issues":
+                    stage = "analysis" if status == "completed_with_issues" else "complete"
+                elif status == "ready":
+                    stage = "automation"
+                elif status == "in_progress":
+                    stage = "execution"
+                else:
+                    stage = "init"
 
             modules[mod] = {
                 "status": status,
                 "stage": stage,
                 "phase_status": phase_status,
-                "phases_done": len(completed),
+                "phases_done": phases_done,
                 "phases_total": len(SOP_PHASES),
                 "pages": len(pages),
                 "pages_list": pages,
