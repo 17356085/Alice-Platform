@@ -79,7 +79,7 @@ function onDrop(stage: string) {
 
         <!-- SOP phase dots -->
         <div class="flex gap-px mb-2">
-          <span v-for="(ok, phase) in info.phase_status" :key="phase"
+          <span v-for="(ok, phase) in (info.phase_status || {})" :key="phase"
             :class="['w-1 h-1 rounded-full flex-shrink-0', ok ? 'bg-success' : 'bg-muted-foreground/15']"
             :title="phase + (ok ? ' ✅' : '')" />
         </div>
