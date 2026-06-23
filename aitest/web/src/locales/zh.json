@@ -1,0 +1,93 @@
+{
+  "app": { "title": "TLO — 测试生命周期管理器", "subtitle": "Testing Lifecycle Orchestrator" },
+  "nav": {
+    "kanban": "看板", "gaps": "缺口发现", "chat": "智能对话",
+    "strategy": "策略规划", "execution": "执行监控", "reports": "测试报告",
+    "knowledge": "知识库", "settings": "设置"
+  },
+  "kanban": {
+    "refresh": "刷新", "loading": "加载中...",
+    "cols": {
+      "pending": "待开始", "planning": "策略制定中", "executing": "执行中",
+      "analyzing": "QA Loop 分析", "completed": "报告已生成"
+    },
+    "empty": "— 空 —",
+    "drag_hint": "拖拽模块到此处",
+    "phases": "{n}/9 阶段", "pages": "{n} 页面",
+    "status_completed": "✅ 完成", "status_issues": "⚠️ 有问题",
+    "status_ready": "📝 就绪", "status_executing": "▶️ 执行中", "status_pending": "⏳ 待开始"
+  },
+  "detail": {
+    "title": "模块详情", "progress": "生命周期进度",
+    "phases": "阶段", "pages": "页面", "failed": "失败",
+    "updated": "更新", "status": "状态",
+    "run_sop": "▶️ 运行 SOP", "report": "📊 报告"
+  },
+  "gaps": {
+    "title": "测试缺口发现",
+    "gaps_found": "{n} 个缺口 · {c} 严重 · {h} 高",
+    "dismiss_all": "全部忽略", "rescan": "🔄 重新扫描",
+    "scanning": "⏳ 扫描中...", "no_gaps": "未发现缺口",
+    "no_gaps_desc": "所有模块测试覆盖充足。",
+    "create_task": "创建任务", "dismiss": "忽略",
+    "types": {
+      "all": "全部", "missing_test": "缺失测试", "missing_type": "缺失类型",
+      "low_coverage": "覆盖不足", "flaky_test": "不稳定测试", "untested_component": "未测组件"
+    },
+    "severity": { "critical": "P0", "high": "P1", "medium": "P2", "low": "P3" }
+  },
+  "chat": {
+    "title": "智能测试对话",
+    "placeholder": "询问测试套件相关问题...",
+    "send": "发送",
+    "empty_title": "智能测试对话",
+    "empty_desc": "向 AI 询问测试套件问题。AI 可以搜索 TEST_CASES.md、trace 日志和 RAG 知识库。",
+    "suggestions": {
+      "coverage": "测试覆盖", "bugs": "Bug 趋势",
+      "security": "安全分析", "modules": "模块状态"
+    },
+    "new_chat": "+ 新建对话", "no_chats": "暂无对话",
+    "create_task": "创建任务"
+  },
+  "strategy": {
+    "title": "测试策略规划器",
+    "formula": "Risk_Score = diff(0.4) + defect_heat(0.35) + fail_rate(0.25)",
+    "table": {
+      "module": "模块", "risk": "风险分", "diff": "变更影响",
+      "defect": "缺陷热度", "pass": "通过率", "action": "建议"
+    },
+    "p0": "P0: 必须回归", "p1": "P1: 建议回归", "p2": "P2: 可选回归"
+  },
+  "execution": {
+    "title": "Agent 执行日志",
+    "refresh": "🔄 刷新",
+    "empty": "无执行记录。运行 aitest sop run 产生数据。",
+    "footer": "终端连接到 WebSocket /ws/kanban — 运行 aitest sop run 查看实时日志",
+    "clear": "清屏", "reconnect": "重连"
+  },
+  "reports": { "title": "测试报告" },
+  "knowledge": { "title": "知识库", "collections": "集合", "documents": "文档", "status": "状态" },
+  "settings": {
+    "title": "平台配置",
+    "provider": "LLM Provider",
+    "interval": "审计间隔 (秒)",
+    "save": "保存配置",
+    "saved": "配置已保存 (本地存储)"
+  },
+  "theme": {
+    "label": "主题",
+    "light": "亮色", "dark": "暗色"
+  },
+  "lang": {
+    "label": "语言",
+    "switch": "English"
+  },
+  "toast": {
+    "gap_discovered": "发现 {n} 个测试缺口",
+    "scan_failed": "扫描失败",
+    "task_created": "任务已创建: {title}",
+    "card_moved": "{mod}: {from} → {to}",
+    "ws_connected": "WebSocket 已连接",
+    "ws_disconnected": "已断开 — 3秒后重连..."
+  }
+}

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useKanbanWS } from '@/composables/useKanbanWS'
 
-defineProps<{ viewTitle: string }>()
+defineProps<{ viewTitle: string; subtitle?: string }>()
 const { connected } = useKanbanWS()
 </script>
 

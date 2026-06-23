@@ -1,0 +1,93 @@
+{
+  "app": { "title": "TLO — Testing Lifecycle Orchestrator", "subtitle": "Testing Lifecycle Orchestrator" },
+  "nav": {
+    "kanban": "Kanban", "gaps": "Gap Discovery", "chat": "Intelligence",
+    "strategy": "Strategy", "execution": "Execution", "reports": "Reports",
+    "knowledge": "Knowledge", "settings": "Settings"
+  },
+  "kanban": {
+    "refresh": "Refresh", "loading": "Loading...",
+    "cols": {
+      "pending": "Pending", "planning": "Planning", "executing": "Executing",
+      "analyzing": "QA Loop", "completed": "Completed"
+    },
+    "empty": "— Empty —",
+    "drag_hint": "Drop modules here",
+    "phases": "{n}/9 phases", "pages": "{n} pages",
+    "status_completed": "✅ Done", "status_issues": "⚠️ Issues",
+    "status_ready": "📝 Ready", "status_executing": "▶️ Running", "status_pending": "⏳ Pending"
+  },
+  "detail": {
+    "title": "Module Detail", "progress": "Lifecycle Progress",
+    "phases": "Phases", "pages": "Pages", "failed": "Failed",
+    "updated": "Updated", "status": "Status",
+    "run_sop": "▶️ Run SOP", "report": "📊 Report"
+  },
+  "gaps": {
+    "title": "Test Gap Discovery",
+    "gaps_found": "{n} gaps · {c} critical · {h} high",
+    "dismiss_all": "Dismiss All", "rescan": "🔄 Rescan",
+    "scanning": "⏳ Scanning...", "no_gaps": "No gaps found",
+    "no_gaps_desc": "All modules have adequate test coverage.",
+    "create_task": "Create Task", "dismiss": "Dismiss",
+    "types": {
+      "all": "All", "missing_test": "Missing Tests", "missing_type": "Missing Types",
+      "low_coverage": "Low Coverage", "flaky_test": "Flaky Tests", "untested_component": "Untested Components"
+    },
+    "severity": { "critical": "P0", "high": "P1", "medium": "P2", "low": "P3" }
+  },
+  "chat": {
+    "title": "Test Intelligence Chat",
+    "placeholder": "Ask about your test suite...",
+    "send": "Send",
+    "empty_title": "Test Intelligence Chat",
+    "empty_desc": "Ask AI about your test suite. It can search TEST_CASES.md, trace logs, and RAG knowledge base.",
+    "suggestions": {
+      "coverage": "Coverage", "bugs": "Bug Trends",
+      "security": "Security", "modules": "Module Status"
+    },
+    "new_chat": "+ New Chat", "no_chats": "No conversations yet",
+    "create_task": "Create Task"
+  },
+  "strategy": {
+    "title": "Test Strategy Planner",
+    "formula": "Risk_Score = diff(0.4) + defect_heat(0.35) + fail_rate(0.25)",
+    "table": {
+      "module": "Module", "risk": "Risk Score", "diff": "Change Impact",
+      "defect": "Defect Heat", "pass": "Pass Rate", "action": "Recommendation"
+    },
+    "p0": "P0: Must Test", "p1": "P1: Should Test", "p2": "P2: Optional"
+  },
+  "execution": {
+    "title": "Agent Execution Log",
+    "refresh": "🔄 Refresh",
+    "empty": "No execution records. Run aitest sop run to generate data.",
+    "footer": "Terminal connected to WebSocket /ws/kanban — run aitest sop run for live logs",
+    "clear": "clear", "reconnect": "reconnect"
+  },
+  "reports": { "title": "Test Reports" },
+  "knowledge": { "title": "Knowledge Base", "collections": "Collections", "documents": "Documents", "status": "Status" },
+  "settings": {
+    "title": "Platform Settings",
+    "provider": "LLM Provider",
+    "interval": "Audit Interval (seconds)",
+    "save": "Save Settings",
+    "saved": "Settings saved (local storage)"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light", "dark": "Dark"
+  },
+  "lang": {
+    "label": "Language",
+    "switch": "中文"
+  },
+  "toast": {
+    "gap_discovered": "{n} test gaps discovered",
+    "scan_failed": "Scan failed",
+    "task_created": "Task created: {title}",
+    "card_moved": "{mod}: {from} → {to}",
+    "ws_connected": "WebSocket connected",
+    "ws_disconnected": "Disconnected — retrying in 3s..."
+  }
+}
