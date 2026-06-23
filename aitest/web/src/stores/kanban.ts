@@ -10,23 +10,34 @@ interface ModuleInfo {
   progress?: number; current_phase?: string; _kanban_stage?: string
 }
 
-// SOP column definitions — aligned with agent-definitions.yaml phases
-const SOP_COLS: { key: string; label: string; icon: string; phases: string[] }[] = [
-  { key: 'init', label: 'Init', icon: '🔰', phases: ['Preflight', 'Project Init'] },
-  { key: 'design', label: 'Design', icon: '📝', phases: ['Requirement', 'Test Design'] },
-  { key: 'automation', label: 'Automation', icon: '⚙️', phases: ['Automation'] },
-  { key: 'execution', label: 'Execute', icon: '▶️', phases: ['Execute & Debug', 'Bug Analysis', 'Data Sanitization'] },
-  { key: 'complete', label: 'Complete', icon: '✅', phases: ['Report', 'Knowledge'] },
+// SOP 9 phases — one-to-one with agent-definitions.yaml full-sop orchestrator
+// (Preflight + Quality Gate excluded — they are gates, not agent phases)
+const SOP_COLS: { key: string; label: string; icon: string; idx: number }[] = [
+  { key: 'Project Init', label: '1. Project Init', icon: '🔰', idx: 0 },
+  { key: 'Requirement', label: '2. Requirement', icon: '📋', idx: 1 },
+  { key: 'Test Design', label: '3. Test Design', icon: '📝', idx: 2 },
+  { key: 'Automation', label: '4. Automation', icon: '⚙️', idx: 3 },
+  { key: 'Execute & Debug', label: '5. Execute', icon: '▶️', idx: 4 },
+  { key: 'Bug Analysis', label: '6. Bug Analysis', icon: '🔍', idx: 5 },
+  { key: 'Data Sanitization', label: '7. Sanitize', icon: '🧹', idx: 6 },
+  { key: 'Report', label: '8. Report', icon: '📊', idx: 7 },
+  { key: 'Knowledge', label: '9. Knowledge', icon: '🧠', idx: 8 },
 ]
 
 function computeStage(info: ModuleInfo, running: Set<string>): string {
-  if (running.has(info._kanban_stage || '') || info.stage === 'execution' && info.phases_done >= 5) return 'execution'
-  if (info._kanban_stage) return info._kanban_stage
-  if (info.stage === 'complete' || info.status === 'completed') return 'complete'
-  if (info.stage === 'analysis' || info.status === 'completed_with_issues') return 'execution'
-  if (info.stage === 'automation' || info.status === 'ready') return 'automation'
-  if (info.phases_done >= 3) return 'design'
-  return 'init'
+  // Find current phase: last completed phase determines which column
+  if (!info.phase_status || Object.keys(info.phase_status).length === 0) return 'Project Init'
+  const phases = Object.entries(info.phase_status)
+  // Find last completed phase
+  let currentPhase = 'Project Init'
+  for (const [phase, done] of phases) {
+    if (done) currentPhase = phase
+  }
+  // If running, show at the currently executing phase
+  if (running.has(info._kanban_stage || '') && info.current_phase) {
+    return info.current_phase in info.phase_status ? info.current_phase : currentPhase
+  }
+  return currentPhase
 }
 
 export const useKanbanStore = defineStore('kanban', () => {

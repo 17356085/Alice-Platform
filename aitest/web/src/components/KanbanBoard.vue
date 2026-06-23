@@ -12,9 +12,15 @@ const emit = defineEmits<{ 'card-move': [mod: string, from: string, to: string];
 const dragMod = ref(''); const dragFrom = ref(''); const dragOverCol = ref('')
 
 const colBg: Record<string, string> = {
-  init: 'bg-slate-50/50 dark:bg-slate-950/20', design: 'bg-blue-50/50 dark:bg-blue-950/20',
-  automation: 'bg-amber-50/50 dark:bg-amber-950/20', execution: 'bg-purple-50/50 dark:bg-purple-950/20',
-  complete: 'bg-emerald-50/50 dark:bg-emerald-950/20',
+  'Project Init': 'bg-slate-50/50 dark:bg-slate-950/20',
+  'Requirement': 'bg-blue-50/50 dark:bg-blue-950/20',
+  'Test Design': 'bg-indigo-50/50 dark:bg-indigo-950/20',
+  'Automation': 'bg-amber-50/50 dark:bg-amber-950/20',
+  'Execute & Debug': 'bg-purple-50/50 dark:bg-purple-950/20',
+  'Bug Analysis': 'bg-red-50/50 dark:bg-red-950/20',
+  'Data Sanitization': 'bg-teal-50/50 dark:bg-teal-950/20',
+  'Report': 'bg-emerald-50/50 dark:bg-emerald-950/20',
+  'Knowledge': 'bg-cyan-50/50 dark:bg-cyan-950/20',
 }
 
 function onDragStart(e: DragEvent, mod: string, stage: string) {
@@ -34,9 +40,9 @@ function onDrop(stage: string) {
 </script>
 
 <template>
-  <div class="grid grid-cols-5 gap-4 min-h-[calc(100vh-180px)] max-lg:grid-cols-3 max-md:grid-cols-1">
+  <div class="flex gap-3 overflow-x-auto pb-3 min-h-[calc(100vh-180px)]" style="scroll-snap-type:x mandatory">
     <div v-for="col in store.SOP_COLS" :key="col.key"
-      :class="['rounded-2xl p-3.5 flex flex-col gap-2.5 transition-all duration-300 border-2',
+      :class="['rounded-2xl p-2.5 flex flex-col gap-2 transition-all duration-300 border-2 flex-shrink-0 w-[170px]',
         dragOverCol === col.key ? 'scale-[1.02] border-dashed border-ring shadow-lg ' + (colBg[col.key]||'') : 'border-transparent ' + (colBg[col.key]||'')]"
       @dragover.prevent="dragOverCol = col.key"
       @dragleave.prevent="dragOverCol = dragOverCol === col.key ? '' : dragOverCol"
@@ -57,7 +63,7 @@ function onDrop(stage: string) {
         @dragstart="onDragStart($event, mod, col.key)"
         @dragend="onDragEnd"
         @click="emit('card-click', mod, info)"
-        class="glass-card !rounded-xl p-4 cursor-grab active:cursor-grabbing select-none transition-all duration-200 group"
+        class="glass-card !rounded-lg p-2.5 cursor-grab active:cursor-grabbing select-none transition-all duration-200 group"
       >
         <!-- Module name + status -->
         <div class="flex items-start justify-between mb-2">
@@ -72,20 +78,15 @@ function onDrop(stage: string) {
         </div>
 
         <!-- SOP phase dots -->
-        <div class="flex gap-0.5 mb-2.5">
-          <span
-            v-for="(ok, phase) in info.phase_status" :key="phase"
-            :class="['w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors',
-              ok ? 'bg-success' : 'bg-muted-foreground/20']"
-            :title="phase + (ok ? ' ✅' : '')"
-          />
+        <div class="flex gap-px mb-2">
+          <span v-for="(ok, phase) in info.phase_status" :key="phase"
+            :class="['w-1 h-1 rounded-full flex-shrink-0', ok ? 'bg-success' : 'bg-muted-foreground/15']"
+            :title="phase + (ok ? ' ✅' : '')" />
         </div>
-
-        <!-- Meta row -->
-        <div class="flex gap-3 text-[11px] text-muted-foreground mb-2.5">
-          <span>📄 {{ info.pages }}p</span>
-          <span>📦 {{ info.artifacts || 0 }}</span>
-          <span class="ml-auto font-mono">{{ info.phases_done }}/{{ info.phases_total }}</span>
+        <div class="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground mb-2">
+          <span>📄{{ info.pages }}</span>
+          <span>📦{{ info.artifacts || 0 }}</span>
+          <span class="font-mono">{{ info.phases_done }}/{{ info.phases_total }}</span>
         </div>
 
         <!-- Progress bar -->

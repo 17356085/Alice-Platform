@@ -353,9 +353,10 @@ async def sop_status_all():
     from pathlib import Path
     from collections import OrderedDict
 
-    # SOP canonical phases (from agent-definitions.yaml)
+    # SOP 9 phases — one-to-one with agent-definitions.yaml orchestrator
+    # (Preflight + Quality Gate excluded — gates, not agent phases)
     SOP_PHASES = [
-        "Preflight", "Project Init", "Requirement", "Test Design",
+        "Project Init", "Requirement", "Test Design",
         "Automation", "Execute & Debug", "Bug Analysis",
         "Data Sanitization", "Report", "Knowledge",
     ]
