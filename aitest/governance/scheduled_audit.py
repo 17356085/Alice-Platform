@@ -25,20 +25,15 @@ CONTEXT_MODULES = get_context_modules()
 
 # 默认审计间隔（秒）
 DEFAULT_INTERVAL = 86400  # 24h
-# 默认审计模块（自动发现）
-DEFAULT_MODULES = [
-    "equipment", "system", "personnel", "warehouse",
-    "tank", "sales", "lab", "production", "workflow",
-]
 
 
 def discover_modules() -> list[str]:
-    """从 context 目录自动发现模块列表。"""
+    """从 context 目录自动发现模块列表（不再使用硬编码回退）。"""
     if not CONTEXT_MODULES.exists():
-        return DEFAULT_MODULES
+        return []
     return sorted([
         d.name for d in CONTEXT_MODULES.iterdir()
-        if d.is_dir() and not d.name.startswith(".") and not d.name.startswith("_")
+        if d.is_dir() and not d.name.startswith(".") and not d.name.startswith("_") and not d.name == "pages"
     ])
 
 

@@ -27,6 +27,7 @@ from aitest.server.api.workflows import workflows_router
 from aitest.server.api.bugs import bugs_router
 from aitest.server.api.chat import chat_router
 from aitest.server.api.sessions_api import router as sessions_router
+from aitest.server.api.onboarding import onboarding_router
 
 
 @asynccontextmanager
@@ -361,48 +362,51 @@ async def sop_status_all():
         "Data Sanitization", "Report", "Knowledge",
     ]
 
-    sop_dir = Path(__file__).resolve().parent.parent.parent / "governance" / "artifacts" / "sop-status"
+    # Read from per-project sop-status directory only.
+    # Legacy flat dir is NOT used as fallback — user must onboard modules fresh.
+    from aitest.platform.context import get_active_project_id
+    project_id = get_active_project_id()
+    base = Path(__file__).resolve().parent.parent.parent
+    sop_dir = base / "governance" / "artifacts" / "sop-status" / project_id
+    sop_dir.mkdir(parents=True, exist_ok=True)
     modules = OrderedDict()
     for f in sorted(sop_dir.glob("SOP_STATUS_*.json")):
         mod = f.stem.replace("SOP_STATUS_", "")
         try:
             data = json.loads(f.read_text(encoding="utf-8"))
-            completed = data.get("completed_phases", [])
-            pages = data.get("pages_processed", [])
-            # Map actual phases to canonical list
-            phase_status = {p: (p in completed) for p in SOP_PHASES}
-            phases_done = len(completed)
-
-            # Stage: if all phases done → complete, otherwise use SOP_STATUS field
-            if phases_done >= len(SOP_PHASES):
-                stage = "complete"
-            else:
-                status = data.get("status", "?")
-                if status == "completed" or status == "completed_with_issues":
-                    stage = "analysis" if status == "completed_with_issues" else "complete"
-                elif status == "ready":
-                    stage = "automation"
-                elif status == "in_progress":
-                    stage = "execution"
-                else:
-                    stage = "init"
-
-            modules[mod] = {
-                "status": status,
-                "stage": stage,
-                "phase_status": phase_status,
-                "phases_done": phases_done,
-                "phases_total": len(SOP_PHASES),
-                "pages": len(pages),
-                "pages_list": pages,
-                "artifacts": data.get("artifact_count", 0),
-                "failed": len(data.get("failed_phases", [])),
-                "run_id": data.get("run_id", ""),
-                "updated": data.get("updated_at", ""),
-                "note": (data.get("note", "") or "")[:80],
-            }
         except Exception:
-            modules[mod] = {"status": "error", "stage": "init", "phase_status": {}, "phases_done": 0, "phases_total": 10, "pages": 0, "pages_list": [], "artifacts": 0, "failed": 0, "run_id": "", "updated": "", "note": ""}
+            modules[mod] = {"status": "error", "stage": "init", "phase_status": {}, "phases_done": 0, "phases_total": len(SOP_PHASES), "pages": 0, "pages_list": [], "artifacts": 0, "failed": 0, "run_id": "", "updated": "", "note": ""}
+            continue
+        completed = data.get("completed_phases", [])
+        pages = data.get("pages_processed", [])
+        phase_status = {p: (p in completed) for p in SOP_PHASES}
+        phases_done = len(completed)
+        if phases_done >= len(SOP_PHASES):
+            stage = "complete"
+        else:
+            status = data.get("status", "?")
+            if status == "completed" or status == "completed_with_issues":
+                stage = "analysis" if status == "completed_with_issues" else "complete"
+            elif status == "ready":
+                stage = "automation"
+            elif status == "in_progress":
+                stage = "execution"
+            else:
+                stage = "init"
+        modules[mod] = {
+            "status": data.get("status", "?"),
+            "stage": stage,
+            "phase_status": phase_status,
+            "phases_done": phases_done,
+            "phases_total": len(SOP_PHASES),
+            "pages": len(pages),
+            "pages_list": pages,
+            "artifacts": data.get("artifact_count", 0),
+            "failed": len(data.get("failed_phases", [])),
+            "run_id": data.get("run_id", ""),
+            "updated": data.get("updated_at", ""),
+            "note": (data.get("note", "") or "")[:80],
+        }
     return {"modules": modules, "total": len(modules), "sop_phases": SOP_PHASES}
 
 
@@ -449,6 +453,7 @@ app.include_router(workflows_router)
 app.include_router(bugs_router)
 app.include_router(chat_router)
 app.include_router(sessions_router)
+app.include_router(onboarding_router)
 
 # 静态文件 + Chat UI
 _STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -574,10 +579,19 @@ async def sop_start(request: Request):
     }
 
 
+def _get_sop_status_dir() -> Path:
+    """Resolve per-project SOP_STATUS directory, creating if needed."""
+    from aitest.platform.context import get_active_project_id
+    base = Path(__file__).resolve().parent.parent.parent
+    d = base / "governance" / "artifacts" / "sop-status" / get_active_project_id()
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
 def _update_module_phase(module: str, phase: str, status: str, progress: int):
-    """后台更新 SOP_STATUS 文件。"""
+    """后台更新 SOP_STATUS 文件——写入 per-project 目录。"""
     import json as _j
-    sop_dir = Path(__file__).resolve().parent.parent.parent / "governance" / "artifacts" / "sop-status"
+    sop_dir = _get_sop_status_dir()
     status_file = sop_dir / f"SOP_STATUS_{module}.json"
     if status_file.exists():
         try:
@@ -637,9 +651,9 @@ async def kanban_status():
 
 
 def _update_module_stage(module: str, new_stage: str):
-    """更新模块 SOP_STATUS 的阶段标记（卡片拖拽后持久化）。"""
+    """更新模块 SOP_STATUS 的阶段标记（卡片拖拽后持久化）——写入 per-project 目录。"""
     import json as _j
-    sop_dir = Path(__file__).resolve().parent.parent.parent / "governance" / "artifacts" / "sop-status"
+    sop_dir = _get_sop_status_dir()
     status_file = sop_dir / f"SOP_STATUS_{module}.json"
     if not status_file.exists():
         return

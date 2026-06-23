@@ -3,7 +3,7 @@ version: 0.4
 projects:
   - id: web-automation
     name: Web 自动化测试项目
-    root_path: d:\Desktop\WorkStudy\ZJSN_Test-master526
+    root_path: d:\Desktop\WorkStudy2\ZJSN_Test-master526
     legacy_context_path: d:\Desktop\WorkStudy\TestIntern_library\02-项目文档\contexts
     status: active
     module_strategy: by-test-module
@@ -16,7 +16,6 @@ projects:
       - sales
       - system-management
       - system-role
-      - system-user
       - tank
       - warehouse
       - workflow

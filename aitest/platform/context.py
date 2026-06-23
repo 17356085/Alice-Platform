@@ -70,8 +70,10 @@ def get_active_project_id() -> str:
     env_id = os.environ.get("AITEST_PROJECT")
     if env_id:
         return env_id
-    # Fall back to first discovered project, then web-automation
+    # Fall back: prefer web-automation if available, else first discovered project
     projects = _scan_projects()
+    if "web-automation" in projects:
+        return "web-automation"
     if projects:
         return projects[0]
     return "web-automation"
