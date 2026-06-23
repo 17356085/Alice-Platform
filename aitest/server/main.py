@@ -18,7 +18,7 @@ if sys.platform == "win32":
 
 from contextlib import asynccontextmanager
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from aitest.server.api.agents import agents_router
@@ -148,17 +148,12 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    """Dashboard landing page — demo entry point."""
-    dashboard_html = _STATIC_DIR / "dashboard.html"
-    if dashboard_html.exists():
-        from fastapi.responses import HTMLResponse
-        return HTMLResponse(dashboard_html.read_text(encoding="utf-8"))
+    """API root — Vue 3 SPA is the frontend (see aitest/web/)."""
     return {
-        "name": "AITest Platform",
-        "version": "0.5.0",
+        "name": "TLO Platform",
+        "version": "1.0.0",
+        "frontend": "aitest/web/ (Vue 3 + shadcn-vue)",
         "docs": "/docs",
-        "chat": "/chat",
-        "trace": "/trace",
     }
 
 
@@ -424,44 +419,6 @@ _STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
 
-@app.get("/chat")
-async def chat_ui():
-    """Chat 聊天界面。"""
-    chat_html = _STATIC_DIR / "chat.html"
-    if chat_html.exists():
-        from fastapi.responses import HTMLResponse
-        return HTMLResponse(chat_html.read_text(encoding="utf-8"))
-    return {"message": f"chat.html not found at {_STATIC_DIR}. Run: aitest server start"}
-
-
-@app.get("/trace")
-async def trace_ui():
-    """Trace 回放界面。"""
-    trace_html = _STATIC_DIR / "trace.html"
-    if trace_html.exists():
-        from fastapi.responses import HTMLResponse
-        return HTMLResponse(trace_html.read_text(encoding="utf-8"))
-    return {"message": f"trace.html not found at {_STATIC_DIR}"}
-
-
-@app.get("/governance")
-async def governance_ui():
-    """治理仪表板界面。"""
-    gov_html = _STATIC_DIR / "governance.html"
-    if gov_html.exists():
-        from fastapi.responses import HTMLResponse
-        return HTMLResponse(gov_html.read_text(encoding="utf-8"))
-    return {"message": f"governance.html not found at {_STATIC_DIR}"}
-
-
-@app.get("/tlo")
-async def tlo_ui():
-    """TLO — Testing Lifecycle Orchestrator 界面。"""
-    tlo_html = _STATIC_DIR / "tlo.html"
-    if tlo_html.exists():
-        from fastapi.responses import HTMLResponse
-        return HTMLResponse(tlo_html.read_text(encoding="utf-8"))
-    return {"message": f"tlo.html not found at {_STATIC_DIR}"}
 
 
 # ══════════════════════════════════════════════════════════════════════════
