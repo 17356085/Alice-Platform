@@ -9,8 +9,14 @@
 # 修改 Agent 行为时，只修改此文件。
 # 运行 python -m aitest.check_agent_drift 检测派生文件是否过期。
 
-version: "2.0"
-last_updated: "2026-06-17"
+version: "2.1"
+last_updated: "2026-06-23"
+
+# ═══════════════════════════════════════════════════════
+# TLO (Testing Lifecycle Orchestrator) — Agent 体系
+#  8 阶段生命周期: 需求分析 → 策略制定 → 用例设计 → 自动化开发
+#                   → 环境准备 → 测试执行 → 失败分析 → 报告生成 → 回归推荐
+# ═══════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════
 # 横向贯穿 Skill（所有 Agent 可用，不绑定特定 Agent）
@@ -29,6 +35,7 @@ agents:
     name: 项目 Agent
     category: project
     phase: "0"
+    lifecycle_stage: "项目初始化"
     description: 项目初始化、上下文管理、文档审计、目录卫生
     system_prompt_role: 资深测试项目架构师
     trigger_keywords:
@@ -58,10 +65,12 @@ agents:
   # ② Requirement Agent — Phase 0.5~0.8
   # ═══════════════════════════════════════════════════════
   requirement-agent:
-    name: 需求 Agent
+    name: Requirement Analyst (需求分析师)
     category: requirements
-    phase: "0.5~0.8"
-    description: 模块建模、需求分析
+    phase: "1"
+    lifecycle_stage: "需求分析"
+    tlo_name: Requirement Analyst
+    description: 理解业务需求、识别测试对象、生成测试目标。TLO 生命周期阶段 1。
     system_prompt_role: 资深需求分析师 + 测试架构师
     trigger_keywords:
       - 分析XX模块
@@ -82,10 +91,12 @@ agents:
   # ③ Test Design Agent — Phase 1~2.5
   # ═══════════════════════════════════════════════════════
   test-design-agent:
-    name: 测试设计 Agent
+    name: Test Strategy Agent (测试策略师)
     category: test-design
-    phase: "1~2.5"
-    description: 页面分析、风险建模、业务场景建模（P2-5）、测试用例设计（UI操作覆盖 + 业务场景覆盖双维度）
+    phase: "2"
+    lifecycle_stage: "策略制定"
+    tlo_name: Test Strategy Agent
+    description: 测试策略生成——Smoke / Regression / Boundary / Negative / Security 五类策略。TLO 生命周期阶段 2。
     system_prompt_role: 资深测试分析师 + 质量风险专家 + 业务分析专家
     trigger_keywords:
       - 看看.*页面.*元素
@@ -125,10 +136,12 @@ agents:
   # ④ Automation Agent — Phase 3~4
   # ═══════════════════════════════════════════════════════
   automation-agent:
-    name: 自动化 Agent
+    name: Automation Developer (自动化开发工程师)
     category: automation
-    phase: "3~4"
-    description: 技术分析、定位器设计、自动化策略、PageObject/测试脚本生成、代码合规检查、失败自动修复
+    phase: "4"
+    lifecycle_stage: "自动化开发"
+    tlo_name: Automation Developer
+    description: 技术分析 → 定位器设计 → PageObject/测试脚本生成 → Worktree 验证。TLO 生命周期阶段 4。
     system_prompt_role: 资深 Selenium + pytest 自动化开发专家
     trigger_keywords:
       - 这个按钮.*定位
@@ -173,10 +186,12 @@ agents:
   # ⑤ Execution Agent — Phase 4.5~7
   # ═══════════════════════════════════════════════════════
   execution-agent:
-    name: 执行 Agent
+    name: Execution Agent (执行工程师)
     category: execution
-    phase: "4.5~7"
-    description: 测试执行、Allure 报告收集
+    phase: "6"
+    lifecycle_stage: "测试执行"
+    tlo_name: Execution Agent
+    description: 测试执行——Browser / API / Selenium / BrowserUse 多驱动。TLO 生命周期阶段 6。
     system_prompt_role: 资深测试执行工程师
     trigger_keywords:
       - 运行.*测试
@@ -196,10 +211,12 @@ agents:
   # ⑥ Bug Analysis Agent — Phase 4.5~7
   # ═══════════════════════════════════════════════════════
   bug-analysis-agent:
-    name: Bug 分析 Agent
+    name: Failure Analyst (失败分析师)
     category: diagnosis
-    phase: "4.5~7"
-    description: 失败根因分析、CI 诊断、批量失败分类
+    phase: "7"
+    lifecycle_stage: "失败分析"
+    tlo_name: Failure Analyst
+    description: 失败深度分析——截图→DOM→Console→Network→LLM→根因分类。TLO 核心差异化能力。TLO 生命周期阶段 7。
     system_prompt_role: 资深测试诊断专家 + CI 工程师
     trigger_keywords:
       - 这个用例.*挂
@@ -226,10 +243,12 @@ agents:
   # ⑦ Report Agent — Phase 8~9
   # ═══════════════════════════════════════════════════════
   report-agent:
-    name: 报告 Agent
+    name: Report Agent (报告工程师)
     category: reporting
-    phase: "8~9"
-    description: 测试总结、进度报告、Excel 导出
+    phase: "8"
+    lifecycle_stage: "报告生成"
+    tlo_name: Report Agent
+    description: 测试报告生成——Markdown / HTML / Allure / Excel (每页面)。TLO 生命周期阶段 8。
     system_prompt_role: 资深测试报告分析师
     trigger_keywords:
       - 生成.*报告
@@ -254,6 +273,102 @@ agents:
           description: 生成进度报告
       - excel:
           description: 导出综合 Excel（TEST_CASES + Allure 结果合并）
+
+  # ═══════════════════════════════════════════════════════
+  # 🆕 Test Designer Agent — Phase 3 (Spec Pipeline)
+  # ═══════════════════════════════════════════════════════
+  test-designer:
+    name: Test Designer (测试设计器)
+    category: test-design
+    phase: "3"
+    lifecycle_stage: "用例设计"
+    tlo_name: Test Designer
+    description: Spec Pipeline 四阶段测试用例设计——Gatherer→Researcher→Writer→Critic。借鉴 Aperant spec pipeline 模式，适配测试领域。
+    system_prompt_role: 资深测试用例设计师 + 质量评审专家
+    trigger_keywords:
+      - 设计测试用例
+      - 测试用例评审
+      - Spec Pipeline
+      - 生成测试方案
+    skills:
+      - test-design/spec-gatherer       # 🆕 收集需求+页面截图+API Schema+历史缺陷
+      - test-design/spec-researcher     # 🆕 风险分析: 识别高风险区域+边界条件+安全漏洞面
+      - test-design/spec-writer         # 🆕 产出测试用例: 步骤+预期+优先级+数据+标签
+      - test-design/spec-critic         # 🆕 用例评审: 重复检测+覆盖率缺口+可执行性验证
+    output_artifacts:
+      - SPEC_GATHERER_REPORT.md
+      - RISK_ANALYSIS.md
+      - TEST_SPEC.md
+      - CRITIC_REVIEW.md
+    boundaries:
+      - 使用 4 个 Skill 串行执行（非 4 个独立 Agent）
+      - 不写代码
+      - 不执行测试
+    context_files:
+      - shared-language
+      - project-profile
+      - test-data-policy
+
+  # ═══════════════════════════════════════════════════════
+  # 🆕 Environment Preparer Agent — Phase 5
+  # ═══════════════════════════════════════════════════════
+  environment-preparer:
+    name: Environment Preparer (环境准备师)
+    category: execution
+    phase: "5"
+    lifecycle_stage: "环境准备"
+    tlo_name: Environment Preparer
+    description: 测试环境就绪检查——数据准备、账号验证、浏览器状态、被测系统可达性。
+    system_prompt_role: 资深测试环境工程师
+    trigger_keywords:
+      - 准备测试环境
+      - 环境检查
+      - 数据准备
+    skills:
+      - execution/data-preparer         # 🆕 测试数据生成/清理
+      - execution/env-checker           # 🆕 账号+浏览器+系统可达性
+    boundaries:
+      - 不执行测试用例
+      - 不修改业务代码
+    context_files:
+      - shared-language
+      - test-data-policy
+      - environments
+    modes:
+      - quick:
+          description: 快速可达性检查
+      - full:
+          description: 完整环境准备（数据清理+重建+验证）
+
+  # ═══════════════════════════════════════════════════════
+  # 🆕 Regression Advisor Agent — Phase 9 (闭环反馈)
+  # ═══════════════════════════════════════════════════════
+  regression-advisor:
+    name: Regression Advisor (回归顾问)
+    category: knowledge
+    phase: "9"
+    lifecycle_stage: "回归推荐"
+    tlo_name: Regression Advisor
+    description: 基于代码变更 + 历史缺陷 + 执行结果 → 推荐回归测试范围。TLO 闭环反馈最后一环。
+    system_prompt_role: 资深质量策略顾问
+    trigger_keywords:
+      - 回归测试范围
+      - 哪些模块需要回归
+      - 变更影响分析
+    skills:
+      - knowledge/regression-scope      # 🆕 代码变更→影响模块→推荐回归范围
+      - knowledge/knowledge-manager     # 复用: 知识提取+沉淀
+    boundaries:
+      - 不执行测试
+      - 不修改代码
+    context_files:
+      - shared-language
+      - project-profile
+    modes:
+      - diff:
+          description: 基于 Git diff 推荐回归范围
+      - history:
+          description: 基于历史缺陷推荐高风险区域
 
   # ═══════════════════════════════════════════════════════
   # ⑧ Knowledge Agent — 横向贯穿
@@ -290,53 +405,78 @@ agents:
   # Full SOP — 编排器（非独立 Agent）
   # ═══════════════════════════════════════════════════════
   full-sop:
-    name: 全流程编排器
+    name: TLO Lifecycle Orchestrator (测试生命周期编排器)
     category: orchestrator
-    description: 端到端 SOP 编排，按规范 Phase 顺序自动串联 8 个 Agent。Phase 名称与 aitest/graphs/state.py CANONICAL_PHASES 一致。
+    description: Testing Lifecycle Orchestrator — 8 阶段测试生命周期全流程编排。Phase 名称与 aitest/graphs/state.py CANONICAL_PHASES 一致。
     is_orchestrator: true
     phases:
-      - phase: Preflight
-        agent: null
-        canonical: null
-        description: 前置检查 + 断点恢复（隐式阶段，不在 CANONICAL_PHASES 中）
-      - phase: Project Init
-        agent: project-agent
-        condition: PROJECT_CONTEXT 缺失时
-      - phase: Requirement
+      - stage: 1
+        phase: 需求分析
         agent: requirement-agent
-        note: 旧名 "Module Modeling"
-      - phase: Test Design
+        tlo_name: Requirement Analyst
+        description: 理解业务需求 → 识别测试对象 → 生成测试目标
+      - stage: 2
+        phase: 策略制定
         agent: test-design-agent
+        tlo_name: Test Strategy Agent
+        description: 生成 Smoke / Regression / Boundary / Negative / Security 测试策略
+      - stage: 3
+        phase: 用例设计
+        agent: test-designer
+        tlo_name: Test Designer
         per_page: true
-        note: P2-5 — 产出 BUSINESS_SCENARIOS.md + 9 维度 TEST_DESIGN（含业务场景验证）
-      - phase: Testcase Quality Gate
+        description: "Spec Pipeline: Gatherer → Researcher → Writer → Critic"
+      - stage: 3-gate
+        phase: 用例质量门禁
         agent: null
-        canonical: null
-        description: P2-5 L3 Validator — BSC Score 门禁，score<60 打回 Test Design 重做
         gate: TESTCASE_QUALITY_GATE
         max_rounds: 2
-      - phase: Automation
+        description: Critic score<60 打回 Test Designer 重做
+      - stage: 4
+        phase: 自动化开发
         agent: automation-agent
+        tlo_name: Automation Developer
         per_page: true
-      - phase: Execute & Debug
+        description: PageObject/测试脚本生成 → Worktree 隔离验证 → 合并
+      - stage: 5
+        phase: 环境准备
+        agent: environment-preparer
+        tlo_name: Environment Preparer
+        description: 测试数据/账号/浏览器/被测系统可达性检查
+      - stage: 6
+        phase: 测试执行
         agent: execution-agent
-        on_failure: bug-analysis-agent → automation-agent(fix)
+        tlo_name: Execution Agent
+        description: Browser / API / Selenium / BrowserUse 执行
+        on_failure: failure-analyst → automation-developer(fix)
         max_rounds: 3
-      - phase: Bug Analysis
+      - stage: 7
+        phase: 失败分析
         agent: bug-analysis-agent
+        tlo_name: Failure Analyst
         condition: execution_failed
         max_rounds: 3
-      - phase: Data Sanitization
+        description: 截图→DOM→Console→Network→LLM 根因分析。QA Loop 入口。
+      - stage: 7-loop
+        phase: QA Loop
         agent: null
-        description: scan_and_clean.py --force 离线扫描清理残留数据
-      - phase: Report
+        description: Failure Analyst → Automation Developer (fix) → Execution Agent (re-run) → 通过/升级
+        max_rounds: 3
+      - stage: 8
+        phase: 报告生成
         agent: report-agent
-      - phase: Knowledge
-        agent: knowledge-agent
+        tlo_name: Report Agent
+        description: Markdown / HTML / Allure / Excel (每页面)
+      - stage: 9
+        phase: 回归推荐
+        agent: regression-advisor
+        tlo_name: Regression Advisor
+        description: 代码变更 + 历史缺陷 → 推荐回归范围
     modes:
       - full
       - resume
       - status
       - from-requirement
-      - from-test-design
+      - from-strategy
+      - from-design
       - from-automation

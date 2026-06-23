@@ -454,6 +454,16 @@ async def governance_ui():
     return {"message": f"governance.html not found at {_STATIC_DIR}"}
 
 
+@app.get("/tlo")
+async def tlo_ui():
+    """TLO — Testing Lifecycle Orchestrator 界面。"""
+    tlo_html = _STATIC_DIR / "tlo.html"
+    if tlo_html.exists():
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(tlo_html.read_text(encoding="utf-8"))
+    return {"message": f"tlo.html not found at {_STATIC_DIR}"}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

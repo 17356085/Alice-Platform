@@ -218,6 +218,62 @@ skills:
   note: 无 SOP 图调用路径。小程序测试为独立项目。
   risk_level: medium
   needs_confirm: false
+- id: spec-gatherer
+  category: test-design
+  status: active
+  file: skills/test-design/spec-gatherer.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/test-design/spec-gatherer.md
+    released: '2026-06-23'
+    changelog: "TLO Spec Pipeline 阶段 1 — 需求材料收集"
+    status: active
+  note: "Test Designer Agent 调用。阶段 1/4: 收集需求+页面+API+缺陷"
+  risk_level: low
+  needs_confirm: false
+- id: spec-researcher
+  category: test-design
+  status: active
+  file: skills/test-design/spec-researcher.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/test-design/spec-researcher.md
+    released: '2026-06-23'
+    changelog: "TLO Spec Pipeline 阶段 2 — 风险分析"
+    status: active
+  note: "Test Designer Agent 调用。阶段 2/4: 高风险区域+边界+安全+Element Plus 陷阱"
+  risk_level: low
+  needs_confirm: false
+- id: spec-writer
+  category: test-design
+  status: active
+  file: skills/test-design/spec-writer.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/test-design/spec-writer.md
+    released: '2026-06-23'
+    changelog: "TLO Spec Pipeline 阶段 3 — 测试用例生成"
+    status: active
+  note: "Test Designer Agent 调用。阶段 3/4: 五类场景≥10用例/页面"
+  risk_level: low
+  needs_confirm: false
+- id: spec-critic
+  category: test-design
+  status: active
+  file: skills/test-design/spec-critic.md
+  current_version: '1.0'
+  versions:
+  - version: '1.0'
+    file: skills/test-design/spec-critic.md
+    released: '2026-06-23'
+    changelog: "TLO Spec Pipeline 阶段 4 — 用例质量评审+门禁"
+    status: active
+  note: "Test Designer Agent 调用。阶段 4/4: score<60 打回重做。质量门禁角色。"
+  risk_level: low
+  needs_confirm: false
 - id: tech-analysis
   category: automation
   status: active
