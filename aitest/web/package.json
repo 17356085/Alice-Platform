@@ -4,10 +4,16 @@
   "private": true,
   "type": "module",
   "description": "TLO — Testing Lifecycle Orchestrator (Vue 3 + shadcn-vue)",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron:dev": "vite & sleep 3 && electron electron/main.js",
+    "electron:build": "vite build && electron-builder",
+    "electron:win": "vite build && electron-builder --win",
+    "electron:mac": "vite build && electron-builder --mac",
+    "electron:linux": "vite build && electron-builder --linux"
   },
   "dependencies": {
     "vue": "^3.5",

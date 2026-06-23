@@ -1,0 +1,192 @@
+/* ═══════════════════════════════════════════════════════════════
+   TLO Multi-Theme System — 8 themes × 2 modes = 16 color schemes
+   Ported from Aperant globals.css themes
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 1. Default (Light) — Warm off-white tones ── */
+[data-theme="default"] {
+  --background: #F2F2ED; --foreground: #0B0B0F; --card: #FFFFFF;
+  --card-foreground: #0B0B0F; --border: #DEDED9; --input: #DEDED9;
+  --ring: #A5A66A; --primary: #A5A66A; --primary-foreground: #0B0B0F;
+  --secondary: #E8E8E3; --secondary-foreground: #0B0B0F;
+  --muted: #EDEDE8; --muted-foreground: #5C6974;
+  --accent: #EFEFE0; --accent-foreground: #A5A66A;
+  --destructive: #D84F68; --destructive-foreground: #FFFFFF;
+  --success: #4EBE96; --success-foreground: #FFFFFF; --success-light: #E0F5ED;
+  --warning: #D2D714; --warning-foreground: #0B0B0F; --warning-light: #F5F5D0;
+  --info: #479FFA; --info-foreground: #FFFFFF; --info-light: #E8F4FF;
+  --sidebar: #FFFFFF; --sidebar-foreground: #0B0B0F;
+  --sidebar-active: #A5A66A; --sidebar-hover: #EDEDE8;
+}
+[data-theme="default"].dark {
+  --background: #0B0B0F; --foreground: #E6E6E6; --card: #121216;
+  --card-foreground: #E6E6E6; --border: #232323; --input: #232323;
+  --ring: #D6D876; --primary: #D6D876; --primary-foreground: #0B0B0F;
+  --secondary: #1A1A1F; --secondary-foreground: #E6E6E6;
+  --muted: #1A1A1F; --muted-foreground: #868F97;
+  --accent: #2A2A1F; --accent-foreground: #D6D876;
+  --destructive: #FF5C5C; --destructive-foreground: #0B0B0F;
+  --success: #4EBE96; --success-foreground: #0B0B0F; --success-light: #1A2924;
+  --warning: #D2D714; --warning-foreground: #0B0B0F; --warning-light: #262618;
+  --info: #479FFA; --info-foreground: #0B0B0F; --info-light: #1A2230;
+  --sidebar: #0E0E12; --sidebar-foreground: #E6E6E6;
+  --sidebar-active: #D6D876; --sidebar-hover: #1A1A1F;
+}
+
+/* ── 2. Dusk — Warm muted palette ── */
+[data-theme="dusk"] {
+  --background: #F5F5F0; --foreground: #131419; --card: #FFFFFF;
+  --card-foreground: #131419; --border: #E0E0DA; --input: #E0E0DA;
+  --ring: #B8B978; --primary: #B8B978; --primary-foreground: #131419;
+  --secondary: #EAEAE5; --secondary-foreground: #131419;
+  --muted: #EFEFEA; --muted-foreground: #5C6974;
+  --accent: #F0F0E0; --accent-foreground: #B8B978;
+  --destructive: #D84F68; --destructive-foreground: #FFFFFF;
+  --success: #4EBE96; --success-foreground: #FFFFFF; --success-light: #E0F5ED;
+  --warning: #D2D714; --warning-foreground: #131419; --warning-light: #F5F5D0;
+  --info: #479FFA; --info-foreground: #FFFFFF; --info-light: #E8F4FF;
+  --sidebar: #131419; --sidebar-foreground: #E6E6E6;
+  --sidebar-active: #B8B978; --sidebar-hover: #1E1F26;
+}
+[data-theme="dusk"].dark {
+  --background: #131419; --foreground: #E6E6E6; --card: #1A1B21;
+  --card-foreground: #E6E6E6; --border: #282828; --input: #282828;
+  --ring: #E6E7A3; --primary: #E6E7A3; --primary-foreground: #131419;
+  --secondary: #1E1F26; --secondary-foreground: #E6E6E6;
+  --muted: #1E1F26; --muted-foreground: #868F97;
+  --accent: #2A2B20; --accent-foreground: #E6E7A3;
+  --destructive: #FF5C5C; --success: #4EBE96; --warning: #D2D714; --info: #479FFA;
+  --sidebar: #0E0E14; --sidebar-foreground: #868F97;
+  --sidebar-active: #E6E7A3; --sidebar-hover: #1A1B21;
+}
+
+/* ── 3. Lime — Fresh energetic ── */
+[data-theme="lime"] {
+  --background: #E8F5A3; --foreground: #1A1A2E; --card: #FFFFFF;
+  --card-foreground: #1A1A2E; --border: #D0E080; --input: #D0E080;
+  --ring: #7C3AED; --primary: #7C3AED; --primary-foreground: #FFFFFF;
+  --secondary: #F0F5D0; --secondary-foreground: #1A1A2E;
+  --muted: #F5FAD8; --muted-foreground: #5C6974;
+  --accent: #EDE9FE; --accent-foreground: #7C3AED;
+  --destructive: #D84F68; --success: #4EBE96; --warning: #D2D714; --info: #479FFA;
+  --sidebar: #FFFFFF; --sidebar-foreground: #1A1A2E;
+  --sidebar-active: #7C3AED; --sidebar-hover: #F0F5D0;
+}
+[data-theme="lime"].dark {
+  --background: #0F0F1A; --foreground: #F8FAFC; --card: #1E1E2E;
+  --card-foreground: #F8FAFC; --border: #2E2E40; --input: #2E2E40;
+  --ring: #8B5CF6; --primary: #8B5CF6; --primary-foreground: #FFFFFF;
+  --secondary: #1E1E30; --muted: #1E1E30; --muted-foreground: #94A3B8;
+  --accent: #2D1B4E; --accent-foreground: #8B5CF6;
+  --destructive: #FF5C5C; --success: #4EBE96; --warning: #D2D714; --info: #479FFA;
+  --sidebar: #0A0A14; --sidebar-foreground: #94A3B8;
+  --sidebar-active: #8B5CF6; --sidebar-hover: #1E1E30;
+}
+
+/* ── 4. Ocean — Calm professional blue ── */
+[data-theme="ocean"] {
+  --background: #E0F2FE; --foreground: #0C4A6E; --card: #FFFFFF;
+  --card-foreground: #0C4A6E; --border: #BAE6FD; --input: #BAE6FD;
+  --ring: #0284C7; --primary: #0284C7; --primary-foreground: #FFFFFF;
+  --secondary: #E8F4FE; --secondary-foreground: #0C4A6E;
+  --muted: #F0F9FF; --muted-foreground: #5C6974;
+  --accent: #DBEAFE; --accent-foreground: #0284C7;
+  --destructive: #D84F68; --success: #4EBE96; --warning: #D2D714; --info: #0284C7;
+  --sidebar: #FFFFFF; --sidebar-foreground: #0C4A6E;
+  --sidebar-active: #0284C7; --sidebar-hover: #E8F4FE;
+}
+[data-theme="ocean"].dark {
+  --background: #082F49; --foreground: #F0F9FF; --card: #164E63;
+  --card-foreground: #F0F9FF; --border: #0E7490; --input: #0E7490;
+  --ring: #38BDF8; --primary: #38BDF8; --primary-foreground: #082F49;
+  --secondary: #0C4A6E; --muted: #0C4A6E; --muted-foreground: #7DD3FC;
+  --accent: #1E3A5F; --accent-foreground: #38BDF8;
+  --destructive: #FF5C5C; --success: #4EBE96; --warning: #D2D714; --info: #38BDF8;
+  --sidebar: #062030; --sidebar-foreground: #7DD3FC;
+  --sidebar-active: #38BDF8; --sidebar-hover: #0C4A6E;
+}
+
+/* ── 5. Retro — Warm amber/orange ── */
+[data-theme="retro"] {
+  --background: #FEF3C7; --foreground: #78350F; --card: #FFFFFF;
+  --card-foreground: #78350F; --border: #FDE68A; --input: #FDE68A;
+  --ring: #D97706; --primary: #D97706; --primary-foreground: #FFFFFF;
+  --secondary: #FEF9E7; --secondary-foreground: #78350F;
+  --muted: #FFFBEB; --muted-foreground: #92400E;
+  --accent: #FEF3C7; --accent-foreground: #D97706;
+  --destructive: #D84F68; --success: #4EBE96; --warning: #D97706; --info: #479FFA;
+  --sidebar: #78350F; --sidebar-foreground: #FEF3C7;
+  --sidebar-active: #FBBF24; --sidebar-hover: #92400E;
+}
+[data-theme="retro"].dark {
+  --background: #1C1917; --foreground: #FEFCE8; --card: #44403C;
+  --card-foreground: #FEFCE8; --border: #78716C; --input: #78716C;
+  --ring: #FBBF24; --primary: #FBBF24; --primary-foreground: #1C1917;
+  --secondary: #292524; --muted: #292524; --muted-foreground: #A8A29E;
+  --accent: #44403C; --accent-foreground: #FBBF24;
+  --destructive: #FF5C5C; --success: #4EBE96; --warning: #FBBF24; --info: #38BDF8;
+  --sidebar: #0C0A09; --sidebar-foreground: #A8A29E;
+  --sidebar-active: #FBBF24; --sidebar-hover: #292524;
+}
+
+/* ── 6. Neo — Cyberpunk pink/purple ── */
+[data-theme="neo"] {
+  --background: #FDF4FF; --foreground: #581C87; --card: #FFFFFF;
+  --card-foreground: #581C87; --border: #F0ABFC; --input: #F0ABFC;
+  --ring: #D946EF; --primary: #D946EF; --primary-foreground: #FFFFFF;
+  --secondary: #FAF5FF; --secondary-foreground: #581C87;
+  --muted: #FDF4FF; --muted-foreground: #86198F;
+  --accent: #F5D0FE; --accent-foreground: #D946EF;
+  --destructive: #D84F68; --success: #4EBE96; --warning: #D2D714; --info: #479FFA;
+  --sidebar: #581C87; --sidebar-foreground: #FDF4FF;
+  --sidebar-active: #F0ABFC; --sidebar-hover: #6B21A8;
+}
+[data-theme="neo"].dark {
+  --background: #0F0720; --foreground: #FAF5FF; --card: #2D1B4E;
+  --card-foreground: #FAF5FF; --border: #581C87; --input: #581C87;
+  --ring: #F0ABFC; --primary: #F0ABFC; --primary-foreground: #0F0720;
+  --secondary: #1E1040; --muted: #1E1040; --muted-foreground: #C084FC;
+  --accent: #3B0764; --accent-foreground: #F0ABFC;
+  --destructive: #FF5C5C; --success: #4EBE96; --warning: #D2D714; --info: #38BDF8;
+  --sidebar: #060010; --sidebar-foreground: #C084FC;
+  --sidebar-active: #F0ABFC; --sidebar-hover: #1E1040;
+}
+
+/* ── 7. Forest — Natural earthy green ── */
+[data-theme="forest"] {
+  --background: #DCFCE7; --foreground: #14532D; --card: #FFFFFF;
+  --card-foreground: #14532D; --border: #86EFAC; --input: #86EFAC;
+  --ring: #16A34A; --primary: #16A34A; --primary-foreground: #FFFFFF;
+  --secondary: #ECFDF5; --secondary-foreground: #14532D;
+  --muted: #F0FDF4; --muted-foreground: #166534;
+  --accent: #BBF7D0; --accent-foreground: #16A34A;
+  --destructive: #D84F68; --success: #16A34A; --warning: #D2D714; --info: #479FFA;
+  --sidebar: #14532D; --sidebar-foreground: #DCFCE7;
+  --sidebar-active: #4ADE80; --sidebar-hover: #166534;
+}
+[data-theme="forest"].dark {
+  --background: #052E16; --foreground: #F0FDF4; --card: #166534;
+  --card-foreground: #F0FDF4; --border: #166534; --input: #166534;
+  --ring: #4ADE80; --primary: #4ADE80; --primary-foreground: #052E16;
+  --secondary: #14532D; --muted: #14532D; --muted-foreground: #86EFAC;
+  --accent: #064E3B; --accent-foreground: #4ADE80;
+  --destructive: #FF5C5C; --success: #4ADE80; --warning: #D2D714; --info: #38BDF8;
+  --sidebar: #021A0A; --sidebar-foreground: #86EFAC;
+  --sidebar-active: #4ADE80; --sidebar-hover: #14532D;
+}
+
+/* ── 8. Oscura Midnight — OLED optimized (dark only) ── */
+[data-theme="oscura"] {
+  --background: #0B0B0F; --foreground: #E6E6E6; --card: #121216;
+  --card-foreground: #E6E6E6; --border: #232323; --input: #232323;
+  --ring: #D6D876; --primary: #D6D876; --primary-foreground: #0B0B0F;
+  --secondary: #1A1A1F; --secondary-foreground: #E6E6E6;
+  --muted: #1A1A1F; --muted-foreground: #868F97;
+  --accent: #2A2A1F; --accent-foreground: #D6D876;
+  --destructive: #FF5C5C; --destructive-foreground: #0B0B0F;
+  --success: #4EBE96; --success-foreground: #0B0B0F; --success-light: #1A2924;
+  --warning: #D2D714; --warning-foreground: #0B0B0F; --warning-light: #262618;
+  --info: #479FFA; --info-foreground: #0B0B0F; --info-light: #1A2230;
+  --sidebar: #0A0A10; --sidebar-foreground: #868F97;
+  --sidebar-active: #D6D876; --sidebar-hover: #1A1A1F;
+}

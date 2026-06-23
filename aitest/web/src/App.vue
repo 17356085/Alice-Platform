@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import SidebarNav from './components/SidebarNav.vue'
 import KanbanHeader from './components/KanbanHeader.vue'
@@ -8,25 +8,15 @@ import { useKanbanWS } from './composables/useKanbanWS'
 
 const router = useRouter()
 const route = useRoute()
-const isDark = ref(false)
 
-// Theme init
-const saved = localStorage.getItem('tlo-theme')
-if (saved === 'dark') {
-  isDark.value = true
-  document.documentElement.classList.add('dark')
-}
-
-function toggleTheme() {
-  isDark.value = !isDark.value
-  document.documentElement.classList.toggle('dark', isDark.value)
-  localStorage.setItem('tlo-theme', isDark.value ? 'dark' : 'light')
-}
+// Theme: init from localStorage
+const savedName = localStorage.getItem('tlo-theme-name')
+const savedDark = localStorage.getItem('tlo-theme')
+if (savedName) document.documentElement.setAttribute('data-theme', savedName)
+if (savedDark === 'dark') document.documentElement.classList.add('dark')
 
 // WebSocket
 useKanbanWS().connect()
-
-import { computed } from 'vue'
 
 const viewTitles: Record<string, string> = {
   kanban: '📋 Kanban 看板',
@@ -35,16 +25,17 @@ const viewTitles: Record<string, string> = {
   knowledge: '🔍 知识库',
   settings: '⚙️ 设置',
 }
-const currentTitle = computed(() => viewTitles[route.name as string] || String(route.name))
+const currentViewName = computed(() => String(route.name || 'kanban'))
+const currentTitle = computed(() => viewTitles[currentViewName.value] || currentViewName.value)
+
+function onNavigate(view: string) { router.push({ name: view }) }
 </script>
 
 <template>
   <div class="flex h-screen overflow-hidden">
     <SidebarNav
-      :current-view="(route.name as string)"
-      :is-dark="isDark"
-      @toggle-theme="toggleTheme"
-      @navigate="(v: string) => router.push({ name: v })"
+      :current-view="currentViewName"
+      @navigate="onNavigate"
     />
     <div class="flex flex-1 flex-col overflow-hidden">
       <KanbanHeader :view-title="currentTitle" />

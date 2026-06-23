@@ -1,0 +1,46 @@
+# TLO Electron Builder Config
+# 借鉴 Aperant electron-builder — cross-platform distribution
+
+appId: com.tlo.platform
+productName: TLO Platform
+copyright: "Copyright © 2026 TLO"
+
+directories:
+  output: dist-electron
+
+files:
+  - dist/**/*
+  - electron/**/*
+  - package.json
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: public/favicon.ico
+  artifactName: "TLO-${version}-setup.${ext}"
+
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  icon: public/favicon.icns
+  category: public.app-category.developer-tools
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  category: Development
+  icon: public/favicon.png
+
+nsis:
+  oneClick: true
+  perMachine: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+extraMetadata:
+  main: electron/main.js

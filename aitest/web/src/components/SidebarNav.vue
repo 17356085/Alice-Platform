@@ -1,8 +1,7 @@
 <script setup lang="ts">
-defineProps<{
-  currentView: string
-  isDark: boolean
-}>()
+import { ref } from 'vue'
+
+defineProps<{ currentView: string }>()
 
 const emit = defineEmits<{
   'toggle-theme': []
@@ -16,6 +15,39 @@ const navItems = [
   { id: 'knowledge', icon: '🔍', label: 'Knowledge' },
   { id: 'settings', icon: '⚙️', label: 'Settings' },
 ]
+
+const themes = [
+  { id: 'default', label: 'Default' },
+  { id: 'dusk', label: 'Dusk' },
+  { id: 'lime', label: 'Lime' },
+  { id: 'ocean', label: 'Ocean' },
+  { id: 'retro', label: 'Retro' },
+  { id: 'neo', label: 'Neo' },
+  { id: 'forest', label: 'Forest' },
+  { id: 'oscura', label: 'Oscura' },
+]
+
+const currentTheme = ref(localStorage.getItem('tlo-theme-name') || 'default')
+const isDark = ref(localStorage.getItem('tlo-theme') === 'dark')
+
+function selectTheme(id: string) {
+  currentTheme.value = id
+  document.documentElement.setAttribute('data-theme', id)
+  if (id === 'oscura') {
+    isDark.value = true
+    document.documentElement.classList.add('dark')
+    localStorage.setItem('tlo-theme', 'dark')
+  } else {
+    // Keep current dark/light toggle for non-oscura themes
+  }
+  localStorage.setItem('tlo-theme-name', id)
+}
+
+function toggleDark() {
+  isDark.value = !isDark.value
+  document.documentElement.classList.toggle('dark', isDark.value)
+  localStorage.setItem('tlo-theme', isDark.value ? 'dark' : 'light')
+}
 </script>
 
 <template>
@@ -39,13 +71,31 @@ const navItems = [
         {{ item.label }}
       </button>
     </nav>
-    <div class="p-2 border-t border-white/5">
+
+    <!-- Theme selector -->
+    <div class="p-2 border-t border-white/5 space-y-1">
+      <div class="text-[10px] text-sidebar-foreground/50 px-2 uppercase tracking-wider mb-1">Theme</div>
+      <div class="grid grid-cols-4 gap-1">
+        <button
+          v-for="t in themes"
+          :key="t.id"
+          @click="selectTheme(t.id)"
+          :class="[
+            'text-[10px] py-1 px-1 rounded text-center cursor-pointer border transition-colors font-sans truncate',
+            currentTheme === t.id
+              ? 'border-primary text-primary bg-primary/10'
+              : 'border-transparent text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-hover'
+          ]"
+        >
+          {{ t.label }}
+        </button>
+      </div>
       <button
-        @click="emit('toggle-theme')"
-        class="flex items-center gap-2 px-3 py-2 rounded-md text-xs text-sidebar-foreground hover:bg-sidebar-hover cursor-pointer w-full border-none bg-none font-sans"
+        @click="toggleDark"
+        class="flex items-center gap-2 w-full px-3 py-2 rounded-md text-xs text-sidebar-foreground hover:bg-sidebar-hover cursor-pointer border-none bg-none font-sans"
       >
         <span>{{ isDark ? '☀️' : '🌙' }}</span>
-        {{ isDark ? 'Light Mode' : 'Dark Mode' }}
+        {{ isDark ? 'Light' : 'Dark' }}
       </button>
     </div>
   </aside>
