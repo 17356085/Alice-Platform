@@ -28,35 +28,39 @@ from aitest.server.api.bugs import bugs_router
 from aitest.server.api.chat import chat_router
 from aitest.server.api.sessions_api import router as sessions_router
 from aitest.server.api.onboarding import onboarding_router
+from aitest.server.api.integrations import integrations_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from aitest.infra.logging import get_logger
+    log = get_logger("server")
+
     # Init session DB
     from aitest.server.session_store import init_db
     await init_db()
-    print("[SessionStore] Database initialized")
+    log.info("session_db_initialized")
 
     from aitest.infra.task_queue import get_runner, get_queue
     runner = get_runner()
     runner.start()
     queue = get_queue()
     pending = queue.count_by_status().get("queued", 0)
-    print(f"[TaskRunner] Started. Pending: {pending}")
+    log.info("task_runner_started", pending=pending)
 
     # P1-ACTIVATION (2026-06-15): 生产环境激活 KnowledgeAgentSubscriber
-    # Dead Path #5 修复 — 此前仅在 event_bus watch CLI 模式激活
     try:
-        from aitest.governance.event_bus import KnowledgeAgentSubscriber
+        from aitest.audit_engine.event_bus import KnowledgeAgentSubscriber
         _gov_subscriber = KnowledgeAgentSubscriber(provider="claude", auto_process=True)
         _gov_subscriber.activate()
-        print(f"[Governance] KnowledgeAgentSubscriber activated — listening for governance events")
+        log.info("governance_subscriber_activated")
     except Exception as e:
-        print(f"[Governance] Subscriber activation failed: {e}")
+        log.error("governance_subscriber_failed", error=str(e))
 
     # P2-ACTIVATION (2026-06-16): Dead Path — 审计未自动调度
     # 后台 asyncio Task 周期性运行 State/SOP/Cost 审计
-    audit_interval = int(os.environ.get("AITEST_AUDIT_INTERVAL", "86400"))  # 默认 24h
+    from aitest.config import config
+    audit_interval = config.audit_interval
     _audit_stop = asyncio.Event()
 
     async def _audit_scheduler():
@@ -64,11 +68,11 @@ async def lifespan(app: FastAPI):
         # 启动后等待 60s 再首次审计（让服务完全初始化）
         await asyncio.sleep(60)
         iteration = 0
-        from aitest.governance.scheduled_audit import run_all_audits, discover_modules
+        from aitest.audit_engine.scheduled_audit import run_all_audits, discover_modules
         while not _audit_stop.is_set():
             iteration += 1
             started = asyncio.get_event_loop().time()
-            print(f"[ScheduledAudit] #{iteration} starting — {datetime.now().strftime('%H:%M:%S')}")
+            log.info("scheduled_audit_start", iteration=iteration)
 
             try:
                 # 在线程池中运行审计（审计器包含阻塞 I/O）
@@ -84,15 +88,15 @@ async def lifespan(app: FastAPI):
                     for r in results["sop_audits"].values()
                 )
                 cost_info = results.get("cost_audit", {})
-                print(f"[ScheduledAudit] #{iteration} done — "
-                      f"State: {state_drifts} drifts, "
-                      f"SOP: {sop_violations} violations, "
-                      f"Cost: ${cost_info.get('total_cost', 0):.4f} "
-                      f"({asyncio.get_event_loop().time() - started:.1f}s)")
+                duration = asyncio.get_event_loop().time() - started
+                log.info("scheduled_audit_done", iteration=iteration,
+                         state_drifts=state_drifts, sop_violations=sop_violations,
+                         cost=round(cost_info.get('total_cost', 0), 4),
+                         duration_s=round(duration, 1))
 
                 # 审计后检查是否需要触发架构评审
                 try:
-                    from aitest.governance.review_trigger import check_and_enqueue, format_queue_summary
+                    from aitest.audit_engine.review_trigger import check_and_enqueue, format_queue_summary
                     tasks = check_and_enqueue()
                     if tasks:
                         summary = format_queue_summary()
@@ -146,6 +150,49 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── Rate Limiting Middleware ──────────────────────────────────────────
+# Simple sliding-window per-IP rate limiter for REST API.
+# MCP tools have their own rate limiting in mcp/rate_limit.py.
+
+_rate_state: dict[str, list[float]] = {}
+_rate_lock = __import__('threading').Lock()
+_RATE_WINDOW = 60       # seconds
+_RATE_MAX_REQUESTS = 60  # per window per IP
+_RATE_EXEMPT_PATHS = {"/health", "/docs", "/openapi.json", "/"}
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """Simple IP-based sliding window rate limiter for REST endpoints."""
+    path = request.url.path
+
+    if path not in _RATE_EXEMPT_PATHS and not path.startswith("/static"):
+        client_ip = request.client.host if request.client else "unknown"
+        now = __import__('time').time()
+        window_start = now - _RATE_WINDOW
+
+        with _rate_lock:
+            timestamps = _rate_state.get(client_ip, [])
+            timestamps = [t for t in timestamps if t > window_start]
+            if len(timestamps) >= _RATE_MAX_REQUESTS:
+                from fastapi.responses import JSONResponse
+                return JSONResponse(
+                    status_code=429,
+                    content={"detail": f"Rate limit exceeded ({_RATE_MAX_REQUESTS}/{_RATE_WINDOW}s). Retry later."},
+                )
+            timestamps.append(now)
+            _rate_state[client_ip] = timestamps
+
+    return await call_next(request)
+
+
+# ── Auth Middleware ───────────────────────────────────────────────────
+# Disabled by default (no AITEST_API_KEY set). Set the env var to enable.
+
+from fastapi.middleware.base import BaseHTTPMiddleware
+from aitest.server.auth import auth_middleware
+app.add_middleware(BaseHTTPMiddleware, dispatch=auth_middleware)
+
 
 @app.get("/")
 async def root():
@@ -156,6 +203,15 @@ async def root():
         "frontend": "aitest/web/ (Vue 3 + shadcn-vue)",
         "docs": "/docs",
     }
+
+
+@app.get("/metrics")
+async def metrics():
+    """Prometheus metrics — operational counters, gauges, histograms."""
+    from aitest.infra.metrics import get_metrics_response
+    body, status, headers = get_metrics_response()
+    from fastapi.responses import Response
+    return Response(content=body, status_code=status, headers=headers)
 
 
 @app.get("/health")
@@ -226,6 +282,47 @@ async def health():
     except Exception as e:
         components["checkpoint_db"] = {"status": "error", "error": str(e)[:100]}
 
+    # ── LLM Provider ──
+    try:
+        from aitest.config import config
+        provider = config.resolve_llm_provider()
+        components["llm"] = {"status": "ok", "resolved_provider": provider}
+
+        # Circuit breaker metrics
+        from aitest.llm.circuit_breaker import get_all_metrics
+        cb_metrics = get_all_metrics()
+        if cb_metrics:
+            open_breakers = [m for m in cb_metrics if m["state"] == "open"]
+            components["llm"]["circuit_breakers"] = {
+                "total": len(cb_metrics),
+                "open": len(open_breakers),
+                "details": {m["name"]: m["state"] for m in cb_metrics},
+            }
+    except Exception as e:
+        components["llm"] = {"status": "error", "error": str(e)[:100]}
+        if overall == "healthy":
+            overall = "degraded"
+
+    # ── Session DB ──
+    try:
+        from aitest.server.session_store import engine
+        components["session_db"] = {"status": "connected"}
+    except Exception as e:
+        components["session_db"] = {"status": "error", "error": str(e)[:100]}
+
+    # ── Tenants (multi-project) ──
+    try:
+        from aitest.platform.tenant import get_tenant_manager
+        tm = get_tenant_manager()
+        tenants = tm.list_tenants()
+        components["tenants"] = {
+            "status": "ok",
+            "count": len(tenants),
+            "ids": tenants,
+        }
+    except Exception as e:
+        components["tenants"] = {"status": "error", "error": str(e)[:100]}
+
     return {"status": overall, "components": components}
 
 
@@ -237,7 +334,7 @@ async def health():
 async def audit_state(module: str = "equipment", repair: bool = False):
     """State Auditor — 状态审计 API。"""
     try:
-        from aitest.governance.state_auditor import StateAuditor
+        from aitest.audit_engine.state_auditor import StateAuditor
         auditor = StateAuditor()
         report = auditor.audit(module, auto_repair=repair)
         return report
@@ -249,7 +346,7 @@ async def audit_state(module: str = "equipment", repair: bool = False):
 async def audit_sop(module: str = "equipment", days: int = 7):
     """SOP Auditor — SOP 合规审计 API。"""
     try:
-        from aitest.governance.sop_auditor import SOPAuditor
+        from aitest.audit_engine.sop_auditor import SOPAuditor
         auditor = SOPAuditor()
         report = auditor.audit(module, days=days)
         return report
@@ -261,7 +358,7 @@ async def audit_sop(module: str = "equipment", days: int = 7):
 async def audit_cost(days: int = 7):
     """Cost Auditor — 成本审计 API。"""
     try:
-        from aitest.governance.cost_auditor import CostAuditor
+        from aitest.audit_engine.cost_auditor import CostAuditor
         auditor = CostAuditor()
         report = auditor.audit(days=days)
         return report
@@ -273,7 +370,7 @@ async def audit_cost(days: int = 7):
 async def audit_safety(module: str = "equipment", days: int = 7):
     """Safety Auditor — 安全审计 API (P0)。"""
     try:
-        from aitest.governance.safety_auditor import SafetyAuditor
+        from aitest.audit_engine.safety_auditor import SafetyAuditor
         auditor = SafetyAuditor()
         report = auditor.audit(module, days=days)
         return report
@@ -285,7 +382,7 @@ async def audit_safety(module: str = "equipment", days: int = 7):
 async def online_analyze(module: str = "system", days: int = 7):
     """Online Monitor — 线上指标分析 API (P0)。"""
     try:
-        from aitest.governance.online_monitor import OnlineMonitor
+        from aitest.audit_engine.online_monitor import OnlineMonitor
         monitor = OnlineMonitor()
         report = monitor.analyze(module, days=days)
         return report
@@ -297,7 +394,7 @@ async def online_analyze(module: str = "system", days: int = 7):
 async def trace_replay(run_id: str):
     """Trace 回放 API — 获取指定运行的全部步骤。"""
     try:
-        from aitest.governance.online_monitor import get_run_trace_replay
+        from aitest.audit_engine.online_monitor import get_run_trace_replay
         return get_run_trace_replay(run_id)
     except Exception as e:
         return {"error": str(e)[:300], "run_id": run_id, "steps": []}
@@ -307,7 +404,7 @@ async def trace_replay(run_id: str):
 async def trace_runs(limit: int = 20):
     """列出最近的运行记录。"""
     try:
-        from aitest.governance.online_monitor import list_recent_runs
+        from aitest.audit_engine.online_monitor import list_recent_runs
         return {"runs": list_recent_runs(limit=limit)}
     except Exception as e:
         return {"error": str(e)[:300], "runs": []}
@@ -321,22 +418,22 @@ async def audit_governance(module: str = "equipment", days: int = 7):
         "timestamp": __import__("datetime").datetime.now().isoformat(),
     }
     try:
-        from aitest.governance.state_auditor import StateAuditor
+        from aitest.audit_engine.state_auditor import StateAuditor
         result["state"] = StateAuditor().audit(module, auto_repair=False)
     except Exception as e:
         result["state"] = {"error": str(e)[:200]}
     try:
-        from aitest.governance.sop_auditor import SOPAuditor
+        from aitest.audit_engine.sop_auditor import SOPAuditor
         result["sop"] = SOPAuditor().audit(module, days=days)
     except Exception as e:
         result["sop"] = {"error": str(e)[:200]}
     try:
-        from aitest.governance.cost_auditor import CostAuditor
+        from aitest.audit_engine.cost_auditor import CostAuditor
         result["cost"] = CostAuditor().audit(days=days)
     except Exception as e:
         result["cost"] = {"error": str(e)[:200]}
     try:
-        from aitest.governance.safety_auditor import SafetyAuditor
+        from aitest.audit_engine.safety_auditor import SafetyAuditor
         result["safety"] = SafetyAuditor().audit(module, days=days)
     except Exception as e:
         result["safety"] = {"error": str(e)[:200]}
@@ -348,8 +445,12 @@ async def audit_governance(module: str = "equipment", days: int = 7):
 # ══════════════════════════════════════════════════════════════════════════
 
 @app.get("/api/sop-status")
-async def sop_status_all():
-    """返回全部模块 SOP 状态 — 用于 Kanban 看板。"""
+async def sop_status_all(project: str = ""):
+    """返回全部模块 SOP 状态 — 用于 Kanban 看板。
+
+    Query params:
+        project: override active project (used after onboarding)
+    """
     import json
     from pathlib import Path
     from collections import OrderedDict
@@ -362,51 +463,75 @@ async def sop_status_all():
         "Data Sanitization", "Report", "Knowledge",
     ]
 
-    # Read from per-project sop-status directory only.
-    # Legacy flat dir is NOT used as fallback — user must onboard modules fresh.
+    # Read from .tlo/runtime/sop-status/ first, then per-project dir, then legacy flat
     from aitest.platform.context import get_active_project_id
-    project_id = get_active_project_id()
+    from aitest.platform.paths import get_test_project_root
+    project_id = project.strip() or get_active_project_id()
     base = Path(__file__).resolve().parent.parent.parent
-    sop_dir = base / "governance" / "artifacts" / "sop-status" / project_id
-    sop_dir.mkdir(parents=True, exist_ok=True)
+
+    # Search paths in priority order (ADR-001)
+    search_dirs = []
+
+    # 1. .tlo/runtime/sop-status/ (if project has .tlo/)
+    root = get_test_project_root(project_id)
+    if root:
+        tlo_runtime = root / ".tlo" / "runtime" / "sop-status"
+        if tlo_runtime.exists():
+            search_dirs.append(tlo_runtime)
+
+    # 2. Per-project sop-status directory
+    per_project = base / "governance" / "artifacts" / "sop-status" / project_id
+    per_project.mkdir(parents=True, exist_ok=True)
+    search_dirs.append(per_project)
+
+    # 3. Legacy flat directory (for backward compatibility)
+    legacy_flat = base / "governance" / "artifacts" / "sop-status"
+    if legacy_flat.exists():
+        search_dirs.append(legacy_flat)
+
     modules = OrderedDict()
-    for f in sorted(sop_dir.glob("SOP_STATUS_*.json")):
-        mod = f.stem.replace("SOP_STATUS_", "")
-        try:
-            data = json.loads(f.read_text(encoding="utf-8"))
-        except Exception:
-            modules[mod] = {"status": "error", "stage": "init", "phase_status": {}, "phases_done": 0, "phases_total": len(SOP_PHASES), "pages": 0, "pages_list": [], "artifacts": 0, "failed": 0, "run_id": "", "updated": "", "note": ""}
-            continue
-        completed = data.get("completed_phases", [])
-        pages = data.get("pages_processed", [])
-        phase_status = {p: (p in completed) for p in SOP_PHASES}
-        phases_done = len(completed)
-        if phases_done >= len(SOP_PHASES):
-            stage = "complete"
-        else:
-            status = data.get("status", "?")
-            if status == "completed" or status == "completed_with_issues":
-                stage = "analysis" if status == "completed_with_issues" else "complete"
-            elif status == "ready":
-                stage = "automation"
-            elif status == "in_progress":
-                stage = "execution"
+    seen = set()
+    for sop_dir in search_dirs:
+        for f in sorted(sop_dir.glob("SOP_STATUS_*.json")):
+            mod = f.stem.replace("SOP_STATUS_", "")
+            if mod in seen:
+                continue
+            seen.add(mod)
+            try:
+                data = json.loads(f.read_text(encoding="utf-8"))
+            except Exception:
+                modules[mod] = {"status": "error", "stage": "init", "phase_status": {}, "phases_done": 0, "phases_total": len(SOP_PHASES), "pages": 0, "pages_list": [], "artifacts": 0, "failed": 0, "run_id": "", "updated": "", "note": ""}
+                continue
+            completed = data.get("completed_phases", [])
+            pages = data.get("pages_processed", [])
+            phase_status = {p: (p in completed) for p in SOP_PHASES}
+            phases_done = len(completed)
+            if phases_done >= len(SOP_PHASES):
+                stage = "complete"
             else:
-                stage = "init"
-        modules[mod] = {
-            "status": data.get("status", "?"),
-            "stage": stage,
-            "phase_status": phase_status,
-            "phases_done": phases_done,
-            "phases_total": len(SOP_PHASES),
-            "pages": len(pages),
-            "pages_list": pages,
-            "artifacts": data.get("artifact_count", 0),
-            "failed": len(data.get("failed_phases", [])),
-            "run_id": data.get("run_id", ""),
-            "updated": data.get("updated_at", ""),
-            "note": (data.get("note", "") or "")[:80],
-        }
+                status = data.get("status", "?")
+                if status == "completed" or status == "completed_with_issues":
+                    stage = "analysis" if status == "completed_with_issues" else "complete"
+                elif status == "ready":
+                    stage = "automation"
+                elif status == "in_progress":
+                    stage = "execution"
+                else:
+                    stage = "init"
+            modules[mod] = {
+                "status": data.get("status", "?"),
+                "stage": stage,
+                "phase_status": phase_status,
+                "phases_done": phases_done,
+                "phases_total": len(SOP_PHASES),
+                "pages": len(pages),
+                "pages_list": pages,
+                "artifacts": data.get("artifact_count", 0),
+                "failed": len(data.get("failed_phases", [])),
+                "run_id": data.get("run_id", ""),
+                "updated": data.get("updated_at", ""),
+                "note": (data.get("note", "") or "")[:80],
+            }
     return {"modules": modules, "total": len(modules), "sop_phases": SOP_PHASES}
 
 
@@ -414,7 +539,7 @@ async def sop_status_all():
 async def kpi_summary(days: int = 30):
     """KPI 总览 — 治理指标体系聚合。"""
     try:
-        from aitest.governance.governance_kpi import KPICollector
+        from aitest.audit_engine.governance_kpi import KPICollector
         return KPICollector().get_summary(days=days)
     except Exception as e:
         return {"error": str(e)[:300]}
@@ -424,7 +549,7 @@ async def kpi_summary(days: int = 30):
 async def kpi_trends(audit_type: str = "state", days: int = 30):
     """KPI 趋势 — 指定审计类型的趋势分析。"""
     try:
-        from aitest.governance.governance_kpi import KPICollector
+        from aitest.audit_engine.governance_kpi import KPICollector
         collector = KPICollector()
         trends = collector.get_trends(audit_type, days=days)
         return {
@@ -440,7 +565,7 @@ async def kpi_trends(audit_type: str = "state", days: int = 30):
 async def kpi_audit_all(modules: str = None):
     """L4: 一次性审计全部模块（定时调度入口）。"""
     try:
-        from aitest.governance.scheduled_audit import run_all_audits, discover_modules
+        from aitest.audit_engine.scheduled_audit import run_all_audits, discover_modules
         mod_list = modules.split(",") if modules else discover_modules()
         return run_all_audits(mod_list)
     except Exception as e:
@@ -454,6 +579,7 @@ app.include_router(bugs_router)
 app.include_router(chat_router)
 app.include_router(sessions_router)
 app.include_router(onboarding_router)
+app.include_router(integrations_router)
 
 # 静态文件 + Chat UI
 _STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -641,6 +767,103 @@ async def kanban_websocket(ws: WebSocket):
         _kanban_ws.disconnect(ws)
 
 
+# ══════════════════════════════════════════════════════════════════════════
+#  🆕 Agent Terminal WebSocket — 实时推送Agent执行日志
+# ══════════════════════════════════════════════════════════════════════════
+
+class AgentTerminalWSManager:
+    """WebSocket连接管理器 — 广播ObservationBus事件到Agent终端客户端。"""
+
+    def __init__(self):
+        self._connections: list[WebSocket] = []
+        self._subscribed = False
+
+    async def connect(self, ws: WebSocket):
+        await ws.accept()
+        self._connections.append(ws)
+        self._start_listening()
+
+    def disconnect(self, ws: WebSocket):
+        if ws in self._connections:
+            self._connections.remove(ws)
+
+    async def broadcast(self, event: dict):
+        stale = []
+        for ws in self._connections:
+            try:
+                await ws.send_text(_json.dumps(event, ensure_ascii=False, default=str))
+            except Exception:
+                stale.append(ws)
+        for ws in stale:
+            self.disconnect(ws)
+
+    def _start_listening(self):
+        """订阅ObservationBus，将事件转发到所有WebSocket客户端。"""
+        if self._subscribed:
+            return
+        self._subscribed = True
+
+        def _on_event(event):
+            """同步回调：将ObservationEvent转为字典并广播。"""
+            payload = {
+                "type": str(event.type.value) if hasattr(event.type, 'value') else str(event.type),
+                "agent": getattr(event, 'agent_name', ''),
+                "module": getattr(event, 'module', ''),
+                "page": getattr(event, 'page', ''),
+                "data": getattr(event, 'data', {}),
+                "timestamp": datetime.now().isoformat(),
+            }
+            # Schedule async broadcast from sync callback
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    asyncio.ensure_future(self.broadcast(payload))
+            except Exception:
+                pass
+
+        try:
+            from aitest.platform.observation_bus import get_bus, EventType
+            bus = get_bus()
+            for et in [
+                "skill_start", "skill_complete", "skill_failed", "skill_retry",
+                "agent_start", "agent_complete",
+                "tool_call_start", "tool_call_complete", "tool_call_failed",
+                "test_passed", "test_failed", "evidence_captured",
+                "context_window_warn", "context_window_continue",
+                "provider_fallback", "provider_retry",
+            ]:
+                try:
+                    bus.subscribe(EventType(et), _on_event)
+                except Exception:
+                    continue
+        except Exception:
+            pass  # ObservationBus unavailable — agent terminal works in degraded mode
+
+
+_agent_terminal_ws = AgentTerminalWSManager()
+
+
+@app.websocket("/ws/agent-terminal")
+async def agent_terminal_websocket(ws: WebSocket):
+    """Agent终端实时日志 WebSocket。"""
+    await _agent_terminal_ws.connect(ws)
+    try:
+        await ws.send_text(_json.dumps({
+            "type": "connected",
+            "connections": len(_agent_terminal_ws._connections),
+            "timestamp": datetime.now().isoformat(),
+        }))
+        while True:
+            data = await ws.receive_text()
+            msg = _json.loads(data)
+            if msg.get("action") == "ping":
+                await ws.send_text(_json.dumps({"type": "pong"}))
+    except WebSocketDisconnect:
+        _agent_terminal_ws.disconnect(ws)
+    except Exception:
+        _agent_terminal_ws.disconnect(ws)
+
+
 @app.get("/api/kanban/status")
 async def kanban_status():
     """返回 Kanban WebSocket 连接状态。"""
@@ -677,4 +900,4 @@ def _update_module_stage(module: str, new_stage: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="::", port=8000)

@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "个人档案",
-  "usingComponents": {
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
-    "wd-tag": "../../node-modules/wot-design-uni/components/wd-tag/wd-tag",
-    "empty": "../../components/Empty"
-  }
-}

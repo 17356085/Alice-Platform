@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "数据调整",
-  "usingComponents": {
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
-    "number-step-input": "../../components/NumberStepInput"
-  }
-}

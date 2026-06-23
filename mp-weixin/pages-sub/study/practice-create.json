@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "组卷配置",
-  "usingComponents": {
-    "wd-input": "../../node-modules/wot-design-uni/components/wd-input/wd-input",
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
-    "wd-button": "../../node-modules/wot-design-uni/components/wd-button/wd-button"
-  }
-}

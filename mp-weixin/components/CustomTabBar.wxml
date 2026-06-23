@@ -1,1 +1,0 @@
-<view class="custom-tabbar data-v-e82a222c"><view wx:for="{{a}}" wx:for-item="tab" wx:key="e" class="{{['tabbar-item', 'data-v-e82a222c', tab.f && 'active']}}" bindtap="{{tab.g}}"><wd-icon wx:if="{{tab.b}}" class="data-v-e82a222c" u-i="{{tab.a}}" bind:__l="__l" u-p="{{tab.b}}"/><text class="tabbar-text data-v-e82a222c" style="{{'color:' + tab.d}}">{{tab.c}}</text></view></view>

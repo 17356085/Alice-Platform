@@ -21,7 +21,7 @@
 - 关注产物归档与可追踪性
 
 ## 关联资产
-- d:\Desktop\WorkStudy\ZJSN_Test-master526\Jenkinsfile
+- d:\Desktop\Alice\ZJSN_Test-master526\Jenkinsfile
 
 ---
 

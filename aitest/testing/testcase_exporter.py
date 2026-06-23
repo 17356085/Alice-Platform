@@ -20,8 +20,13 @@ WORKSTUDY = get_workstudy()
 GOVERNANCE = get_governance_dir()
 CONTEXT_MODULES = get_context_modules()
 _zjsn = get_test_project_root()
-ALLURE_RESULTS = (_zjsn / "allure-results") if _zjsn else (WORKSTUDY / "ZJSN_Test-master526" / "allure-results")
-TEST_SCRIPTS = (_zjsn / "script") if _zjsn else (WORKSTUDY / "ZJSN_Test-master526" / "script")
+if not _zjsn:
+    raise RuntimeError(
+        "No test project configured. "
+        "Use aitest project set --id=<project> to configure an active project."
+    )
+ALLURE_RESULTS = _zjsn / "allure-results"
+TEST_SCRIPTS = _zjsn / "script"
 EXPORT_DIR = GOVERNANCE / "kpi" / "testcases"  # 测试用例报表按模块分目录
 
 

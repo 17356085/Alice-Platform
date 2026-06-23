@@ -1,0 +1,19 @@
+# TLO Project — blue-album-v2
+project:
+  id: "blue-album-v2"
+  name: "blue-album-v2"
+
+application:
+  type: "web"
+  runtime: "browser"
+
+connection:
+  base_url: "D:/Desktop/BlueAlbum/front"
+  login_required: true
+  login_method: "form"
+
+discovery:
+  strategy: "browser-use"
+
+knowledge:
+  chroma_namespace: "blue-album-v2"

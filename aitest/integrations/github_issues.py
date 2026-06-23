@@ -23,7 +23,6 @@ GitHub Issue → TLO Test Case Integration.
 from __future__ import annotations
 
 import json
-import os
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -95,8 +94,9 @@ class GitHubIssueClient:
     """GitHub Issue API 客户端。"""
 
     def __init__(self, token: str = None, repo: str = None):
-        self.token = token or os.environ.get("GITHUB_TOKEN", "")
-        self.repo = repo or os.environ.get("GITHUB_REPOSITORY", "")
+        from aitest.config import config
+        self.token = token or config.github_token
+        self.repo = repo or config.github_repository
         self._api_base = "https://api.github.com"
 
     def fetch_issue(self, issue_number: int) -> Optional[GitHubIssue]:

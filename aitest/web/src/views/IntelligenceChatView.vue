@@ -1,20 +1,22 @@
 <script setup lang="ts">
 import { ref, nextTick, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useChatStore } from '@/stores/chat'
 import ChatSidebar from '@/components/ChatSidebar.vue'
 import ToolIndicator from '@/components/ToolIndicator.vue'
 import Markdown from '@/components/Markdown.vue'
 
+const { t } = useI18n()
 const store = useChatStore()
 const input = ref('')
 const chatEl = ref<HTMLElement>()
 const showSidebar = ref(true)
 
 const suggestions = [
-  { icon: '📊', label: '测试覆盖', q: '哪些模块测试覆盖最薄弱？' },
-  { icon: '🐛', label: 'Bug 趋势', q: '最近有哪些 flaky test？' },
-  { icon: '🛡', label: '安全分析', q: '安全测试覆盖如何？' },
-  { icon: '📋', label: '模块状态', q: '哪些模块需要补充测试？' },
+  { icon: '📊', label: t('chat.suggestions.coverage'), q: t('chat.suggestions.coverage_query') },
+  { icon: '🐛', label: t('chat.suggestions.bugs'), q: t('chat.suggestions.bugs_query') },
+  { icon: '🛡', label: t('chat.suggestions.security'), q: t('chat.suggestions.security_query') },
+  { icon: '📋', label: t('chat.suggestions.modules'), q: t('chat.suggestions.modules_query') },
 ]
 
 async function send() {

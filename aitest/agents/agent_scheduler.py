@@ -312,7 +312,7 @@ def auto_advance(module_name: str, auto_trigger: bool = False) -> dict:
     if all(a["already_done"] for a in status["agents"]):
         # B-4: Emit CycleEnd event when all phases complete
         try:
-            from aitest.governance.event_bus import emit
+            from aitest.audit_engine.event_bus import emit
             emit("CycleEnd", module=module_name, stats="all_phases_complete")
         except Exception as e:
             from aitest.infra.error_logger import log_error

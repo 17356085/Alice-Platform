@@ -12,22 +12,22 @@ LLM Provider — 统一 Claude / OpenAI / Ollama 调用接口。
     response = llm.complete("system prompt", "user prompt")
     print(response.content)
 """
-import os
 from pathlib import Path
 from abc import ABC, abstractmethod
 from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import Optional, Literal
 
-# 自动加载 .env 文件（从项目根目录，确保无论从哪启动都能加载）
-try:
-    from dotenv import load_dotenv
-    _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-    _ENV_FILE = _PROJECT_ROOT / ".env"
-    if _ENV_FILE.exists():
-        load_dotenv(_ENV_FILE)
-except ImportError:
-    pass
+# .env loaded once by aitest.config (imported on demand via _get_config)
+_CONFIG = None
+
+
+def _get_config():
+    global _CONFIG
+    if _CONFIG is None:
+        from aitest.config import config as _cfg
+        _CONFIG = _cfg
+    return _CONFIG
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -148,7 +148,7 @@ class ClaudeProvider(LLMProvider):
     """
 
     def __init__(self, model: str = "claude-sonnet-4-6", api_key: str = ""):
-        api_key = api_key or os.getenv("ANTHROPIC_API_KEY", "")
+        api_key = api_key or _get_config().anthropic_api_key
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY 未设置。请在 .env 文件或环境变量中配置。")
 
@@ -167,21 +167,34 @@ class ClaudeProvider(LLMProvider):
         tools: Optional[list[dict]] = None,
         temperature: float = 0.7,
         max_tokens: int = 8192,
+        cache_system: bool = True,   # ★ Prompt Caching: mark system prompt as cacheable
     ) -> LLMResponse:
+        # Build system block — optionally with cache_control for Anthropic Prompt Caching
+        # Threshold: ≥1024 tokens. AITest skill prompts typically 2K-5K tokens → always cacheable.
+        # Cache TTL: 5 minutes. Cost reduction: 90% on cached input tokens.
+        # Ref: https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
+        system_block = system_prompt
+        if cache_system and len(system_prompt) >= 1024:
+            system_block = [
+                {
+                    "type": "text",
+                    "text": system_prompt,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ]
+
         kwargs = dict(
             model=self.model,
-            system=system_prompt,
+            system=system_block,
             messages=[{"role": "user", "content": user_prompt}],
             temperature=temperature,
             max_tokens=max_tokens,
         )
 
         if tools and self.supports_tools():
-            # 转换 OpenAI tool format → Anthropic tool format
             anthropic_tools = []
             for t in tools:
                 func = t.get("function", t)
-                # DeepSeek 等兼容端点对 schema 校验严格：parameters 为空时也必须显式声明 type:object
                 params = func.get("parameters") or {}
                 if not params or not params.get("type"):
                     params = {"type": "object", "properties": {}, "required": []}
@@ -214,12 +227,15 @@ class ClaudeProvider(LLMProvider):
                     "input": block.input,
                 })
 
+        usage = message.usage
         return LLMResponse(
             content=content,
             tool_calls=tool_calls,
             token_usage={
-                "input": message.usage.input_tokens if hasattr(message, 'usage') else 0,
-                "output": message.usage.output_tokens if hasattr(message, 'usage') else 0,
+                "input": usage.input_tokens if usage else 0,
+                "output": usage.output_tokens if usage else 0,
+                "cache_read_input_tokens": getattr(usage, 'cache_read_input_tokens', 0) if usage else 0,
+                "cache_creation_input_tokens": getattr(usage, 'cache_creation_input_tokens', 0) if usage else 0,
             },
             model=message.model,
             finish_reason=message.stop_reason or "stop",
@@ -381,7 +397,7 @@ class OpenAIProvider(LLMProvider):
     """
 
     def __init__(self, model: str = "gpt-4o", api_key: str = "", base_url: str = ""):
-        api_key = api_key or os.getenv("OPENAI_API_KEY", "")
+        api_key = api_key or _get_config().openai_api_key
         if not api_key:
             raise ValueError("OPENAI_API_KEY 未设置。请在 .env 文件或环境变量中配置。")
 
@@ -597,7 +613,7 @@ class OllamaProvider(LLMProvider):
     """
 
     def __init__(self, model: str = "qwen3:8b", base_url: str = ""):
-        base_url = base_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        base_url = base_url or _get_config().ollama_base_url
 
         try:
             from openai import OpenAI
@@ -749,7 +765,7 @@ class DeepSeekProvider(LLMProvider):
     BASE_URL = "https://api.deepseek.com"
 
     def __init__(self, model: str = "deepseek-chat", api_key: str = "", base_url: str = ""):
-        api_key = api_key or os.getenv("DEEPSEEK_API_KEY", "")
+        api_key = api_key or _get_config().deepseek_api_key
         if not api_key:
             raise ValueError(
                 "DEEPSEEK_API_KEY 未设置。请在 .env 文件或环境变量中配置。\n"

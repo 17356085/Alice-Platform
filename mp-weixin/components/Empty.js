@@ -1,1 +1,0 @@
-"use strict";const e=require("../common/vendor.js");if(!Array){e.resolveComponent("wd-icon")()}Math;const t=e.defineComponent({__name:"Empty",props:{title:{},icon:{default:"search"}},setup:t=>(t,o)=>({a:e.p({name:t.icon,size:"96rpx","custom-class":"empty-icon"}),b:e.t(t.title)})}),o=e._export_sfc(t,[["__scopeId","data-v-92b4861d"]]);wx.createComponent(o);

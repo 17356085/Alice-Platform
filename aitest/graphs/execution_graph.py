@@ -174,7 +174,7 @@ def knowledge_act(state: SOPState) -> dict:
 
     # 处理事件总线积压
     try:
-        from aitest.governance.event_bus import process_pending
+        from aitest.audit_engine.event_bus import process_pending
         processed = process_pending()
         result["agent_outputs"]["events_processed"] = len(processed)
     except Exception as e:
@@ -213,7 +213,7 @@ def knowledge_exit(state: SOPState) -> dict:
         import json
         from pathlib import Path
 
-        output_dir = Path("D:/Desktop/WorkStudy/allure-results")
+        output_dir = Path("D:/Desktop/Alice/allure-results")
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # 清理旧 JSON / 临时文件（保留最新 7 天）

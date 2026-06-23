@@ -608,7 +608,7 @@ def promote_skill_version(skill_id: str, new_version: str, provider: str = "clau
 
         # 发射 PromptChanged 事件
         try:
-            from aitest.governance.event_bus import emit
+            from aitest.audit_engine.event_bus import emit
             emit("PromptChanged",
                  skill_id=skill_id,
                  old_version=old_version,
@@ -627,7 +627,7 @@ def promote_skill_version(skill_id: str, new_version: str, provider: str = "clau
     else:
         # 失败 → 发射 EvalRegressed 事件
         try:
-            from aitest.governance.event_bus import emit
+            from aitest.audit_engine.event_bus import emit
             for failure in gate.failures:
                 emit("EvalRegressed",
                      skill_id=skill_id,

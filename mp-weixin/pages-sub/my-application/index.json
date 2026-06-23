@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "我的申请",
-  "usingComponents": {
-    "wd-loading": "../../node-modules/wot-design-uni/components/wd-loading/wd-loading",
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
-    "empty": "../../components/Empty"
-  }
-}

@@ -1,0 +1,56 @@
+{
+  "module": "sales",
+  "status": "completed",
+  "completed_phases": [
+    "Project Init",
+    "Requirement",
+    "Test Design",
+    "Automation",
+    "Execute & Debug",
+    "Bug Analysis",
+    "Data Sanitization",
+    "Report",
+    "Knowledge"
+  ],
+  "failed_phases": [],
+  "pages_processed": [
+    "contract",
+    "customer",
+    "daily-report",
+    "sales-order"
+  ],
+  "artifact_count": 48,
+  "run_id": "sop-sales-batch3",
+  "updated_at": "2026-06-18",
+  "engine": "langgraph",
+  "note": "Phase 修复: allure-pytest 2.13.2→2.16.0, daily_report 超时 88s→44s, SOP phase 顺序规范化, --clean 安全流程, 补齐 Knowledge 8 文件 + 执行报告",
+  "execution_results": {
+    "date": "2026-06-18",
+    "full_suite": "828 collected | 361P/345F/90S/29E/3X | 760 rerun | 8h12m",
+    "module_specific": {
+      "exec": "completed",
+      "tests": "22 files, 101 collected | 45P/46F/10B | 45%",
+      "note": "E2E 3/3 PASSED, 分页 5/5 PASSED, CRUD 46F 存量 (弹窗表单), 10B 为旧 allure 兼容性残留已清理"
+    }
+  },
+  "fix_log": [
+    {"date": "2026-06-18", "issue": "allure-pytest 2.13.2 incompatible with pytest 8.3.5", "fix": "upgrade to 2.16.0", "impact": "3 E2E ERROR→PASSED"},
+    {"date": "2026-06-18", "issue": "SOP_STATUS phase order alphabetical not canonical", "fix": "reordered to canonical sequence", "impact": "3 audit phase_order errors resolved"},
+    {"date": "2026-06-18", "issue": "daily_report_pagination TimeoutException (88s/test)", "fix": "6 optimizations: mask visibility check, thead/tbody priority, sleep(0.3s) in wait, redundant wait removal, date range reduction", "impact": "88s→44s (-50%), 5/5 DLY tests PASSED"},
+    {"date": "2026-06-18", "issue": "allure generate --clean deletes json/ source directory", "fix": "safe regenerate_reports.sh (generate to /tmp, copy back)", "impact": "json/ preserved across regenerations"},
+    {"date": "2026-06-18", "issue": "--alluredir path wrong (../../ not ../)", "fix": "corrected in CLAUDE.md, pytest.ini, ALLURE_STANDARD.md", "impact": "JSON now goes to correct allure-results/json/"},
+    {"date": "2026-06-18", "issue": "Knowledge phase artifacts missing (8 per-page files)", "fix": "generated via generate_knowledge_artifacts.py", "impact": "4 MD + 4 XLSX per page delivered"},
+    {"date": "2026-06-18", "issue": "Report phase execution report missing", "fix": "generated TEST_EXECUTION_SALES_2026-06-18.md", "impact": "Report phase artifact complete"}
+  ],
+  "next_steps": [
+    "Fix contract CRUD failures (46f): add/search/edit/start/terminate/delete 弹窗表单",
+    "Run full sales suite to update 45% pass rate"
+  ],
+  "restored_from_backup": "2026-06-17",
+  "restored_keys": [
+    "completed_phases",
+    "pages_processed",
+    "run_id",
+    "fix_log"
+  ]
+}

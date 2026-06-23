@@ -59,7 +59,7 @@ def _emit_milestone(skill_id: str, observation, agent_name: str = "", logger=Non
     if skill_id not in MILESTONE_SKILLS or observation.status != "pass":
         return
     try:
-        from aitest.governance.event_bus import emit
+        from aitest.audit_engine.event_bus import emit
         emit("AgentCompleted",
              skill_id=skill_id,
              agent_name=agent_name,
@@ -72,7 +72,7 @@ def _emit_milestone(skill_id: str, observation, agent_name: str = "", logger=Non
 def emit_cache_summary(shared_injector=None, shared_adapter=None, logger=None):
     """Emit ContextUpdated event with cache statistics. Best-effort."""
     try:
-        from aitest.governance.event_bus import emit
+        from aitest.audit_engine.event_bus import emit
         hits = 0
         calls = 0
         if shared_injector and hasattr(shared_injector, "cache_stats"):

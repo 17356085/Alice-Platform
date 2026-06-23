@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "培训计划",
-  "usingComponents": {
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
-    "empty": "../../components/Empty"
-  }
-}

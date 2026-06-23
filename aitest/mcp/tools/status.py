@@ -1,8 +1,9 @@
 """Tools: get_module_status + get_automation_coverage。"""
 import os
 
-from aitest.mcp.config import MODULE_INDEX, CONTEXT_MODULES, ZJSN_TEST
+from aitest.mcp.config import MODULE_INDEX, CONTEXT_MODULES
 from aitest.mcp.error_taxonomy import ErrorCode, error_response
+from aitest.platform.paths import get_test_project_root
 
 
 def get_module_status(module_name: str = "") -> dict:
@@ -50,8 +51,15 @@ def get_module_status(module_name: str = "") -> dict:
 
 def get_automation_coverage(module_name: str = "") -> dict:
     """获取模块的自动化代码覆盖率信息。"""
-    page_dir = ZJSN_TEST / "page"
-    script_dir = ZJSN_TEST / "script"
+    zjsn = get_test_project_root()
+    if not zjsn:
+        return error_response(
+            ErrorCode.PRECONDITION_FAILED,
+            "No test project configured",
+            "使用 aitest project set --id=<project> 设置活跃项目，或注册新项目。",
+        )
+    page_dir = zjsn / "page"
+    script_dir = zjsn / "script"
 
     page_objects = {}
     test_scripts = {}

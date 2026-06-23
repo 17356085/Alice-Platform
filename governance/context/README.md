@@ -1,82 +1,40 @@
-# Context Governance
+# Governance Context — 平台运行时配置
 
-## 设计原则
-- 先按测试项目划分
-- 再按模块划分
-- 页面作为最小业务分析单元
-- 项目级文件只保留稳定共性
-- 详细模块事实尽量沉到模块树中
+> 本目录存放平台引擎运行时所需的配置文件和索引。**不存放项目业务数据**（项目数据在 TestingProject 各项目 `.tlo/` 下）。
 
-## 结构约定
-- `projects/<project>/PROJECT_CONTEXT.md`
-- `projects/<project>/MODULE_INDEX.md`
-- `projects/<project>/modules/<module>/MODULE_CONTEXT.md`
-- `projects/<project>/modules/<module>/pages/<page>/PAGE_CONTEXT.md`
-- `projects/<project>/summaries/TEST_SUMMARY.md`
+## 目录内容
 
-## SOP Phase vs 文档产出 vs 存放位置
+| 路径 | 用途 | 更新方式 |
+|------|------|----------|
+| `environments.yaml` | 项目环境注册（URL、凭证引用） | 手动 + CLI `aitest project register` |
+| `project-index.yaml` | 活跃项目索引 | CLI 自动 + 手动 |
+| `known-issues.yaml` | 已知问题注册表（Element Plus / Selenium 坑位） | 平台自动 + 手动 |
+| `shared-language.md` | 平台术语 + 业务术语歧义消除 | 手动 |
+| `source-of-truth.md` | 事实来源声明 | 手动 |
+| `config/test_accounts.yaml` | 测试账号凭证（技能 `env-checker` / `data-preparer` 引用） | 手动 |
+| `interfaces/` | 数据接口 schema 定义 | 手动 |
+| `tracking/` | 治理修复追踪（治理验证冲刺产物） | 手动 |
+| `projects/dev-platform/` | 平台自身开发文档 | 手动 |
+| `projects/_archived/` | 已归档项目上下文（历史参考） | 手动 |
 
-下表是依据旧 `contexts/` 体系及治理层约定梳理的完整文档映射：
+## 与 .tlo/ 的关系
 
-| Phase | 文档 | governance 存放位置 | 层级 | 模板 |
-| --- | --- | --- | --- | --- |
-| **Phase 0** | `PROJECT_CONTEXT.md` | `context/projects/<project>/` | 项目级 | — |
-| **Phase 0.5** | `MODULE_CONTEXT.md` | `context/projects/<project>/modules/<module>/` | 模块级 | `templates/module-context.template.md` |
-| **Phase 1** | `PAGE_CONTEXT.md` | `context/projects/<project>/modules/<module>/pages/<page>/` | 页面级 | `templates/page-context.template.md` |
-| **Phase 1.5** | `RISK_MODEL.md` | 同页面目录 | 页面级 | `templates/risk-model.template.md` |
-| **Phase 2** | `TEST_DESIGN.md` | 同页面目录 | 页面级 | `templates/test-design.template.md` |
-| **Phase 2.5** | `TEST_CASES.md` | 同页面目录 | 页面级 | `templates/test-cases.template.md` |
-| **Phase 3** | `TECH_ANALYSIS.md` | 同页面目录 | 页面级 | `templates/tech-analysis.template.md` |
-| **Phase 3** | `PAGE_ELEMENT_POSITION.md` | 同页面目录 | 页面级 | — |
-| **Phase 3.5** | `AUTO_STRATEGY.md` | 同页面目录 | 页面级 | `templates/auto-strategy.template.md` |
-| **Phase 4** | 自动化代码 | 自动化工程 | 代码 | — |
-| **Phase 4.5** | `BUG_ANALYSIS.md` | `artifacts/` 或测试报告目录 | 报告 | `templates/bug-analysis.template.md` |
-| **Phase 5** | `FAIL_ANALYSIS.md` | `artifacts/` | 报告 | — |
-| **Phase 8** | `TEST_SUMMARY.md` | `context/projects/<project>/summaries/` | 报告 | `templates/test-summary.template.md` |
-| **Phase 9** | `PROJECT_CONTEXT.md`（更新） | 同 Phase 0 | 项目级 | — |
+ADR-001 规定：项目上下文跟随项目。平台不再在此目录存放项目业务数据。
 
-### 文档归属规则
-
-```text
-项目级 → context/projects/<project>/        PROJECT_CONTEXT, MODULE_INDEX
-模块级 → context/projects/<project>/modules/<module>/  MODULE_CONTEXT
-页面级 → 同模块 pages/<page>/              PAGE_CONTEXT, RISK_MODEL, TEST_DESIGN,
-                                           TEST_CASES, TECH_ANALYSIS,
-                                           PAGE_ELEMENT_POSITION, AUTO_STRATEGY
-模板   → templates/                        所有 *.template.md
-产物   → artifacts/                        一次性分析/报告结果
-流程   → workflows/                        流程规则与工作流
-能力   → skills/                           可复用的 prompt 与 skill
+```
+Alice (平台)
+├── governance/context/   ← 平台级配置（本目录）
+│   └── projects/_archived/  ← 已归档旧项目数据
+│
+TestingProject (项目数据)
+├── ZJSN_Test-master526/.tlo/   ← ZJSN 项目上下文
+├── mp-weixin/.tlo/             ← 小程序源码上下文
+└── mp-weixin-automator/.tlo/   ← 小程序自动化上下文
 ```
 
-## 与现有资产关系
-现有 `TestIntern_library\02-项目文档\contexts\` 为存量主资产。
-本治理层先做：
-1. 索引
-2. 规则
-3. 映射
-4. 渐进迁移
+## 新增配置规则
 
-## 更新规则
-- 稳定事实更新到 `context/`
-- 流程规则更新到 `workflows/`
-- 可复用能力更新到 `skills/`
-- 一次性输出或分析结果进入 `artifacts/`
-
-## 新建模块
-1. 在 `context/projects/<project>/modules/` 下创建 `<module>/` 目录
-2. 复制 `templates/module-context.template.md` → `<module>/MODULE_CONTEXT.md`
-3. 创建 `pages/` 子目录，按页面逐个补充
-4. 按 SOP Phase 顺序产出各级文档
-
-## 新建页面
-1. 在 `context/<project>/modules/<module>/pages/` 下创建 `<page>/` 目录
-2. 复制 `templates/page-context.template.md` → `<page>/PAGE_CONTEXT.md`
-3. 依次产出：`RISK_MODEL` → `TEST_DESIGN` → `TEST_CASES` → `TECH_ANALYSIS` → `PAGE_ELEMENT_POSITION` → `AUTO_STRATEGY`
-
-## AI 会话上下文传递
-
-```text
-会话开始前：读取 PROJECT_CONTEXT → MODULE_CONTEXT → PAGE_CONTEXT（逐级加载）
-会话结束后：更新对应 Phase 的文档，同步回 context/ 模块树
-```
+- 平台运行时需要读取的配置 → 放本目录
+- 项目特有的业务知识 → 放项目 `.tlo/knowledge/`
+- 架构决策 / 计划文档 → 放 `docs/`（非本目录）
+- ADR → 放 `docs/adr/`

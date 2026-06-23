@@ -1,0 +1,12 @@
+{
+  "status": "discovered",
+  "completed_phases": [],
+  "failed_phases": [],
+  "pages_processed": [
+    "thread-detail"
+  ],
+  "artifact_count": 1,
+  "run_id": "",
+  "updated_at": "2026-06-23T21:15:27.152795",
+  "note": "Onboarded — 1 pages discovered"
+}

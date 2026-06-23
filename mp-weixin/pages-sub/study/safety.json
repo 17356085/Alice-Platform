@@ -1,6 +1,0 @@
-{
-  "navigationBarTitleText": "入厂安全须知",
-  "usingComponents": {
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon"
-  }
-}

@@ -1,0 +1,19 @@
+# TLO Project — local-project
+project:
+  id: "local-project"
+  name: "local-project"
+
+application:
+  type: "web"
+  runtime: "browser"
+
+connection:
+  base_url: "BlueAlbum"
+  login_required: true
+  login_method: "form"
+
+discovery:
+  strategy: "browser-use"
+
+knowledge:
+  chroma_namespace: "local-project"

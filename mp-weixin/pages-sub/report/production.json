@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "生产报表",
-  "usingComponents": {
-    "wd-loading": "../../node-modules/wot-design-uni/components/wd-loading/wd-loading",
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon"
-  }
-}

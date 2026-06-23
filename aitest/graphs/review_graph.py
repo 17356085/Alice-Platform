@@ -189,7 +189,7 @@ def run_review_phase(state: dict) -> dict:
         return {**state, "phase_index": idx + 1}
 
     from aitest.agents.agent_runner import run_skill
-    from aitest.governance.diff_first_review_adapter import DiffFirstReviewAdapter
+    from aitest.audit_engine.diff_first_review_adapter import DiffFirstReviewAdapter
 
     # NEW: Use DiffFirstReviewAdapter to reduce token usage
     adapter = DiffFirstReviewAdapter(context_lines=3, full_file_threshold=100)
@@ -336,7 +336,7 @@ def report_node(state: dict) -> dict:
 def emit_events_node(state: dict) -> dict:
     """Emit ReviewCompleted and domain-specific events to Event Bus."""
     try:
-        from aitest.governance.event_bus import emit
+        from aitest.audit_engine.event_bus import emit
 
         # Emit ReviewCompleted
         results = state.get("review_results", {})

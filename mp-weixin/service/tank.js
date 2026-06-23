@@ -1,1 +1,0 @@
-"use strict";const t=require("../utils/http.js");exports.getTankList=function(){return t.http.get("/api/tank/miniapp/list")},exports.getTankMonitor=function(i,n){return t.http.get(`/api/tank/miniapp/${i}`,void 0,n)};

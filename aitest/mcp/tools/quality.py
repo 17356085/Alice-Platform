@@ -2,13 +2,15 @@
 import json
 import subprocess
 
-from aitest.mcp.config import CODE_QUALITY_SCRIPT, ZJSN_TEST
+from aitest.mcp.config import CODE_QUALITY_SCRIPT
 from aitest.mcp.error_taxonomy import ErrorCode, error_response
+from aitest.platform.paths import get_test_project_root
 
 
 def run_code_quality_check(target: str = "", staged: bool = False) -> dict:
     """运行代码质量扫描器，返回结构化结果。"""
-    if not CODE_QUALITY_SCRIPT.exists():
+    zjsn = get_test_project_root()
+    if not zjsn or not CODE_QUALITY_SCRIPT or not CODE_QUALITY_SCRIPT.exists():
         return error_response(
             ErrorCode.FILE_NOT_FOUND,
             f"Tool not found: {CODE_QUALITY_SCRIPT}",
@@ -23,7 +25,7 @@ def run_code_quality_check(target: str = "", staged: bool = False) -> dict:
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=60,
-                                cwd=str(ZJSN_TEST), encoding='utf-8', errors='replace')
+                                cwd=str(zjsn), encoding='utf-8', errors='replace')
         if result.returncode == 0:
             data = json.loads(result.stdout) if result.stdout.strip() else {"status": "pass", "violations": []}
             data["status"] = "pass"

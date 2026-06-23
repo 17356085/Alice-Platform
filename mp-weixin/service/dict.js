@@ -1,1 +1,0 @@
-"use strict";const t=require("../utils/http.js");exports.DICT_MINIAPP_APPLICATION_TYPE="miniapp_application_type",exports.getDictDataByCode=function(e){return t.http.get(`/api/system/dict/data/listByCode/${e}`)};

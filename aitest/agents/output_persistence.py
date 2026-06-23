@@ -148,7 +148,7 @@ def save_skill_output(skill_id: str, content: str, module: str, page: str,
     # Emit ContextUpdated events
     if saved_paths:
         try:
-            from aitest.governance.event_bus import emit
+            from aitest.audit_engine.event_bus import emit
             gov_files = [p for p in saved_paths if "governance/context" in str(p).replace("\\", "/")]
             code_files = [p for p in saved_paths if p not in gov_files]
             if gov_files:

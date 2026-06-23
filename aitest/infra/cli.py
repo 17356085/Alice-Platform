@@ -32,13 +32,77 @@ GOVERNANCE = get_governance_dir()
 
 
 def _zjsn():
-    """Resolve test project root lazily. Returns fallback if not configured."""
+    """Resolve test project root lazily. Returns None if not configured."""
     import os
     root = get_test_project_root()
     if root:
         return root
-    # Fallback: look for ZJSN_Test in the WORKSTUDY parent directory
-    return WORKSTUDY / "ZJSN_Test-master526"
+    # No fallback — project must be configured
+    return None
+
+
+def cmd_project_register(args):
+    """Register a project with the platform."""
+    import yaml
+    project_path = Path(args.path).resolve()
+    if not project_path.exists():
+        print(f"ERROR: Path does not exist: {project_path}")
+        return 1
+
+    # Check for .tlo/project.yaml
+    tlo_yaml = project_path / ".tlo" / "project.yaml"
+    if tlo_yaml.exists():
+        config = yaml.safe_load(tlo_yaml.read_text(encoding="utf-8"))
+        project_id = config.get("project", {}).get("id", args.id or project_path.name)
+    else:
+        project_id = args.id or project_path.name
+        # Create .tlo/project.yaml from template
+        tlo_dir = project_path / ".tlo"
+        tlo_dir.mkdir(parents=True, exist_ok=True)
+        for subdir in ["knowledge/modules", "context", "runtime/sop-status", "cache/discovery", "artifacts"]:
+            (tlo_dir / subdir).mkdir(parents=True, exist_ok=True)
+        tlo_yaml.write_text(
+            f"# {project_id} — TLO Project Configuration\n"
+            f"project:\n"
+            f"  id: \"{project_id}\"\n"
+            f"  name: \"{project_id}\"\n"
+            f"test_project:\n"
+            f"  type: \"pytest-selenium\"\n"
+            f"  code_path: \"{project_path.relative_to(WORKSTUDY.parent) if WORKSTUDY.parent in project_path.parents else project_path}\"\n",
+            encoding="utf-8"
+        )
+        print(f"Created .tlo/project.yaml for {project_id}")
+
+    # Update project-index.yaml
+    index_path = GOVERNANCE / "context" / "project-index.yaml"
+    try:
+        index = yaml.safe_load(index_path.read_text(encoding="utf-8")) or {}
+    except Exception:
+        index = {"projects": []}
+
+    projects = index.get("projects", [])
+    existing = [p for p in projects if p.get("id") == project_id]
+    if existing:
+        existing[0]["path"] = str(project_path)
+        print(f"Updated existing project: {project_id}")
+    else:
+        projects.append({
+            "id": project_id,
+            "name": project_id,
+            "path": str(project_path),
+            "tlo_dir": ".tlo/",
+            "status": "active",
+        })
+        print(f"Registered new project: {project_id}")
+
+    # Set as active
+    from aitest.platform.context import set_active_project
+    set_active_project(project_id)
+
+    index_path.write_text(yaml.dump(index, allow_unicode=True, default_flow_style=False), encoding="utf-8")
+    print(f"Active project: {project_id}")
+    print(f"Path: {project_path}")
+    return 0
 
 
 def cmd_check(args):
@@ -129,13 +193,15 @@ def cmd_status(args):
         log_error("cli.cmd_status", "rag_status", e)
         print(f"\n[RAG] Not connected")
 
-    # Workflow runs
-    from aitest.workflow_engine import RUNS_DIR
-    if RUNS_DIR.exists():
-        runs = sorted(RUNS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
-        print(f"\n[Workflows] {len(runs)} run(s)")
-        for r in runs[:5]:
-            print(f"  {r.stem} ({time.strftime('%m-%d %H:%M', time.localtime(r.stat().st_mtime))})")
+    # Graph runs (LangGraph checkpoint)
+    try:
+        from aitest.graphs.checkpoint import list_runs as list_graph_runs
+        runs = list_graph_runs(limit=5)
+        print(f"\n[Graph Runs] {len(runs)} run(s)")
+        for r in runs:
+            print(f"  {r['run_id']} ({r.get('updated_at', '?')})")
+    except Exception:
+        pass
 
     print()
 
@@ -372,66 +438,28 @@ def cmd_skill(args):
 
 
 def cmd_workflow(args):
-    """工作流引擎。"""
+    """工作流引擎 — LangGraph SOP Graph。
+
+    旧版 workflow_engine.py 已于 2026-07 移除。
+    使用 `aitest graph run --module=<m>` 替代。
+    """
     sys.path.insert(0, str(WORKSTUDY))
-    from aitest.workflow_engine import WorkflowDef, topological_sort, WorkflowRunner, RUNS_DIR
+    print("Legacy workflow engine removed. Use LangGraph SOP Graph:")
+    print("  aitest graph run --module=<m> [--pages=<p1,p2>] [--mode=full]")
+    print()
 
-    if args.action == "run":
-        wf_path = GOVERNANCE / "workflows" / f"{args.workflow_id}.yaml"
-        if not wf_path.exists():
-            print(f"Workflow not found: {wf_path}")
-            print("Available:")
-            for wf in sorted((GOVERNANCE / "workflows").glob("*.yaml")):
-                print(f"  {wf.stem}")
-            return
-
-        wf = WorkflowDef.from_yaml(wf_path)
-        params = {}
-        if args.module:
-            params["module"] = args.module
-        runner = WorkflowRunner(wf, params)
-        state = runner.start()
-        print(f"Workflow started: {state.run_id}")
-        levels = topological_sort(wf.steps)
-        for i, level in enumerate(levels):
-            print(f"  Level {i}: {[s.id for s in level]}")
-        ready = runner.get_next_steps()
-        print(f"Ready: {[s.id for s in ready]}")
-
-    elif args.action == "resume":
-        if not args.run_id:
-            runs = sorted(RUNS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
-            if runs:
-                args.run_id = runs[0].stem
-                print(f"Resuming latest run: {args.run_id}")
-            else:
-                print("No runs to resume")
-                return
-
-        wf_id = args.run_id.rsplit("-", 1)[0]
-        wf_path = GOVERNANCE / "workflows" / f"{wf_id}.yaml"
-        if wf_path.exists():
-            wf = WorkflowDef.from_yaml(wf_path)
-            runner = WorkflowRunner(wf)
-            runner.resume(args.run_id)
-            progress = runner.progress()
-            print(json.dumps(progress, ensure_ascii=False, indent=2))
-        else:
-            print(f"Cannot find workflow for run {args.run_id}")
-
-    elif args.action == "status":
-        if args.run_id:
-            path = RUNS_DIR / f"{args.run_id}.json"
-            if path.exists():
-                with open(path, "r") as f:
-                    print(json.dumps(json.load(f), ensure_ascii=False, indent=2))
-            else:
-                print(f"No run: {args.run_id}")
-        else:
-            if RUNS_DIR.exists():
-                runs = sorted(RUNS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
-                for r in runs[:10]:
-                    print(f"  {r.stem}")
+    if args.action == "list":
+        print("Available workflows (governance/workflows/):")
+        for wf in sorted((GOVERNANCE / "workflows").glob("*.yaml")):
+            print(f"  {wf.stem}")
+        print()
+        print("To run: aitest graph run --module=<m>")
+    elif args.action in ("run", "resume", "status"):
+        print(f"Action '{args.action}' no longer supported via workflow_engine.")
+        print("Use:")
+        print("  aitest graph run     --module=<m>")
+        print("  aitest graph resume  --run-id=<id>")
+        print("  aitest graph status  [--run-id=<id>]")
 
 
 def cmd_rag(args):
@@ -482,7 +510,7 @@ def cmd_rag(args):
 def cmd_bus(args):
     """事件总线。"""
     sys.path.insert(0, str(WORKSTUDY))
-    from aitest.governance.event_bus import emit, list_pending, list_all, process_pending
+    from aitest.audit_engine.event_bus import emit, list_pending, list_all, process_pending
 
     if args.action == "emit":
         if not args.event_type:
@@ -604,7 +632,7 @@ def cmd_dashboard(args):
     print("  Event Bus")
     print(f"{'─' * width}")
 
-    from aitest.governance.event_bus import list_pending, EVENT_DIR
+    from aitest.audit_engine.event_bus import list_pending, EVENT_DIR
     pending_events = list_pending()
     print(f"  Pending events: {len(pending_events)}")
     for evt in pending_events[:5]:
@@ -648,566 +676,8 @@ def cmd_dashboard(args):
     print()
 
 
-def _run_preflight_gate(module: str, mode: str, pages: list[str]) -> None:
-    """U9: SOP 门禁前置检查 — 在编排启动前验证前置条件。"""
-    try:
-        import subprocess
-        zjsn = _zjsn()
-        script = zjsn / "tools" / "check_sop_gate.py"
-        if not script.exists():
-            return  # 门禁脚本不存在，静默跳过
-
-        # 根据 mode 确定最关键的 agent 进行检查
-        mode_to_agent = {
-            "full": "project-agent",
-            "from-requirement": "requirement-agent",
-            "from-test-design": "test-design-agent",
-            "from-automation": "automation-agent",
-        }
-        agent = mode_to_agent.get(mode, "project-agent")
-
-        result = subprocess.run(
-            ["python", str(script), "--module", module, "--agent", agent, "--json"],
-            capture_output=True, text=True, timeout=30,
-            cwd=str(zjsn),
-        )
-        if result.returncode != 0 and result.stdout:
-            import json as _json
-            try:
-                data = _json.loads(result.stdout)
-                if data.get("blocked"):
-                    print(f"  [GATE BLOCKED] {data.get('summary', '')}")
-                    print(f"  [RECOMMEND]    {data.get('recommendation', '')}")
-                    # 不阻塞执行 — warning only (P1 阶段)
-            except Exception:
-                pass
-    except Exception:
-        pass  # 门禁检查失败不阻塞编排
-
-
-def cmd_graph(args):
-    """LangGraph 编排引擎。"""
-    sys.path.insert(0, str(WORKSTUDY))
-    from aitest.graphs.state import create_initial_state, MODE_SKIP_MAP
-    from aitest.graphs.checkpoint import get_checkpointer, list_runs as graph_list_runs, get_latest_state
-    from aitest.graphs.sop_graph import build_sop_graph
-
-    if args.action == "run":
-        # ── graph run: 执行 SOP 编排 ──
-        module = args.module
-        pages = args.pages.split(",") if args.pages else []
-        mode = args.mode or "full"
-        provider = args.provider or "claude"
-
-        if not module:
-            print("Error: --module is required")
-            return
-
-        print(f"LangGraph SOP Engine")
-        print(f"  Module:   {module}")
-        print(f"  Pages:    {pages or '(auto-discover)'}")
-        print(f"  Mode:     {mode}")
-        print(f"  Provider: {provider}")
-        print()
-
-        # ★ U9: Gate 检查前置 — 在编排启动前验证前置条件
-        if mode != "status":
-            _run_preflight_gate(module, mode, pages)
-
-        # 构建初始状态
-        initial_state = create_initial_state(
-            module=module,
-            pages=pages,
-            mode=mode,
-            provider=provider,
-        )
-
-        # 编译图
-        checkpointer = get_checkpointer()
-        graph = build_sop_graph()
-        compiled = graph.compile(checkpointer=checkpointer)
-
-        thread = {"configurable": {"thread_id": initial_state["run_id"]}}
-        non_interactive = getattr(args, 'non_interactive', False)
-
-        if not non_interactive:
-            print(f"Run ID: {initial_state['run_id']}")
-            print(f"Skip phases: {initial_state['skip_phases']}")
-            print("-" * 60)
-
-        # 流式执行（含 HITL interrupt 处理）
-        from langgraph.types import Command
-
-        hitl_log = []  # 记录 HITL 决策（non-interactive 用）
-        try:
-            for event in compiled.stream(initial_state, thread, stream_mode="updates"):
-                # ── HITL interrupt 处理 ──
-                if "__interrupt__" in event:
-                    interrupt_data = event["__interrupt__"]
-                    for item in interrupt_data:
-                        payload = getattr(item, 'value', None) or item
-                        if isinstance(payload, dict):
-                            itype = payload.get('type', 'Approval Required')
-                            if non_interactive:
-                                # ★ 非交互模式：自动选第一个选项（approve/force_continue 等）
-                                opts = payload.get('options', ['approve'])
-                                answer = opts[0] if opts else "approve"
-                                hitl_log.append({
-                                    "type": itype,
-                                    "decision": f"auto_{answer}",
-                                    "reason": "non-interactive mode",
-                                    "details": str(payload.get('hint', ''))[:200],
-                                })
-                            else:
-                                print()
-                                print(f"  [HITL] {itype}")
-                                print(f"  Cycle:  {payload.get('cycle', '?')}")
-                                print(f"  Fix:    {payload.get('fix_summary', '')[:200]}")
-                                print(f"  Options: {payload.get('options', ['approve', 'reject'])}")
-                                answer = input("  > approve/reject/skip: ").strip().lower()
-                            # Resume
-                            for resume_event in compiled.stream(
-                                Command(resume=answer), thread, stream_mode="updates"
-                            ):
-                                for rn, ru in resume_event.items():
-                                    if rn == "__interrupt__":
-                                        continue
-                                    completed = ru.get("completed_phases", []) if isinstance(ru, dict) else []
-                                    if completed and not non_interactive:
-                                        print(f"  [{rn}] {completed}")
-                        else:
-                            if not non_interactive:
-                                print(f"  [HITL] Interrupt (raw): {str(payload)[:200]}")
-                    continue
-
-                # ── 正常事件处理 ──
-                for node_name, update in event.items():
-                    if non_interactive:
-                        continue  # 非交互模式不打印进度
-
-                    phase = update.get("current_phase", "") if isinstance(update, dict) else ""
-                    status = update.get("status", "") if isinstance(update, dict) else ""
-
-                    if node_name == "entry":
-                        print(f"  [entry]     Mode={mode}, Skip={initial_state['skip_phases']}")
-                    elif node_name == "preflight":
-                        pages_found = update.get("pages", []) if isinstance(update, dict) else []
-                        completed = update.get("completed_phases", []) if isinstance(update, dict) else []
-                        print(f"  [preflight] Pages: {pages_found}")
-                        if completed:
-                            print(f"              Completed: {completed}")
-                    elif node_name == "exit":
-                        final_status = update.get("status", "?") if isinstance(update, dict) else "?"
-                        print(f"  [exit]      Status: {final_status}")
-                    elif node_name.endswith("_agent"):
-                        completed_phases = update.get("completed_phases", []) if isinstance(update, dict) else []
-                        failed_phases = update.get("failed_phases", []) if isinstance(update, dict) else []
-                        fatal = update.get("fatal_error") if isinstance(update, dict) else None
-                        if completed_phases:
-                            print(f"  [{node_name}] Completed: {completed_phases}")
-                        if failed_phases:
-                            print(f"  [{node_name}] Failed: {failed_phases}")
-                        if fatal:
-                            print(f"  [{node_name}] FATAL: {fatal}")
-                    else:
-                        if phase:
-                            print(f"  [{node_name}] Phase={phase}")
-
-            # 获取最终状态
-            final = compiled.get_state(thread)
-            if final and final.values:
-                fv = final.values
-                if non_interactive:
-                    # ★ 输出结构化 JSON（Claude Code 可直接解析）
-                    result = {
-                        "status": fv.get("status", "?"),
-                        "module": fv.get("module", module),
-                        "run_id": initial_state["run_id"],
-                        "completed_phases": fv.get("completed_phases", []),
-                        "failed_phases": fv.get("failed_phases", []),
-                        "pages_processed": fv.get("pages", []),
-                        "fatal_error": fv.get("fatal_error"),
-                        "hitl_decisions": hitl_log,
-                        "engine": "langgraph",
-                    }
-                    import json as _json
-                    print(_json.dumps(result, ensure_ascii=False, indent=2))
-                else:
-                    print("-" * 60)
-                    print(f"Final: {fv.get('status', '?')}")
-                    print(f"  Completed phases: {fv.get('completed_phases', [])}")
-                    print(f"  Failed phases: {fv.get('failed_phases', [])}")
-                    if fv.get("fatal_error"):
-                        print(f"  Fatal error: {fv['fatal_error']}")
-
-        except KeyboardInterrupt:
-            print("\n  Interrupted. Run state saved. Resume with:")
-            print(f"  aitest graph resume --run-id={initial_state['run_id']}")
-        except Exception as e:
-            print(f"\n  Error: {e}")
-            import traceback
-            traceback.print_exc()
-
-    elif args.action == "resume":
-        # ── graph resume: 断点续跑 ──
-        run_id = args.run_id
-        if not run_id:
-            runs = graph_list_runs()
-            if runs:
-                run_id = runs[0]["run_id"]
-                print(f"Resuming latest run: {run_id}")
-            else:
-                print("No runs to resume")
-                return
-
-        checkpointer = get_checkpointer()
-        graph = build_sop_graph()
-        compiled = graph.compile(checkpointer=checkpointer)
-
-        thread = {"configurable": {"thread_id": run_id}}
-        current = compiled.get_state(thread)
-
-        if not current or not current.values:
-            print(f"No state found for run: {run_id}")
-            return
-
-        state = current.values
-        print(f"Resuming: {run_id}")
-        print(f"  Module: {state.get('module', '?')}")
-        print(f"  Status: {state.get('status', '?')}")
-        print(f"  Completed: {state.get('completed_phases', [])}")
-        print(f"  Current phase: {state.get('current_phase', '?')}")
-        print("-" * 60)
-
-        non_interactive = getattr(args, 'non_interactive', False)
-        hitl_log = []
-        try:
-            from langgraph.types import Command
-
-            for event in compiled.stream(None, thread, stream_mode="updates"):
-                # ── HITL interrupt ──
-                if "__interrupt__" in event:
-                    for item in event["__interrupt__"]:
-                        payload = getattr(item, 'value', None) or item
-                        if isinstance(payload, dict):
-                            itype = payload.get('type', 'Approval')
-                            if non_interactive:
-                                # ★ 非交互模式：自动选第一个选项
-                                opts = payload.get('options', ['approve'])
-                                answer = opts[0] if opts else "approve"
-                                hitl_log.append({
-                                    "type": itype,
-                                    "decision": f"auto_{answer}",
-                                    "reason": "non-interactive mode",
-                                    "details": str(payload.get('hint', ''))[:200],
-                                })
-                            else:
-                                print(f"\n  [HITL] {itype}")
-                                print(f"  Fix: {payload.get('fix_summary', '')[:200]}")
-                                answer = input("  > approve/reject/skip: ").strip().lower()
-                            for resume_event in compiled.stream(
-                                Command(resume=answer), thread, stream_mode="updates"
-                            ):
-                                for rn, ru in resume_event.items():
-                                    if rn == "__interrupt__":
-                                        continue
-                                    completed = ru.get("completed_phases", []) if isinstance(ru, dict) else []
-                                    if completed and not non_interactive:
-                                        print(f"  [{rn}] {completed}")
-                    continue
-
-                for node_name, update in event.items():
-                    if non_interactive:
-                        continue
-                    if node_name == "exit":
-                        print(f"  [exit] Status: {update.get('status', '?') if isinstance(update, dict) else '?'}")
-                    else:
-                        completed = update.get("completed_phases", []) if isinstance(update, dict) else []
-                        if completed:
-                            print(f"  [{node_name}] Completed: {completed}")
-
-            # Output final result
-            final = compiled.get_state(thread)
-            if final and final.values:
-                fv = final.values
-                if non_interactive:
-                    import json as _json
-                    result = {
-                        "status": fv.get("status", "?"),
-                        "module": fv.get("module", state.get('module', '?')),
-                        "run_id": run_id,
-                        "completed_phases": fv.get("completed_phases", []),
-                        "failed_phases": fv.get("failed_phases", []),
-                        "pages_processed": fv.get("pages", []),
-                        "fatal_error": fv.get("fatal_error"),
-                        "hitl_decisions": hitl_log,
-                        "engine": "langgraph",
-                    }
-                    print(_json.dumps(result, ensure_ascii=False, indent=2))
-        except KeyboardInterrupt:
-            print(f"\n  Interrupted. Resume again with:")
-            print(f"  aitest graph resume --run-id={run_id}")
-
-    elif args.action == "status":
-        # ── graph status: 查看运行状态 ──
-        run_id = args.run_id
-        if run_id:
-            state = get_latest_state(run_id)
-            if state:
-                print(f"Run: {run_id}")
-                print(f"  Module: {state.get('module', '?')}")
-                print(f"  Status: {state.get('status', '?')}")
-                print(f"  Mode: {state.get('mode', '?')}")
-                print(f"  Completed phases: {state.get('completed_phases', [])}")
-                print(f"  Failed phases: {state.get('failed_phases', [])}")
-                print(f"  Current phase: {state.get('current_phase', '?')}")
-                print(f"  Pages: {state.get('pages', [])}")
-            else:
-                print(f"No state found for run: {run_id}")
-        else:
-            runs = graph_list_runs()
-            if runs:
-                print(f"Recent runs ({len(runs)}):")
-                for r in runs:
-                    print(f"  {r['run_id']}  ({r.get('updated_at', '?')})")
-            else:
-                print("No runs found.")
-
-    elif args.action == "list":
-        # ── graph list: 列出所有 runs ──
-        runs = graph_list_runs(limit=args.limit or 20)
-        if runs:
-            print(f"Runs ({len(runs)}):")
-            for r in runs:
-                print(f"  {r['run_id']}  ({r.get('updated_at', '?')})")
-        else:
-            print("No runs found.")
-
-    elif args.action == "cleanup":
-        # ── graph cleanup: 清理旧 runs ──
-        from aitest.graphs.checkpoint import cleanup_run
-        run_id = args.run_id
-        if run_id:
-            ok = cleanup_run(run_id)
-            print(f"Cleanup {run_id}: {'OK' if ok else 'Failed'}")
-        else:
-            print("Usage: aitest graph cleanup --run-id=<id>")
-
-
-def cmd_graph_dev(args):
-    """Dev SOP LangGraph 编排引擎 — 9 Agent 开发流水线。"""
-    sys.path.insert(0, str(WORKSTUDY))
-    from aitest.graphs_dev.state_dev import create_initial_state_dev, DEV_MODE_SKIP_MAP
-    from aitest.graphs_dev.sop_graph_dev import build_compiled_dev_graph
-    from aitest.graphs.checkpoint import get_checkpointer, list_runs as graph_list_runs, get_latest_state
-
-    if args.action == "run":
-        module = args.module
-        mode = args.mode or "full"
-        provider = args.provider or "claude"
-
-        if not module:
-            print("Error: --module is required")
-            return
-
-        print(f"DevSOP LangGraph Engine (9 Agent / 10 Phase)")
-        print(f"  Module:   {module}")
-        print(f"  Mode:     {mode}")
-        print(f"  Provider: {provider}")
-        print()
-
-        initial_state = create_initial_state_dev(
-            module=module, mode=mode, provider=provider,
-        )
-
-        checkpointer = get_checkpointer()
-        compiled = build_compiled_dev_graph(checkpointer=checkpointer)
-        thread = {"configurable": {"thread_id": initial_state["run_id"]}}
-        non_interactive = getattr(args, 'non_interactive', False)
-
-        if not non_interactive:
-            print(f"Run ID: {initial_state['run_id']}")
-            print(f"Phases: {[p for p in ['Plan','Requirements','Architecture','Component Design','Frontend Impl','Backend Impl','Code Review','Dev Test','Debug & Fix','Build'] if p not in initial_state['skip_phases']]}")
-            print("-" * 60)
-
-        hitl_log = []
-        try:
-            from langgraph.types import Command
-
-            for event in compiled.stream(initial_state, thread, stream_mode="updates"):
-                if "__interrupt__" in event:
-                    for item in event["__interrupt__"]:
-                        payload = getattr(item, 'value', None) or item
-                        if isinstance(payload, dict):
-                            itype = payload.get('type', 'Approval Required')
-                            if non_interactive:
-                                opts = payload.get('options', ['approve'])
-                                answer = opts[0] if opts else "approve"
-                                hitl_log.append({"type": itype, "decision": f"auto_{answer}", "reason": "non-interactive"})
-                            else:
-                                print(f"\n  [HITL] {itype}")
-                                print(f"  Options: {payload.get('options', ['approve', 'reject'])}")
-                                answer = input("  > approve/reject/skip: ").strip().lower()
-                            for resume_event in compiled.stream(Command(resume=answer), thread, stream_mode="updates"):
-                                for rn, ru in resume_event.items():
-                                    if rn == "__interrupt__":
-                                        continue
-                                    completed = ru.get("completed_phases", []) if isinstance(ru, dict) else []
-                                    if completed and not non_interactive:
-                                        print(f"  [{rn}] {completed}")
-                    continue
-
-                for node_name, update in event.items():
-                    if non_interactive:
-                        continue
-                    phase = update.get("current_phase", "") if isinstance(update, dict) else ""
-                    completed = update.get("completed_phases", []) if isinstance(update, dict) else []
-                    if node_name == "entry":
-                        print(f"  [entry]     Mode={mode}")
-                    elif node_name == "exit":
-                        print(f"  [exit]      Status: {update.get('status', '?') if isinstance(update, dict) else '?'}")
-                    elif completed:
-                        print(f"  [{node_name}] Completed: {completed}")
-                    elif phase:
-                        print(f"  [{node_name}] Phase={phase}")
-
-            final = compiled.get_state(thread)
-            if final and final.values:
-                fv = final.values
-                if non_interactive:
-                    import json as _json
-                    result = {
-                        "status": fv.get("status", "?"),
-                        "module": fv.get("module", module),
-                        "run_id": initial_state["run_id"],
-                        "completed_phases": fv.get("completed_phases", []),
-                        "failed_phases": fv.get("failed_phases", []),
-                        "fatal_error": fv.get("fatal_error"),
-                        "hitl_decisions": hitl_log,
-                        "engine": "langgraph-dev",
-                    }
-                    print(_json.dumps(result, ensure_ascii=False, indent=2))
-                else:
-                    print("-" * 60)
-                    print(f"Final: {fv.get('status', '?')}")
-                    print(f"  Completed phases: {fv.get('completed_phases', [])}")
-                    print(f"  Failed phases: {fv.get('failed_phases', [])}")
-
-        except KeyboardInterrupt:
-            print(f"\n  Interrupted. Resume with:")
-            print(f"  aitest sop-dev resume --run-id={initial_state['run_id']}")
-        except Exception as e:
-            print(f"\n  Error: {e}")
-            import traceback
-            traceback.print_exc()
-
-    elif args.action == "resume":
-        run_id = args.run_id
-        if not run_id:
-            runs = graph_list_runs()
-            if runs:
-                run_id = runs[0]["run_id"]
-                print(f"Resuming latest run: {run_id}")
-            else:
-                print("No runs to resume")
-                return
-
-        checkpointer = get_checkpointer()
-        compiled = build_compiled_dev_graph(checkpointer=checkpointer)
-        thread = {"configurable": {"thread_id": run_id}}
-        current = compiled.get_state(thread)
-
-        if not current or not current.values:
-            print(f"No state found for run: {run_id}")
-            return
-
-        state = current.values
-        print(f"Resuming: {run_id}")
-        print(f"  Module: {state.get('module', '?')}")
-        print(f"  Status: {state.get('status', '?')}")
-        print(f"  Completed: {state.get('completed_phases', [])}")
-        print("-" * 60)
-
-        non_interactive = getattr(args, 'non_interactive', False)
-        try:
-            from langgraph.types import Command
-            for event in compiled.stream(None, thread, stream_mode="updates"):
-                if "__interrupt__" in event:
-                    for item in event["__interrupt__"]:
-                        payload = getattr(item, 'value', None) or item
-                        if isinstance(payload, dict):
-                            if non_interactive:
-                                opts = payload.get('options', ['approve'])
-                                answer = opts[0] if opts else "approve"
-                            else:
-                                print(f"\n  [HITL] {payload.get('type', 'Approval')}")
-                                answer = input("  > approve/reject/skip: ").strip().lower()
-                            for resume_event in compiled.stream(Command(resume=answer), thread, stream_mode="updates"):
-                                for rn, ru in resume_event.items():
-                                    if rn == "__interrupt__":
-                                        continue
-                                    completed = ru.get("completed_phases", []) if isinstance(ru, dict) else []
-                                    if completed and not non_interactive:
-                                        print(f"  [{rn}] {completed}")
-                    continue
-                for node_name, update in event.items():
-                    if non_interactive:
-                        continue
-                    if node_name == "exit":
-                        print(f"  [exit] Status: {update.get('status', '?') if isinstance(update, dict) else '?'}")
-                    else:
-                        completed = update.get("completed_phases", []) if isinstance(update, dict) else []
-                        if completed:
-                            print(f"  [{node_name}] Completed: {completed}")
-
-            final = compiled.get_state(thread)
-            if final and final.values and non_interactive:
-                import json as _json
-                fv = final.values
-                result = {
-                    "status": fv.get("status", "?"),
-                    "module": fv.get("module", state.get('module', '?')),
-                    "run_id": run_id,
-                    "completed_phases": fv.get("completed_phases", []),
-                    "failed_phases": fv.get("failed_phases", []),
-                    "fatal_error": fv.get("fatal_error"),
-                    "engine": "langgraph-dev",
-                }
-                print(_json.dumps(result, ensure_ascii=False, indent=2))
-        except KeyboardInterrupt:
-            print(f"\n  Interrupted. Resume again with:")
-            print(f"  aitest sop-dev resume --run-id={run_id}")
-
-    elif args.action == "status":
-        run_id = args.run_id
-        if run_id:
-            state = get_latest_state(run_id)
-            if state:
-                print(f"Run: {run_id}")
-                print(f"  Module: {state.get('module', '?')}")
-                print(f"  Status: {state.get('status', '?')}")
-                print(f"  Completed phases: {state.get('completed_phases', [])}")
-                print(f"  Failed phases: {state.get('failed_phases', [])}")
-            else:
-                print(f"No state found for run: {run_id}")
-        else:
-            runs = graph_list_runs()
-            if runs:
-                print(f"Recent runs ({len(runs)}):")
-                for r in runs:
-                    print(f"  {r['run_id']}  ({r.get('updated_at', '?')})")
-            else:
-                print("No runs found.")
-
-    elif args.action == "list":
-        runs = graph_list_runs(limit=args.limit or 20)
-        if runs:
-            print(f"Runs ({len(runs)}):")
-            for r in runs:
-                print(f"  {r['run_id']}  ({r.get('updated_at', '?')})")
-        else:
-            print("No runs found.")
-
+# Graph commands extracted to aitest/infra/cli/graph_cmds.py (P3-8 God Module split)
+from aitest.infra.cli.graph_cmds import cmd_graph, cmd_graph_dev
 
 def cmd_errors(args):
     """错误日志查看与清理 (P0-2)。"""
@@ -1376,8 +846,8 @@ def cmd_testcase(args):
 def cmd_kpi(args):
     """L4: Governance KPI 仪表板"""
     sys.path.insert(0, str(WORKSTUDY))
-    from aitest.governance.governance_kpi import run_kpi_summary
-    from aitest.governance.scheduled_audit import run_all_audits, discover_modules
+    from aitest.audit_engine.governance_kpi import run_kpi_summary
+    from aitest.audit_engine.scheduled_audit import run_all_audits, discover_modules
 
     if args.action == "summary":
         run_kpi_summary(days=args.days or 30, json_output=args.json)
@@ -1393,7 +863,7 @@ def cmd_kpi(args):
             sop_v = sum(r.get("violations", 0) for r in results["sop_audits"].values())
             print(f"\n{len(modules)} modules: {state_drifts} drifts, {sop_v} SOP violations")
     elif args.action == "export":
-        from aitest.governance.governance_kpi import export_to_excel
+        from aitest.audit_engine.governance_kpi import export_to_excel
         path = export_to_excel(days=args.days or 30)
         print(f"Exported: {path}")
     else:
@@ -1963,6 +1433,13 @@ def main():
     p_server.add_argument("--reload", action="store_true", help="热重载（start 模式，开发用）")
     p_server.add_argument("--hours", type=int, default=24, help="清理 N 小时前的记录（cleanup 模式）")
 
+    # ── project register ──
+    p_proj = sub.add_parser("project", help="项目管理")
+    p_proj.add_argument("action", choices=["register", "list", "set"],
+                        help="register:注册项目 | list:列出项目 | set:设置活跃项目")
+    p_proj.add_argument("--id", help="项目 ID")
+    p_proj.add_argument("--path", help="项目根目录路径")
+
     # ── errors ──
     p_errors = sub.add_parser("errors", help="错误日志 (P0-2: 结构化错误追踪)")
     p_errors.add_argument("action", choices=["recent", "summary", "clean"],
@@ -2061,6 +1538,33 @@ def main():
         cmd_bug(args)
     elif args.command == "server":
         cmd_server(args)
+    elif args.command == "project":
+        if args.action == "register":
+            if not args.path:
+                print("ERROR: --path is required for project register")
+                return 1
+            return cmd_project_register(args)
+        elif args.action == "list":
+            import yaml
+            index_path = GOVERNANCE / "context" / "project-index.yaml"
+            if index_path.exists():
+                index = yaml.safe_load(index_path.read_text(encoding="utf-8"))
+                print(f"{'ID':<25} {'Path'}")
+                print("-" * 60)
+                for p in index.get("projects", []):
+                    print(f"{p['id']:<25} {p.get('path', '?')}")
+            else:
+                print("No projects registered.")
+            return 0
+        elif args.action == "set":
+            from aitest.platform.context import set_active_project
+            if args.id:
+                set_active_project(args.id)
+                print(f"Active project set to: {args.id}")
+            else:
+                from aitest.platform.context import get_active_project_id
+                print(f"Active project: {get_active_project_id()}")
+            return 0
     elif args.command == "errors":
         cmd_errors(args)
     elif args.command == "trace":

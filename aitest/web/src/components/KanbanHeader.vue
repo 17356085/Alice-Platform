@@ -11,6 +11,7 @@ const { connected } = useKanbanWS()
     <h1 class="text-[15px] font-semibold tracking-tight">{{ viewTitle }}</h1>
     <span class="text-xs text-muted-foreground hidden sm:inline">{{ subtitle || 'Testing Lifecycle Orchestrator' }}</span>
     <div class="flex-1" />
+    <slot name="extra" />
     <div class="flex items-center gap-1.5 text-[10px]">
       <component :is="connected ? Wifi : WifiOff" :size="13" :stroke-width="2" :class="connected ? 'text-success' : 'text-destructive'" />
       <span :class="connected ? 'text-success font-semibold' : 'text-destructive'">{{ connected ? 'Live' : 'Offline' }}</span>

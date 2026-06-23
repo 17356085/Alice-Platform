@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "审批详情",
-  "usingComponents": {
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
-    "empty": "../../components/Empty"
-  }
-}

@@ -185,4 +185,40 @@ Bug ──matched via──▶ RAG (known_issues) ──returns──▶ EP-001~
 - **workflow** (工作流管理): 5 pages, 6 tests, SOP: completed
 
 > 共 12 模块。此段由 sync_progress.py 自动更新。
+
+## v1.0 架构术语 (2026-06-23)
+
+更新: 平台升级为 Agent Native 架构，新增以下术语。
+
+**ReliableProvider**:
+LLM 调用可靠性包装器。提供 retry(3x指数退避) + fallback链(claude→deepseek→openai) + 超时保护(120s) + Prompt Caching。
+_避免_: "带重试的LLM调用"、"容错LLM"
+
+**CapabilityRouter**:
+统一能力路由层。Agent 通过 Capability 名称(如 `browser.navigate`)调用底层实现(如 BrowserUse)，不关心具体 Provider。
+_避免_: "工具路由"、"MCP工具调度"
+
+**ComplexityRouting**:
+三档SOP流水线路由。根据页面复杂度(SIMPLE/STANDARD/COMPLEX)自动选择不同Agent链。SIMPLE页面省~88% token。
+_避免_: "难度评估"、"智能路由"
+
+**ContextWindowMonitor**:
+Token消耗追踪+阈值监控。85%警告, 90%触发continuation(用DeepSeek摘要+新session续跑, 最多5次)。
+_避免_: "token计数"、"上下文压缩"
+
+**TestingMemory**:
+8种测试领域记忆类型(ui_pattern/locator_history/business_rule/known_bug/historical_failure/page_dependency/risk_pattern/workflow_recipe)。ChromaDB持久化。
+_避免_: "知识库"、"RAG缓存"（区别于通用RAG）
+
+**ObservationBus**:
+轻量级事件总线。Agent执行过程中发射SKILL_START/COMPLETE/FAILED等事件, 供Memory/Knowledge/UI消费者订阅。
+_避免_: "消息总线"、"事件队列"
+
+**ParallelSOP**:
+LangGraph Send() API实现的多页面并行执行。N个页面同时走SOP流水线, 理论加速比~Nx。
+_避免_: "并发执行"、"多线程SOP"
+
+**ComplexityTier** (SIMPLE/STANDARD/COMPLEX):
+页面复杂度三档分类。SIMPLE: ≤20分(2 Agent), STANDARD: 20-60分(5 Agent), COMPLEX: ≥60分(8 Agent完整流水线)。
+_避免_: "难度等级"、"优先级"
 <!-- ⚠️ AUTO-GENERATED SECTION END: module-list -->

@@ -1,5 +1,4 @@
 # aitest/server/session_store.py
-import os
 import uuid
 from datetime import datetime
 from typing import Optional
@@ -12,10 +11,9 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-# ── Database URL ─────────────────────────────────────────────────────────────
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL", "sqlite+aiosqlite:///./chat_sessions.db"
-)
+from aitest.config import config
+
+DATABASE_URL = config.database_url
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 async_session_factory = async_sessionmaker(engine, expire_on_commit=False)

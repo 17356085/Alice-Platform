@@ -406,7 +406,12 @@ def index_page_objects(client: chromadb.PersistentClient = None) -> int:
     )
 
     zjsn = get_test_project_root()
-    page_dir = zjsn / "page" if zjsn else WORKSTUDY / "ZJSN_Test-master526" / "page"
+    if not zjsn:
+        raise RuntimeError(
+            "No test project configured. "
+            "Use aitest project set --id=<project> to configure an active project."
+        )
+    page_dir = zjsn / "page"
     docs, ids, metadatas = [], [], []
     idx = 0
 

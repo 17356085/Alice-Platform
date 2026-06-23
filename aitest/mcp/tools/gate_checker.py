@@ -5,13 +5,15 @@ P3-3: SOP Gate Checker → MCP Tool
 import json
 import subprocess
 
-from aitest.mcp.config import SOP_GATE_SCRIPT, ZJSN_TEST
+from aitest.mcp.config import SOP_GATE_SCRIPT
 from aitest.mcp.error_taxonomy import ErrorCode, error_response
+from aitest.platform.paths import get_test_project_root
 
 
 def check_sop_gate(module: str = "", agent: str = "") -> dict:
     """运行 SOP 门禁检查，返回 gate pass/blocked 状态。"""
-    if not SOP_GATE_SCRIPT.exists():
+    zjsn = get_test_project_root()
+    if not zjsn or not SOP_GATE_SCRIPT or not SOP_GATE_SCRIPT.exists():
         # 脚本不存在时，做基础的文档存在性检查
         return _fallback_gate_check(module, agent)
 
@@ -23,7 +25,7 @@ def check_sop_gate(module: str = "", agent: str = "") -> dict:
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30,
-                                cwd=str(ZJSN_TEST), encoding='utf-8', errors='replace')
+                                cwd=str(zjsn), encoding='utf-8', errors='replace')
         if result.returncode == 0 and result.stdout.strip():
             try:
                 data = json.loads(result.stdout)

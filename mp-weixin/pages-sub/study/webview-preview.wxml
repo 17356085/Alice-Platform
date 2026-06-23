@@ -1,1 +1,0 @@
-<view class="webview-page data-v-be7e8ed6"><web-view class="data-v-be7e8ed6" src="{{a}}" bindmessage="{{b}}" binderror="{{c}}"/></view>

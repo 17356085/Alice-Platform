@@ -17,7 +17,6 @@ Usage:
     await rt.navigate("#/equipment/device")
 """
 
-import os
 import yaml
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -67,7 +66,8 @@ def get_active_project_id() -> str:
     if _active_project_id:
         return _active_project_id
     # Check env var
-    env_id = os.environ.get("AITEST_PROJECT")
+    from aitest.config import config
+    env_id = config.aitest_project
     if env_id:
         return env_id
     # Fall back: prefer web-automation if available, else first discovered project

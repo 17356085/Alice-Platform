@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "登录",
-  "navigationStyle": "custom",
-  "usingComponents": {
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
-    "wd-toast": "../../node-modules/wot-design-uni/components/wd-toast/wd-toast"
-  }
-}

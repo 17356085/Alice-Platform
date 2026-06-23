@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed, shallowRef } from 'vue'
 import { Flag, ClipboardList, FileText, Wrench, Play, Search, Brush, BarChart3, Brain } from 'lucide-vue-next'
+import { api } from '@/api/client'
+import { ENDPOINTS } from '@/api/endpoints'
 
 interface PhaseStatus { [phase: string]: boolean }
 interface ModuleInfo {
@@ -55,11 +57,11 @@ export const useKanbanStore = defineStore('kanban', () => {
 
   const totalModules = computed(() => Object.keys(modules.value).length)
 
-  async function fetchModules() {
+  async function fetchModules(projectId?: string) {
     loading.value = true; error.value = ''
     try {
-      const res = await fetch('/api/sop-status')
-      const data = await res.json()
+      const qs = projectId ? `?project=${encodeURIComponent(projectId)}` : ''
+      const data = await api.get<{ modules: Record<string, ModuleInfo>; sop_phases: string[] }>(ENDPOINTS.SOP_STATUS + qs)
       modules.value = data.modules || {}
       sopPhases.value = data.sop_phases || []
     } catch (e: any) { error.value = e.message }
@@ -82,7 +84,7 @@ export const useKanbanStore = defineStore('kanban', () => {
   async function startSOP(mod: string) {
     running.value.add(mod)
     try {
-      await fetch('/api/sop/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ module: mod, mode: 'full' }) })
+      await api.post(ENDPOINTS.SOP_START, { module: mod, mode: 'full' })
     } catch { running.value.delete(mod) }
   }
 
