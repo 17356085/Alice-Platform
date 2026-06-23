@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import SidebarNav from './components/SidebarNav.vue'
@@ -11,10 +11,21 @@ const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 
-const savedName = localStorage.getItem('tlo-theme-name')
-const savedDark = localStorage.getItem('tlo-theme')
-if (savedName) document.documentElement.setAttribute('data-theme', savedName)
-if (savedDark === 'dark') document.documentElement.classList.add('dark')
+// Theme init with dark/light synergy
+const savedTheme = localStorage.getItem('tlo-theme-name') || 'default'
+const savedDark = localStorage.getItem('tlo-theme') === 'dark'
+document.documentElement.setAttribute('data-theme', savedTheme)
+if (savedDark) document.documentElement.classList.add('dark')
+
+// Watch for theme changes from SidebarNav via storage events
+window.addEventListener('storage', (e) => {
+  if (e.key === 'tlo-theme-name' && e.newValue) {
+    document.documentElement.setAttribute('data-theme', e.newValue)
+  }
+  if (e.key === 'tlo-theme') {
+    document.documentElement.classList.toggle('dark', e.newValue === 'dark')
+  }
+})
 
 useKanbanWS().connect()
 
@@ -27,18 +38,20 @@ const navKeys: Record<string, string> = {
   execution: 'nav.execution', reports: 'nav.reports', knowledge: 'nav.knowledge', settings: 'nav.settings',
 }
 const currentViewName = computed(() => String(route.name || 'kanban'))
-const currentTitle = computed(() => `${viewTitles[currentViewName.value] || ''} ${t(navKeys[currentViewName.value] || '')}`)
-const subtitle = computed(() => t('app.subtitle'))
+const currentTitle = computed(() => `${viewTitles[currentViewName.value]} ${t(navKeys[currentViewName.value])}`)
 
-function onNavigate(view: string) { router.push({ name: view }) }
+function onNavigate(view: string) {
+  console.log(`[App] Navigating to: ${view}`)
+  router.push({ name: view }).catch((e) => console.warn('[App] Nav error:', e))
+}
 </script>
 
 <template>
   <div class="flex h-screen overflow-hidden">
     <SidebarNav :current-view="currentViewName" @navigate="onNavigate" />
     <div class="flex flex-1 flex-col overflow-hidden">
-      <KanbanHeader :view-title="currentTitle" :subtitle="subtitle" />
-      <main class="flex-1 overflow-y-auto p-5">
+      <KanbanHeader :view-title="currentTitle" :subtitle="t('app.subtitle')" />
+      <main class="flex-1 overflow-y-auto p-6">
         <router-view />
       </main>
     </div>

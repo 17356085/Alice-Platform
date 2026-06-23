@@ -1,37 +1,25 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 const rag = ref<any>({})
-
-onMounted(async () => {
-  try {
-    const res = await fetch('/health')
-    rag.value = (await res.json()).components?.rag || {}
-  } catch { rag.value = {} }
-})
+onMounted(async () => { try { const r = await fetch('/health'); rag.value = (await r.json()).components?.rag || {} } catch { rag.value = {} } })
 </script>
-
 <template>
-  <div class="grid grid-cols-3 gap-3.5">
-    <div class="card bg-card border border-border rounded-lg">
-      <div class="px-4 py-3 border-b border-border font-semibold text-[13px]">📚 Collections</div>
-      <div class="p-4 text-center">
-        <div class="text-[28px] font-bold text-primary">{{ rag.collections || '—' }}</div>
-        <div class="text-[11px] text-muted-foreground mt-1">ChromaDB</div>
+  <div>
+    <h2 class="text-base font-semibold mb-5">{{ t('knowledge.title') }}</h2>
+    <div class="grid grid-cols-3 gap-4">
+      <div class="glass-card p-5 text-center">
+        <div class="text-[28px] font-bold" style="color:var(--primary)">{{ rag.collections || '—' }}</div>
+        <div class="text-xs text-muted-foreground mt-1">{{ t('knowledge.collections') }}</div>
       </div>
-    </div>
-    <div class="card bg-card border border-border rounded-lg">
-      <div class="px-4 py-3 border-b border-border font-semibold text-[13px]">📄 Documents</div>
-      <div class="p-4 text-center">
+      <div class="glass-card p-5 text-center">
         <div class="text-[28px] font-bold">{{ rag.total_docs || '—' }}</div>
-        <div class="text-[11px] text-muted-foreground mt-1">indexed</div>
+        <div class="text-xs text-muted-foreground mt-1">{{ t('knowledge.documents') }}</div>
       </div>
-    </div>
-    <div class="card bg-card border border-border rounded-lg">
-      <div class="px-4 py-3 border-b border-border font-semibold text-[13px]">🟢 Status</div>
-      <div class="p-4 text-center">
+      <div class="glass-card p-5 text-center">
         <div class="text-[28px] font-bold text-success">{{ rag.status || '—' }}</div>
-        <div class="text-[11px] text-muted-foreground mt-1">{{ rag.names?.join(', ') || '' }}</div>
+        <div class="text-xs text-muted-foreground mt-1">{{ t('knowledge.status') }}</div>
       </div>
     </div>
   </div>
