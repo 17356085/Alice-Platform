@@ -11,12 +11,13 @@ const selectedMod = ref('')
 const selectedInfo = ref<any>(null)
 const sheetOpen = ref(false)
 
-onMounted(() => store.fetchModules())
+onMounted(async () => {
+  try { await store.fetchModules() } catch(e) { console.error('Kanban fetch error:', e) }
+})
 
 function onCardMove(mod: string, from: string, to: string) {
   store.moveCard(mod, to)
   sendCardMove(mod, from, to)
-  fetch('/api/sop-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ module: mod, stage: to }) }).catch(() => {})
 }
 function onCardClick(mod: string, info: any) { selectedMod.value = mod; selectedInfo.value = info; sheetOpen.value = true }
 function onRun(mod: string) { store.startSOP(mod) }
@@ -27,17 +28,16 @@ function onRun(mod: string) { store.startSOP(mod) }
     <div class="flex justify-between items-center mb-5">
       <div class="flex items-center gap-3">
         <div class="text-xs text-muted-foreground">{{ store.totalModules }} modules</div>
-        <div v-if="store.running.size" class="badge badge-info text-[10px] animate-pulse">
-          {{ store.running.size }} running
-        </div>
+        <div v-if="store.running.size" class="badge badge-info text-[10px] animate-pulse">{{ store.running.size }} running</div>
       </div>
       <button @click="store.fetchModules()" class="btn-outline text-xs">🔄 Refresh</button>
     </div>
-    <div v-if="store.loading" class="grid grid-cols-5 gap-3.5">
-      <div v-for="i in 5" :key="i" class="skeleton h-[200px] rounded-xl" />
+    <div v-if="store.loading" class="grid gap-3.5" style="grid-template-columns:repeat(9,170px)">
+      <div v-for="i in 9" :key="i" class="skeleton h-[200px] rounded-xl" />
     </div>
     <div v-else-if="store.error" class="text-center py-16 text-destructive text-sm">{{ store.error }}</div>
-    <KanbanBoard v-else :columns="store.columns" :running="store.running" @card-move="onCardMove" @card-click="onCardClick" @card-run="onRun" />
-    <ModuleDetailSheet :module="selectedMod" :info="selectedInfo" :open="sheetOpen" :running="store.running.has(selectedMod)" @close="sheetOpen = false" @run="onRun" @report="() => {}" />
+    <KanbanBoard v-else-if="store.totalModules > 0" :columns="store.columns" :running="store.running" @card-move="onCardMove" @card-click="onCardClick" @card-run="onRun" />
+    <div v-else class="text-center py-16 text-muted-foreground">No modules loaded</div>
+    <ModuleDetailSheet v-if="sheetOpen" :module="selectedMod" :info="selectedInfo" :open="sheetOpen" :running="store.running.has(selectedMod)" @close="sheetOpen = false" @run="onRun" @report="() => {}" />
   </div>
 </template>

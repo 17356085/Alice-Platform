@@ -361,7 +361,7 @@ async def sop_status_all():
         "Data Sanitization", "Report", "Knowledge",
     ]
 
-    sop_dir = Path("governance/artifacts/sop-status")
+    sop_dir = Path(__file__).resolve().parent.parent.parent / "governance" / "artifacts" / "sop-status"
     modules = OrderedDict()
     for f in sorted(sop_dir.glob("SOP_STATUS_*.json")):
         mod = f.stem.replace("SOP_STATUS_", "")
