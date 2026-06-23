@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useKanbanWS } from '@/composables/useKanbanWS'
+import { Wifi, WifiOff } from 'lucide-vue-next'
 defineProps<{ viewTitle: string; subtitle?: string }>()
 const { connected } = useKanbanWS()
 </script>
@@ -9,8 +10,8 @@ const { connected } = useKanbanWS()
     <h1 class="text-[15px] font-semibold tracking-tight">{{ viewTitle }}</h1>
     <span class="text-xs text-muted-foreground hidden sm:inline">{{ subtitle || 'Testing Lifecycle Orchestrator' }}</span>
     <div class="flex-1" />
-    <div class="flex items-center gap-2 text-[10px]">
-      <span class="dot-live" :style="{ background: connected ? 'var(--success)' : 'var(--destructive)' }" />
+    <div class="flex items-center gap-1.5 text-[10px]">
+      <component :is="connected ? Wifi : WifiOff" :size="13" :stroke-width="2" :class="connected ? 'text-success' : 'text-destructive'" />
       <span :class="connected ? 'text-success font-semibold' : 'text-destructive'">{{ connected ? 'Live' : 'Offline' }}</span>
     </div>
   </header>

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, shallowRef } from 'vue'
+import { Flag, ClipboardList, FileText, Wrench, Play, Search, Brush, BarChart3, Brain } from 'lucide-vue-next'
 
 interface PhaseStatus { [phase: string]: boolean }
 interface ModuleInfo {
@@ -10,25 +11,21 @@ interface ModuleInfo {
   progress?: number; current_phase?: string; _kanban_stage?: string
 }
 
-// SOP 9 phases — one-to-one with agent-definitions.yaml full-sop orchestrator
-// (Preflight + Quality Gate excluded — they are gates, not agent phases)
-const SOP_COLS: { key: string; label: string; icon: string; idx: number }[] = [
-  { key: 'Project Init', label: '1. Project Init', icon: '🔰', idx: 0 },
-  { key: 'Requirement', label: '2. Requirement', icon: '📋', idx: 1 },
-  { key: 'Test Design', label: '3. Test Design', icon: '📝', idx: 2 },
-  { key: 'Automation', label: '4. Automation', icon: '⚙️', idx: 3 },
-  { key: 'Execute & Debug', label: '5. Execute', icon: '▶️', idx: 4 },
-  { key: 'Bug Analysis', label: '6. Bug Analysis', icon: '🔍', idx: 5 },
-  { key: 'Data Sanitization', label: '7. Sanitize', icon: '🧹', idx: 6 },
-  { key: 'Report', label: '8. Report', icon: '📊', idx: 7 },
-  { key: 'Knowledge', label: '9. Knowledge', icon: '🧠', idx: 8 },
+const SOP_COLS: { key: string; label: string; icon: any; idx: number }[] = [
+  { key: 'Project Init', label: '1. Project Init', icon: shallowRef(Flag), idx: 0 },
+  { key: 'Requirement', label: '2. Requirement', icon: shallowRef(ClipboardList), idx: 1 },
+  { key: 'Test Design', label: '3. Test Design', icon: shallowRef(FileText), idx: 2 },
+  { key: 'Automation', label: '4. Automation', icon: shallowRef(Wrench), idx: 3 },
+  { key: 'Execute & Debug', label: '5. Execute', icon: shallowRef(Play), idx: 4 },
+  { key: 'Bug Analysis', label: '6. Bug Analysis', icon: shallowRef(Search), idx: 5 },
+  { key: 'Data Sanitization', label: '7. Sanitize', icon: shallowRef(Brush), idx: 6 },
+  { key: 'Report', label: '8. Report', icon: shallowRef(BarChart3), idx: 7 },
+  { key: 'Knowledge', label: '9. Knowledge', icon: shallowRef(Brain), idx: 8 },
 ]
 
 function computeStage(info: ModuleInfo, running: Set<string>): string {
   if (!info.phase_status || Object.keys(info.phase_status).length === 0) return 'Project Init'
-  // If all phases done → Knowledge column
   if (info.phases_done >= info.phases_total) return 'Knowledge'
-  // Find last completed phase
   let current = 'Project Init'
   for (const [phase, done] of Object.entries(info.phase_status)) {
     if (done) current = phase
@@ -78,7 +75,6 @@ export const useKanbanStore = defineStore('kanban', () => {
     if (!mod) return
     mod.progress = event.progress
     mod.current_phase = event.phase
-    mod.status = event.status === 'completed' ? 'completed' : 'in_progress'
     if (event.status === 'running') running.value.add(event.module)
     else if (event.status === 'completed') { running.value.delete(event.module); mod.phases_done = mod.phases_total }
   }

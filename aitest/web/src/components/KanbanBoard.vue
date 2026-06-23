@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useKanbanStore } from '@/stores/kanban'
+import { Play } from 'lucide-vue-next'
 
 const store = useKanbanStore()
-const props = defineProps<{
-  columns: Record<string, [string, any][]>
-  running?: Set<string>
-}>()
+defineProps<{ columns: Record<string, [string, any][]>; running?: Set<string> }>()
 const emit = defineEmits<{ 'card-move': [mod: string, from: string, to: string]; 'card-click': [mod: string, info: any]; 'card-run': [mod: string] }>()
 
 const dragMod = ref(''); const dragFrom = ref(''); const dragOverCol = ref('')
@@ -48,16 +46,12 @@ function onDrop(stage: string) {
       @dragleave.prevent="dragOverCol = dragOverCol === col.key ? '' : dragOverCol"
       @drop.prevent="onDrop(col.key)"
     >
-      <!-- Column header -->
       <div class="flex items-center gap-1.5 px-1 pb-2 border-b mb-1" style="border-color:var(--border)">
-        <span class="text-base">{{ col.icon }}</span>
-        <div>
-          <div class="text-[10px] font-bold uppercase tracking-wider leading-tight" :style="{color: 'var(--primary)'}">{{ col.label }}</div>
-        </div>
+        <component :is="col.icon.value" :size="14" :stroke-width="2" class="flex-shrink-0 text-primary" />
+        <div class="text-[10px] font-bold uppercase tracking-wider leading-tight" style="color:var(--primary)">{{ col.label }}</div>
         <span class="ml-auto text-[10px] font-bold opacity-40">{{ (columns[col.key] || []).length }}</span>
       </div>
 
-      <!-- Cards -->
       <div
         v-for="[mod, info] in (columns[col.key] || [])" :key="mod"
         draggable="true"
@@ -66,7 +60,6 @@ function onDrop(stage: string) {
         @click="emit('card-click', mod, info)"
         class="glass-card !rounded-lg p-2.5 cursor-grab active:cursor-grabbing select-none transition-all duration-200 group"
       >
-        <!-- Module name + status -->
         <div class="flex items-start justify-between mb-2">
           <div class="flex items-center gap-1.5 min-w-0">
             <span class="font-semibold text-[13px] truncate">{{ mod }}</span>
@@ -78,7 +71,6 @@ function onDrop(stage: string) {
           </div>
         </div>
 
-        <!-- SOP phase dots -->
         <div class="flex gap-px mb-2">
           <span v-for="(ok, phase) in (info.phase_status || {})" :key="phase"
             :class="['w-1 h-1 rounded-full flex-shrink-0', ok ? 'bg-success' : 'bg-muted-foreground/15']"
@@ -90,23 +82,21 @@ function onDrop(stage: string) {
           <span class="font-mono">{{ info.phases_done }}/{{ info.phases_total }}</span>
         </div>
 
-        <!-- Progress bar -->
         <div class="h-1.5 bg-muted/50 rounded-full overflow-hidden">
-          <div
-            :class="['h-full rounded-full transition-all duration-1000 ease-out',
-              col.key === 'complete' ? '!bg-success' : col.key === 'execution' ? '!bg-primary' : '!bg-primary/60']"
+          <div class="h-full rounded-full transition-all duration-1000 ease-out"
+            :class="col.key === 'Knowledge' ? '!bg-success' : '!bg-primary/60'"
             :style="{ width: running?.has(mod) && info.progress ? `${info.progress}%` : `${info.phases_done / info.phases_total * 100}%`,
-              background: running?.has(mod) ? 'var(--primary-gradient)' : '' }"
-          />
+              background: running?.has(mod) ? 'var(--primary-gradient)' : '' }" />
         </div>
-        <div v-if="running?.has(mod) && info.current_phase" class="text-[10px] text-muted-foreground mt-1 truncate">▶️ {{ info.current_phase }}</div>
-        <div v-else class="text-[10px] text-muted-foreground mt-1 truncate">{{ info.note || (col.key === 'complete' ? '✅ 完成' : info.phases_done + ' phases done') }}</div>
+        <div v-if="running?.has(mod) && info.current_phase" class="text-[10px] text-muted-foreground mt-1 truncate">{{ info.current_phase }}</div>
+        <div v-else class="text-[10px] text-muted-foreground mt-1 truncate">{{ info.note || (col.key === 'Knowledge' ? '✅ Complete' : info.phases_done + ' phases done') }}</div>
 
-        <!-- Hover action -->
         <div v-if="!running?.has(mod)" class="flex gap-1.5 mt-3 pt-2.5 opacity-0 group-hover:opacity-100 transition-opacity" style="border-top:1px solid var(--border)">
           <button @click.stop="emit('card-run', mod)"
-            class="flex-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold cursor-pointer transition-all border-none"
-            style="background:var(--primary-gradient); color:var(--primary-foreground)">▶️ Run SOP</button>
+            class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold cursor-pointer transition-all border-none"
+            style="background:var(--primary-gradient); color:var(--primary-foreground)">
+            <Play :size="12" :stroke-width="3" /> Run SOP
+          </button>
         </div>
       </div>
 
