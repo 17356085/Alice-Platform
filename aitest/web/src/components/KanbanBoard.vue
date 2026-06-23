@@ -2,7 +2,8 @@
 import { ref } from 'vue'
 
 const props = defineProps<{
-  columns: Record<string, [string, { status: string; phases: number; pages: number; failed: number; updated: string }][]>
+  columns: Record<string, [string, { status: string; phases: number; pages: number; failed: number; updated: string; progress?: number; current_phase?: string }][]>
+  running?: Set<string>
 }>()
 const emit = defineEmits<{ 'card-move': [mod: string, from: string, to: string]; 'card-click': [mod: string, info: any] }>()
 
@@ -56,8 +57,14 @@ function onDrop(stage: string) {
         class="glass-card !rounded-xl p-4 cursor-grab active:cursor-grabbing select-none transition-all duration-200"
       >
         <div class="flex items-start justify-between mb-2.5">
-          <span class="font-semibold text-[13px]">{{ mod }}</span>
-          <span v-if="info.failed" class="w-2 h-2 rounded-full bg-destructive animate-pulse flex-shrink-0" title="Has failures" />
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="font-semibold text-[13px] truncate">{{ mod }}</span>
+            <span v-if="running?.has(mod)" class="badge badge-info text-[9px] animate-pulse">LIVE</span>
+          </div>
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <span v-if="running?.has(mod)" class="w-2 h-2 rounded-full bg-success animate-pulse" title="Running" />
+            <span v-else-if="info.failed" class="w-2 h-2 rounded-full bg-destructive" title="Has failures" />
+          </div>
         </div>
         <div class="flex gap-3 text-[11px] text-muted-foreground mb-3">
           <span>📄 {{ info.pages }}p</span>
@@ -65,10 +72,19 @@ function onDrop(stage: string) {
         </div>
         <div class="h-1.5 bg-muted/50 rounded-full overflow-hidden">
           <div
-            :class="['h-full rounded-full transition-all duration-700 ease-out',
+            :class="['h-full rounded-full transition-all duration-1000 ease-out',
               key === 'completed' ? '!bg-success' : key === 'analyzing' ? '!bg-warning' : '!bg-primary']"
-            :style="{ width: `${(info.phases || 0) / 9 * 100}%`, background: key === 'executing' ? 'var(--primary-gradient)' : '' }"
+            :style="{
+              width: running?.has(mod) && info.progress ? `${info.progress}%` : `${(info.phases || 0) / 9 * 100}%`,
+              background: (running?.has(mod) || key === 'executing') ? 'var(--primary-gradient)' : ''
+            }"
           />
+        </div>
+        <div v-if="running?.has(mod) && info.current_phase" class="text-[10px] text-muted-foreground mt-1 truncate">
+          ▶️ {{ info.current_phase }}
+        </div>
+        <div v-else class="text-[10px] text-muted-foreground mt-1">
+          {{ key === 'completed' ? '✅ Done' : key === 'analyzing' ? '⚠️ QA Loop' : key === 'planning' ? '📝 Planning' : key === 'executing' ? '▶️ Running' : '⏳ Pending' }}
         </div>
       </div>
 

@@ -3,8 +3,9 @@ import { ref, watch } from 'vue'
 
 const props = defineProps<{
   module: string
-  info: { status: string; phases: number; pages: number; failed: number; updated: string } | null
+  info: { status: string; phases: number; pages: number; failed: number; updated: string; progress?: number; current_phase?: string } | null
   open: boolean
+  running?: boolean
 }>()
 
 const emit = defineEmits<{ close: []; run: [mod: string]; report: [mod: string] }>()
@@ -93,10 +94,22 @@ function stageBadge(s: string) {
         </div>
       </div>
 
+      <!-- Live status bar -->
+      <div v-if="running && info?.current_phase" class="px-5 py-2 bg-accent/50 border-t border-border flex items-center gap-2 text-xs">
+        <span class="dot-live" />
+        <span class="font-semibold text-primary">{{ info.current_phase }}</span>
+        <span class="text-muted-foreground">{{ info.progress || 0 }}%</span>
+      </div>
+
       <!-- Footer actions -->
       <div class="flex gap-2 p-4 border-t border-border">
-        <button @click="emit('run', module)" class="flex-1 px-4 py-2.5 bg-primary text-primary-foreground border-none rounded-md text-[13px] font-semibold cursor-pointer font-sans hover:opacity-90 transition-opacity">
-          ▶️ Run SOP
+        <button
+          @click="emit('run', module)"
+          :disabled="running"
+          :class="['flex-1 px-4 py-2.5 border-none rounded-md text-[13px] font-semibold cursor-pointer font-sans transition-all',
+            running ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'btn-primary']"
+        >
+          {{ running ? '⏳ Running...' : '▶️ Run SOP' }}
         </button>
         <button @click="emit('report', module)" class="px-4 py-2.5 border border-border bg-card text-foreground rounded-md text-[13px] cursor-pointer font-sans hover:border-ring transition-colors">
           📊 Report

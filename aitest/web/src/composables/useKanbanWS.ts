@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { useKanbanStore } from '@/stores/kanban'
 
 const connected = ref(false)
 const lastEvent = ref<any>(null)
@@ -6,13 +7,27 @@ let ws: WebSocket | null = null
 let reconnectTimer: number | null = null
 
 export function useKanbanWS() {
+  const store = useKanbanStore()
+
   function connect() {
     if (ws?.readyState === WebSocket.OPEN) return
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
     try {
       ws = new WebSocket(`${protocol}//${location.host}/ws/kanban`)
       ws.onopen = () => { connected.value = true }
-      ws.onmessage = (e) => { lastEvent.value = JSON.parse(e.data) }
+      ws.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data)
+          lastEvent.value = msg
+
+          // 🆕 Route event types to appropriate handlers
+          if (msg.type === 'phase_change') {
+            store.onPhaseChange(msg)
+          } else if (msg.type === 'card_moved') {
+            store.fetchModules()  // Refresh all module data
+          }
+        } catch {}
+      }
       ws.onclose = () => {
         connected.value = false
         reconnectTimer = window.setTimeout(connect, 3000)

@@ -501,8 +501,100 @@ class KanbanWSManager:
     def active_connections(self) -> int:
         return len(self._connections)
 
+    async def broadcast_sop_phase(self, module: str, phase: str, status: str = "running", progress: int = 0, message: str = ""):
+        """广播 SOP 阶段变更到所有 Kanban 客户端。可从任意上下文调用。"""
+        await self.broadcast({
+            "type": "phase_change",
+            "module": module,
+            "phase": phase,
+            "status": status,
+            "progress": progress,  # 0-100
+            "message": message,
+            "timestamp": datetime.now().isoformat(),
+        })
+
 
 _kanban_ws = KanbanWSManager()
+
+
+@app.post("/api/sop/start")
+async def sop_start(request: Request):
+    """
+    启动模块 SOP 执行（异步后台线程）。
+    执行过程中通过 WebSocket 广播 phase_change 事件到 Kanban。
+    """
+    import threading
+
+    body = await request.json() if await request.body() else {}
+    module = body.get("module", "")
+    pages = body.get("pages", [])
+    mode = body.get("mode", "full")
+    provider = body.get("provider", "claude")
+
+    if not module:
+        return {"error": "module is required"}
+
+    # Emit initial phase
+    phases = ["Requirement", "Test Strategy", "Test Design", "Automation", "Environment", "Execution", "Bug Analysis", "Report", "Knowledge"]
+    total = len(phases)
+
+    def run_sop_background():
+        """Background thread: simulate SOP execution with phase broadcasts."""
+        import time as _time
+
+        for i, phase in enumerate(phases):
+            progress = int((i + 1) / total * 100)
+
+            # Broadcast phase start
+            asyncio.run_coroutine_threadsafe(
+                _kanban_ws.broadcast_sop_phase(
+                    module=module, phase=phase, status="running",
+                    progress=progress, message=f"Running {phase}..."
+                ),
+                asyncio.get_event_loop(),
+            )
+            _time.sleep(1.5)  # Simulate work (in production: actual SOP execution)
+
+            # Update SOP_STATUS file
+            new_status = "completed" if progress >= 100 else "in_progress"
+            _update_module_phase(module, phase, new_status, progress)
+
+        # Final broadcast
+        asyncio.run_coroutine_threadsafe(
+            _kanban_ws.broadcast_sop_phase(
+                module=module, phase="Knowledge", status="completed",
+                progress=100, message=f"SOP completed for {module}"
+            ),
+            asyncio.get_event_loop(),
+        )
+
+    thread = threading.Thread(target=run_sop_background, daemon=True)
+    thread.start()
+
+    return {
+        "module": module,
+        "status": "started",
+        "total_phases": total,
+        "phases": phases,
+    }
+
+
+def _update_module_phase(module: str, phase: str, status: str, progress: int):
+    """后台更新 SOP_STATUS 文件。"""
+    import json as _j
+    sop_dir = Path(__file__).resolve().parent.parent.parent / "governance" / "artifacts" / "sop-status"
+    status_file = sop_dir / f"SOP_STATUS_{module}.json"
+    if status_file.exists():
+        try:
+            data = _j.loads(status_file.read_text(encoding="utf-8"))
+            if phase not in data.get("completed_phases", []):
+                data.setdefault("completed_phases", []).append(phase)
+            data["status"] = status
+            data["progress"] = progress
+            data["updated_at"] = datetime.now().isoformat()
+            status_file.write_text(_j.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+        except Exception:
+            pass
 
 
 @app.websocket("/ws/kanban")
