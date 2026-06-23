@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aitest"
-version = "0.2.0"
+version = "1.0.0"
 description = "AI 自动化测试平台 — 去平台化 CLI 工具包"
 requires-python = ">=3.10"
 dependencies = [

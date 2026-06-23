@@ -119,6 +119,52 @@ class Config:
                 return name
         return "deepseek"  # ultimate fallback (uses free tier)
 
+    # ── Phase-Aware Model Tier (★ v0.5) ───────────────────────────
+
+    def resolve_model_for_tier(self, tier: str, provider: str = "") -> dict:
+        """Resolve (provider, model) for a given model tier.
+
+        Tiers:
+          max      → most capable model (Opus, GPT-4o)
+          balanced → good enough for most tasks (Sonnet, DeepSeek-V4)
+          econ     → cheapest viable model (Haiku, DeepSeek-V3)
+
+        Returns: {"provider": str, "model": str}
+        """
+        provider = provider or self.resolve_llm_provider()
+
+        tier_models = {
+            "claude": {
+                "max": "claude-opus-4-8",
+                "balanced": "claude-sonnet-4-6",
+                "econ": "claude-haiku-4-5",
+            },
+            "openai": {
+                "max": "gpt-4o",
+                "balanced": "gpt-4o-mini",
+                "econ": "gpt-4o-mini",
+            },
+            "deepseek": {
+                "max": "deepseek-v4-pro",
+                "balanced": "deepseek-v4-pro",
+                "econ": "deepseek-v3",
+            },
+            "mimo": {
+                "max": "mimo-v2.5-pro",
+                "balanced": "mimo-v2.5-pro",
+                "econ": "mimo-v2.5",
+            },
+            "gemini": {
+                "max": "gemini-2.5-pro",
+                "balanced": "gemini-2.5-flash",
+                "econ": "gemini-2.5-flash",
+            },
+        }
+
+        provider_models = tier_models.get(provider, tier_models["claude"])
+        model = provider_models.get(tier, provider_models["balanced"])
+        return {"provider": provider, "model": model}
+
     # ── Browser Use ─────────────────────────────────────────────────
     @property
     def bu_llm_provider(self) -> str:
