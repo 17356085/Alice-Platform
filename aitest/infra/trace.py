@@ -476,7 +476,7 @@ def get_run_stats(run_id: str) -> dict:
          by_skill: {skill_id: {calls, tokens_in, tokens_out, cost}},
          total_latency_ms, models_seen}
     """
-    events = query_trace_events(run_id=run_id, limit=0)
+    events = query_trace_events(run_id=run_id, limit=9999)
     if not events:
         return {"error": f"No trace events found for run_id='{run_id}'"}
 
@@ -558,7 +558,7 @@ def get_cost_leaderboard(days: int = 7, limit: int = 10) -> list[dict]:
 
     返回: [{agent, calls, tokens_in, tokens_out, cost, avg_tokens_per_call}, ...]
     """
-    events = query_trace_events(limit=0)
+    events = query_trace_events(limit=9999)
     if not events:
         return []
 

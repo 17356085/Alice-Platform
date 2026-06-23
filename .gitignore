@@ -43,6 +43,10 @@ governance/.errors/
 governance/.feedback/
 governance/.data/
 
+# Governance audit artifacts (auto-generated JSON by scheduled audits)
+governance/artifacts/audits/*.json
+governance/kpi/timeseries/
+
 # Runtime databases
 chat_sessions.db
 

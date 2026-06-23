@@ -351,6 +351,29 @@ async def audit_governance(module: str = "equipment", days: int = 7):
 #  L4 Measured: KPI API
 # ══════════════════════════════════════════════════════════════════════════
 
+@app.get("/api/sop-status")
+async def sop_status_all():
+    """返回全部模块 SOP 状态 — 用于治理仪表板模块矩阵。"""
+    import json
+    from pathlib import Path
+    sop_dir = Path("governance/artifacts/sop-status")
+    modules = {}
+    for f in sorted(sop_dir.glob("SOP_STATUS_*.json")):
+        mod = f.stem.replace("SOP_STATUS_", "")
+        try:
+            data = json.loads(f.read_text(encoding="utf-8"))
+            modules[mod] = {
+                "status": data.get("status", "?"),
+                "phases": len(data.get("completed_phases", [])),
+                "pages": len(data.get("pages_processed", [])),
+                "failed": len(data.get("failed_phases", [])),
+                "updated": data.get("updated_at", ""),
+            }
+        except Exception:
+            modules[mod] = {"status": "error", "phases": 0, "pages": 0, "failed": 0, "updated": ""}
+    return {"modules": modules, "total": len(modules)}
+
+
 @app.get("/api/kpi/summary")
 async def kpi_summary(days: int = 30):
     """KPI 总览 — 治理指标体系聚合。"""

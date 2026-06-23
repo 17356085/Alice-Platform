@@ -165,29 +165,35 @@ async function loadKPI() {
 
 async function loadModules() {
   const el = document.getElementById('module-matrix');
-  const modules = ['equipment','personnel','sales','lab','production','warehouse','workflow','tank','system-user','system-role','system-management','dcs'];
   try {
-    // Try to get aggregated governance data
-    const res = await fetch(API + '/api/audit/governance?module=equipment&days=30');
+    const res = await fetch(API + '/api/sop-status');
     const data = await res.json();
-    const modStatus = data.state ? 'ok' : 'warn';
+    const modules = data.modules;
 
-    let rows = modules.map(m => {
+    const statusBadge = (s) => {
+      if (s === 'completed') return '<span class="badge badge-ok">completed</span>';
+      if (s === 'completed_with_issues') return '<span class="badge badge-warn">completed*</span>';
+      if (s === 'ready') return '<span class="badge" style="background:#e8f2ff;color:#3b82f6;">ready</span>';
+      return `<span class="badge badge-err">${s}</span>`;
+    };
+
+    const rows = Object.entries(modules).map(([mod, info]) => {
+      const cls = info.status === 'completed' ? 'ok' : (info.status === 'completed_with_issues' ? 'warn' : 'ok');
       return `<tr>
-        <td><strong>${m}</strong></td>
-        <td><span class="dot ok"></span>纳管</td>
-        <td><span class="badge badge-ok">completed</span></td>
-        <td>—</td>
-        <td>—</td>
+        <td><strong>${mod}</strong></td>
+        <td><span class="dot ${cls}"></span>${info.status}</td>
+        <td>${statusBadge(info.status)}</td>
+        <td>${info.pages || '—'}</td>
+        <td>${info.phases}/9 phases</td>
       </tr>`;
     }).join('');
 
     el.innerHTML = `<table>
-      <tr><th>模块</th><th>纳管状态</th><th>SOP 阶段</th><th>页面数</th><th>用例数</th></tr>
+      <tr><th>模块</th><th>状态</th><th>SOP 阶段</th><th>页面数</th><th>阶段进度</th></tr>
       ${rows}
     </table>
     <div style="margin-top:8px;font-size:11px;color:var(--text2);">
-      共 ${modules.length} 模块 · 数据来源: governance/artifacts/sop-status/
+      共 ${Object.keys(modules).length} 模块 · 数据来源: governance/artifacts/sop-status/SOP_STATUS_*.json
     </div>`;
   } catch(e) {
     el.innerHTML = `<div class="error">模块数据不可用: ${e.message}</div>`;
