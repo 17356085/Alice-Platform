@@ -1,8 +1,10 @@
 """aitest — AI 自动化测试平台工具包
 
-P0 重构 (2026-06-12): 加入 AgentLoop，从伪 Agent 升级为真 Agent 循环。
+v1.0: Architecture Complete — Design Freeze.
+  5 layers (Platform Core / Agent Runtime / Infrastructure / Domain / Experimental)
+  12 agents with capability enforcement + phase-aware model tiering.
 """
-__version__ = "0.2.0"
+__version__ = "1.0.0"
 
 from aitest.agents.agent_runner import (
     AgentLoop,

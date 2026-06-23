@@ -155,8 +155,24 @@ class CapabilityRouter:
         self._registry[cap].sort(key=lambda p: p.priority)
 
     def set_agent_capabilities(self, mapping: dict[str, list[str]]) -> None:
-        """设置 Agent → Capability 映射。"""
+        """设置 Agent → Capability 映射（★ v0.4: 从 agent-definitions.yaml 加载）。"""
         self._agent_capabilities = mapping
+
+    def enforce_capability(self, agent_name: str, capability: str) -> bool:
+        """★ v0.4: 检查 Agent 是否有权调用指定 Capability。
+
+        Returns True if allowed. Raises CapabilityDeniedError if denied.
+        When no capabilities are declared for the agent, allows all (backward compat).
+        """
+        declared = self._agent_capabilities.get(agent_name, [])
+        if not declared:
+            return True  # 未声明 → 允许所有（过渡期兼容）
+        if capability in declared:
+            return True
+        raise PermissionError(
+            f"Agent '{agent_name}' is not authorized to use capability '{capability}'. "
+            f"Declared capabilities: {declared}"
+        )
 
     # ── 查询 ─────────────────────────────────────────────────────
 

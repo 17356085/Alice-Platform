@@ -9,8 +9,9 @@
 # 修改 Agent 行为时，只修改此文件。
 # 运行 python -m aitest.check_agent_drift 检测派生文件是否过期。
 
-version: "2.1"
+version: "2.2"
 last_updated: "2026-06-23"
+# v2.2: + capabilities field per agent (v0.4 Capability Enforcement)
 
 # ═══════════════════════════════════════════════════════
 # TLO (Testing Lifecycle Orchestrator) — Agent 体系
@@ -38,6 +39,10 @@ agents:
     lifecycle_stage: "项目初始化"
     description: 项目初始化、上下文管理、文档审计、目录卫生
     system_prompt_role: 资深测试项目架构师
+    capabilities:
+      - project
+      - knowledge
+    model_tier: balanced
     trigger_keywords:
       - 初始化项目
       - 更新上下文
@@ -72,6 +77,10 @@ agents:
     tlo_name: Requirement Analyst
     description: 理解业务需求、识别测试对象、生成测试目标。TLO 生命周期阶段 1。
     system_prompt_role: 资深需求分析师 + 测试架构师
+    capabilities:
+      - analyze
+      - knowledge
+    model_tier: balanced
     trigger_keywords:
       - 分析XX模块
       - 模块建模
@@ -98,6 +107,10 @@ agents:
     tlo_name: Test Strategy Agent
     description: 测试策略生成——Smoke / Regression / Boundary / Negative / Security 五类策略。TLO 生命周期阶段 2。
     system_prompt_role: 资深测试分析师 + 质量风险专家 + 业务分析专家
+    capabilities:
+      - analyze
+      - knowledge
+    model_tier: max
     trigger_keywords:
       - 看看.*页面.*元素
       - 探索.*页面
@@ -143,6 +156,10 @@ agents:
     tlo_name: Automation Developer
     description: 技术分析 → 定位器设计 → PageObject/测试脚本生成 → Worktree 验证。TLO 生命周期阶段 4。
     system_prompt_role: 资深 Selenium + pytest 自动化开发专家
+    capabilities:
+      - codegen
+      - analyze
+    model_tier: max
     trigger_keywords:
       - 这个按钮.*定位
       - 生成.*PageObject
@@ -193,6 +210,10 @@ agents:
     tlo_name: Execution Agent
     description: 测试执行——Browser / API / Selenium / BrowserUse 多驱动。TLO 生命周期阶段 6。
     system_prompt_role: 资深测试执行工程师
+    capabilities:
+      - execute
+      - analyze
+    model_tier: econ
     trigger_keywords:
       - 运行.*测试
       - 执行.*模块
@@ -218,6 +239,10 @@ agents:
     tlo_name: Failure Analyst
     description: 失败深度分析——截图→DOM→Console→Network→LLM→根因分类。TLO 核心差异化能力。TLO 生命周期阶段 7。
     system_prompt_role: 资深测试诊断专家 + CI 工程师
+    capabilities:
+      - analyze
+      - knowledge
+    model_tier: max
     trigger_keywords:
       - 这个用例.*挂
       - 失败.*分类
@@ -250,6 +275,9 @@ agents:
     tlo_name: Report Agent
     description: 测试报告生成——Markdown / HTML / Allure / Excel (每页面)。TLO 生命周期阶段 8。
     system_prompt_role: 资深测试报告分析师
+    capabilities:
+      - report
+    model_tier: econ
     trigger_keywords:
       - 生成.*报告
       - 导出.*Excel
@@ -285,6 +313,9 @@ agents:
     tlo_name: Test Designer
     description: Spec Pipeline 四阶段测试用例设计——Gatherer→Researcher→Writer→Critic。借鉴 Aperant spec pipeline 模式，适配测试领域。
     system_prompt_role: 资深测试用例设计师 + 质量评审专家
+    capabilities:
+      - analyze
+    model_tier: balanced
     trigger_keywords:
       - 设计测试用例
       - 测试用例评审
@@ -320,6 +351,9 @@ agents:
     tlo_name: Environment Preparer
     description: 测试环境就绪检查——数据准备、账号验证、浏览器状态、被测系统可达性。
     system_prompt_role: 资深测试环境工程师
+    capabilities:
+      - execute
+    model_tier: econ
     trigger_keywords:
       - 准备测试环境
       - 环境检查
@@ -351,6 +385,10 @@ agents:
     tlo_name: Regression Advisor
     description: 基于代码变更 + 历史缺陷 + 执行结果 → 推荐回归测试范围。TLO 闭环反馈最后一环。
     system_prompt_role: 资深质量策略顾问
+    capabilities:
+      - analyze
+      - knowledge
+    model_tier: balanced
     trigger_keywords:
       - 回归测试范围
       - 哪些模块需要回归
@@ -379,6 +417,9 @@ agents:
     phase: "横向贯穿"
     description: 知识提取、沉淀、审计。唯一可跨 Agent 写入知识库的 Agent。
     system_prompt_role: 资深测试知识管理专家
+    capabilities:
+      - knowledge
+    model_tier: balanced
     trigger_keywords:
       - 沉淀经验
       - Bug.*别人.*遇到
@@ -439,6 +480,7 @@ agents:
         per_page: true
         description: PageObject/测试脚本生成 → Worktree 隔离验证 → 合并
       - stage: 5
+        model_tier: max
         phase: 环境准备
         agent: environment-preparer
         tlo_name: Environment Preparer

@@ -146,6 +146,20 @@ class AgentLoop:
         self._capability_router = None
         self._use_tool_calling = True  # 默认启用 tool calling
 
+        # ★ v0.5: Phase-Aware Model Tier — 从 agent 定义读取 tier 并解析模型
+        self._model_tier = "balanced"
+        try:
+            agent_def = get_agent_definition(agent_name)
+            self._model_tier = agent_def.get("model_tier", "balanced")
+        except Exception:
+            pass
+        if model is None:
+            from aitest.config import config
+            tier_cfg = config.resolve_model_for_tier(self._model_tier, provider)
+            model = tier_cfg["model"]
+            if tier_cfg["provider"] != provider:
+                provider = tier_cfg["provider"]
+
         # 初始化可靠性 Provider
         if self._use_reliable:
             self._reliable_provider = get_reliable_provider(primary=provider)
@@ -221,11 +235,25 @@ class AgentLoop:
         return defaults.get(provider, "claude-sonnet-4-6")
 
     def _get_capability_router(self):
-        """★ v2.0: 延迟初始化 CapabilityRouter（避免循环导入）。"""
+        """★ v2.0: 延迟初始化 CapabilityRouter + ★ v0.4 Capability Enforcement。"""
         if self._capability_router is None and self._use_tool_calling:
             try:
                 from aitest.platform.capability_router import get_router
                 self._capability_router = get_router()
+
+                # ★ v0.4: 加载 Agent → Capability 映射并注入 Router
+                from aitest.agents.skill_executor import get_agent_definition, GOVERNANCE
+                import yaml
+                agents_yaml = GOVERNANCE / "agents" / "agent-definitions.yaml"
+                if agents_yaml.exists():
+                    data = yaml.safe_load(agents_yaml.read_text(encoding="utf-8"))
+                    mapping = {}
+                    for name, cfg in data.get("agents", {}).items():
+                        caps = cfg.get("capabilities", [])
+                        if caps:
+                            mapping[name] = caps
+                    if mapping:
+                        self._capability_router.set_agent_capabilities(mapping)
             except Exception:
                 self._use_tool_calling = False  # 降级：不使用 tool calling
         return self._capability_router
