@@ -12,7 +12,6 @@ Chat API — SSE 流式聊天端点。
   浏览器 ←SSE→ FastAPI ←asyncio.Queue← 后台线程(AgentLoop.run_interactive)
 """
 import json
-import os
 import uuid
 import time
 import asyncio
@@ -27,27 +26,13 @@ from aitest.chat.intent_parser import parse_intent
 
 chat_router = APIRouter(prefix="/api/chat", tags=["chat"])
 
-# ── 默认 Provider 自动检测 ──────────────────────────────────────────────
-# 优先级: 显式 AITEST_PROVIDER > 已配置 API Key 的 Provider > deepseek
-_PROVIDER_DETECT_CHAIN = [
-    ("deepseek", "DEEPSEEK_API_KEY"),
-    ("claude",   "ANTHROPIC_API_KEY"),
-    ("openai",   "OPENAI_API_KEY"),
-    ("ollama",   "OLLAMA_BASE_URL"),
-    # 后续新增平台只需加一行，如:
-    # ("zhipu",   "ZHIPU_API_KEY"),
-]
+# ── 默认 Provider 自动检测 (delegates to aitest.config) ────────────────
+from aitest.config import config
 
 
 def _resolve_default_provider() -> str:
     """自动检测首个可用的 LLM Provider。"""
-    explicit = os.environ.get("AITEST_PROVIDER", "")
-    if explicit:
-        return explicit
-    for name, env_var in _PROVIDER_DETECT_CHAIN:
-        if os.environ.get(env_var):
-            return name
-    return "deepseek"  # 最后的 fallback
+    return config.resolve_llm_provider()
 
 
 _DEFAULT_PROVIDER = _resolve_default_provider()

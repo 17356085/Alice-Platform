@@ -51,7 +51,7 @@ from aitest.graphs.state import (
 from aitest.graphs.nodes import make_agent_loop_node
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-from aitest.platform.paths import get_workstudy, get_test_project_root, get_context_modules, get_governance_dir
+from aitest.platform.paths import get_workstudy, get_test_project_root, get_context_modules, get_governance_dir, get_project_dir
 WORKSTUDY = get_workstudy()
 GOVERNANCE = get_governance_dir()
 CONTEXT_MODULES = get_context_modules()
@@ -331,15 +331,18 @@ def preflight_node(state: SOPState) -> dict:
     has_tech = any(p["has_tech_analysis"] for p in per_page_results) if per_page_results else False
 
     # 检查代码是否存在
-    po_dir = ZJSN_TEST / "page" / f"{module}_page"
-    test_dir = ZJSN_TEST / "script" / module
-    has_code = po_dir.exists() and test_dir.exists() and \
-        any(po_dir.glob("*Page.py")) and any(test_dir.glob("test_*.py"))
+    zjsn = get_test_project_root()
+    has_code = False
+    if zjsn:
+        po_dir = zjsn / "page" / f"{module}_page"
+        test_dir = zjsn / "script" / module
+        has_code = po_dir.exists() and test_dir.exists() and \
+            any(po_dir.glob("*Page.py")) and any(test_dir.glob("test_*.py"))
 
     # 检查 allure 是否有失败
-    allure_results = ZJSN_TEST / "allure-results"
+    allure_results = zjsn / "allure-results" if zjsn else None
     has_failures = False
-    if allure_results.exists():
+    if allure_results and allure_results.exists():
         try:
             for f in allure_results.glob("*-result.json"):
                 content = f.read_text(encoding="utf-8")
@@ -477,7 +480,7 @@ def exit_node(state: SOPState) -> dict:
 
     # 发射 CycleEnd 事件
     try:
-        from aitest.governance.event_bus import emit
+        from aitest.audit_engine.event_bus import emit
         emit("CycleEnd", module=module, status=final_status, engine="langgraph")
     except Exception as e:
         from aitest.infra.error_logger import log_error
@@ -485,12 +488,12 @@ def exit_node(state: SOPState) -> dict:
 
     # P0-2: 在 CycleEnd 后自动运行 State Auditor (全量 S/C/Q/T Check)
     try:
-        from aitest.governance.state_auditor import StateAuditor
+        from aitest.audit_engine.state_auditor import StateAuditor
         auditor = StateAuditor()
         audit_report = auditor.audit(module, auto_repair=False)
         if audit_report["drift_count"] > 0:
             # 发现漂移 → 发射 StateDrift 事件
-            from aitest.governance.event_bus import emit as _emit2
+            from aitest.audit_engine.event_bus import emit as _emit2
             try:
                 _emit2("StateDrift",
                        module=module,
@@ -508,11 +511,11 @@ def exit_node(state: SOPState) -> dict:
 
     # P1-2: SOP Auditor — 全量 6 维检查 (P0-FIX 2026-06-15: 从 3 维扩展到 6 维)
     try:
-        from aitest.governance.sop_auditor import SOPAuditor
+        from aitest.audit_engine.sop_auditor import SOPAuditor
         sop_auditor = SOPAuditor()
         sop_report = sop_auditor.audit(module, days=1)  # 默认全部 6 维: p/s/g/h/b/l
         if sop_report["total_violations"] > 0:
-            from aitest.governance.event_bus import emit as _emit3
+            from aitest.audit_engine.event_bus import emit as _emit3
             try:
                 _emit3("SOPViolation",
                        module=module,
@@ -907,7 +910,7 @@ def testcase_quality_gate_node(state: SOPState) -> dict:
 
     # ── 发射事件 ──
     try:
-        from aitest.governance.event_bus import emit
+        from aitest.audit_engine.event_bus import emit
         if score < BSC_PASS_THRESHOLD:
             emit("BusinessCoverageInsufficient",
                  module=module, page=page,
@@ -962,10 +965,13 @@ def data_sanitization_node(state: SOPState) -> dict:
         return updates
 
     try:
-        result = subprocess.run(
+        # ★ v1.0: 使用 secure_run 替代裸 subprocess.run (安全校验)
+        from aitest.infra.secure_subprocess import secure_run
+        result = secure_run(
             ["python", str(scan_script), "--force"],
             capture_output=True, text=True, timeout=120,
             cwd=str(ZJSN_TEST),
+            check=False,  # 不抛异常，手动检查返回码
         )
         stdout = result.stdout + result.stderr
 
@@ -1363,3 +1369,81 @@ def build_compiled_graph(checkpointer=None):
 
     builder = build_sop_graph()
     return builder.compile(checkpointer=checkpointer)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  ★ v2.0: Complexity Routing — 自适应 SOP 流水线
+# ══════════════════════════════════════════════════════════════════════════
+
+def resolve_sop_pipeline(module: str, pages: list[str] = None,
+                         discovery_data: dict = None) -> dict:
+    """根据页面复杂度推荐 SOP 流水线。
+
+    用法:
+        result = resolve_sop_pipeline("equipment", ["alarm-config"])
+        # → {"tier": "standard", "pipeline": ["requirement-agent", ...], "estimated_tokens": 100000}
+
+    三档:
+      - SIMPLE:   2 agent (automation + execution) → ~15K tokens/page
+      - STANDARD: 5 agent → ~100K tokens/page
+      - COMPLEX:  8 agent (完整) → ~130K tokens/page
+    """
+    from aitest.platform.complexity import complexity_assess
+    from aitest.platform.complexity.factors import ComplexityTier
+
+    pages = pages or []
+    result = {"module": module, "pages": {}, "overall_tier": "standard"}
+
+    for page_slug in pages:
+        # 尝试读取 discovery 数据
+        page_data = {}
+        page_dir = get_page_dir(module, page_slug)
+        discovery_file = page_dir / ".discovery" / "pages.json" if page_dir else None
+        if discovery_file and discovery_file.exists():
+            try:
+                import json
+                with open(discovery_file) as f:
+                    all_pages = json.load(f)
+                page_data = _find_page_data(all_pages, page_slug)
+            except Exception:
+                pass
+
+        assessment = complexity_assess(page_data, page_title=page_slug)
+        result["pages"][page_slug] = assessment
+
+    # 整体复杂度 = max(各页面复杂度)
+    tiers = [p["tier"] for p in result["pages"].values()]
+    if "complex" in tiers:
+        result["overall_tier"] = "complex"
+    elif "standard" in tiers:
+        result["overall_tier"] = "standard"
+    else:
+        result["overall_tier"] = "simple"
+
+    # 汇总 pipeline
+    from aitest.platform.complexity.factors import pipeline_for_tier
+    all_tiers = set(tiers)
+    if len(all_tiers) == 1:
+        tier = ComplexityTier(list(all_tiers)[0])
+    elif "complex" in all_tiers:
+        tier = ComplexityTier.COMPLEX
+    elif "standard" in all_tiers:
+        tier = ComplexityTier.STANDARD
+    else:
+        tier = ComplexityTier.SIMPLE
+
+    result["pipeline"] = pipeline_for_tier(tier)
+    result["estimated_tokens_per_page"] = {
+        "simple": 15000, "standard": 100000, "complex": 130000,
+    }[tier.value]
+
+    return result
+
+
+def _find_page_data(all_pages: list, page_slug: str) -> dict:
+    """从 pages.json 中找到指定 page 的数据。"""
+    for p in all_pages:
+        name = p.get("slug", p.get("name", p.get("title", "")))
+        if page_slug in name or name in page_slug:
+            return p
+    return all_pages[0] if all_pages else {}

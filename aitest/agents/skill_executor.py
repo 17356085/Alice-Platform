@@ -137,8 +137,16 @@ def run_skill(
     skill_id: str, user_input: str, provider: str = "claude",
     context_vars: dict = None, temperature: float = 0.7,
     max_tokens: int = 8192, variant: str = None,
+    reliable_provider = None,          # ★ v1.0: ReliableProvider
+    capability_router = None,          # ★ v2.0: CapabilityRouter for native tool calling
+    agent_name: str = "",              # ★ v2.0: Agent name for tool resolution
+    max_tool_rounds: int = 5,          # ★ v2.0: Max tool calling rounds
 ) -> LLMResponse:
-    """执行单个 Skill: 加载 → 注入上下文 → 适配 → LLM 调用。"""
+    """执行单个 Skill: 加载 → 注入上下文 → 适配 → LLM 调用。
+
+    v1.0: 支持 reliable_provider (retry/fallback/cache)。
+    v2.0: 支持 capability_router (原生 tool calling)。
+    """
     context_vars = context_vars or {}
     start_time = time.time()
 
@@ -181,12 +189,66 @@ def run_skill(
     if compat.get("warnings"):
         system_prompt = f"[注意] {'; '.join(compat['warnings'])}\n\n" + system_prompt
 
+    # ★ v2.0: 构建 tools（从 CapabilityRouter 获取）
+    tools = None
+    if capability_router is not None and agent_name:
+        tools = capability_router.tool_defs_for_agent(agent_name)
+
     try:
-        llm = get_provider(provider)
-        response = llm.complete(system_prompt=system_prompt, user_prompt=user_input,
-                                temperature=temperature, max_tokens=max_tokens)
+        # ★ v1.0/v2.0: ReliableProvider + tool calling
+        if reliable_provider is not None:
+            response = reliable_provider.complete(
+                system_prompt=system_prompt, user_prompt=user_input,
+                tools=tools, temperature=temperature, max_tokens=max_tokens,
+                agent_name=agent_name or "",
+            )
+        else:
+            llm = get_provider(provider)
+            response = llm.complete(system_prompt=system_prompt, user_prompt=user_input,
+                                    tools=tools, temperature=temperature, max_tokens=max_tokens)
     except ValueError as e:
         return LLMResponse(content=f"[Provider 初始化失败] {e}", model="none", finish_reason="error")
+
+    # ★ v2.0: Tool calling loop — LLM 返回 tool_calls → 执行 → 结果注入 → 继续
+    if response.tool_calls and capability_router is not None:
+        tool_round = 0
+        all_tool_results = []
+        while response.tool_calls and tool_round < max_tool_rounds:
+            tool_round += 1
+            results = capability_router.execute_tool_calls(
+                response.tool_calls, context_vars, agent_name=agent_name
+            )
+            all_tool_results.extend(results)
+
+            # 构建 tool result 消息
+            tool_result_text = "\n\n".join(
+                f"[Tool: {r.call_id}] {'✅' if r.success else '❌'}\n{r.content[:2000]}"
+                for r in results
+            )
+
+            # 继续 LLM 调用：注入 tool results 作为新的 user message
+            followup_user = (
+                f"以下是工具执行结果:\n\n{tool_result_text}\n\n"
+                f"请基于这些结果继续完成任务。如果所有需要的工具都已调用完成，"
+                f"请直接输出最终结果（不要调用更多工具）。"
+            )
+
+            if reliable_provider is not None:
+                response = reliable_provider.complete(
+                    system_prompt=system_prompt, user_prompt=followup_user,
+                    tools=tools, temperature=temperature, max_tokens=max_tokens,
+                    agent_name=agent_name or "",
+                )
+            else:
+                llm = get_provider(provider)
+                response = llm.complete(system_prompt=system_prompt, user_prompt=followup_user,
+                                        tools=tools, temperature=temperature, max_tokens=max_tokens)
+
+        # 附加 tool call 结果到响应
+        if all_tool_results:
+            response.token_usage = response.token_usage or {}
+            response.token_usage["tool_rounds"] = tool_round
+            response.token_usage["tool_results"] = len(all_tool_results)
 
     elapsed = time.time() - start_time
     if response.token_usage:

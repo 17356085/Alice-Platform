@@ -35,21 +35,16 @@ Usage:
     asyncio.run(main())
 """
 
-import os
 import asyncio
 import logging
 from pathlib import Path
 
-from dotenv import load_dotenv
+from aitest.config import config
 
-# Load .env from WorkStudy root (API keys, BU config)
-_WORKSTUDY = Path(__file__).resolve().parent.parent.parent
-load_dotenv(_WORKSTUDY / ".env")
-
-# ── Configuration (env-var driven, no project-specific imports) ──────────
-BASE_URL = os.getenv("BASE_URL", "http://localhost:8081/")
-DEFAULT_USERNAME = os.getenv("DEFAULT_USERNAME", "admin")
-DEFAULT_PASSWORD = os.getenv("DEFAULT_PASSWORD", "")
+# ── Configuration (env-var driven via unified config) ─────────────────
+BASE_URL = config.base_url
+DEFAULT_USERNAME = config.default_username
+DEFAULT_PASSWORD = config.default_password
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +104,7 @@ class BrowserUseDriver:
         """
         self.headless = headless
         self.max_steps = max_steps
-        self._provider_name = provider or os.getenv("BU_LLM_PROVIDER", "claude")
+        self._provider_name = provider or config.bu_llm_provider
 
         # Auto-enable vision for MiMo (2x faster via screenshots vs DOM text)
         if self._provider_name == "mimo":
@@ -124,11 +119,12 @@ class BrowserUseDriver:
             )
 
         cfg = self._PROVIDER_DEFAULTS[self._provider_name]
-        self.model = model or os.getenv(cfg.get("model_env", "")) or cfg["model"]
+        provider_cfg = config.get_provider_config(self._provider_name)
+        self.model = model or provider_cfg["model"]
 
         # Auto-switch to vision model when use_vision=True with MiMo
         if self._provider_name == "mimo" and use_vision and not model:
-            vision_model = os.getenv("MIMO_VISION_MODEL", "mimo-v2.5")
+            vision_model = config.mimo_vision_model
             if vision_model != self.model:
                 logger.info("Vision mode: switching %s → %s", self.model, vision_model)
                 self.model = vision_model
@@ -184,7 +180,8 @@ class BrowserUseDriver:
         Gemini: ChatGoogle + GOOGLE_API_KEY
         """
         cfg = self._PROVIDER_DEFAULTS[self._provider_name]
-        key = os.getenv(cfg["api_key_env"], "")
+        provider_cfg = config.get_provider_config(self._provider_name)
+        key = provider_cfg["api_key"]
         if not key:
             raise RuntimeError(
                 f"{cfg['api_key_env']} not set. "
@@ -212,7 +209,7 @@ class BrowserUseDriver:
         """
         from browser_use import ChatOpenAI
 
-        base_url = os.getenv(cfg.get("base_url_env", ""), "")
+        base_url = config.mimo_base_url
         if not base_url:
             raise RuntimeError(
                 "MIMO_BASE_URL not set. Add MiMo API endpoint to .env.\n"

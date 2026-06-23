@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "录入销售订单",
-  "usingComponents": {
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
-    "number-step-input": "../../components/NumberStepInput"
-  }
-}

@@ -1,1 +1,0 @@
-<view class="empty data-v-92b4861d"><wd-icon wx:if="{{a}}" class="data-v-92b4861d" u-i="92b4861d-0" bind:__l="__l" u-p="{{a}}"/><text class="empty-title data-v-92b4861d">{{b}}</text></view>

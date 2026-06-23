@@ -7,7 +7,7 @@
 扫描项目目录和治理文件，识别文件级卫生问题。与 `completeness-check`（内容完整性）互补——本 Skill 关注文件本身的健康度，不关注内容质量。
 
 ## 输入
-- 项目根目录（默认 `d:\Desktop\WorkStudy`）
+- 项目根目录（默认 `d:\Desktop\Alice`）
 - 可选 `--module=<m>` 限定范围
 - 可选 `--check=<c>` 指定单项检查
 
@@ -75,7 +75,7 @@
 你是项目文件卫生审计专家。对 AITest Platform 项目执行全面卫生检查。
 
 ## 项目根目录
-d:\Desktop\WorkStudy
+d:\Desktop\Alice
 
 ## 检查步骤
 

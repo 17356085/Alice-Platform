@@ -1,6 +1,0 @@
-{
-  "navigationBarTitleText": "储罐详情",
-  "usingComponents": {
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon"
-  }
-}

@@ -1,6 +1,0 @@
-{
-  "navigationBarTitleText": "报表查看",
-  "usingComponents": {
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon"
-  }
-}

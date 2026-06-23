@@ -1,22 +1,30 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useKanbanStore } from '@/stores/kanban'
 import { useKanbanWS } from '@/composables/useKanbanWS'
 import { RefreshCw } from 'lucide-vue-next'
 import KanbanBoard from '@/components/KanbanBoard.vue'
 import ModuleDetailSheet from '@/components/ModuleDetailSheet.vue'
 
+const route = useRoute()
 const store = useKanbanStore()
 const { sendCardMove } = useKanbanWS()
 const selectedMod = ref('')
 const selectedInfo = ref<any>(null)
 const sheetOpen = ref(false)
 
-onMounted(async () => { try { await store.fetchModules() } catch(e) { console.error(e) } })
+onMounted(async () => {
+  try {
+    const pid = (route.query.project as string) || ''
+    await store.fetchModules(pid)
+  } catch(e) { console.error(e) }
+})
 
 function onCardMove(mod: string, from: string, to: string) { store.moveCard(mod, to); sendCardMove(mod, from, to) }
 function onCardClick(mod: string, info: any) { selectedMod.value = mod; selectedInfo.value = info; sheetOpen.value = true }
 function onRun(mod: string) { store.startSOP(mod) }
+function refreshModules() { store.fetchModules((route.query.project as string) || '') }
 </script>
 
 <template>
@@ -26,7 +34,7 @@ function onRun(mod: string) { store.startSOP(mod) }
         <div class="text-xs text-muted-foreground">{{ store.totalModules }} modules</div>
         <div v-if="store.running.size" class="badge badge-info text-[10px] animate-pulse">{{ store.running.size }} running</div>
       </div>
-      <button @click="store.fetchModules()" class="btn-outline text-xs flex items-center gap-1.5">
+      <button @click="refreshModules" class="btn-outline text-xs flex items-center gap-1.5">
         <RefreshCw :size="13" :stroke-width="2" /> Refresh
       </button>
     </div>

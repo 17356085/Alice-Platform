@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "申请记录",
-  "usingComponents": {
-    "wd-loading": "../../node-modules/wot-design-uni/components/wd-loading/wd-loading",
-    "empty": "../../components/Empty"
-  }
-}

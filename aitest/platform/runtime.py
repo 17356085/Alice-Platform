@@ -112,8 +112,10 @@ class Runtime(ABC):
 
 class BrowserRuntime(Runtime):
     """
-    BrowserUse-backed browser runtime.
-    Delegates to BrowserUseDriver under the hood.
+    Browser runtime with injectable driver factory.
+
+    Default: BrowserUseDriver (lazy-imported from aitest.integrations.bu_driver).
+    Inject alternative: BrowserRuntime(driver_factory=lambda: PlaywrightDriver(...))
     """
 
     def __init__(
@@ -124,6 +126,7 @@ class BrowserRuntime(Runtime):
         max_steps: int = 15,
         provider: str = None,
         model: str = None,
+        driver_factory: callable = None,  # ★ v1.0: dependency injection
     ):
         self._base_url = base_url
         self._headless = headless
@@ -131,6 +134,7 @@ class BrowserRuntime(Runtime):
         self._max_steps = max_steps
         self._provider = provider
         self._model = model
+        self._driver_factory = driver_factory  # None = use default BrowserUseDriver
         self._driver = None
         self._logged_in = False
 
@@ -140,16 +144,19 @@ class BrowserRuntime(Runtime):
         return register_browser_capabilities(self)
 
     def _ensure_driver(self):
-        """Lazy-load BrowserUseDriver to avoid import if unused."""
+        """Lazy-load driver — uses injected factory or default BrowserUseDriver."""
         if self._driver is None:
-            from aitest.integrations.bu_driver import BrowserUseDriver
-            self._driver = BrowserUseDriver(
-                headless=self._headless,
-                max_steps=self._max_steps,
-                provider=self._provider,
-                model=self._model,
-                use_vision=self._use_vision,
-            )
+            if self._driver_factory is not None:
+                self._driver = self._driver_factory()
+            else:
+                from aitest.integrations.bu_driver import BrowserUseDriver
+                self._driver = BrowserUseDriver(
+                    headless=self._headless,
+                    max_steps=self._max_steps,
+                    provider=self._provider,
+                    model=self._model,
+                    use_vision=self._use_vision,
+                )
 
     async def navigate(self, target: str) -> None:
         self._ensure_driver()
@@ -242,3 +249,173 @@ class BrowserRuntime(Runtime):
         except (json.JSONDecodeError, AttributeError):
             pass
         return PageStructure(page_title=str(result)[:200])
+
+
+class RemoteBrowserRuntime(Runtime):
+    """
+    Remote browser runtime — connects to a browser via CDP WebSocket.
+
+    Supports:
+      - chrome-devtools:// (local Chrome DevTools)
+      - ws://host:port/cdp (remote Chrome/Chromium)
+      - wss://host:port/cdp (TLS-secured remote browser)
+      - Browserbase / Browserless / custom CDP endpoints
+
+    Env vars:
+      BROWSER_WS_URL — CDP WebSocket endpoint (required)
+      BROWSER_API_KEY — optional API key for cloud services
+
+    Usage:
+        rt = RemoteBrowserRuntime("wss://browser.example.com/cdp")
+        await rt.navigate("#/system/user")
+        await rt.click("新增按钮")
+    """
+
+    def __init__(
+        self,
+        ws_url: str = None,
+        api_key: str = None,
+        base_url: str = "",
+    ):
+        from aitest.config import config
+        self._ws_url = ws_url or config.browser_ws_url
+        self._api_key = api_key or config.browser_api_key
+        self._base_url = base_url or config.base_url
+        self._browser = None
+        self._page = None
+
+    def _build_capabilities(self):
+        from .capabilities.browser_adapter import register_browser_capabilities
+        return register_browser_capabilities(self)
+
+    async def _ensure_connected(self):
+        """Lazy-connect to remote browser via CDP."""
+        if self._page is not None:
+            return
+        if not self._ws_url:
+            raise RuntimeError(
+                "BROWSER_WS_URL not set. Set env var or pass ws_url to RemoteBrowserRuntime."
+            )
+        try:
+            from playwright.async_api import async_playwright
+
+            pw = await async_playwright().start()
+            headers = {}
+            if self._api_key:
+                headers["x-api-key"] = self._api_key
+
+            self._browser = await pw.chromium.connect_over_cdp(
+                self._ws_url,
+                headers=headers if headers else None,
+            )
+            context = self._browser.contexts[0] if self._browser.contexts else await self._browser.new_context()
+            self._page = context.pages[0] if context.pages else await context.new_page()
+
+        except ImportError:
+            raise RuntimeError(
+                "playwright not installed. Install with: pip install playwright"
+            )
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to connect to remote browser at {self._ws_url}: {e}"
+            )
+
+    async def navigate(self, target: str) -> None:
+        await self._ensure_connected()
+        url = target if target.startswith("http") else f"{self._base_url.rstrip('/')}/#{target.lstrip('#')}"
+        await self._page.goto(url, wait_until="networkidle")
+
+    async def observe(self) -> PageStructure:
+        await self._ensure_connected()
+        title = await self._page.title()
+        try:
+            search_fields = await self._page.eval_on_selector_all(
+                'input[placeholder], .el-input__inner',
+                'els => els.map(e => ({placeholder: e.placeholder, type: e.type}))'
+            )
+        except Exception:
+            search_fields = []
+        try:
+            buttons = await self._page.eval_on_selector_all(
+                'button:not([disabled]), .el-button:not(.is-disabled)',
+                'els => els.map(e => ({text: e.textContent?.trim() || ""}))'
+            )
+        except Exception:
+            buttons = []
+        try:
+            columns = await self._page.eval_on_selector_all(
+                '.el-table__header th, table th',
+                'els => els.map(e => e.textContent?.trim() || "")'
+            )
+        except Exception:
+            columns = []
+
+        return PageStructure(
+            page_title=title,
+            search_fields=search_fields,
+            action_buttons=buttons,
+            table_columns=columns,
+            has_pagination=False,
+            has_checkbox_column=False,
+        )
+
+    async def click(self, description: str) -> bool:
+        await self._ensure_connected()
+        try:
+            await self._page.click(f"text={description}")
+            return True
+        except Exception:
+            try:
+                await self._page.click(f"[aria-label*='{description}']")
+                return True
+            except Exception:
+                return False
+
+    async def type(self, field_description: str, value: str) -> bool:
+        await self._ensure_connected()
+        try:
+            await self._page.fill(f"[placeholder*='{field_description}']", value)
+            return True
+        except Exception:
+            try:
+                await self._page.fill(f"[aria-label*='{field_description}']", value)
+                return True
+            except Exception:
+                return False
+
+    async def screenshot(self) -> bytes:
+        await self._ensure_connected()
+        return await self._page.screenshot()
+
+    async def execute(self, action: str) -> Any:
+        await self._ensure_connected()
+        return await self._page.evaluate(action)
+
+    async def login(self, credentials: dict) -> bool:
+        await self._ensure_connected()
+        try:
+            username = credentials.get("username", "")
+            password = credentials.get("password", "")
+            if username:
+                await self._page.fill('input[placeholder*="用户名"], input[placeholder*="账号"]', username)
+            if password:
+                await self._page.fill('input[type="password"]', password)
+            await self._page.click('button:has-text("登录"), button:has-text("登 录")')
+            await self._page.wait_for_load_state("networkidle")
+            return True
+        except Exception:
+            return False
+
+    async def close(self) -> None:
+        if self._browser:
+            await self._browser.close()
+            self._browser = None
+            self._page = None
+
+    @property
+    def total_tokens(self) -> int:
+        return 0  # Remote browser doesn't use LLM tokens
+
+    @property
+    def estimated_cost(self) -> float:
+        return 0.0

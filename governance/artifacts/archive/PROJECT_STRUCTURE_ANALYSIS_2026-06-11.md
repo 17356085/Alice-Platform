@@ -230,7 +230,7 @@ AI 读了 Skill 文件后只知道"做什么"，不知道该"怎么做"。
 
 | 上下文 | 当前状态 | 建议固化为 |
 |--------|----------|------------|
-| **CLAUDE.md** | ❌ 不存在 | 创建 `d:/Desktop/WorkStudy/CLAUDE.md`，作为 AI 第一入口，包含项目概述、目录导航、启动步骤、常用命令 |
+| **CLAUDE.md** | ❌ 不存在 | 创建 `d:/Desktop/Alice/CLAUDE.md`，作为 AI 第一入口，包含项目概述、目录导航、启动步骤、常用命令 |
 | **环境上下文** | 散落在 Prompt 占位符 | `governance/context/environments.yaml` — 统一管理 URL/账号/CI地址 |
 | **模块迁移状态** | 文字追踪在 MIGRATION_MAP | `governance/context/migration-status.yaml` — 结构化追踪 |
 | **代码-上下文映射** | 散落 | 每个 PAGE_CONTEXT 加 `自动化代码:` 字段指向对应 PageObject/测试脚本 |
@@ -1004,7 +1004,7 @@ WorkStudy/
 
 ### Step 1.1 — 创建 CLAUDE.md（30 分钟）
 
-**文件**：`d:/Desktop/WorkStudy/CLAUDE.md`
+**文件**：`d:/Desktop/Alice/CLAUDE.md`
 
 ```markdown
 # 鞍集涂源管理系统 — 测试开发 AI 协作项目

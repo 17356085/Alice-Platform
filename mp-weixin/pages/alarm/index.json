@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "报警管理",
-  "usingComponents": {
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
-    "custom-tab-bar": "../../components/CustomTabBar",
-    "empty": "../../components/Empty"
-  }
-}

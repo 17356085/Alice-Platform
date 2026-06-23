@@ -13,7 +13,6 @@ Multi-Provider Verification — 跨模型 Skill 执行对比。
     3. 输出结构化 JSON 结果（可被 CI 消费）
     4. Provider 不可用时跳过而非失败
 """
-import os
 import sys
 import json
 import time
@@ -75,20 +74,15 @@ class ProviderResult:
 
 def check_provider_available(provider_name: str) -> tuple[bool, str]:
     """检查 Provider 是否可用（API Key 已配置）。"""
-    env_keys = {
-        "claude": "ANTHROPIC_API_KEY",
-        "openai": "OPENAI_API_KEY",
-        "deepseek": "DEEPSEEK_API_KEY",
-        "ollama": "OLLAMA_BASE_URL",  # Ollama 不需要 API Key，检查服务可达性
-    }
-    key = env_keys.get(provider_name, "")
+    from aitest.config import config
+
     if provider_name == "ollama":
         # 检查本地服务可达性
         import socket
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(1)
         try:
-            base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+            base_url = config.ollama_base_url
             host = base_url.replace("http://", "").replace("https://", "").split(":")[0]
             port = int(base_url.split(":")[-1].rstrip("/"))
             s.connect((host, port))
@@ -97,9 +91,11 @@ def check_provider_available(provider_name: str) -> tuple[bool, str]:
         except Exception:
             s.close()
             return False, "Ollama service not reachable"
-    if not key or not os.getenv(key):
-        return False, f"{key} not set in environment"
-    return True, f"{key} configured"
+
+    provider_cfg = config.get_provider_config(provider_name)
+    if not provider_cfg["api_key"]:
+        return False, f"{provider_name} API key not set in environment"
+    return True, f"{provider_name} configured"
 
 
 def estimate_cost(provider: str, model: str, input_tokens: int, output_tokens: int) -> float:

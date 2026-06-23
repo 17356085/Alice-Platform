@@ -1,6 +1,0 @@
-{
-  "navigationBarTitleText": "访客登记",
-  "usingComponents": {
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon"
-  }
-}

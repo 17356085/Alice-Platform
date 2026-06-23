@@ -13,7 +13,11 @@ export const meta = {
 const MODULE = args?.module
 const MODE = args?.mode || 'full'
 const USER_PAGES = args?.pages || ''
-const PROJECT = args?.project || 'web-automation'
+let PROJECT = args?.project || process.env.AITEST_PROJECT || ''
+if (!PROJECT) {
+  log('WARNING: No project specified. Set AITEST_PROJECT env var or pass project=<id>. Using web-automation as fallback.')
+  PROJECT = 'web-automation'
+}
 
 if (!MODULE) {
   log('ERROR: 缺少必填参数: module')
@@ -29,7 +33,10 @@ if (MODE === 'status') {
   const statusFile = `governance/artifacts/sop-status/SOP_STATUS_${MODULE}.json`
 
   const statusResult = await agent(
-    `Read ${statusFile}。如果不存在，检查 governance/context/projects/web-automation/modules/${MODULE}/ 下的文件。
+    `Read ${statusFile}。如果不存在，依次检查:
+     1. governance/artifacts/sop-status/${PROJECT}/SOP_STATUS_${MODULE}.json (per-project dir)
+     2. governance/artifacts/sop-status/SOP_STATUS_${MODULE}.json (legacy flat)
+     3. governance/context/projects/${PROJECT}/modules/${MODULE}/ 下的文件。
 
     输出模块 ${MODULE} 的 SOP 进度摘要:
     {
@@ -93,7 +100,7 @@ log('')
 const execResult = await agent(
   `Run the following command and capture its output:
 
-  cd d:\\Desktop\\WorkStudy && ${cmd}
+  cd d:\\Desktop\\Alice && ${cmd}
 
   The command will output a JSON result at the end (non-interactive mode).
   Parse the JSON and report back the structured result.

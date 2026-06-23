@@ -1,4 +1,4 @@
-# WorkStudy — 鞍集涂源管理系统 · AI 辅助测试开发项目
+# Alice — 鞍集涂源管理系统 · AI 辅助测试开发平台
 
 > AI 第一入口为 [`CLAUDE.md`](CLAUDE.md)。新 AI 进入项目后请先阅读该文件。
 
@@ -7,7 +7,7 @@
 ## 项目结构（30 秒速览）
 
 ```
-WorkStudy/
+Alice/
 ├── CLAUDE.md                 ← 必读：口语化入口 + 项目全景 + 编码红线
 ├── governance/               ← 治理层（唯一事实源 + Skill + Workflow）
 │   ├── context/              ← 项目/模块/页面上下文（7个模块已映射）

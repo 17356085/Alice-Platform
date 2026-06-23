@@ -54,11 +54,8 @@ chat_sessions.db
 downloads/
 .workbuddy/
 
-# ZJSN project
-ZJSN_Test-master526/driver/
-ZJSN_Test-master526/downloads/
-ZJSN_Test-master526/report/
-ZJSN_Test-master526/debug_output/
-ZJSN_Test-master526/artifacts/
-ZJSN_Test-master526/data/coverage_matrix.md
-ZJSN_Test-master526/data/coverage_matrix.json
+# Build output
+dist/
+aitest/web/dist/
+
+# ZJSN project — migrated to WorkStudy2 (d:/Desktop/WorkStudy2/ZJSN_Test-master526/)

@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "首页",
-  "usingComponents": {
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
-    "custom-tab-bar": "../../components/CustomTabBar"
-  }
-}

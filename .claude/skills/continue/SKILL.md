@@ -12,7 +12,11 @@ disable-model-invocation: false
 
 ### Step 1: 扫描 SOP_STATUS（主要恢复路径）
 
-Glob `governance/artifacts/sop-status/SOP_STATUS_*.json`。
+按优先级扫描以下路径（ADR-001 `.tlo/` 优先）:
+
+1. Glob `{project_root}/.tlo/runtime/sop-status/SOP_STATUS_*.json`（新 .tlo/ 项目）
+2. Glob `governance/artifacts/sop-status/{project_id}/SOP_STATUS_*.json`（per-project legacy）
+3. Glob `governance/artifacts/sop-status/SOP_STATUS_*.json`（legacy flat，仅 web-automation）
 
 对每个文件，Read 并提取:
 - `module`: 模块名

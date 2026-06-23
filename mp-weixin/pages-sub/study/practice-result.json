@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "练习结果",
-  "usingComponents": {
-    "wd-button": "../../node-modules/wot-design-uni/components/wd-button/wd-button",
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
-    "empty": "../../components/Empty"
-  }
-}

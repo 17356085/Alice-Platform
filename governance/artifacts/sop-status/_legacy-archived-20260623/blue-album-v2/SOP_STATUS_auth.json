@@ -1,0 +1,12 @@
+{
+  "module": "auth",
+  "status": "init",
+  "completed_phases": ["Project Init"],
+  "failed_phases": [],
+  "pages_processed": ["auth-oauth-callback", "auth-qr-confirm"],
+  "artifact_count": 1,
+  "run_id": "",
+  "updated_at": "2026-06-23",
+  "engine": "",
+  "note": "Onboarded from BlueAlbum source — OAuth/QR auth pages"
+}

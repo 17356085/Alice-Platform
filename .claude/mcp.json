@@ -4,7 +4,7 @@
       "command": "python",
       "args": ["-m", "aitest.mcp"],
       "env": {
-        "PYTHONPATH": "D:\\Desktop\\WorkStudy"
+        "PYTHONPATH": "D:\\Desktop\\Alice"
       },
       "description": "AI 测试平台工具集 (P3 模块化): 13 Tools + 6 Prompts + 审计日志 + 取消 + Sampling + 限流 + 门禁检查"
     },

@@ -1,1 +1,0 @@
-"use strict";const t=require("../utils/http.js");exports.getSensorDetail=function(e){return t.http.get(`/api/equipment/miniapp/sensor/${e}`)},exports.getSensorList=function(e){return t.http.get("/api/equipment/miniapp/sensor/list",e)},exports.getSensorStatistics=function(e){return t.http.get("/api/equipment/miniapp/sensor/statistics",e)};

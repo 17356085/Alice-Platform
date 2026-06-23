@@ -3,7 +3,7 @@
   "nav": {
     "kanban": "Kanban", "gaps": "Gap Discovery", "chat": "Intelligence",
     "strategy": "Strategy", "execution": "Execution", "reports": "Reports",
-    "knowledge": "Knowledge", "settings": "Settings"
+    "knowledge": "Knowledge", "settings": "Settings", "onboarding": "New Project"
   },
   "kanban": {
     "refresh": "Refresh", "loading": "Loading...",
@@ -35,19 +35,6 @@
       "low_coverage": "Low Coverage", "flaky_test": "Flaky Tests", "untested_component": "Untested Components"
     },
     "severity": { "critical": "P0", "high": "P1", "medium": "P2", "low": "P3" }
-  },
-  "chat": {
-    "title": "Test Intelligence Chat",
-    "placeholder": "Ask about your test suite...",
-    "send": "Send",
-    "empty_title": "Test Intelligence Chat",
-    "empty_desc": "Ask AI about your test suite. It can search TEST_CASES.md, trace logs, and RAG knowledge base.",
-    "suggestions": {
-      "coverage": "Coverage", "bugs": "Bug Trends",
-      "security": "Security", "modules": "Module Status"
-    },
-    "new_chat": "+ New Chat", "no_chats": "No conversations yet",
-    "create_task": "Create Task"
   },
   "strategy": {
     "title": "Test Strategy Planner",
@@ -81,6 +68,82 @@
   "lang": {
     "label": "Language",
     "switch": "中文"
+  },
+  "common": {
+    "save": "Save", "cancel": "Cancel", "confirm": "Confirm",
+    "delete": "Delete", "close": "Close", "loading": "Loading...",
+    "retry": "Retry", "refresh": "Refresh", "no_data": "No data",
+    "search": "Search", "filter": "Filter", "export": "Export"
+  },
+  "errors": {
+    "network": "Network error. Check your connection and retry.",
+    "api_error": "Server error (HTTP {code})",
+    "stream_lost": "SSE connection lost",
+    "timeout": "Request timed out",
+    "unauthorized": "Unauthorized",
+    "not_found": "Resource not found",
+    "unknown": "Unknown error"
+  },
+  "chat": {
+    "title": "AI Test Chat",
+    "placeholder": "Ask about your test suite...",
+    "send": "Send",
+    "empty_title": "AI Test Intelligence",
+    "empty_desc": "Ask AI about your test suite. It can search TEST_CASES.md, trace logs, and RAG knowledge base.",
+    "suggestions": {
+      "coverage": "Test Coverage", "bugs": "Bug Trends",
+      "security": "Security Analysis", "modules": "Module Status",
+      "coverage_query": "Which modules have the weakest test coverage?",
+      "bugs_query": "Any recent flaky tests?",
+      "security_query": "How is security test coverage?",
+      "modules_query": "Which modules need additional tests?"
+    },
+    "new_chat": "+ New Chat", "no_chats": "No conversations",
+    "create_task": "Create Task",
+    "streaming": "AI is responding...",
+    "tool_running": "Running: {tool}",
+    "connected": "Connected to backend",
+    "disconnected": "Disconnected"
+  },
+  "sop": {
+    "phase": {
+      "Preflight": "Preflight", "Project Init": "Project Init",
+      "Requirement": "Requirement", "Test Design": "Test Design",
+      "Automation": "Automation", "Execute & Debug": "Execute & Debug",
+      "Bug Analysis": "Bug Analysis", "Report": "Report",
+      "Knowledge": "Knowledge"
+    },
+    "status": {
+      "running": "Running", "completed": "Completed",
+      "failed": "Failed", "skipped": "Skipped"
+    },
+    "gate": {
+      "passed": "Gate passed", "failed": "Gate failed",
+      "approval_required": "Approval required"
+    }
+  },
+  "onboarding": {
+    "choose_title": "How to discover this project?",
+    "url_option": "Provide a URL",
+    "url_desc": "TLO uses BrowserUse to explore the app via browser",
+    "local_option": "Local Project",
+    "local_desc": "Analyze project code and config files directly",
+    "url_placeholder": "https://your-test-app.com",
+    "project_name": "Project Name",
+    "path_placeholder": "D:\\Projects\\my-app",
+    "browse": "Browse Folder",
+    "continue": "Continue",
+    "invalid_url": "Please enter a valid URL (starting with https://)",
+    "invalid_path": "Please enter or select a project path",
+    "browser_fallback": "Please paste the project path manually (folder selection not supported in this browser)",
+    "scanning": "Scanning...",
+    "scanning_desc": "BrowserUse is exploring the application structure",
+    "pages_found": "{n} pages found",
+    "menu_confirm": "Confirm Menu Structure",
+    "menu_confirm_desc": "Review the discovered navigation structure",
+    "results": "Discovery Complete",
+    "results_desc": "Project is ready for testing",
+    "goto_kanban": "Go to Kanban"
   },
   "toast": {
     "gap_discovered": "{n} test gaps discovered",

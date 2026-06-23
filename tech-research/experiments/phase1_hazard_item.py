@@ -8,7 +8,7 @@
 5. Token 消耗 & 成本
 
 用法:
-    cd d:/Desktop/WorkStudy
+    cd d:/Desktop/Alice
     python tech-research/experiments/phase1_hazard_item.py
 """
 

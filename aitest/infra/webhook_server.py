@@ -101,7 +101,7 @@ async def jenkins_webhook(request: Request):
             })
 
         # 发射 Event Bus 事件
-        from aitest.governance.event_bus import emit
+        from aitest.audit_engine.event_bus import emit
         emit("BugClosed", **{
             "bug_id": f"CI-{build_id}",
             "module": module,
@@ -122,7 +122,7 @@ async def jenkins_webhook(request: Request):
             "mode": "precipitate",
         })
 
-        from aitest.governance.event_bus import emit
+        from aitest.audit_engine.event_bus import emit
         emit("CycleEnd", **{
             "module": module,
             "stats": f"build #{build_id}: {total_count} tests passed"

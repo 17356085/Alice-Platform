@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "化验录入",
-  "usingComponents": {
-    "wd-icon": "../../node-modules/wot-design-uni/components/wd-icon/wd-icon",
-    "wd-loading": "../../node-modules/wot-design-uni/components/wd-loading/wd-loading"
-  }
-}

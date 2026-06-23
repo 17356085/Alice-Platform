@@ -3,7 +3,7 @@
   "nav": {
     "kanban": "看板", "gaps": "缺口发现", "chat": "智能对话",
     "strategy": "策略规划", "execution": "执行监控", "reports": "测试报告",
-    "knowledge": "知识库", "settings": "设置"
+    "knowledge": "知识库", "settings": "设置", "onboarding": "新建项目"
   },
   "kanban": {
     "refresh": "刷新", "loading": "加载中...",
@@ -35,19 +35,6 @@
       "low_coverage": "覆盖不足", "flaky_test": "不稳定测试", "untested_component": "未测组件"
     },
     "severity": { "critical": "P0", "high": "P1", "medium": "P2", "low": "P3" }
-  },
-  "chat": {
-    "title": "智能测试对话",
-    "placeholder": "询问测试套件相关问题...",
-    "send": "发送",
-    "empty_title": "智能测试对话",
-    "empty_desc": "向 AI 询问测试套件问题。AI 可以搜索 TEST_CASES.md、trace 日志和 RAG 知识库。",
-    "suggestions": {
-      "coverage": "测试覆盖", "bugs": "Bug 趋势",
-      "security": "安全分析", "modules": "模块状态"
-    },
-    "new_chat": "+ 新建对话", "no_chats": "暂无对话",
-    "create_task": "创建任务"
   },
   "strategy": {
     "title": "测试策略规划器",
@@ -81,6 +68,82 @@
   "lang": {
     "label": "语言",
     "switch": "English"
+  },
+  "common": {
+    "save": "保存", "cancel": "取消", "confirm": "确认",
+    "delete": "删除", "close": "关闭", "loading": "加载中...",
+    "retry": "重试", "refresh": "刷新", "no_data": "暂无数据",
+    "search": "搜索", "filter": "筛选", "export": "导出"
+  },
+  "errors": {
+    "network": "网络连接失败，请检查网络后重试",
+    "api_error": "服务器错误 (HTTP {code})",
+    "stream_lost": "SSE 连接中断",
+    "timeout": "请求超时",
+    "unauthorized": "未授权访问",
+    "not_found": "资源不存在",
+    "unknown": "未知错误"
+  },
+  "chat": {
+    "title": "智能测试对话",
+    "placeholder": "询问测试套件相关问题...",
+    "send": "发送",
+    "empty_title": "智能测试对话",
+    "empty_desc": "向 AI 询问测试套件问题。AI 可以搜索 TEST_CASES.md、trace 日志和 RAG 知识库。",
+    "suggestions": {
+      "coverage": "测试覆盖", "bugs": "Bug 趋势",
+      "security": "安全分析", "modules": "模块状态",
+      "coverage_query": "哪些模块测试覆盖最薄弱？",
+      "bugs_query": "最近有哪些 flaky test？",
+      "security_query": "安全测试覆盖如何？",
+      "modules_query": "哪些模块需要补充测试？"
+    },
+    "new_chat": "+ 新建对话", "no_chats": "暂无对话",
+    "create_task": "创建任务",
+    "streaming": "AI 正在回复...",
+    "tool_running": "调用工具: {tool}",
+    "connected": "已连接到后端",
+    "disconnected": "已断开连接"
+  },
+  "sop": {
+    "phase": {
+      "Preflight": "预检", "Project Init": "项目初始化",
+      "Requirement": "需求分析", "Test Design": "测试设计",
+      "Automation": "自动化生成", "Execute & Debug": "执行与调试",
+      "Bug Analysis": "缺陷分析", "Report": "报告生成",
+      "Knowledge": "知识更新"
+    },
+    "status": {
+      "running": "执行中", "completed": "已完成",
+      "failed": "失败", "skipped": "已跳过"
+    },
+    "gate": {
+      "passed": "门禁通过", "failed": "门禁未通过",
+      "approval_required": "需要人工审批"
+    }
+  },
+  "onboarding": {
+    "choose_title": "选择项目发现方式",
+    "url_option": "提供 URL",
+    "url_desc": "TLO 通过 BrowserUse 浏览器探索应用",
+    "local_option": "本地项目",
+    "local_desc": "直接分析项目代码和配置文件",
+    "url_placeholder": "https://your-test-app.com",
+    "project_name": "项目名称",
+    "path_placeholder": "D:\\Projects\\my-app",
+    "browse": "浏览文件夹",
+    "continue": "继续",
+    "invalid_url": "请输入有效的 URL (以 https:// 开头)",
+    "invalid_path": "请输入或选择项目路径",
+    "browser_fallback": "请手动粘贴项目路径 (浏览器不支持文件夹选择)",
+    "scanning": "正在扫描中...",
+    "scanning_desc": "BrowserUse 正在探索应用结构",
+    "pages_found": "发现 {n} 个页面",
+    "menu_confirm": "确认菜单结构",
+    "menu_confirm_desc": "检查发现的导航结构是否正确",
+    "results": "发现完成",
+    "results_desc": "项目已准备好进行测试",
+    "goto_kanban": "前往看板"
   },
   "toast": {
     "gap_discovered": "发现 {n} 个测试缺口",

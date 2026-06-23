@@ -6,18 +6,26 @@ import time
 import subprocess
 import traceback as _traceback
 
-from aitest.mcp.config import ZJSN_TEST, CONTEXT_MODULES
+from aitest.mcp.config import CONTEXT_MODULES
 from aitest.mcp.error_taxonomy import ErrorCode, error_response
 from aitest.mcp.cancellation import register_task, deregister_task
 from aitest.mcp.tools.status import get_module_status
+from aitest.platform.paths import get_test_project_root
 
 
 def run_pytest(module: str = "", marker: str = "", parallel: int = 1,
                test_file: str = "", timeout: int = 300) -> dict:
     """P0-1: 运行 pytest 测试并返回结构化结果。
     P2-4: 支持通过 cancel_task Tool 中途取消。"""
-    script_dir = ZJSN_TEST / "script" / module if module else ZJSN_TEST / "script"
-    allure_dir = ZJSN_TEST / "allure-results"
+    zjsn = get_test_project_root()
+    if not zjsn:
+        return error_response(
+            ErrorCode.PRECONDITION_FAILED,
+            "No test project configured",
+            "使用 aitest project set --id=<project> 设置活跃项目。",
+        )
+    script_dir = zjsn / "script" / module if module else zjsn / "script"
+    allure_dir = zjsn / "allure-results"
 
     if not script_dir.exists():
         return error_response(
@@ -61,7 +69,7 @@ def run_pytest(module: str = "", marker: str = "", parallel: int = 1,
     try:
         process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-            cwd=str(ZJSN_TEST), encoding='utf-8', errors='replace'
+            cwd=str(zjsn), encoding='utf-8', errors='replace'
         )
         stdout_chunks = []
         stderr_chunks = []
