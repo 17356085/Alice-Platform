@@ -1,0 +1,22 @@
+# Demo Project — minimal project.yaml for platform stress test
+# This project has only a config file. No test_project, no existing code.
+
+project:
+  id: "demo-project"
+  name: "Demo Test Project"
+
+application:
+  type: "web"
+  runtime: "browser"
+
+connection:
+  base_url: "https://demo.example.com/"
+  login_required: false
+
+discovery:
+  strategy: "manual"
+
+knowledge:
+  chroma_namespace: "demo-project"
+
+# No test_project configured — this project is onboarding-only
