@@ -5,7 +5,7 @@ const props = defineProps<{
   columns: Record<string, [string, { status: string; phases: number; pages: number; failed: number; updated: string; progress?: number; current_phase?: string }][]>
   running?: Set<string>
 }>()
-const emit = defineEmits<{ 'card-move': [mod: string, from: string, to: string]; 'card-click': [mod: string, info: any] }>()
+const emit = defineEmits<{ 'card-move': [mod: string, from: string, to: string]; 'card-click': [mod: string, info: any]; 'card-run': [mod: string] }>()
 
 const dragMod = ref(''); const dragFrom = ref(''); const dragOverCol = ref('')
 
@@ -85,6 +85,20 @@ function onDrop(stage: string) {
         </div>
         <div v-else class="text-[10px] text-muted-foreground mt-1">
           {{ key === 'completed' ? '✅ Done' : key === 'analyzing' ? '⚠️ QA Loop' : key === 'planning' ? '📝 Planning' : key === 'executing' ? '▶️ Running' : '⏳ Pending' }}
+        </div>
+
+        <!-- Hover action bar -->
+        <div v-if="!running?.has(mod)" class="flex gap-1.5 mt-3 pt-2.5 opacity-0 group-hover:opacity-100 transition-opacity" style="border-top:1px solid var(--border)">
+          <button
+            @click.stop="emit('card-run', mod)"
+            class="flex-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold cursor-pointer transition-all border-none"
+            style="background:var(--primary-gradient); color:var(--primary-foreground)"
+          >▶️ Run</button>
+          <button
+            @click.stop="emit('card-click', mod, info)"
+            class="px-2.5 py-1.5 rounded-md text-[11px] cursor-pointer transition-all border"
+            style="border-color:var(--border); color:var(--muted-foreground); background:transparent"
+          >⋯</button>
         </div>
       </div>
 

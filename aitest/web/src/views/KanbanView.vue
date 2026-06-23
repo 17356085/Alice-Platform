@@ -37,7 +37,7 @@ function onRun(mod: string) { store.startSOP(mod) }
       <div v-for="i in 5" :key="i" class="skeleton h-[200px] rounded-xl" />
     </div>
     <div v-else-if="store.error" class="text-center py-16 text-destructive text-sm">{{ store.error }}</div>
-    <KanbanBoard v-else :columns="store.columns" :running="store.running" @card-move="onCardMove" @card-click="onCardClick" />
+    <KanbanBoard v-else :columns="store.columns" :running="store.running" @card-move="onCardMove" @card-click="onCardClick" @card-run="onRun" />
     <ModuleDetailSheet :module="selectedMod" :info="selectedInfo" :open="sheetOpen" :running="store.running.has(selectedMod)" @close="sheetOpen = false" @run="onRun" @report="() => {}" />
   </div>
 </template>
