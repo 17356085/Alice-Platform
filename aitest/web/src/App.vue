@@ -20,9 +20,12 @@ useKanbanWS().connect()
 
 const viewTitles: Record<string, string> = {
   kanban: '📋 Kanban 看板',
+  gaps: '🔍 Test Gap Discovery',
+  chat: '💬 Intelligence Chat',
+  strategy: '🗺 Strategy Planner',
   execution: '▶️ 执行监控',
   reports: '📊 测试报告',
-  knowledge: '🔍 知识库',
+  knowledge: '📚 知识库',
   settings: '⚙️ 设置',
 }
 const currentViewName = computed(() => String(route.name || 'kanban'))

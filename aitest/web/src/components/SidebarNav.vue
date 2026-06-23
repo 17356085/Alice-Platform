@@ -10,9 +10,12 @@ const emit = defineEmits<{
 
 const navItems = [
   { id: 'kanban', icon: '📋', label: 'Kanban' },
+  { id: 'gaps', icon: '🔍', label: 'Gap Discovery' },
+  { id: 'chat', icon: '💬', label: 'Intelligence' },
+  { id: 'strategy', icon: '🗺', label: 'Strategy' },
   { id: 'execution', icon: '▶️', label: 'Execution' },
   { id: 'reports', icon: '📊', label: 'Reports' },
-  { id: 'knowledge', icon: '🔍', label: 'Knowledge' },
+  { id: 'knowledge', icon: '📚', label: 'Knowledge' },
   { id: 'settings', icon: '⚙️', label: 'Settings' },
 ]
 
