@@ -532,6 +532,8 @@ async def sop_start(request: Request):
     phases = ["Requirement", "Test Strategy", "Test Design", "Automation", "Environment", "Execution", "Bug Analysis", "Report", "Knowledge"]
     total = len(phases)
 
+    loop = asyncio.get_event_loop()  # capture main loop BEFORE thread starts
+
     def run_sop_background():
         """Background thread: simulate SOP execution with phase broadcasts."""
         import time as _time
@@ -539,15 +541,14 @@ async def sop_start(request: Request):
         for i, phase in enumerate(phases):
             progress = int((i + 1) / total * 100)
 
-            # Broadcast phase start
             asyncio.run_coroutine_threadsafe(
                 _kanban_ws.broadcast_sop_phase(
                     module=module, phase=phase, status="running",
                     progress=progress, message=f"Running {phase}..."
                 ),
-                asyncio.get_event_loop(),
+                loop,
             )
-            _time.sleep(1.5)  # Simulate work (in production: actual SOP execution)
+            _time.sleep(1.5)
 
             # Update SOP_STATUS file
             new_status = "completed" if progress >= 100 else "in_progress"
@@ -559,7 +560,7 @@ async def sop_start(request: Request):
                 module=module, phase="Knowledge", status="completed",
                 progress=100, message=f"SOP completed for {module}"
             ),
-            asyncio.get_event_loop(),
+            loop,
         )
 
     thread = threading.Thread(target=run_sop_background, daemon=True)
