@@ -1091,6 +1091,7 @@ def route_next_phase(state: SOPState) -> str:
 
     特殊规则:
       - Bug Analysis: 仅当 execution_failed=True 时才触发
+      - 🆕 QA Loop (TLO): Bug Analysis 后用 QALoop 分类决定 auto-fix vs escalate
       - Status 模式: preflight 后直接退出
       - P1-3 HITL: Automation phase 内部分段路由 (pre → approval → post)
       - P1-3 HITL: Test Design 完成后 → testcase_approval (仅 P0 模块)
@@ -1123,6 +1124,30 @@ def route_next_phase(state: SOPState) -> str:
             # P2-4 AgentResult 格式优先
             execution_failed = exec_result.get("execution_failed", False) or not exec_result.get("success", True)
 
+    # 🆕 TLO QA Loop: Bug Analysis 后检查是否应继续修复循环
+    if "Bug Analysis" in completed:
+        qa_rounds = state.get("qa_loop_rounds", 0)
+        qa_max = state.get("qa_loop_max_rounds", 3)
+        qa_should_escalate = state.get("qa_should_escalate", False)
+
+        if qa_should_escalate:
+            # 不可自动修复 → 跳过后续修复, 直接去 Report
+            skipped.add("Bug Analysis")
+            state["qa_loop_status"] = "escalated"
+            _emit_qa_loop_event(state, "escalated")
+
+        elif qa_rounds < qa_max and execution_failed:
+            # 还有重试额度 → 路由到 Automation 修复
+            state["qa_loop_rounds"] = qa_rounds + 1
+            _emit_qa_loop_event(state, f"retry_round_{qa_rounds + 1}")
+            auto_node = PHASE_TO_NODE.get("Automation")
+            if auto_node:
+                return auto_node
+        else:
+            # 轮数耗尽 或 无失败 → 结束 QA Loop
+            state["qa_loop_status"] = "passed" if not execution_failed else "max_rounds"
+            _emit_qa_loop_event(state, state["qa_loop_status"])
+
     for phase in CANONICAL_PHASES:
         if phase in completed or phase in skipped:
             continue
@@ -1130,6 +1155,16 @@ def route_next_phase(state: SOPState) -> str:
         # Bug Analysis 条件触发：仅执行失败时运行
         if phase == "Bug Analysis" and not execution_failed:
             continue  # 跳过 — 自动进入下一个 phase (Report)
+
+        # 🆕 TLO QA Loop: 进入 Bug Analysis 前初始化 QA Loop 状态
+        if phase == "Bug Analysis":
+            if "Bug Analysis" not in state.get("qa_loop_phases_seen", []):
+                state["qa_loop_rounds"] = 0
+                state["qa_loop_max_rounds"] = state.get("qa_loop_max_rounds", 3)
+                state["qa_should_escalate"] = False
+                seen = state.get("qa_loop_phases_seen", [])
+                seen.append("Bug Analysis")
+                state["qa_loop_phases_seen"] = seen
 
         # P1-3 HITL: Test Design → 先检查 P0 测试用例审批
         if phase == "Automation":
@@ -1144,6 +1179,31 @@ def route_next_phase(state: SOPState) -> str:
 
     # 所有 phase 处理完毕
     return "exit"
+
+
+def _emit_qa_loop_event(state: SOPState, action: str):
+    """Emit QA Loop lifecycle event to EventBus (JSONL)."""
+    try:
+        import json
+        from datetime import datetime
+        from pathlib import Path
+
+        event = {
+            "event_type": f"qa_loop.{action}",
+            "timestamp": datetime.now().isoformat(),
+            "run_id": state.get("run_id", ""),
+            "module": state.get("module", ""),
+            "agent": "qa-loop",
+            "round": state.get("qa_loop_rounds", 0),
+            "max_rounds": state.get("qa_loop_max_rounds", 3),
+            "status": action,
+        }
+        events_dir = Path(__file__).resolve().parent.parent.parent / "governance" / ".events"
+        events_dir.mkdir(parents=True, exist_ok=True)
+        with open(events_dir / "qa_loop.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps(event, ensure_ascii=False) + "\n")
+    except Exception:
+        pass  # EventBus failure is non-blocking
 
 
 # ══════════════════════════════════════════════════════════════════════════

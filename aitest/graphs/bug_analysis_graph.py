@@ -46,6 +46,48 @@ def bug_entry(state: SOPState) -> dict:
     }
 
 
+def _classify_for_qa_loop(error_text: str, analysis_text: str = "") -> dict:
+    """
+    🆕 TLO QA Loop: 分类失败根因 → 决定 auto-fixable vs escalate。
+
+    复用 QALoop 的 6 类分类逻辑。轻量级规则匹配，之后可升级为 LLM 分类。
+    """
+    text = (error_text + " " + analysis_text).lower()
+
+    # LOCATOR_STALE: NoSuchElement, selector, xpath, css selector
+    if any(kw in text for kw in ["nosuchelement", "no such element", "unable to locate",
+                                   "selector", "xpath", "css selector"]):
+        return dict(auto_fixable=True, root_cause="locator_stale", confidence=0.85,
+                    suggested_fix="Update locator: check DOM for changed class/id/attribute")
+
+    # TIMING_ISSUE: timeout, wait, stale element, not clickable
+    if any(kw in text for kw in ["timeout", "timed out", "wait", "stale element",
+                                   "not clickable", "not visible", "element not interactable"]):
+        return dict(auto_fixable=True, root_cause="timing_issue", confidence=0.80,
+                    suggested_fix="Increase WebDriverWait timeout or add explicit wait")
+
+    # DATA_STALE: assertion, expected vs actual mismatch
+    if any(kw in text for kw in ["assertion", "assert", "expected", "actual", "not equal", "mismatch"]):
+        return dict(auto_fixable=True, root_cause="data_stale", confidence=0.70,
+                    suggested_fix="Check test data values. Update expected values or regenerate test data.")
+
+    # ENV_DOWN: connection refused, 500/502/503, gateway, unreachable
+    if any(kw in text for kw in ["connection refused", "503", "502", "500",
+                                   "gateway", "unreachable", "dns", "name or service not known"]):
+        return dict(auto_fixable=False, root_cause="env_down", confidence=0.90,
+                    suggested_fix="Target system unavailable. Verify service status.")
+
+    # REAL_DEFECT: unexpected behavior that looks like a real bug
+    if any(kw in text for kw in ["attributeerror", "typeerror", "keyerror", "indexerror",
+                                   "null", "undefined", "not found in database"]):
+        return dict(auto_fixable=False, root_cause="real_defect", confidence=0.60,
+                    suggested_fix="Possible real defect. Manual investigation recommended.")
+
+    # UNKNOWN
+    return dict(auto_fixable=False, root_cause="unknown", confidence=0.30,
+                suggested_fix="Manual investigation needed — error pattern not recognized")
+
+
 def analyze_fail_node(state: SOPState) -> dict:
     """
     分析失败根因：RAG 匹配 + 深度分析。
@@ -129,6 +171,12 @@ def analyze_fail_node(state: SOPState) -> dict:
         context_vars={"module": module, "page": page},
     )
 
+    # 🆕 TLO QA Loop: 分类失败是否可自动修复
+    qa_classification = _classify_for_qa_loop(
+        error_text=str(exec_result),
+        analysis_text=response.content[:2000] if response.content else "",
+    )
+
     return {
         "agent_outputs": {
             **state.get("agent_outputs", {}),
@@ -139,8 +187,15 @@ def analyze_fail_node(state: SOPState) -> dict:
                 "all_known": all(
                     m.get("metadata", {}).get("has_fix", False) for m in rag_matches
                 ) if rag_matches else False,
+                # 🆕 QA Loop classification
+                "qa_auto_fixable": qa_classification.get("auto_fixable", False),
+                "qa_root_cause": qa_classification.get("root_cause", "unknown"),
+                "qa_confidence": qa_classification.get("confidence", 0.0),
+                "qa_suggested_fix": qa_classification.get("suggested_fix", ""),
             },
         },
+        # 🆕 TLO: 不可自动修复 → 升级
+        "qa_should_escalate": not qa_classification.get("auto_fixable", False),
     }
 
 
