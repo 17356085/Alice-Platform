@@ -3,6 +3,7 @@ import { ref, nextTick, watch } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import ChatSidebar from '@/components/ChatSidebar.vue'
 import ToolIndicator from '@/components/ToolIndicator.vue'
+import Markdown from '@/components/Markdown.vue'
 
 const store = useChatStore()
 const input = ref('')
@@ -74,7 +75,9 @@ function selSuggestion(q: string) { input.value = q; send() }
               </div>
             </div>
             <div class="flex justify-start">
-              <div class="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-2.5 max-w-[85%] text-sm prose prose-sm dark:prose-invert" v-html="m.content.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\|(.*)\|/g, (match: string) => `<span class='font-mono text-xs'>${match}</span>`).replace(/^- (.*)/gm,'• $1').replace(/^## (.*)/gm,'<h3 class=\'text-base font-semibold mt-3 mb-1\'>$1</h3>')" />
+              <div class="bg-card border border-border rounded-2xl rounded-bl-md px-5 py-3 max-w-[85%] text-sm">
+                <Markdown :content="m.content" />
+              </div>
             </div>
             <!-- Suggested tasks -->
             <div v-if="m.suggestedTasks?.length" class="ml-2 space-y-1.5">
@@ -94,8 +97,8 @@ function selSuggestion(q: string) { input.value = q; send() }
         <!-- Streaming -->
         <div v-if="store.streaming" class="space-y-2">
           <ToolIndicator v-if="store.currentTool" :tool="store.currentTool.split(':')[0]" :input="store.currentTool" />
-          <div class="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-2.5 max-w-[85%] text-sm">
-            {{ store.streamContent }}<span class="animate-pulse">▊</span>
+          <div class="bg-card border border-border rounded-2xl rounded-bl-md px-5 py-3 max-w-[85%] text-sm">
+            <Markdown :content="store.streamContent" /><span class="animate-pulse">▊</span>
           </div>
         </div>
       </div>
