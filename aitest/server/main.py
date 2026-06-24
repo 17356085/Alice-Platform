@@ -323,6 +323,23 @@ async def health():
     except Exception as e:
         components["tenants"] = {"status": "error", "error": str(e)[:100]}
 
+    # ── Worker Pool (★ M3) ──
+    try:
+        from aitest.infra.worker_pool import get_worker_pool
+        pool = get_worker_pool()
+        stats = pool.stats()
+        components["worker_pool"] = {
+            "status": "ok",
+            "max_workers": stats.max_workers,
+            "active": stats.active_tasks,
+            "queued": stats.queued_tasks,
+            "completed": stats.completed_tasks,
+            "failed": stats.failed_tasks,
+            "per_tenant": stats.per_tenant,
+        }
+    except Exception as e:
+        components["worker_pool"] = {"status": "error", "error": str(e)[:100]}
+
     return {"status": overall, "components": components}
 
 
