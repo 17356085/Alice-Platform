@@ -4,7 +4,7 @@ v1.0: Architecture Complete — Design Freeze.
   5 layers (Platform Core / Agent Runtime / Infrastructure / Domain / Experimental)
   12 agents with capability enforcement + phase-aware model tiering.
 """
-__version__ = "1.1.0"
+__version__ = "1.6.0"
 
 from aitest.agents.agent_runner import (
     AgentLoop,
