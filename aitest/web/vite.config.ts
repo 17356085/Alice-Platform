@@ -3,20 +3,22 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 import { readFileSync, writeFileSync } from 'fs'
 
-// v2.5 Stabilization: strip ALL CSS for OOM isolation testing
-// Set env: STRIP_CSS=true to remove all CSS from build
-function stripCSSPlugin(): Plugin {
+// v2.5 Stabilization: move CSS to end of body — load after DOM parsed
+function deferCSSPlugin(): Plugin {
   return {
-    name: 'strip-css',
+    name: 'defer-css',
     apply: 'build',
     transformIndexHtml: {
       order: 'post',
-      handler(html, ctx) {
-        if (process.env.STRIP_CSS !== 'true') return html
-        // Remove all CSS <link> tags
-        html = html.replace(/<link[^>]*\.css[^>]*>/g, '')
-        // Remove any <style> tags injected by other plugins
-        html = html.replace(/<style>[^<]*<\/style>/g, '')
+      handler(html) {
+        // Extract CSS link from head
+        const match = html.match(/<link[^>]*\.css[^>]*>/)
+        if (!match) return html
+        const cssLink = match[0]
+        // Remove from head
+        html = html.replace(cssLink, '')
+        // Insert before </body>
+        html = html.replace('</body>', `  ${cssLink}\n</body>`)
         return html
       },
     },
@@ -47,8 +49,11 @@ function quietWsProxyLogger() {
 }
 
 export default defineConfig({
-  plugins: [vue(), stripCSSPlugin()],
+  plugins: [vue(), deferCSSPlugin()],
   customLogger: quietWsProxyLogger(),
+  build: {
+    cssCodeSplit: false,  // v2.5: single CSS file → strip + deferred load
+  },
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
