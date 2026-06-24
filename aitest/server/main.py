@@ -29,6 +29,7 @@ from aitest.server.api.chat import chat_router
 from aitest.server.api.sessions_api import router as sessions_router
 from aitest.server.api.onboarding import onboarding_router
 from aitest.server.api.integrations import integrations_router
+from aitest.server.api.platform import platform_router  # ★ v2.0
 
 
 @asynccontextmanager
@@ -1038,6 +1039,7 @@ async def timeline_replay(run_id: str):
     }
 
 
+app.include_router(platform_router)  # ★ v2.0
 app.include_router(agents_router)
 app.include_router(webhooks_router)
 app.include_router(workflows_router)
