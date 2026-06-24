@@ -405,11 +405,17 @@ class KnowledgeAgentSubscriber:
                 prompt = action["prompt_template"].format(**event.data) if event.data else str(event.data)
             except KeyError:
                 prompt = action["prompt_template"] + " " + str(event.data)
+            # Flatten event.data into context_vars so ContextInjector can resolve
+            # {module}, {agent}, etc. in RAG queries and file paths.
+            # Before: {"source_event": ..., "event_data": {...}} — keys nested,
+            #         format("{module}") → KeyError
+            # After:  {"source_event": ..., "module": ..., "agent": ..., ...}
+            context_vars = {"source_event": event.type, **(event.data or {})}
             run_skill(
                 skill_id="knowledge/knowledge-manager",
                 user_input=prompt,
                 provider=self.provider,
-                context_vars={"source_event": event.type, "event_data": event.data},
+                context_vars=context_vars,
             )
         except Exception as e:
             from aitest.infra.error_logger import log_error

@@ -531,7 +531,11 @@ class ContextInjector:
 
     def _resolve_rag(self, entry: dict, variables: dict) -> str:
         """通过 RAG 检索获取上下文（P0-1b: 结果缓存，跨 Skill 复用）。"""
-        query = entry.get("query", "").format(**variables)
+        try:
+            query = entry.get("query", "").format(**variables)
+        except KeyError:
+            # variables missing expected keys — use raw query template as-is
+            query = entry.get("query", "")
         collection = entry.get("collection", "project_context")
 
         # ★ P0-1b: RAG cache — (query, collection) 跨 Skill 共享
@@ -551,7 +555,11 @@ class ContextInjector:
         与 _resolve_rag() 不同：返回完整 result 对象而非拼接字符串，
         结果缓存在 _rag_cache 中共享。
         """
-        query = entry.get("query", "").format(**variables)
+        try:
+            query = entry.get("query", "").format(**variables)
+        except KeyError:
+            # variables missing expected keys — use raw query template as-is
+            query = entry.get("query", "")
         collection = entry.get("collection", "project_context")
 
         # 检查字符串缓存中是否已有此查询（复用结果）
