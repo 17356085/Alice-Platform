@@ -141,7 +141,6 @@
   body {
     background: var(--bg-gradient-start);
     background-image: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
-    background-attachment: fixed;
     color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -161,11 +160,9 @@
 
 /* ── Shared utility classes ── */
 @layer components {
-  /* Glass card */
+  /* Glass card — no backdrop-filter (causes renderer crash in headless Chromium) */
   .glass-card {
     background: var(--card);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
