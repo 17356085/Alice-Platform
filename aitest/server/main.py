@@ -1349,9 +1349,16 @@ class AgentTerminalWSManager:
     v2.5 Stabilization: Queue+Worker 架构替代 per-event ensure_future。
     ObservationBus 同步回调 → asyncio.Queue (maxsize=500) → 单一广播 Worker。
     跨线程安全：主线程捕获 loop，回调线程通过 call_soon_threadsafe 入队。
+
+    Diagnostics (v2.5.1):
+      queue_peak     — 历史最大队列深度（压测后仍可追溯）
+      worker_busy_pct — Worker 忙碌时间占比（容量规划）
+      broadcast_ewma_ms — 广播耗时 EWMA (α=0.1)，对近期抖动敏感
+      dropped 分因   — queue_full / connection_closed
     """
 
-    _QUEUE_MAXSIZE = 500  # Backpressure: drop oldest if queue full
+    _QUEUE_MAXSIZE = 500
+    _EWMA_ALPHA = 0.1  # Broadcast duration smoothing factor
 
     def __init__(self):
         self._connections: list[WebSocket] = []
@@ -1359,16 +1366,21 @@ class AgentTerminalWSManager:
         self._loop: asyncio.AbstractEventLoop | None = None
         self._queue: asyncio.Queue | None = None
         self._worker_task: asyncio.Task | None = None
-        # Diagnostics
+        # Diagnostics — counters
         self._enqueued_count: int = 0
-        self._dropped_count: int = 0
-        self._broadcast_total_ms: float = 0.0
+        self._dropped_queue_full: int = 0
+        self._dropped_conn_closed: int = 0
+        self._queue_peak: int = 0
+        # Diagnostics — worker timing
+        self._worker_busy_ms: float = 0.0
+        self._worker_total_ms: float = 0.0
+        # Diagnostics — broadcast EWMA
         self._broadcast_count: int = 0
+        self._broadcast_ewma_ms: float = 0.0
 
     async def connect(self, ws: WebSocket):
         await ws.accept()
         self._connections.append(ws)
-        # Capture the running event loop on first connection (guaranteed main thread)
         if self._loop is None:
             self._loop = asyncio.get_running_loop()
             self._queue = asyncio.Queue(maxsize=self._QUEUE_MAXSIZE)
@@ -1380,14 +1392,30 @@ class AgentTerminalWSManager:
             self._connections.remove(ws)
 
     async def _broadcast_worker(self):
-        """Single worker: drain queue → broadcast to all connected clients."""
+        """Single worker: drain queue → broadcast. Tracks busy/idle time."""
+        t_worker_start = time.perf_counter()
         while True:
+            t_busy_start = time.perf_counter()
+            # idle time (waiting for queue) = t_busy_start - last sample
             try:
                 payload = await self._queue.get()
                 t0 = time.perf_counter()
                 await self._send_all(payload)
-                self._broadcast_total_ms += (time.perf_counter() - t0) * 1000
+                t_now = time.perf_counter()
+                # Busy: time spent in _send_all
+                busy_ms = (t_now - t0) * 1000
+                self._worker_busy_ms += busy_ms
+                self._worker_total_ms += (t_now - t_worker_start) * 1000
+                t_worker_start = t_now
+                # EWMA broadcast duration
                 self._broadcast_count += 1
+                if self._broadcast_ewma_ms == 0.0:
+                    self._broadcast_ewma_ms = busy_ms
+                else:
+                    self._broadcast_ewma_ms = (
+                        (1 - self._EWMA_ALPHA) * self._broadcast_ewma_ms
+                        + self._EWMA_ALPHA * busy_ms
+                    )
             except asyncio.CancelledError:
                 break
             except Exception:
@@ -1395,14 +1423,12 @@ class AgentTerminalWSManager:
 
     async def _send_all(self, payload: dict):
         """Send payload to all connected WebSocket clients. Best-effort."""
-        stale = []
-        for ws in self._connections:
+        for ws in list(self._connections):
             try:
                 await ws.send_text(_json.dumps(payload, ensure_ascii=False, default=str))
             except Exception:
-                stale.append(ws)
-        for ws in stale:
-            self.disconnect(ws)
+                self._connections.remove(ws)
+                self._dropped_conn_closed += 1
 
     def _start_listening(self):
         """订阅ObservationBus，将事件转发到所有WebSocket客户端。"""
@@ -1410,14 +1436,14 @@ class AgentTerminalWSManager:
             return
         self._subscribed = True
 
-        loop = self._loop  # Captured on main thread during connect()
+        loop = self._loop
         queue = self._queue
 
         def _on_event(event):
             """同步回调 — ObservationBus 可在任意线程调用。
 
-            使用 loop.call_soon_threadsafe 将 payload 入队到广播 Worker。
-            如果队列满，丢弃最旧事件（drop-oldest 背压策略）。
+            call_soon_threadsafe → _enqueue (event loop thread) → Queue → Worker.
+            队列满时丢弃最旧事件（drop-oldest 背压策略）。
             """
             payload = {
                 "type": str(event.type.value) if hasattr(event.type, 'value') else str(event.type),
@@ -1428,18 +1454,21 @@ class AgentTerminalWSManager:
                 "timestamp": datetime.now().isoformat(),
             }
             if loop is None or queue is None:
-                return  # Worker not started yet — drop silently
+                return
 
             def _enqueue():
-                """Runs on event loop thread. Drop oldest if queue full."""
                 if queue.full():
                     try:
-                        queue.get_nowait()  # Drop oldest
-                        self._dropped_count += 1
+                        queue.get_nowait()
+                        self._dropped_queue_full += 1
                     except asyncio.QueueEmpty:
                         pass
                 queue.put_nowait(payload)
                 self._enqueued_count += 1
+                # Track peak
+                qs = queue.qsize()
+                if qs > self._queue_peak:
+                    self._queue_peak = qs
 
             loop.call_soon_threadsafe(_enqueue)
 
@@ -1459,7 +1488,9 @@ class AgentTerminalWSManager:
                 except Exception:
                     continue
         except Exception:
-            pass  # ObservationBus unavailable — agent terminal works in degraded mode
+            pass
+
+    # ── Properties ─────────────────────────────────────────────────────
 
     @property
     def queue_size(self) -> int:
@@ -1472,28 +1503,46 @@ class AgentTerminalWSManager:
         return len(self._connections)
 
     @property
+    def worker_busy_pct(self) -> float:
+        """Worker busy ratio: busy_time / total_time * 100."""
+        if self._worker_total_ms <= 0:
+            return 0.0
+        return round(self._worker_busy_ms / self._worker_total_ms * 100, 1)
+
+    @property
     def stats(self) -> dict:
         """Diagnostic snapshot for runtime monitoring.
 
-        Returns:
-            enqueued:    Total events placed on queue (lifetime).
-            dropped:     Events discarded because queue was full.
-            queue_size:  Current queue depth.
-            queue_max:   Queue capacity (backpressure threshold).
-            broadcast_count:  Total broadcast operations completed.
-            broadcast_avg_ms: Average broadcast duration (ms).
-            connections: Number of connected WebSocket clients.
+        Queue:
+          queue_size     — Current queue depth.
+          queue_peak     — Historical max queue depth (survives drain).
+          queue_max      — Capacity (backpressure threshold).
+
+        Drops (by cause):
+          dropped_queue_full    — Discarded: queue at capacity.
+          dropped_conn_closed   — Discarded: WebSocket send failed.
+
+        Worker:
+          worker_busy_pct — Busy / total time %. >80% = near capacity.
+          broadcast_ewma_ms — EWMA(α=0.1) broadcast duration. Recent trend.
+          broadcast_count — Total broadcasts completed.
+
+        Connections:
+          enqueued    — Lifetime events placed on queue.
+          connections — Active WebSocket clients.
         """
-        avg_ms = 0.0
-        if self._broadcast_count > 0:
-            avg_ms = self._broadcast_total_ms / self._broadcast_count
         return {
-            "enqueued": self._enqueued_count,
-            "dropped": self._dropped_count,
             "queue_size": self.queue_size,
+            "queue_peak": self._queue_peak,
             "queue_max": self._QUEUE_MAXSIZE,
+            "enqueued": self._enqueued_count,
+            "dropped": {
+                "queue_full": self._dropped_queue_full,
+                "connection_closed": self._dropped_conn_closed,
+            },
+            "worker_busy_pct": self.worker_busy_pct,
+            "broadcast_ewma_ms": round(self._broadcast_ewma_ms, 1),
             "broadcast_count": self._broadcast_count,
-            "broadcast_avg_ms": round(avg_ms, 1),
             "connections": self.active_connections,
         }
 
