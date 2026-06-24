@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useProjectStore } from '../stores/project'
 import {
   LayoutDashboard, LayoutGrid, Search, MessageSquare, Play,
-  BarChart3, BookOpen, Settings, Plus, FolderOpen, Terminal, Lightbulb, Link2,
+  BarChart3, BookOpen, Settings, Plus, FolderOpen, Terminal, Lightbulb, Link2, Clock, Eye,
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -14,23 +14,26 @@ const props = defineProps<{ currentView: string }>()
 const emit = defineEmits<{ navigate: [view: string] }>()
 
 const hasActiveProject = computed(() => !!projectStore.activeId)
+const pid = computed(() => projectStore.activeId || 'default')
 
 const workspaceItems = [
-  { id: 'workspace/kanban',    icon: LayoutGrid,      key: 'SOP Kanban' },
-  { id: 'workspace/gaps',      icon: Search,           key: 'Gap Scan' },
-  { id: 'workspace/terminal',  icon: Terminal,         key: 'Agent Terminal' },
-  { id: 'workspace/chat',      icon: MessageSquare,    key: 'AI Chat' },
-  { id: 'workspace/execution', icon: Play,             key: 'Execution' },
-  { id: 'workspace/ideation',  icon: Lightbulb,        key: 'Ideation' },
-  { id: 'workspace/integrations', icon: Link2,         key: 'Integrations' },
-  { id: 'workspace/reports',   icon: BarChart3,         key: 'Reports' },
-  { id: 'workspace/knowledge', icon: BookOpen,          key: 'Knowledge' },
-  { id: 'workspace/settings',  icon: FolderOpen,        key: 'Project Settings' },
+  { id: 'execution',      icon: Play,         key: '执行中心' },
+  { id: 'observability',  icon: Clock,        key: '可观测性' },
+  { id: 'kanban',         icon: LayoutGrid,   key: 'SOP 看板' },
+  { id: 'terminal',       icon: Terminal,     key: 'Agent 终端' },
+  { id: 'artifacts',      icon: FolderOpen,   key: '产物' },
+  { id: 'reports',        icon: BarChart3,    key: '报告' },
+  { id: 'knowledge',      icon: BookOpen,     key: '知识' },
+  { id: 'gaps',           icon: Search,       key: '缺口扫描' },
+  { id: 'chat',           icon: MessageSquare, key: 'AI 对话' },
+  { id: 'settings',       icon: Settings,     key: '项目设置' },
 ]
 
-function currentSection(view: string): 'dashboard' | 'workspace' | 'bottom' {
+function currentSection(view: string): 'dashboard' | 'project' | 'bottom' {
   if (view === 'dashboard') return 'dashboard'
-  if (view.startsWith('workspace/')) return 'workspace'
+  if (view.startsWith('project-') || view.startsWith('projects/')) return 'project'
+  // Legacy
+  if (view.startsWith('workspace/')) return 'project'
   return 'bottom'
 }
 </script>
@@ -67,8 +70,9 @@ function currentSection(view: string): 'dashboard' | 'workspace' | 'bottom' {
           <span class="truncate">{{ projectStore.activeProject?.name || projectStore.activeProject?.id || 'Workspace' }}</span>
         </div>
 
-        <button v-for="item in workspaceItems" :key="item.id" @click="emit('navigate', item.id)"
-          :style="currentSection(currentView) === 'workspace' && currentView === item.id
+        <button v-for="item in workspaceItems" :key="item.id"
+          @click="emit('navigate', `/projects/${pid}/${item.id}`)"
+          :style="currentSection(currentView) === 'project' && currentView === `project-${item.id}`
             ? { background: 'var(--sidebar-active-bg)', color: 'var(--sidebar-active)' }
             : { background: 'transparent', color: 'var(--sidebar-foreground)' }"
           class="nav-btn"
