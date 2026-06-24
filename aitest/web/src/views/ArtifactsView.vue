@@ -20,55 +20,24 @@ const previewContent = ref('')
 const previewName = ref('')
 const loading = ref(false)
 
-// Known artifact types per SOP phase
-const KNOWN_ARTIFACTS = [
-  'PROJECT_CONTEXT.md', 'MODULE_CONTEXT.md',
-  'REQUIREMENT_ANALYSIS.md',
-  'PAGE_CONTEXT.md', 'RISK_MODEL.md', 'TEST_CASES.md', 'BUSINESS_SCENARIOS.md',
-  'TECH_ANALYSIS.md', 'AUTO_STRATEGY.md',
-  'PageObject.py', 'test_scripts.py', 'conftest.py',
-  'BUG_ANALYSIS.md', 'EVIDENCE.md',
-  'TEST_REPORT.xlsx', 'TEST_REPORT.json',
-]
-
 async function fetchArtifacts() {
   loading.value = true
   try {
-    // In production, this would call /api/artifacts/:projectId/:module/:page
-    // For now, use known artifact list
-    const resp = await fetch(`http://localhost:8000/api/sop-status?project=${projectId}`)
+    let url = `http://localhost:8000/api/artifacts/${projectId.value}`
+    if (moduleFilter.value) url += `?module=${moduleFilter.value}`
+    const resp = await fetch(url)
     if (resp.ok) {
       const data = await resp.json()
-      const items: ArtifactItem[] = []
-      // Build artifact list from SOP status module data
-      if (data.modules) {
-        for (const mod of data.modules) {
-          if (moduleFilter.value && mod.id !== moduleFilter.value) continue
-          if (mod.documents) {
-            for (const doc of mod.documents) {
-              if (typeof doc === 'string') {
-                items.push({ name: doc, path: `${mod.id}/${doc}`, exists: true })
-              } else if (doc.page) {
-                for (const [dname, dexists] of Object.entries(doc.documents || {})) {
-                  items.push({
-                    name: dname,
-                    path: `${mod.id}/pages/${doc.page}/${dname}`,
-                    exists: dexists as boolean,
-                  })
-                }
-              }
-            }
-          }
-        }
-      }
-      artifacts.value = items.length > 0 ? items : KNOWN_ARTIFACTS.map(a => ({
-        name: a, path: a, exists: false,
+      artifacts.value = (data.artifacts || []).map((a: any) => ({
+        name: a.name,
+        path: a.path,
+        exists: a.exists,
+        size: a.size ? `${(a.size / 1024).toFixed(1)} KB` : undefined,
+        updated: a.updated,
       }))
-    } else {
-      artifacts.value = KNOWN_ARTIFACTS.map(a => ({ name: a, path: a, exists: false }))
     }
   } catch {
-    artifacts.value = KNOWN_ARTIFACTS.map(a => ({ name: a, path: a, exists: false }))
+    artifacts.value = []
   } finally {
     loading.value = false
   }
