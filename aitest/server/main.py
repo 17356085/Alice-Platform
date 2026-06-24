@@ -895,6 +895,78 @@ async def product_kpi():
     }
 
 
+@app.get("/api/kpi/optimization-insights")
+async def optimization_insights():
+    """★ v1.5: Auto-detect optimization opportunities from KPI data.
+
+    Returns: slowest phases, most expensive agents, optimization suggestions.
+    """
+    try:
+        from aitest.platform.operational_metrics import get_collector
+        snap = get_collector().snapshot()
+
+        insights = []
+
+        # Slowest agents (p95 > 30s)
+        for agent, data in snap.get("agent_latency_p95", {}).items():
+            if isinstance(data, dict) and data.get("p95", 0) > 30:
+                insights.append({
+                    "type": "slow_agent",
+                    "severity": "warning",
+                    "agent": agent,
+                    "metric": f"p95={data['p95']}s",
+                    "suggestion": f"Consider lowering model tier for {agent} or adding caching",
+                })
+
+        # Most expensive agents
+        for agent, data in snap.get("token_cost", {}).items():
+            if isinstance(data, dict) and data.get("cost_est", 0) > 0.50:
+                insights.append({
+                    "type": "high_cost",
+                    "severity": "info",
+                    "agent": agent,
+                    "metric": f"${data['cost_est']:.4f}",
+                    "suggestion": f"Consider switching {agent} to econ tier for non-critical runs",
+                })
+
+        # Low success rate workflows
+        for mod, data in snap.get("workflow", {}).items():
+            if isinstance(data, dict) and data.get("rate", 1) < 0.8 and data.get("total", 0) > 3:
+                insights.append({
+                    "type": "low_success_rate",
+                    "severity": "warning",
+                    "module": mod,
+                    "metric": f"{round(data['rate']*100)}% ({data['success']}/{data['total']})",
+                    "suggestion": f"Review {mod} failures in Timeline. Check locator stability.",
+                })
+
+        # No data at all
+        if not insights:
+            insights.append({
+                "type": "no_data",
+                "severity": "info",
+                "message": "Not enough operational data yet. Run more SOPs to get optimization insights.",
+            })
+
+        return {"insights": insights, "total": len(insights), "ts": snap.get("ts", "")}
+
+    except Exception as e:
+        return {"error": str(e)[:300]}
+
+
+@app.get("/api/artifacts/lineage/{project_id}")
+async def artifact_lineage(project_id: str, module: str = "", page: str = ""):
+    """★ v1.5: Artifact Lineage DAG — 追溯每个 Artifact 的来源和依赖。
+
+    Returns nodes + edges for a DAG visualization.
+    """
+    try:
+        from aitest.platform.artifact_lineage import get_lineage
+        return get_lineage(project_id, module or "equipment", page or "")
+    except Exception as e:
+        return {"error": str(e)[:300]}
+
+
 @app.get("/api/timeline/replay/{run_id}")
 async def timeline_replay(run_id: str):
     """★ v1.4: Timeline Replay — 完整 Run 回放 (context/prompt/output/artifacts)."""

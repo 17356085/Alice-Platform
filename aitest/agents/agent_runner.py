@@ -1004,6 +1004,21 @@ class AgentLoop:
                 f" — {self._worktree_ctx.name}"
             )
 
+        # ★ v1.5: Record artifact lineage
+        if self.module and self.page and self.state.success:
+            try:
+                from aitest.platform.artifact_lineage import record_artifact, PHASE_ARTIFACTS
+                phase_info = PHASE_ARTIFACTS.get(self.agent_name, {})
+                for artifact in phase_info.get("produces", []):
+                    record_artifact(
+                        self.context.get("project", "default"), self.module, self.page,
+                        artifact,
+                        generated_by=self.agent_name,
+                        depends_on=phase_info.get("depends_on", []),
+                    )
+            except Exception:
+                pass
+
         # ★ v1.1: Record operational metrics
         try:
             from aitest.platform.operational_metrics import get_collector
