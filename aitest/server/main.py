@@ -9,6 +9,7 @@
 import sys
 import os
 import asyncio
+import time
 from datetime import datetime
 
 # Windows: 用 SelectorEventLoop 替代 ProactorEventLoop，避免 SSE 断开时报
@@ -441,6 +442,7 @@ async def health():
                 "quota_usage": get_quota_usage().is_active,
                 "billing_hook": get_billing_hook().is_active,
             },
+            "agent_terminal": _agent_terminal_ws.stats,
         }
         # Degraded if any consumer not active (they should be after startup)
         if not all(components["platform"]["consumers"].values()):
@@ -1357,6 +1359,11 @@ class AgentTerminalWSManager:
         self._loop: asyncio.AbstractEventLoop | None = None
         self._queue: asyncio.Queue | None = None
         self._worker_task: asyncio.Task | None = None
+        # Diagnostics
+        self._enqueued_count: int = 0
+        self._dropped_count: int = 0
+        self._broadcast_total_ms: float = 0.0
+        self._broadcast_count: int = 0
 
     async def connect(self, ws: WebSocket):
         await ws.accept()
@@ -1377,7 +1384,10 @@ class AgentTerminalWSManager:
         while True:
             try:
                 payload = await self._queue.get()
+                t0 = time.perf_counter()
                 await self._send_all(payload)
+                self._broadcast_total_ms += (time.perf_counter() - t0) * 1000
+                self._broadcast_count += 1
             except asyncio.CancelledError:
                 break
             except Exception:
@@ -1425,9 +1435,11 @@ class AgentTerminalWSManager:
                 if queue.full():
                     try:
                         queue.get_nowait()  # Drop oldest
+                        self._dropped_count += 1
                     except asyncio.QueueEmpty:
                         pass
                 queue.put_nowait(payload)
+                self._enqueued_count += 1
 
             loop.call_soon_threadsafe(_enqueue)
 
@@ -1458,6 +1470,32 @@ class AgentTerminalWSManager:
     @property
     def active_connections(self) -> int:
         return len(self._connections)
+
+    @property
+    def stats(self) -> dict:
+        """Diagnostic snapshot for runtime monitoring.
+
+        Returns:
+            enqueued:    Total events placed on queue (lifetime).
+            dropped:     Events discarded because queue was full.
+            queue_size:  Current queue depth.
+            queue_max:   Queue capacity (backpressure threshold).
+            broadcast_count:  Total broadcast operations completed.
+            broadcast_avg_ms: Average broadcast duration (ms).
+            connections: Number of connected WebSocket clients.
+        """
+        avg_ms = 0.0
+        if self._broadcast_count > 0:
+            avg_ms = self._broadcast_total_ms / self._broadcast_count
+        return {
+            "enqueued": self._enqueued_count,
+            "dropped": self._dropped_count,
+            "queue_size": self.queue_size,
+            "queue_max": self._QUEUE_MAXSIZE,
+            "broadcast_count": self._broadcast_count,
+            "broadcast_avg_ms": round(avg_ms, 1),
+            "connections": self.active_connections,
+        }
 
 
 _agent_terminal_ws = AgentTerminalWSManager()
