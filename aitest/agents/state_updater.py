@@ -8,7 +8,7 @@ import time
 
 
 def update_agent_state(state, skill_id: str, observation,
-                       agent_name: str = "", logger=None):
+                       agent_name: str = "", module: str = "", logger=None):
     """Update AgentState after skill execution. Replaces AgentLoop.update().
 
     Handles: pass/fail/partial/skipped transitions, retry counting,
@@ -33,7 +33,7 @@ def update_agent_state(state, skill_id: str, observation,
         state.completed_skills.append(skill_id)
 
     # Emit milestone event for key skills
-    _emit_milestone(skill_id, observation, agent_name, logger)
+    _emit_milestone(skill_id, observation, agent_name, module, logger)
 
 
 # Skills that trigger AgentCompleted event on pass
@@ -54,17 +54,18 @@ MILESTONE_SKILLS = [
 ]
 
 
-def _emit_milestone(skill_id: str, observation, agent_name: str = "", logger=None):
+def _emit_milestone(skill_id: str, observation, agent_name: str = "", module: str = "", logger=None):
     """Emit AgentCompleted event when a milestone skill passes."""
     if skill_id not in MILESTONE_SKILLS or observation.status != "pass":
         return
     try:
         from aitest.audit_engine.event_bus import emit
         emit("AgentCompleted",
-             skill_id=skill_id,
-             agent_name=agent_name,
+             agent=agent_name,
+             module=module,
+             skill=skill_id,
              status="success",
-             summary=observation.summary)
+             artifacts=observation.summary)
     except Exception:
         pass
 

@@ -748,7 +748,7 @@ class AgentLoop:
         """委托给 state_updater 模块。"""
         from aitest.agents.state_updater import update_agent_state
         update_agent_state(self.state, skill_id, observation,
-                          agent_name=self.agent_name, logger=self._log)
+                          agent_name=self.agent_name, module=self.module, logger=self._log)
 
     # ── Cache Summary ────────────────────────────────────────────
 
