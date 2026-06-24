@@ -3,16 +3,19 @@ import { onMounted, computed } from 'vue'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { useKanbanStore } from '../stores/kanban'
-import { LayoutDashboard, CheckCircle, AlertTriangle, Play, BarChart3 } from 'lucide-vue-next'
+import { useHealth } from '../composables/useHealth'
+import { LayoutDashboard, CheckCircle, AlertTriangle, Play, BarChart3, Activity, Server } from 'lucide-vue-next'
 import ProjectSelector from '../components/ProjectSelector.vue'
 
 const projectStore = useProjectStore()
 const settingsStore = useSettingsStore()
 const kanbanStore = useKanbanStore()
+const { health, loading: healthLoading, refresh: refreshHealth } = useHealth()
 
 onMounted(async () => {
   await projectStore.fetchProjects()
   await kanbanStore.fetchModules()
+  refreshHealth()
 })
 
 function openProject(id: string) {
@@ -62,6 +65,43 @@ const stats = computed(() => {
         <div class="stat-value">{{ stats.ready }}</div>
         <div class="stat-label">就绪</div>
       </div>
+    </div>
+
+    <!-- Platform Health (from /health endpoint) -->
+    <div class="section">
+      <div class="section-header">
+        <h2><Activity :size="16" /> 平台状态</h2>
+        <button class="btn-refresh" @click="refreshHealth" :disabled="healthLoading">刷新</button>
+      </div>
+      <div v-if="healthLoading && !health" class="loading">加载中...</div>
+      <div v-else-if="health" class="health-grid">
+        <div class="health-card">
+          <span class="health-dot" :class="health.status"></span>
+          <span class="health-label">整体状态</span>
+          <span class="health-value">{{ health.status === 'healthy' ? '正常' : '降级' }}</span>
+        </div>
+        <div v-if="health.components.llm" class="health-card">
+          <span class="health-dot ok"></span>
+          <span class="health-label">LLM</span>
+          <span class="health-value">{{ health.components.llm.resolved_provider || '?' }}</span>
+          <span v-if="health.components.llm.circuit_breakers?.open" class="health-warn">
+            {{ health.components.llm.circuit_breakers.open }} 熔断
+          </span>
+        </div>
+        <div v-if="health.components.worker_pool" class="health-card">
+          <span class="health-dot" :class="health.components.worker_pool.status"></span>
+          <span class="health-label">Worker Pool</span>
+          <span class="health-value">
+            活跃 {{ health.components.worker_pool.active }}/{{ health.components.worker_pool.max_workers }}
+          </span>
+        </div>
+        <div v-if="health.components.tenants" class="health-card">
+          <span class="health-dot ok"></span>
+          <span class="health-label">项目数</span>
+          <span class="health-value">{{ health.components.tenants.count }}</span>
+        </div>
+      </div>
+      <div v-else class="muted">后端未连接 — 启动 <code>aitest server start</code></div>
     </div>
 
     <!-- Project list -->
@@ -167,6 +207,26 @@ const stats = computed(() => {
   transition: background .15s;
 }
 .action-card:hover { background: var(--bg-secondary); }
+
+/* Platform health */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-header h2 { display: flex; align-items: center; gap: 6px; margin: 0; }
+.btn-refresh { font-size: 12px; padding: 4px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-primary); cursor: pointer; }
+.health-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.health-card {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 10px;
+}
+.health-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.health-dot.healthy, .health-dot.ok { background: #22c55e; }
+.health-dot.degraded { background: #eab308; }
+.health-dot.error { background: #ef4444; }
+.health-label { font-size: 12px; color: var(--text-muted); min-width: 60px; }
+.health-value { font-size: 13px; font-weight: 600; }
+.health-warn { font-size: 11px; color: #ef4444; background: #fef2f2; padding: 1px 6px; border-radius: 4px; margin-left: auto; }
+.loading { color: var(--text-muted); padding: 12px 0; }
+.muted { color: var(--text-muted); font-size: 13px; padding: 12px 0; }
+.muted code { background: var(--bg-secondary); padding: 2px 6px; border-radius: 3px; }
 .action-icon { font-size: 24px; }
 .action-text { font-size: 13px; font-weight: 500; }
 
