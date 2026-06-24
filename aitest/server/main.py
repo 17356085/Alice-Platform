@@ -30,6 +30,7 @@ from aitest.server.api.sessions_api import router as sessions_router
 from aitest.server.api.onboarding import onboarding_router
 from aitest.server.api.integrations import integrations_router
 from aitest.server.api.platform import platform_router  # ★ v2.0
+from aitest.server.api.workspace import workspace_router  # ★ v2.1
 
 
 @asynccontextmanager
@@ -190,7 +191,7 @@ async def rate_limit_middleware(request: Request, call_next):
 # ── Auth Middleware ───────────────────────────────────────────────────
 # Disabled by default (no AITEST_API_KEY set). Set the env var to enable.
 
-from fastapi.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from aitest.server.auth import auth_middleware
 app.add_middleware(BaseHTTPMiddleware, dispatch=auth_middleware)
 
@@ -1040,6 +1041,7 @@ async def timeline_replay(run_id: str):
 
 
 app.include_router(platform_router)  # ★ v2.0
+app.include_router(workspace_router)  # ★ v2.1
 app.include_router(agents_router)
 app.include_router(webhooks_router)
 app.include_router(workflows_router)
