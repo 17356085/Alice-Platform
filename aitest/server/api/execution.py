@@ -285,3 +285,95 @@ async def audit_stats(org_id: str = ""):
 
     logger = get_audit_logger()
     return logger.stats(org_id=org_id)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  v2.4 Platform Governance — Webhooks, Metrics, Billing, Quota
+# ══════════════════════════════════════════════════════════════════════════
+
+# ── Webhook CRUD ────────────────────────────────────────────────────
+
+class RegisterWebhookRequest(BaseModel):
+    url: str
+    events: list[str]
+    secret: str = ""
+
+
+@execution_router.post("/workspaces/{ws_id}/webhooks")
+async def register_webhook(ws_id: str, req: RegisterWebhookRequest):
+    """Register a webhook endpoint for a workspace."""
+    from aitest.platform.webhook import get_webhook_registry
+
+    registry = get_webhook_registry()
+    wh = registry.register(
+        workspace_id=ws_id,
+        url=req.url,
+        events=req.events,
+        secret=req.secret,
+    )
+    return {"webhook": wh.__dict__}
+
+
+@execution_router.get("/workspaces/{ws_id}/webhooks")
+async def list_webhooks(ws_id: str):
+    """List webhooks for a workspace."""
+    from aitest.platform.webhook import get_webhook_registry
+
+    registry = get_webhook_registry()
+    hooks = registry.list(workspace_id=ws_id)
+    return {"webhooks": [h.__dict__ for h in hooks]}
+
+
+@execution_router.delete("/workspaces/{ws_id}/webhooks/{webhook_id}")
+async def delete_webhook(ws_id: str, webhook_id: str):
+    """Delete a webhook registration."""
+    from aitest.platform.webhook import get_webhook_registry
+
+    registry = get_webhook_registry()
+    deleted = registry.delete(webhook_id)
+    if not deleted:
+        raise HTTPException(404, f"Webhook '{webhook_id}' not found")
+    return {"status": "deleted"}
+
+
+# ── Metrics ──────────────────────────────────────────────────────────
+
+@execution_router.get("/metrics/snapshot")
+async def metrics_snapshot():
+    """Current platform metrics: runs, cost, by module, by agent."""
+    from aitest.platform.metrics_consumer import get_metrics_consumer
+
+    mc = get_metrics_consumer()
+    return mc.snapshot()
+
+
+# ── Billing ──────────────────────────────────────────────────────────
+
+@execution_router.get("/billing/records")
+async def billing_records(org_id: str = "", limit: int = 50):
+    """Billing hook records. No balance — hook only."""
+    from aitest.platform.billing_hook import get_billing_hook
+
+    hook = get_billing_hook()
+    records = hook.query(org_id=org_id, limit=limit)
+    return {"records": records, "total": len(records)}
+
+
+# ── Quota Usage ──────────────────────────────────────────────────────
+
+@execution_router.get("/workspaces/{ws_id}/usage")
+async def workspace_usage(ws_id: str):
+    """Resource usage for a workspace. Stats only, no enforcement."""
+    from aitest.platform.quota_usage import get_quota_usage
+
+    qu = get_quota_usage()
+    return qu.get_usage(ws_id)
+
+
+@execution_router.get("/usage")
+async def all_usage():
+    """Resource usage for all workspaces."""
+    from aitest.platform.quota_usage import get_quota_usage
+
+    qu = get_quota_usage()
+    return {"usage": qu.snapshot()}
