@@ -26,7 +26,10 @@ window.addEventListener('storage', (e) => {
 })
 
 // Init
-useKanbanWS().connect()
+// v2.5 Stabilization: skip WebSocket when ?nosock=1 for memory isolation
+if (!location.search.includes('nosock=1')) {
+  useKanbanWS().connect()
+}
 const projectStore = useProjectStore()
 onMounted(() => projectStore.init())
 
