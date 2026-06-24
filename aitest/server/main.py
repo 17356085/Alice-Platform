@@ -69,6 +69,39 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         log.error("audit_logger_failed", error=str(e))
 
+    # ★ v2.4: Activate governance consumers
+    try:
+        from aitest.platform.webhook import get_webhook_dispatcher
+        _webhook_dispatcher = get_webhook_dispatcher()
+        _webhook_dispatcher.start()
+        log.info("webhook_dispatcher_started")
+    except Exception as e:
+        log.error("webhook_dispatcher_failed", error=str(e))
+
+    try:
+        from aitest.platform.metrics_consumer import get_metrics_consumer
+        _metrics_consumer = get_metrics_consumer()
+        _metrics_consumer.start()
+        log.info("metrics_consumer_started")
+    except Exception as e:
+        log.error("metrics_consumer_failed", error=str(e))
+
+    try:
+        from aitest.platform.billing_hook import get_billing_hook
+        _billing_hook = get_billing_hook()
+        _billing_hook.start()
+        log.info("billing_hook_started")
+    except Exception as e:
+        log.error("billing_hook_failed", error=str(e))
+
+    try:
+        from aitest.platform.quota_usage import get_quota_usage
+        _quota_usage = get_quota_usage()
+        _quota_usage.start()
+        log.info("quota_usage_started")
+    except Exception as e:
+        log.error("quota_usage_failed", error=str(e))
+
     # P2-ACTIVATION (2026-06-16): Dead Path — 审计未自动调度
     # 后台 asyncio Task 周期性运行 State/SOP/Cost 审计
     from aitest.config import config
