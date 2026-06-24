@@ -121,11 +121,13 @@ class ExecutionService:
         )
 
         # 3. Emit execution.requested
-        self._bus.publish(make_event(
+        ev_req = make_event(
             EventType.EXECUTION_REQUESTED,
             request_id=request.request_id,
             module=module, pages=pages, agent=agent,
-        ))
+        )
+        self._store.save_event(ev_req)   # Persist before publish
+        self._bus.publish(ev_req)
         request.queue()
         self._store.save_request(request)  # Persist at queued
 
@@ -144,16 +146,19 @@ class ExecutionService:
         )
         request.dispatch(run.run_id)  # appends to run_ids (one-to-many)
         self._store.save_request(request)  # Persist after dispatch
+        self._store.save_run(run)         # Persist Run early (in case AgentLoop crashes)
 
         # Emit execution.started
-        self._bus.publish(make_event(
+        ev_start = make_event(
             EventType.EXECUTION_STARTED,
             run_id=run.run_id,
             request_id=request.request_id,
             workspace_id=ctx.workspace_id,
             org_id=ctx.org_id,
             module=module, agent=agent,
-        ))
+        )
+        self._store.save_event(ev_start)
+        self._bus.publish(ev_start)
 
         # 5. Execute via AgentLoop
         try:
@@ -169,16 +174,17 @@ class ExecutionService:
             )
             state = loop.run()
 
-            # 6. Complete Run
+            # 6. Complete Run — persist before publish
             run.complete(
                 total_tokens=getattr(state, 'total_tokens', 0),
                 total_cost=getattr(state, 'estimated_cost', 0.0),
                 agent_runs=getattr(state, 'step', 0),
             )
             request.complete()
+            self._store.save_run(run)         # Persist Run (canonical) first
             self._store.save_request(request)  # Persist completed
 
-            self._bus.publish(make_event(
+            ev_completed = make_event(
                 EventType.RUN_COMPLETED,
                 run_id=run.run_id,
                 request_id=request.request_id,
@@ -189,11 +195,13 @@ class ExecutionService:
                 total_tokens=run.total_tokens,
                 total_cost=run.total_cost,
                 agent_runs=run.agent_runs,
-            ))
+            )
+            self._store.save_event(ev_completed)
+            self._bus.publish(ev_completed)
 
             # Emit cost.recorded
             if run.total_cost > 0:
-                self._bus.publish(make_event(
+                ev_cost = make_event(
                     EventType.COST_RECORDED,
                     run_id=run.run_id,
                     request_id=request.request_id,
@@ -201,14 +209,17 @@ class ExecutionService:
                     tokens=run.total_tokens,
                     org_id=ctx.org_id,
                     workspace_id=ctx.workspace_id,
-                ))
+                )
+                self._store.save_event(ev_cost)
+                self._bus.publish(ev_cost)
 
         except Exception as e:
             run.fail(str(e))
             request.fail()
+            self._store.save_run(run)         # Persist Run (canonical) first
             self._store.save_request(request)  # Persist failed
 
-            self._bus.publish(make_event(
+            ev_failed = make_event(
                 EventType.RUN_FAILED,
                 run_id=run.run_id,
                 request_id=request.request_id,
@@ -220,9 +231,11 @@ class ExecutionService:
                 total_cost=run.total_cost,
                 agent_runs=run.agent_runs,
                 error=str(e),
-            ))
+            )
+            self._store.save_event(ev_failed)
+            self._bus.publish(ev_failed)
 
-        # 7. Persist
+        # 7. Persist (success path already persisted above; this is for any remaining state)
         self._store.save_run(run)
         duration_ms = (time.perf_counter() - t0) * 1000
 
@@ -262,7 +275,7 @@ class ExecutionService:
             request.cancel()
             self._store.save_request(request)
 
-        self._bus.publish(make_event(
+        ev_cancelled = make_event(
             EventType.RUN_CANCELLED,
             run_id=run.run_id,
             request_id=request_id,
@@ -270,5 +283,7 @@ class ExecutionService:
             org_id=run.org_id,
             module=run.module,
             agent=run.agent,
-        ))
+        )
+        self._store.save_event(ev_cancelled)
+        self._bus.publish(ev_cancelled)
         return True
