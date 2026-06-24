@@ -790,6 +790,156 @@ async def operational_trends(days: int = 7):
     }
 
 
+@app.get("/api/kpi/product")
+async def product_kpi():
+    """★ v1.4: Product KPI Dashboard — 衡量平台是否比上周更好。
+
+    Returns weekly-aggregated product KPIs:
+      - projects, runs, success_rate, avg_duration, cost_per_run, error_rate
+      - This week vs last week comparison
+      - Phase distribution (which phases take most time)
+    """
+    from pathlib import Path
+    import json
+    from datetime import datetime, timedelta, timezone
+
+    now = datetime.now(timezone.utc)
+    week_ago = now - timedelta(days=7)
+    two_weeks_ago = now - timedelta(days=14)
+
+    def aggregate_since(cutoff):
+        stats = {
+            "runs": 0, "success": 0, "failed": 0,
+            "total_tokens": 0, "total_cost": 0.0,
+            "total_duration_s": 0.0, "p95_latency": 0.0,
+            "agent_runs": {},
+            "phase_times": {},
+        }
+        metrics_file = (
+            Path(__file__).resolve().parent.parent.parent
+            / "governance" / "kpi" / "timeseries" / "operational_metrics.jsonl"
+        )
+        if not metrics_file.exists():
+            return stats
+
+        try:
+            with open(metrics_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line: continue
+                    try:
+                        entry = json.loads(line)
+                        ts = entry.get("ts", "")
+                        if ts:
+                            try:
+                                dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                                if dt < cutoff: continue
+                            except: pass
+
+                        # Agent latency
+                        for agent, data in entry.get("agent_latency_p95", {}).items():
+                            if isinstance(data, dict):
+                                stats["agent_runs"][agent] = stats["agent_runs"].get(agent, 0) + data.get("total", 0)
+                                stats["total_duration_s"] += data.get("avg", 0) * data.get("total", 0)
+
+                        # Token cost
+                        for agent, data in entry.get("token_cost", {}).items():
+                            if isinstance(data, dict):
+                                stats["total_tokens"] += data.get("input", 0) + data.get("output", 0)
+                                stats["total_cost"] += data.get("cost_est", 0.0)
+
+                        # Workflow
+                        for mod, data in entry.get("workflow", {}).items():
+                            if isinstance(data, dict):
+                                stats["runs"] += data.get("total", 0)
+                                stats["success"] += data.get("success", 0)
+                                stats["failed"] += data.get("failed", 0)
+
+                        # Phase distribution
+                        for key, data in entry.get("phase_distribution", {}).items():
+                            if isinstance(data, dict):
+                                stats["phase_times"][key] = stats["phase_times"].get(key, 0) + data.get("avg", 0)
+                    except: pass
+        except: pass
+        return stats
+
+    this_week = aggregate_since(week_ago)
+    last_week = aggregate_since(two_weeks_ago)
+
+    total_runs = this_week["runs"]
+    success_rate = this_week["success"] / total_runs if total_runs > 0 else 0
+    prev_rate = last_week["success"] / last_week["runs"] if last_week["runs"] > 0 else 0
+
+    return {
+        "period": "7d",
+        "this_week": {
+            "runs": total_runs,
+            "success": this_week["success"],
+            "failed": this_week["failed"],
+            "success_rate": round(success_rate, 3),
+            "total_tokens": this_week["total_tokens"],
+            "total_cost": round(this_week["total_cost"], 4),
+            "avg_duration_s": round(this_week["total_duration_s"] / total_runs, 1) if total_runs > 0 else 0,
+            "agents_used": len(this_week["agent_runs"]),
+            "phase_hotspots": dict(sorted(
+                this_week["phase_times"].items(), key=lambda x: -x[1]
+            )[:5]),
+        },
+        "vs_last_week": {
+            "success_rate_delta": round(success_rate - prev_rate, 3),
+            "runs_delta": total_runs - last_week["runs"],
+            "cost_delta": round(this_week["total_cost"] - last_week["total_cost"], 4),
+            "trend": "up" if success_rate >= prev_rate else "down",
+        },
+        "updated": now.isoformat(),
+    }
+
+
+@app.get("/api/timeline/replay/{run_id}")
+async def timeline_replay(run_id: str):
+    """★ v1.4: Timeline Replay — 完整 Run 回放 (context/prompt/output/artifacts)."""
+    import json
+    from pathlib import Path
+
+    events = []
+    trace_file = (
+        Path(__file__).resolve().parent.parent.parent
+        / "governance" / ".traces" / "trace_log.jsonl"
+    )
+    if trace_file.exists():
+        with open(trace_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line: continue
+                try:
+                    te = json.loads(line)
+                    if te.get("run_id") == run_id:
+                        events.append({
+                            "ts": te.get("timestamp", ""),
+                            "type": te.get("event_type", ""),
+                            "agent": te.get("agent_name", ""),
+                            "provider": te.get("provider", ""),
+                            "model": te.get("model", ""),
+                            "latency_ms": te.get("latency_ms", 0),
+                            "tokens_in": te.get("token_input", 0),
+                            "tokens_out": te.get("token_output", 0),
+                            "status": te.get("status", ""),
+                        })
+                except Exception:
+                    pass
+
+    events.sort(key=lambda e: e["ts"])
+    return {
+        "run_id": run_id,
+        "events": events,
+        "total_events": len(events),
+        "total_tokens": sum(e["tokens_in"] + e["tokens_out"] for e in events),
+        "agents": list(set(e["agent"] for e in events if e["agent"])),
+        "started": events[0]["ts"] if events else "",
+        "ended": events[-1]["ts"] if events else "",
+    }
+
+
 app.include_router(agents_router)
 app.include_router(webhooks_router)
 app.include_router(workflows_router)

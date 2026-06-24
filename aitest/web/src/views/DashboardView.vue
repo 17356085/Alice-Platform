@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useProjectStore } from '../stores/project'
 import { useSettingsStore } from '../stores/settings'
 import { useKanbanStore } from '../stores/kanban'
@@ -11,11 +11,16 @@ const projectStore = useProjectStore()
 const settingsStore = useSettingsStore()
 const kanbanStore = useKanbanStore()
 const { health, loading: healthLoading, refresh: refreshHealth } = useHealth()
+const productKpi = ref<any>(null)
 
 onMounted(async () => {
   await projectStore.fetchProjects()
   await kanbanStore.fetchModules()
   refreshHealth()
+  try {
+    const r = await fetch('http://localhost:8000/api/kpi/product')
+    if (r.ok) productKpi.value = await r.json()
+  } catch { /* offline */ }
 })
 
 function openProject(id: string) {
@@ -102,6 +107,38 @@ const stats = computed(() => {
         </div>
       </div>
       <div v-else class="muted">后端未连接 — 启动 <code>aitest server start</code></div>
+    </div>
+
+    <!-- Product KPIs (v1.4) -->
+    <div v-if="productKpi" class="section">
+      <h2>本周产品指标</h2>
+      <div class="product-kpi-row">
+        <div class="pkpi-card">
+          <div class="pkpi-value">{{ productKpi.this_week.runs }}</div>
+          <div class="pkpi-label">运行次数</div>
+          <div class="pkpi-delta" :class="productKpi.vs_last_week.runs_delta >= 0 ? 'up' : 'down'">
+            {{ productKpi.vs_last_week.runs_delta >= 0 ? '+' : '' }}{{ productKpi.vs_last_week.runs_delta }}
+          </div>
+        </div>
+        <div class="pkpi-card">
+          <div class="pkpi-value">{{ Math.round(productKpi.this_week.success_rate * 100) }}%</div>
+          <div class="pkpi-label">成功率</div>
+          <div class="pkpi-delta" :class="productKpi.vs_last_week.trend">
+            {{ productKpi.vs_last_week.success_rate_delta >= 0 ? '+' : '' }}{{ Math.round(productKpi.vs_last_week.success_rate_delta * 100) }}%
+          </div>
+        </div>
+        <div class="pkpi-card">
+          <div class="pkpi-value">${{ productKpi.this_week.total_cost.toFixed(2) }}</div>
+          <div class="pkpi-label">本周成本</div>
+          <div class="pkpi-delta" :class="productKpi.vs_last_week.cost_delta <= 0 ? 'up' : 'down'">
+            {{ productKpi.vs_last_week.cost_delta <= 0 ? '↓' : '↑' }}
+          </div>
+        </div>
+        <div class="pkpi-card">
+          <div class="pkpi-value">{{ productKpi.this_week.agents_used }}</div>
+          <div class="pkpi-label">活跃 Agent</div>
+        </div>
+      </div>
     </div>
 
     <!-- Project list -->
@@ -227,6 +264,17 @@ const stats = computed(() => {
 .loading { color: var(--text-muted); padding: 12px 0; }
 .muted { color: var(--text-muted); font-size: 13px; padding: 12px 0; }
 .muted code { background: var(--bg-secondary); padding: 2px 6px; border-radius: 3px; }
+
+/* Product KPIs */
+.product-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.pkpi-card {
+  background: var(--bg-primary); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px; text-align: center;
+}
+.pkpi-value { font-size: 26px; font-weight: 700; }
+.pkpi-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.pkpi-delta { font-size: 12px; font-weight: 600; margin-top: 4px; }
+.pkpi-delta.up { color: #22c55e; } .pkpi-delta.down { color: #ef4444; }
 .action-icon { font-size: 24px; }
 .action-text { font-size: 13px; font-weight: 500; }
 
