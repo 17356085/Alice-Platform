@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Clock, Activity, BarChart3, DollarSign, RefreshCw } from 'lucide-vue-next'
+import { Clock, Activity, BarChart3, DollarSign, RefreshCw, TrendingUp } from 'lucide-vue-next'
+import TrendChart from '../components/TrendChart.vue'
 
 const route = useRoute()
 const projectId = computed(() => route.params.id as string)
@@ -18,6 +19,7 @@ interface TimelineEntry {
 
 const timeline = ref<TimelineEntry[]>([])
 const metrics = ref<any>(null)
+const trendPoints = ref<any[]>([])
 const tab = ref<'timeline' | 'metrics' | 'cost'>('timeline')
 const loading = ref(false)
 
@@ -43,8 +45,15 @@ async function fetchTimeline() {
     }
 
     // Fetch metrics for the metrics/cost tabs
-    const mResp = await fetch('http://localhost:8000/api/kpi/operational')
+    const [mResp, trendResp] = await Promise.all([
+      fetch('http://localhost:8000/api/kpi/operational'),
+      fetch('http://localhost:8000/api/kpi/trends/operational?days=7'),
+    ])
     if (mResp.ok) metrics.value = await mResp.json()
+    if (trendResp.ok) {
+      const td = await trendResp.json()
+      trendPoints.value = td.points || []
+    }
   } catch {
     timeline.value = []
   } finally {
@@ -110,7 +119,17 @@ onMounted(fetchTimeline)
     <!-- Metrics tab -->
     <div v-if="tab === 'metrics'" class="metrics-panel">
       <div v-if="!metrics" class="muted">无法获取指标 — 请确认后端已启动</div>
-      <div v-else class="metrics-grid">
+      <div v-else>
+        <!-- Trend charts -->
+        <div v-if="trendPoints.length > 0" class="trends-section">
+          <div class="trend-chart-item">
+            <TrendChart :points="trendPoints" metric="workflow_rate" :width="560" :height="140" />
+          </div>
+          <div class="trend-chart-item">
+            <TrendChart :points="trendPoints" metric="total_tokens" :width="560" :height="140" />
+          </div>
+        </div>
+        <div class="metrics-grid">
         <div class="metric-card">
           <div class="metric-label">Agent 延迟 (p95)</div>
           <div class="metric-value" v-for="(v, k) in metrics.agent_latency_p95" :key="k">
