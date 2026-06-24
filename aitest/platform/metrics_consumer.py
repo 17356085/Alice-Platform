@@ -40,6 +40,7 @@ class MetricsConsumer:
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._active = False
+        self._seen: set[str] = set()  # Idempotency: track processed event_ids
 
         # Counters
         self._total_runs = 0
@@ -81,19 +82,28 @@ class MetricsConsumer:
     # ── Handlers ──────────────────────────────────────────────────────
 
     def _on_run_completed(self, event: RunEvent):
+        if event.event_id in self._seen:
+            return
         with self._lock:
+            self._seen.add(event.event_id)
             self._total_runs += 1
             self._completed_runs += 1
             self._accumulate(event)
 
     def _on_run_failed(self, event: RunEvent):
+        if event.event_id in self._seen:
+            return
         with self._lock:
+            self._seen.add(event.event_id)
             self._total_runs += 1
             self._failed_runs += 1
             self._accumulate(event)
 
     def _on_run_cancelled(self, event: RunEvent):
+        if event.event_id in self._seen:
+            return
         with self._lock:
+            self._seen.add(event.event_id)
             self._total_runs += 1
             self._cancelled_runs += 1
 

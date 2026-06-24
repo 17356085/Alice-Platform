@@ -45,6 +45,7 @@ class BillingHookConsumer:
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._active = False
+        self._seen: set[str] = set()  # Idempotency
 
     def start(self):
         if self._active:
@@ -70,6 +71,9 @@ class BillingHookConsumer:
 
     def _on_run_completed(self, event: RunEvent):
         """Emit billing.usage_recorded with run summary."""
+        if event.event_id in self._seen:
+            return
+        self._seen.add(event.event_id)
         billing_event = {
             "event": "billing.usage_recorded",
             "run_id": event.run_id,
@@ -96,6 +100,9 @@ class BillingHookConsumer:
 
     def _on_cost_recorded(self, event: RunEvent):
         """Emit billing.cost_recorded."""
+        if event.event_id in self._seen:
+            return
+        self._seen.add(event.event_id)
         billing_event = {
             "event": "billing.cost_recorded",
             "run_id": event.run_id,

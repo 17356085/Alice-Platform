@@ -150,6 +150,8 @@ class ExecutionService:
             EventType.EXECUTION_STARTED,
             run_id=run.run_id,
             request_id=request.request_id,
+            workspace_id=ctx.workspace_id,
+            org_id=ctx.org_id,
             module=module, agent=agent,
         ))
 
@@ -180,6 +182,10 @@ class ExecutionService:
                 EventType.RUN_COMPLETED,
                 run_id=run.run_id,
                 request_id=request.request_id,
+                workspace_id=ctx.workspace_id,
+                org_id=ctx.org_id,
+                module=module,
+                agent=agent,
                 total_tokens=run.total_tokens,
                 total_cost=run.total_cost,
                 agent_runs=run.agent_runs,
@@ -206,6 +212,13 @@ class ExecutionService:
                 EventType.RUN_FAILED,
                 run_id=run.run_id,
                 request_id=request.request_id,
+                workspace_id=ctx.workspace_id,
+                org_id=ctx.org_id,
+                module=module,
+                agent=agent,
+                total_tokens=run.total_tokens,
+                total_cost=run.total_cost,
+                agent_runs=run.agent_runs,
                 error=str(e),
             ))
 
@@ -253,5 +266,9 @@ class ExecutionService:
             EventType.RUN_CANCELLED,
             run_id=run.run_id,
             request_id=request_id,
+            workspace_id=run.workspace_id,
+            org_id=run.org_id,
+            module=run.module,
+            agent=run.agent,
         ))
         return True

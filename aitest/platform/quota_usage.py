@@ -43,6 +43,7 @@ class QuotaUsageConsumer:
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._active = False
+        self._seen: set[str] = set()  # Idempotency
         self._usage: dict[str, dict] = {}  # workspace_id → counters
 
     def start(self):
@@ -68,12 +69,15 @@ class QuotaUsageConsumer:
     # ── Handler ───────────────────────────────────────────────────────
 
     def _on_run_completed(self, event: RunEvent):
+        if event.event_id in self._seen:
+            return
         ws_id = event.data.get("workspace_id", "")
         org_id = event.data.get("org_id", "")
         tokens = event.data.get("total_tokens", 0)
         cost = event.data.get("total_cost", 0.0)
 
         with self._lock:
+            self._seen.add(event.event_id)
             if ws_id not in self._usage:
                 self._usage[ws_id] = self._empty_usage(ws_id, org_id)
 
