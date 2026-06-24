@@ -16,23 +16,40 @@ const emit = defineEmits<{ navigate: [view: string] }>()
 const hasActiveProject = computed(() => !!projectStore.activeId)
 const pid = computed(() => projectStore.activeId || 'default')
 
-const workspaceItems = [
-  { id: 'execution',      icon: Play,         key: '执行中心' },
-  { id: 'observability',  icon: Clock,        key: '可观测性' },
-  { id: 'kanban',         icon: LayoutGrid,   key: 'SOP 看板' },
-  { id: 'terminal',       icon: Terminal,     key: 'Agent 终端' },
-  { id: 'artifacts',      icon: FolderOpen,   key: '产物' },
-  { id: 'reports',        icon: BarChart3,    key: '报告' },
-  { id: 'knowledge',      icon: BookOpen,     key: '知识' },
-  { id: 'gaps',           icon: Search,       key: '缺口扫描' },
-  { id: 'chat',           icon: MessageSquare, key: 'AI 对话' },
-  { id: 'settings',       icon: Settings,     key: '项目设置' },
+// ★ v1.1: Progressive Disclosure — 3 tiers
+// L1: always visible (core workflow)
+const tier1Items = [
+  { id: 'execution', icon: Play, key: '执行中心' },
+  { id: 'artifacts', icon: FolderOpen, key: '产物' },
 ]
+// L2: visible when project has activity (SOP data exists)
+const tier2Items = [
+  { id: 'observability', icon: Clock, key: '可观测性' },
+  { id: 'reports', icon: BarChart3, key: '报告' },
+  { id: 'knowledge', icon: BookOpen, key: '知识' },
+  { id: 'kanban', icon: LayoutGrid, key: '看板' },
+]
+// L3: advanced tools
+const tier3Items = [
+  { id: 'terminal', icon: Terminal, key: '终端' },
+  { id: 'gaps', icon: Search, key: '缺口' },
+  { id: 'chat', icon: MessageSquare, key: '对话' },
+  { id: 'settings', icon: Settings, key: '设置' },
+]
+
+const allItems = [...tier1Items, ...tier2Items, ...tier3Items]
+
+// Check if project has any data (SOP runs, reports, knowledge)
+const hasProjectData = computed(() => {
+  try {
+    const mods = JSON.parse(localStorage.getItem('tlo-modules') || '{}')
+    return Object.keys(mods).length > 0
+  } catch { return false }
+})
 
 function currentSection(view: string): 'dashboard' | 'project' | 'bottom' {
   if (view === 'dashboard') return 'dashboard'
   if (view.startsWith('project-') || view.startsWith('projects/')) return 'project'
-  // Legacy
   if (view.startsWith('workspace/')) return 'project'
   return 'bottom'
 }
@@ -70,16 +87,38 @@ function currentSection(view: string): 'dashboard' | 'project' | 'bottom' {
           <span class="truncate">{{ projectStore.activeProject?.name || projectStore.activeProject?.id || 'Workspace' }}</span>
         </div>
 
-        <button v-for="item in workspaceItems" :key="item.id"
+        <!-- Tier 1: core workflow -->
+        <button v-for="item in tier1Items" :key="item.id"
           @click="emit('navigate', `/projects/${pid}/${item.id}`)"
-          :style="currentSection(currentView) === 'project' && currentView === `project-${item.id}`
-            ? { background: 'var(--sidebar-active-bg)', color: 'var(--sidebar-active)' }
-            : { background: 'transparent', color: 'var(--sidebar-foreground)' }"
-          class="nav-btn"
+          :class="['nav-btn', currentView === `project-${item.id}` ? 'nav-active' : '']"
         >
-          <component :is="item.icon" :size="18" :stroke-width="currentSection(currentView) === 'workspace' && currentView === item.id ? 2.5 : 1.8" class="flex-shrink-0" />
+          <component :is="item.icon" :size="18" :stroke-width="currentView === `project-${item.id}` ? 2.5 : 1.8" class="flex-shrink-0" />
           <span class="truncate">{{ item.key }}</span>
         </button>
+
+        <!-- Tier 2: visible when project has data -->
+        <template v-if="hasProjectData">
+          <div class="tier-divider" />
+          <button v-for="item in tier2Items" :key="item.id"
+            @click="emit('navigate', `/projects/${pid}/${item.id}`)"
+            :class="['nav-btn', currentView === `project-${item.id}` ? 'nav-active' : '']"
+          >
+            <component :is="item.icon" :size="18" :stroke-width="currentView === `project-${item.id}` ? 2.5 : 1.8" class="flex-shrink-0" />
+            <span class="truncate">{{ item.key }}</span>
+          </button>
+        </template>
+
+        <!-- Tier 3: advanced tools (collapsible) -->
+        <details class="tier-details">
+          <summary class="tier-summary">更多工具</summary>
+          <button v-for="item in tier3Items" :key="item.id"
+            @click="emit('navigate', `/projects/${pid}/${item.id}`)"
+            :class="['nav-btn', currentView === `project-${item.id}` ? 'nav-active' : '']"
+          >
+            <component :is="item.icon" :size="18" :stroke-width="currentView === `project-${item.id}` ? 2.5 : 1.8" class="flex-shrink-0" />
+            <span class="truncate">{{ item.key }}</span>
+          </button>
+        </details>
       </div>
 
       <!-- No project selected -->
@@ -143,4 +182,16 @@ function currentSection(view: string): 'dashboard' | 'project' | 'bottom' {
 .no-project-hint p { font-size: 12px; color: var(--text-muted); margin: 0; }
 .hint-icon { opacity: .3; }
 .hint-link { font-size: 12px; color: var(--accent); background: none; border: none; cursor: pointer; }
+
+/* Progressive Disclosure tiers */
+.nav-active { background: var(--sidebar-active-bg); color: var(--sidebar-active); }
+.tier-divider { height: 1px; margin: 4px 12px; background: var(--sidebar-border); opacity: .4; }
+.tier-details { margin-top: 4px; }
+.tier-summary {
+  font-size: 10px; padding: 4px 12px; cursor: pointer;
+  color: var(--sidebar-foreground); opacity: .4; text-transform: uppercase; letter-spacing: .5px;
+  user-select: none;
+}
+.tier-summary:hover { opacity: .7; }
+.tier-details[open] .tier-summary { opacity: .6; }
 </style>
