@@ -24,6 +24,8 @@ Usage:
     key = mgr.create_api_key("my-org", scopes=["read", "execute"])
 """
 
+from __future__ import annotations
+
 import json
 import secrets
 import threading
