@@ -66,6 +66,17 @@ def _secure_compare(a: str, b: str) -> bool:
 async def auth_middleware(request: Request, call_next):
     """FastAPI middleware: validate Bearer token on protected routes.
 
+    Auth chain:
+      1. Static AITEST_API_KEY env var (global admin key)
+      2. Organization API keys via OrganizationManager.validate_api_key()
+      3. If neither configured → auth disabled, allow all
+
+    Sets request.state on successful auth:
+      - request.state.user_id
+      - request.state.org_id
+      - request.state.scopes
+      - request.state.auth_method ("static" | "org_key")
+
     Apply in main.py:
         from fastapi.middleware.base import BaseHTTPMiddleware
         app.add_middleware(BaseHTTPMiddleware, dispatch=auth_middleware)
@@ -75,13 +86,14 @@ async def auth_middleware(request: Request, call_next):
     if _is_exempt(path):
         return await call_next(request)
 
-    api_key = _get_api_key()
-    if not api_key:
-        # Auth disabled — allow all requests
-        return await call_next(request)
-
     auth_header = request.headers.get("Authorization", "")
+
+    # No auth header → check if auth is required
     if not auth_header.startswith("Bearer "):
+        api_key = _get_api_key()
+        if not api_key:
+            # Auth disabled — allow all requests
+            return await call_next(request)
         return JSONResponse(
             status_code=401,
             content={"detail": "Missing Authorization: Bearer <token> header"},
@@ -89,14 +101,36 @@ async def auth_middleware(request: Request, call_next):
         )
 
     token = auth_header[7:]  # strip "Bearer "
-    if not _secure_compare(token, api_key):
-        return JSONResponse(
-            status_code=401,
-            content={"detail": "Invalid API key"},
-            headers={"WWW-Authenticate": "Bearer"},
-        )
 
-    return await call_next(request)
+    # 1. Try static admin key first
+    static_key = _get_api_key()
+    if static_key and _secure_compare(token, static_key):
+        request.state.user_id = "admin"
+        request.state.org_id = "*"
+        request.state.scopes = ["read", "write", "execute", "admin"]
+        request.state.auth_method = "static"
+        return await call_next(request)
+
+    # 2. Fall through to Organization API keys
+    try:
+        from aitest.platform.organization import get_org_manager
+        org_mgr = get_org_manager()
+        result = org_mgr.validate_api_key(token)
+        if result:
+            request.state.user_id = f"apikey:{result['key_id']}"
+            request.state.org_id = result["org_id"]
+            request.state.scopes = result.get("scopes", ["read", "execute"])
+            request.state.auth_method = "org_key"
+            return await call_next(request)
+    except Exception:
+        pass  # OrgManager unavailable → fall through to 401
+
+    # 3. No valid key found
+    return JSONResponse(
+        status_code=401,
+        content={"detail": "Invalid API key"},
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 # ── Decorator for per-route protection ────────────────────────────────

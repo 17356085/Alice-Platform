@@ -21,7 +21,20 @@ from .runtime import Runtime, BrowserRuntime
 from .knowledge import KnowledgeStore
 from .artifacts import ArtifactStore
 
+# ★ v2.2 Platform Runtime Foundation
+from .run import Run
+from .run_event import RunEvent, EventType, make_event
+from .event_bus import EventBus, get_bus
+from .run_store import RunStore, get_run_store
+from .execution_request import ExecutionRequest, RequestStatus
+from .execution_service import ExecutionService, ExecutionResult
+
+# ★ v2.0 Platform Foundation
+from .organization import Organization, OrganizationManager, get_org_manager
+from .workspace import Workspace, WorkspaceManager, ExecutionContext, get_ws_manager
+
 __all__ = [
+    # v1.x
     "ProjectContext",
     "get_project",
     "set_active_project",
@@ -30,4 +43,25 @@ __all__ = [
     "BrowserRuntime",
     "KnowledgeStore",
     "ArtifactStore",
+    # v2.0
+    "Organization",
+    "OrganizationManager",
+    "get_org_manager",
+    "Workspace",
+    "WorkspaceManager",
+    "ExecutionContext",
+    "get_ws_manager",
+    # v2.2
+    "Run",
+    "RunEvent",
+    "EventType",
+    "make_event",
+    "EventBus",
+    "get_bus",
+    "RunStore",
+    "get_run_store",
+    "ExecutionRequest",
+    "RequestStatus",
+    "ExecutionService",
+    "ExecutionResult",
 ]
