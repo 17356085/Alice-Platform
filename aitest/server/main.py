@@ -1342,26 +1342,53 @@ async def kanban_websocket(ws: WebSocket):
 # ══════════════════════════════════════════════════════════════════════════
 
 class AgentTerminalWSManager:
-    """WebSocket连接管理器 — 广播ObservationBus事件到Agent终端客户端。"""
+    """WebSocket连接管理器 — 广播ObservationBus事件到Agent终端客户端。
+
+    v2.5 Stabilization: Queue+Worker 架构替代 per-event ensure_future。
+    ObservationBus 同步回调 → asyncio.Queue (maxsize=500) → 单一广播 Worker。
+    跨线程安全：主线程捕获 loop，回调线程通过 call_soon_threadsafe 入队。
+    """
+
+    _QUEUE_MAXSIZE = 500  # Backpressure: drop oldest if queue full
 
     def __init__(self):
         self._connections: list[WebSocket] = []
         self._subscribed = False
+        self._loop: asyncio.AbstractEventLoop | None = None
+        self._queue: asyncio.Queue | None = None
+        self._worker_task: asyncio.Task | None = None
 
     async def connect(self, ws: WebSocket):
         await ws.accept()
         self._connections.append(ws)
+        # Capture the running event loop on first connection (guaranteed main thread)
+        if self._loop is None:
+            self._loop = asyncio.get_running_loop()
+            self._queue = asyncio.Queue(maxsize=self._QUEUE_MAXSIZE)
+            self._worker_task = asyncio.create_task(self._broadcast_worker())
         self._start_listening()
 
     def disconnect(self, ws: WebSocket):
         if ws in self._connections:
             self._connections.remove(ws)
 
-    async def broadcast(self, event: dict):
+    async def _broadcast_worker(self):
+        """Single worker: drain queue → broadcast to all connected clients."""
+        while True:
+            try:
+                payload = await self._queue.get()
+                await self._send_all(payload)
+            except asyncio.CancelledError:
+                break
+            except Exception:
+                pass
+
+    async def _send_all(self, payload: dict):
+        """Send payload to all connected WebSocket clients. Best-effort."""
         stale = []
         for ws in self._connections:
             try:
-                await ws.send_text(_json.dumps(event, ensure_ascii=False, default=str))
+                await ws.send_text(_json.dumps(payload, ensure_ascii=False, default=str))
             except Exception:
                 stale.append(ws)
         for ws in stale:
@@ -1373,8 +1400,15 @@ class AgentTerminalWSManager:
             return
         self._subscribed = True
 
+        loop = self._loop  # Captured on main thread during connect()
+        queue = self._queue
+
         def _on_event(event):
-            """同步回调：将ObservationEvent转为字典并广播。"""
+            """同步回调 — ObservationBus 可在任意线程调用。
+
+            使用 loop.call_soon_threadsafe 将 payload 入队到广播 Worker。
+            如果队列满，丢弃最旧事件（drop-oldest 背压策略）。
+            """
             payload = {
                 "type": str(event.type.value) if hasattr(event.type, 'value') else str(event.type),
                 "agent": getattr(event, 'agent_name', ''),
@@ -1383,13 +1417,19 @@ class AgentTerminalWSManager:
                 "data": getattr(event, 'data', {}),
                 "timestamp": datetime.now().isoformat(),
             }
-            # Schedule async broadcast from sync callback
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    asyncio.ensure_future(self.broadcast(payload))
-            except Exception:
-                pass
+            if loop is None or queue is None:
+                return  # Worker not started yet — drop silently
+
+            def _enqueue():
+                """Runs on event loop thread. Drop oldest if queue full."""
+                if queue.full():
+                    try:
+                        queue.get_nowait()  # Drop oldest
+                    except asyncio.QueueEmpty:
+                        pass
+                queue.put_nowait(payload)
+
+            loop.call_soon_threadsafe(_enqueue)
 
         try:
             from aitest.platform.observation_bus import get_bus, EventType
@@ -1409,6 +1449,16 @@ class AgentTerminalWSManager:
         except Exception:
             pass  # ObservationBus unavailable — agent terminal works in degraded mode
 
+    @property
+    def queue_size(self) -> int:
+        if self._queue is None:
+            return 0
+        return self._queue.qsize()
+
+    @property
+    def active_connections(self) -> int:
+        return len(self._connections)
+
 
 _agent_terminal_ws = AgentTerminalWSManager()
 
@@ -1420,7 +1470,7 @@ async def agent_terminal_websocket(ws: WebSocket):
     try:
         await ws.send_text(_json.dumps({
             "type": "connected",
-            "connections": len(_agent_terminal_ws._connections),
+            "connections": _agent_terminal_ws.active_connections,
             "timestamp": datetime.now().isoformat(),
         }))
         while True:
