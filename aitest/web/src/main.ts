@@ -4,7 +4,8 @@ import { createI18n } from 'vue-i18n'
 import App from './App.vue'
 import { router } from './router'
 import { initMemoryDebug } from './utils/memoryDebug'
-// v2.5 Stabilization: global CSS removed — all styles in component <style scoped> blocks
+// v2.5 Stabilization: CSS import required for Vite module graph integrity
+import './styles/tokens.css'
 import zh from './locales/zh.json'
 import en from './locales/en.json'
 

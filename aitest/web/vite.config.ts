@@ -3,24 +3,21 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 import { readFileSync, writeFileSync } from 'fs'
 
-// v2.5 Stabilization: inline CSS into HTML to avoid render-blocking crash
-function inlineCSSPlugin(): Plugin {
-  let css = ''
+// v2.5 Stabilization: strip ALL CSS for OOM isolation testing
+// Set env: STRIP_CSS=true to remove all CSS from build
+function stripCSSPlugin(): Plugin {
   return {
-    name: 'inline-css',
+    name: 'strip-css',
     apply: 'build',
     transformIndexHtml: {
       order: 'post',
       handler(html, ctx) {
-        // Collect CSS from chunks
-        for (const [name, info] of Object.entries(ctx.bundle || {})) {
-          if (name.endsWith('.css') && info.type === 'asset') {
-            css += (info as any).source + '\n'
-          }
-        }
-        if (!css) return html
-        // Replace CSS links with inline style
-        return html.replace(/<link[^>]*\.css[^>]*>/g, `<style>${css}</style>`)
+        if (process.env.STRIP_CSS !== 'true') return html
+        // Remove all CSS <link> tags
+        html = html.replace(/<link[^>]*\.css[^>]*>/g, '')
+        // Remove any <style> tags injected by other plugins
+        html = html.replace(/<style>[^<]*<\/style>/g, '')
+        return html
       },
     },
   }
@@ -50,7 +47,7 @@ function quietWsProxyLogger() {
 }
 
 export default defineConfig({
-  plugins: [vue(), inlineCSSPlugin()],
+  plugins: [vue(), stripCSSPlugin()],
   customLogger: quietWsProxyLogger(),
   resolve: {
     alias: {
