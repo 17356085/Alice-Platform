@@ -719,6 +719,77 @@ async def artifacts(project_id: str, module: str = "", page: str = ""):
     return {"project": project_id, "artifacts": items, "total": len(items)}
 
 
+@app.get("/api/kpi/trends/operational")
+async def operational_trends(days: int = 7):
+    """★ v1.3: 运营指标历史趋势 — 用于前端折线图。
+
+    Reads operational_metrics.jsonl and returns time-series data
+    for the 8 KPIs over the last N days.
+    """
+    from pathlib import Path
+    import json
+
+    metrics_file = (
+        Path(__file__).resolve().parent.parent.parent
+        / "governance" / "kpi" / "timeseries" / "operational_metrics.jsonl"
+    )
+    if not metrics_file.exists():
+        return {"points": [], "message": "No operational metrics data yet"}
+
+    cutoff = None
+    if days > 0:
+        from datetime import datetime, timedelta, timezone
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+
+    points = []
+    try:
+        with open(metrics_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                    ts = entry.get("ts", "")
+                    if cutoff and ts:
+                        try:
+                            dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                            if dt < cutoff:
+                                continue
+                        except Exception:
+                            pass
+
+                    # Extract key metrics for trending
+                    total_tokens = sum(
+                        v.get("input", 0) + v.get("output", 0)
+                        for v in entry.get("token_cost", {}).values()
+                        if isinstance(v, dict)
+                    )
+                    workflow_rates = [
+                        v.get("rate", 0)
+                        for v in entry.get("workflow", {}).values()
+                        if isinstance(v, dict)
+                    ]
+                    avg_rate = sum(workflow_rates) / len(workflow_rates) if workflow_rates else 0
+
+                    points.append({
+                        "ts": ts[:19] if ts else "",
+                        "total_tokens": total_tokens,
+                        "workflow_rate": round(avg_rate, 3),
+                        "uptime_s": entry.get("uptime_s", 0),
+                    })
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+    return {
+        "points": points[-200:],  # last 200 data points max
+        "total": len(points),
+        "days": days,
+    }
+
+
 app.include_router(agents_router)
 app.include_router(webhooks_router)
 app.include_router(workflows_router)
