@@ -163,6 +163,7 @@ onMounted(fetchTimeline)
         </div>
       </div>
     </div>
+    </div>
 
     <!-- Cost tab -->
     <div v-if="tab === 'cost'" class="cost-panel">
