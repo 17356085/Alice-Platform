@@ -207,7 +207,7 @@ class Config:
     # ── Database ────────────────────────────────────────────────────
     @property
     def database_url(self) -> str:
-        return _env("DATABASE_URL", f"sqlite:///{_PROJECT_ROOT / 'chat_sessions.db'}")
+        return _env("DATABASE_URL", f"sqlite+aiosqlite:///{_PROJECT_ROOT / 'chat_sessions.db'}")
 
     # ── LangChain / LangGraph ───────────────────────────────────────
     @property
