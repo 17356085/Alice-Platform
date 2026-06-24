@@ -29,6 +29,10 @@ from .run_store import RunStore, get_run_store
 from .execution_request import ExecutionRequest, RequestStatus
 from .execution_service import ExecutionService, ExecutionResult
 
+# ★ v2.3 Platform Observability
+from .timeline import build_timeline, timeline_summary
+from .audit_log import AuditLogger, get_audit_logger
+
 # ★ v2.0 Platform Foundation
 from .organization import Organization, OrganizationManager, get_org_manager
 from .workspace import Workspace, WorkspaceManager, ExecutionContext, get_ws_manager
@@ -64,4 +68,9 @@ __all__ = [
     "RequestStatus",
     "ExecutionService",
     "ExecutionResult",
+    # v2.3
+    "build_timeline",
+    "timeline_summary",
+    "AuditLogger",
+    "get_audit_logger",
 ]
