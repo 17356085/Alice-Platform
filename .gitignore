@@ -28,6 +28,9 @@ Thumbs.db
 *.env.local
 .claude/settings.local.json
 
+# Claude runtime
+.claude/worktrees/
+
 # Test artifacts
 allure-results/
 allure-report/
@@ -57,5 +60,10 @@ downloads/
 # Build output
 dist/
 aitest/web/dist/
+aitest/web/dist-test/
+
+# Node modules
+node_modules/
+aitest/web/node_modules/
 
 # ZJSN project — migrated to WorkStudy2 (d:/Desktop/WorkStudy2/ZJSN_Test-master526/)

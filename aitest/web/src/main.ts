@@ -4,8 +4,7 @@ import { createI18n } from 'vue-i18n'
 import App from './App.vue'
 import { router } from './router'
 import { initMemoryDebug } from './utils/memoryDebug'
-import './styles/tokens.css'
-import './styles/themes/all.css'
+// v2.5 Stabilization: global CSS removed — all styles in component <style scoped> blocks
 import zh from './locales/zh.json'
 import en from './locales/en.json'
 

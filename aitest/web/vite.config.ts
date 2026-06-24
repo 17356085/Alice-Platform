@@ -1,6 +1,30 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
+import { readFileSync, writeFileSync } from 'fs'
+
+// v2.5 Stabilization: inline CSS into HTML to avoid render-blocking crash
+function inlineCSSPlugin(): Plugin {
+  let css = ''
+  return {
+    name: 'inline-css',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        // Collect CSS from chunks
+        for (const [name, info] of Object.entries(ctx.bundle || {})) {
+          if (name.endsWith('.css') && info.type === 'asset') {
+            css += (info as any).source + '\n'
+          }
+        }
+        if (!css) return html
+        // Replace CSS links with inline style
+        return html.replace(/<link[^>]*\.css[^>]*>/g, `<style>${css}</style>`)
+      },
+    },
+  }
+}
 
 // W06: Filter Vite's internal ws proxy socket ECONNABORTED noise.
 // Vite 5.x logs ws proxy socket errors via server.config.logger.error().
@@ -26,7 +50,7 @@ function quietWsProxyLogger() {
 }
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), inlineCSSPlugin()],
   customLogger: quietWsProxyLogger(),
   resolve: {
     alias: {
