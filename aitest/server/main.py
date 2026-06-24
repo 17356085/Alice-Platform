@@ -61,6 +61,7 @@ async def lifespan(app: FastAPI):
         log.error("governance_subscriber_failed", error=str(e))
 
     # ★ v2.3: Activate operational AuditLogger — subscribes to all RunEvents
+    _audit_logger = None
     try:
         from aitest.platform.audit_log import get_audit_logger
         _audit_logger = get_audit_logger()
@@ -70,6 +71,7 @@ async def lifespan(app: FastAPI):
         log.error("audit_logger_failed", error=str(e))
 
     # ★ v2.4: Activate governance consumers
+    _webhook_dispatcher = None
     try:
         from aitest.platform.webhook import get_webhook_dispatcher
         _webhook_dispatcher = get_webhook_dispatcher()
@@ -78,6 +80,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         log.error("webhook_dispatcher_failed", error=str(e))
 
+    _metrics_consumer = None
     try:
         from aitest.platform.metrics_consumer import get_metrics_consumer
         _metrics_consumer = get_metrics_consumer()
@@ -86,6 +89,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         log.error("metrics_consumer_failed", error=str(e))
 
+    _billing_hook = None
     try:
         from aitest.platform.billing_hook import get_billing_hook
         _billing_hook = get_billing_hook()
@@ -94,6 +98,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         log.error("billing_hook_failed", error=str(e))
 
+    _quota_usage = None
     try:
         from aitest.platform.quota_usage import get_quota_usage
         _quota_usage = get_quota_usage()
@@ -168,6 +173,24 @@ async def lifespan(app: FastAPI):
     yield
 
     # ── Shutdown ──
+    # v2.3+ consumers — stop in reverse activation order
+    log.info("server_shutdown_start")
+    for name, consumer in [
+        ("quota_usage", _quota_usage),
+        ("billing_hook", _billing_hook),
+        ("metrics_consumer", _metrics_consumer),
+        ("webhook_dispatcher", _webhook_dispatcher),
+        ("audit_logger", _audit_logger),
+    ]:
+        if consumer is None:
+            continue
+        try:
+            if hasattr(consumer, 'stop'):
+                consumer.stop()
+                log.info("consumer_stopped", name=name)
+        except Exception as e:
+            log.error("consumer_stop_failed", name=name, error=str(e))
+
     _audit_stop.set()
     _audit_task.cancel()
     try:
@@ -395,6 +418,39 @@ async def health():
         }
     except Exception as e:
         components["worker_pool"] = {"status": "error", "error": str(e)[:100]}
+
+    # ── Platform Consumers (v2.3+) ──
+    try:
+        from aitest.platform.audit_log import get_audit_logger
+        from aitest.platform.metrics_consumer import get_metrics_consumer
+        from aitest.platform.quota_usage import get_quota_usage
+        from aitest.platform.billing_hook import get_billing_hook
+        from aitest.platform.event_bus import get_bus
+        from aitest.platform.run_store import get_run_store
+
+        bus = get_bus()
+        store = get_run_store()
+
+        components["platform"] = {
+            "status": "ok",
+            "event_bus_subscribers": bus.subscriber_count,
+            "runs_in_store": store.count_runs(),
+            "consumers": {
+                "audit_logger": get_audit_logger().is_active,
+                "metrics_consumer": get_metrics_consumer().is_active,
+                "quota_usage": get_quota_usage().is_active,
+                "billing_hook": get_billing_hook().is_active,
+            },
+        }
+        # Degraded if any consumer not active (they should be after startup)
+        if not all(components["platform"]["consumers"].values()):
+            components["platform"]["status"] = "degraded"
+            if overall == "healthy":
+                overall = "degraded"
+    except Exception as e:
+        components["platform"] = {"status": "error", "error": str(e)[:100]}
+        if overall == "healthy":
+            overall = "degraded"
 
     return {"status": overall, "components": components}
 

@@ -127,6 +127,7 @@ class ExecutionService:
             module=module, pages=pages, agent=agent,
         ))
         request.queue()
+        self._store.save_request(request)  # Persist at queued
 
         # 4. Dispatch — create Run
         run = Run(
@@ -142,6 +143,7 @@ class ExecutionService:
             mode=mode,
         )
         request.dispatch(run.run_id)  # appends to run_ids (one-to-many)
+        self._store.save_request(request)  # Persist after dispatch
 
         # Emit execution.started
         self._bus.publish(make_event(
@@ -172,6 +174,7 @@ class ExecutionService:
                 agent_runs=getattr(state, 'step', 0),
             )
             request.complete()
+            self._store.save_request(request)  # Persist completed
 
             self._bus.publish(make_event(
                 EventType.RUN_COMPLETED,
@@ -197,6 +200,7 @@ class ExecutionService:
         except Exception as e:
             run.fail(str(e))
             request.fail()
+            self._store.save_request(request)  # Persist failed
 
             self._bus.publish(make_event(
                 EventType.RUN_FAILED,
@@ -238,6 +242,12 @@ class ExecutionService:
 
         run.cancel()
         self._store.save_run(run)
+
+        # Find and cancel the ExecutionRequest
+        request = self._store.load_request(request_id)
+        if request:
+            request.cancel()
+            self._store.save_request(request)
 
         self._bus.publish(make_event(
             EventType.RUN_CANCELLED,
