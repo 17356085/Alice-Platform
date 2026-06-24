@@ -35,43 +35,16 @@ const typeLabels: Record<string, string> = {
 async function fetchTimeline() {
   loading.value = true
   try {
-    // Fetch from operational metrics + recent events
-    const resp = await fetch(`http://localhost:8000/api/kpi/operational`)
-    if (resp.ok) metrics.value = await resp.json()
-
-    // Build timeline from metrics + kanban module data
-    const items: TimelineEntry[] = []
-
-    // Add metrics-derived entries
-    if (metrics.value) {
-      const m = metrics.value
-      if (m.agent_latency_p95) {
-        for (const [agent, data] of Object.entries(m.agent_latency_p95)) {
-          if ((data as any).total > 0) {
-            items.push({
-              ts: m.ts || '',
-              type: 'phase_completed',
-              agent,
-              message: `${agent} — ${(data as any).total} runs, p95=${(data as any).p95}s`,
-              success: true,
-            })
-          }
-        }
-      }
-      if (m.workflow) {
-        for (const [mod, data] of Object.entries(m.workflow)) {
-          const d = data as any
-          items.push({
-            ts: m.ts || '',
-            type: d.rate >= 0.9 ? 'phase_completed' : 'warning',
-            agent: 'workflow',
-            message: `${mod}: ${d.success}/${d.total} (${Math.round(d.rate * 100)}%)`,
-            success: d.rate >= 0.9,
-          })
-        }
-      }
+    // Fetch real timeline from backend
+    const tlResp = await fetch(`http://localhost:8000/api/timeline/${projectId.value}?limit=50`)
+    if (tlResp.ok) {
+      const tlData = await tlResp.json()
+      timeline.value = tlData.events || []
     }
-    timeline.value = items
+
+    // Fetch metrics for the metrics/cost tabs
+    const mResp = await fetch('http://localhost:8000/api/kpi/operational')
+    if (mResp.ok) metrics.value = await mResp.json()
   } catch {
     timeline.value = []
   } finally {
@@ -124,11 +97,11 @@ onMounted(fetchTimeline)
           <span class="tl-icon">{{ typeLabels[entry.type] || '•' }}</span>
           <div class="tl-content">
             <div class="tl-header">
-              <span class="tl-agent">{{ entry.agent }}</span>
+              <span class="tl-agent">{{ entry.agent || 'system' }}</span>
               <span class="tl-time">{{ entry.ts?.slice(11, 19) || '' }}</span>
             </div>
             <div class="tl-message">{{ entry.message }}</div>
-            <div v-if="entry.duration" class="tl-meta">耗时: {{ entry.duration }}</div>
+            <div v-if="entry.tokens" class="tl-meta">Tokens: {{ entry.tokens?.toLocaleString() }}</div>
           </div>
         </div>
       </div>
