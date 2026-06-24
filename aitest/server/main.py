@@ -323,6 +323,17 @@ async def health():
     except Exception as e:
         components["tenants"] = {"status": "error", "error": str(e)[:100]}
 
+    # ── Cache Layer (★ v1.6) ──
+    try:
+        from aitest.infra.cache_layer import cache
+        components["cache"] = {
+            "status": "ok",
+            "total_saved_tokens": cache.all_saved_tokens(),
+            "stores": cache.stats(),
+        }
+    except Exception as e:
+        components["cache"] = {"status": "error", "error": str(e)[:100]}
+
     # ── Worker Pool (★ M3) ──
     try:
         from aitest.infra.worker_pool import get_worker_pool
@@ -940,7 +951,22 @@ async def optimization_insights():
                     "suggestion": f"Review {mod} failures in Timeline. Check locator stability.",
                 })
 
-        # No data at all
+        # ★ v1.6: Cache effectiveness
+        try:
+            from aitest.infra.cache_layer import cache
+            cache_stats = cache.stats()
+            for ctype, cs in cache_stats.items():
+                if cs["saved_tokens"] > 0:
+                    insights.append({
+                        "type": "cache_savings",
+                        "severity": "info",
+                        "cache": ctype,
+                        "metric": f"{cs['saved_tokens']} tokens saved, {cs['hit_rate']*100:.0f}% hit rate",
+                        "suggestion": f"Cache '{ctype}' active: {cs['size']}/{cs['max_size']} entries",
+                    })
+        except Exception:
+            pass
+
         if not insights:
             insights.append({
                 "type": "no_data",
