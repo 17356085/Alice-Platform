@@ -589,6 +589,19 @@ async def kpi_audit_all(modules: str = None):
         return {"error": str(e)[:300]}
 
 
+@app.get("/api/kpi/operational")
+async def operational_metrics():
+    """★ v1.1: 8 runtime KPIs — agent latency, token cost, workflow, plugin, memory, recovery, phase, capability.
+
+    Returns the current operational metrics snapshot used for data-driven platform evolution.
+    """
+    try:
+        from aitest.platform.operational_metrics import get_collector
+        return get_collector().snapshot()
+    except Exception as e:
+        return {"error": str(e)[:300]}
+
+
 app.include_router(agents_router)
 app.include_router(webhooks_router)
 app.include_router(workflows_router)

@@ -816,6 +816,8 @@ class AgentLoop:
         from aitest.infra.telemetry import get_tracer
         otel = get_tracer()
 
+        self._session_start = time.time()  # ★ v1.1: for operational metrics
+
         # ★ v1.0: Continuation loop (参考 Aperant: 最多 5 次)
         while True:
             try:
@@ -1001,6 +1003,28 @@ class AgentLoop:
                 f"🔓 Worktree: {'merged ✅' if self._worktree_ctx.success else 'kept for inspection'}"
                 f" — {self._worktree_ctx.name}"
             )
+
+        # ★ v1.1: Record operational metrics
+        try:
+            from aitest.platform.operational_metrics import get_collector
+            mc = get_collector()
+            duration = time.time() - self._session_start if hasattr(self, '_session_start') else 0
+            tokens = self.state.usage.get("total_tokens", 0) if hasattr(self.state, 'usage') else 0
+            tokens_in = self.state.usage.get("input_tokens", 0) if hasattr(self.state, 'usage') else 0
+            tokens_out = self.state.usage.get("output_tokens", 0) if hasattr(self.state, 'usage') else 0
+            mc.record_agent_run(
+                self.agent_name,
+                duration_s=max(duration, 0.1),
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+                success=self.state.success,
+            )
+            mc.record_workflow(self.module or "unknown", self.state.success)
+            if not self.state.success:
+                mc.record_recovery(self.agent_name, recovered=False)
+            mc.persist()
+        except Exception:
+            pass  # metrics never block execution
 
         return self.state
 
