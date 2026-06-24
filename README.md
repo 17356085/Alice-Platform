@@ -1,65 +1,78 @@
-# Alice — 鞍集涂源管理系统 · AI 辅助测试开发平台
+# Alice — AI-Native Test Automation Platform
 
-> AI 第一入口为 [`CLAUDE.md`](CLAUDE.md)。新 AI 进入项目后请先阅读该文件。
+> AI 驱动测试自动化平台。被测对象: **鞍集涂源管理系统** (Vue 3 + Element Plus)。
+> AI 入口: [`CLAUDE.md`](CLAUDE.md)
 
----
+## 两条工作线
 
-## 项目结构（30 秒速览）
+| 工作线 | 路径 | 说明 |
+|--------|------|------|
+| **平台开发** | `aitest/` | FastAPI + Vue 3 测试工作台，Agent 执行引擎 |
+| **测试自动化** | `ZJSN_Test-master526/` | 8 Agent SOP Web/小程序 E2E 测试 |
+
+## 快速开始
+
+```bash
+# 启动测试工作台
+aitest server start                # → http://localhost:8000/chat
+
+# 运行测试 SOP
+aitest graph run --module=<m> --pages=<p>
+
+# 项目管理
+aitest project register --path=<path>
+aitest project set --id=<project>
+```
+
+## 架构 (v1.0)
 
 ```
-Alice/
-├── CLAUDE.md                 ← 必读：口语化入口 + 项目全景 + 编码红线
-├── governance/               ← 治理层（唯一事实源 + Skill + Workflow）
-│   ├── context/              ← 项目/模块/页面上下文（7个模块已映射）
-│   ├── skills/               ← 29 个 Skill（含 Prompt 模板）
-│   ├── workflows/            ← 9 个标准化流程
-│   └── templates/            ← 11 个输出格式模板
-│
-├── ZJSN_Test-master526/      ← Web 自动化测试工程（Python + Selenium + pytest）
-├── mp-weixin-automator/      ← 小程序自动化测试工程（Node.js）
-├── mp-weixin/                ← 微信小程序源码（参考）
-│
-└── TestIntern_library/       ← ⚠️ 已冻结的历史存档
-```
+aitest/
+├── server/              FastAPI + chat.html 工作台 + session 持久化
+├── agent_runner.py      AgentLoop 执行引擎 (reliable + continuation + tool_calling)
+├── graphs/              测试 SOP 图 (串行 sop_graph + 并行 parallel_sop)
+├── graphs_dev/          9 Agent 10 Phase 开发 SOP
+├── llm/                 LLM Provider (Claude → DeepSeek → OpenAI fallback)
+├── infra/               基础设施 (security + secure_subprocess)
+├── platform/            平台层 (capability_router + complexity + testing_memory)
+└── web/                 Vue 3 前端 (Element Plus + SSE/WS)
 
-## 快速入口
+governance/
+├── agents/              Agent 定义 YAML (测试 8 + 开发 9)
+├── skills/              测试 Skill 提示 (24)
+├── skills-dev/          开发 Skill 提示 (32)
+├── workflows/           标准化流程 (9)
+└── context/             共享语言 + 来源真值 + 项目上下文
 
-| 你想做什么 | 路径 |
-|-----------|------|
-| 了解全部能力 | [`CLAUDE.md`](CLAUDE.md) → 口语化入口（21条"你可以这样说"） |
-| 查看当前测试进度 | [`governance/context/tracking/progress-tracking.md`](governance/context/tracking/progress-tracking.md) |
-| 查看编码规范 | [`CLAUDE.md`](CLAUDE.md) → §五 代码红线 |
-| 了解治理层设计 | [`governance/README.md`](governance/README.md) |
-| 查看 Skill 注册表 | [`governance/skills/skill-registry.yaml`](governance/skills/skill-registry.yaml) |
+ZJSN_Test-master526/     测试项目 (Python + Selenium + pytest + Allure)
+mp-weixin-automator/      小程序自动化 (Node.js)
+project-study/            架构逆向分析
+docs/                     ADR + v1.0 架构设计 (8 篇)
+```text
 
 ## 技术栈
 
 | 维度 | 内容 |
 |------|------|
-| Web 前端 | Vue 3 + Element Plus |
-| Web 自动化 | Python 3 + pytest + Selenium + Allure |
+| 后端 | Python 3.11+ / FastAPI / LangGraph |
+| 前端 | Vue 3 + Element Plus + Vite |
+| LLM | Claude / DeepSeek / OpenAI (Retry + Fallback) |
+| 向量存储 | ChromaDB |
+| Web 自动化 | Selenium + pytest + Allure |
 | 小程序自动化 | Node.js + mp-weixin-automator |
-| CI/CD | GitHub Actions + Jenkins |
-
-## 一键安装 (Docker)
-
-```bash
-# 1. Clone + 配置 API Key
-git clone <repo-url> && cd Alice
-echo "ANTHROPIC_API_KEY=sk-ant-..." >> .env
-
-# 2. 启动平台 + ChromaDB
-docker-compose up -d
-
-# 3. 验证
-curl http://localhost:8000/health
-```
 
 ## 本地开发
 
 ```bash
 pip install -e .
-aitest server start          # → http://localhost:8000
-aitest graph run --module=x  # 运行测试 SOP
-pytest aitest/tests/ -v      # 运行测试 (92 passed)
+aitest server start                # → http://localhost:8000
+aitest graph run --module=<m>      # 运行测试 SOP
 ```
+
+## 项目上下文
+
+ADB-001: 项目上下文跟随项目 (`.tlo/`) — 平台与项目解耦。
+
+## 许可证
+
+内部项目。
