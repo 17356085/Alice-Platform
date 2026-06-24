@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 
 from .run import Run
 from .run_event import RunEvent
+from .execution_request import ExecutionRequest
 
 
 # ── DB path ──────────────────────────────────────────────────────────────
@@ -80,11 +81,76 @@ class RunStore:
                 CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);
                 CREATE INDEX IF NOT EXISTS idx_events_run ON run_events(run_id);
                 CREATE INDEX IF NOT EXISTS idx_events_type ON run_events(event_type);
+
+                CREATE TABLE IF NOT EXISTS execution_requests (
+                    request_id TEXT PRIMARY KEY,
+                    workspace_id TEXT NOT NULL,
+                    org_id TEXT NOT NULL DEFAULT '',
+                    triggered_by TEXT NOT NULL DEFAULT '',
+                    trigger_type TEXT NOT NULL DEFAULT 'manual',
+                    module TEXT NOT NULL DEFAULT '',
+                    pages TEXT NOT NULL DEFAULT '[]',
+                    mode TEXT NOT NULL DEFAULT 'full',
+                    provider TEXT NOT NULL DEFAULT 'claude',
+                    priority INTEGER NOT NULL DEFAULT 0,
+                    status TEXT NOT NULL DEFAULT 'created',
+                    run_ids TEXT NOT NULL DEFAULT '[]',
+                    created_at TEXT NOT NULL DEFAULT '',
+                    started_at TEXT,
+                    completed_at TEXT,
+                    retry_count INTEGER NOT NULL DEFAULT 0,
+                    max_retries INTEGER NOT NULL DEFAULT 0
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_req_workspace ON execution_requests(workspace_id);
+                CREATE INDEX IF NOT EXISTS idx_req_org ON execution_requests(org_id);
+                CREATE INDEX IF NOT EXISTS idx_req_status ON execution_requests(status);
             """)
             conn.commit()
             conn.close()
 
     # ── Run CRUD ──────────────────────────────────────────────────────
+
+    def save_request(self, request: ExecutionRequest):
+        with self._lock:
+            conn = sqlite3.connect(str(self._path))
+            conn.execute("""
+                INSERT OR REPLACE INTO execution_requests
+                (request_id, workspace_id, org_id, triggered_by, trigger_type,
+                 module, pages, mode, provider, priority,
+                 status, run_ids, created_at, started_at, completed_at,
+                 retry_count, max_retries)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                request.request_id, request.workspace_id, request.org_id,
+                request.triggered_by, request.trigger_type,
+                request.module, json.dumps(request.pages, ensure_ascii=False),
+                request.mode, request.provider, request.priority,
+                request.status, json.dumps(request.run_ids, ensure_ascii=False),
+                request.created_at, request.started_at, request.completed_at,
+                request.retry_count, request.max_retries,
+            ))
+            conn.commit()
+            conn.close()
+
+    def load_request(self, request_id: str) -> ExecutionRequest | None:
+        conn = sqlite3.connect(str(self._path))
+        row = conn.execute(
+            "SELECT * FROM execution_requests WHERE request_id = ?", (request_id,)
+        ).fetchone()
+        conn.close()
+        if row is None:
+            return None
+        cols = [
+            "request_id", "workspace_id", "org_id", "triggered_by", "trigger_type",
+            "module", "pages", "mode", "provider", "priority",
+            "status", "run_ids", "created_at", "started_at", "completed_at",
+            "retry_count", "max_retries",
+        ]
+        d = dict(zip(cols, row))
+        d["pages"] = json.loads(d.get("pages", "[]"))
+        d["run_ids"] = json.loads(d.get("run_ids", "[]"))
+        return ExecutionRequest(**d)
 
     def save_run(self, run: Run):
         with self._lock:

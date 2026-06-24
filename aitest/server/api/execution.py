@@ -79,27 +79,36 @@ async def start_execution(ws_id: str, req: StartExecutionRequest, request: Reque
 
 @execution_router.get("/executions/{request_id}")
 async def get_execution(request_id: str):
-    """Get ExecutionRequest status. v2.2: looks up Run by request_id."""
+    """Get ExecutionRequest status with all related Runs."""
     from aitest.platform.run_store import get_run_store
 
     store = get_run_store()
-    runs = store.list_runs(limit=500)
-    run = next((r for r in runs if r.request_id == request_id), None)
 
-    if run is None:
+    # v2.4.1: load ExecutionRequest directly (was O(n) scan)
+    req = store.load_request(request_id)
+    if req is None:
         raise HTTPException(404, f"Execution '{request_id}' not found")
 
-    events = store.list_events(run_id=run.run_id, limit=50)
+    # Load all linked runs
+    runs = []
+    for run_id in req.run_ids:
+        r = store.load_run(run_id)
+        if r:
+            runs.append(r)
 
-    # Find all runs for this request (one request → many runs on retry)
-    all_runs = [r for r in store.list_runs(limit=500) if r.request_id == request_id]
+    latest = runs[-1] if runs else None
+    events = store.list_events(run_id=latest.run_id, limit=50) if latest else []
 
     return {
         "request_id": request_id,
-        "run_ids": [r.run_id for r in all_runs],
-        "latest_run": run.to_dict(),
-        "attempts": len(all_runs),
+        "status": req.status,
+        "run_ids": req.run_ids,
+        "attempts": len(runs),
+        "runs": [r.to_dict() for r in runs],
+        "latest_run": latest.to_dict() if latest else None,
         "events": [e.to_dict() for e in events],
+        "created_at": req.created_at,
+        "completed_at": req.completed_at,
     }
 
 
