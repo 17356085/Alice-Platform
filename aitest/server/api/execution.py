@@ -169,3 +169,119 @@ async def cancel_execution(request_id: str):
         raise HTTPException(404, f"Execution '{request_id}' not found or already terminal")
 
     return {"request_id": request_id, "status": "cancelled"}
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  v2.3 Platform Observability — Timeline, History, Audit
+# ══════════════════════════════════════════════════════════════════════════
+
+# ── GET /api/runs/:run_id/timeline ─────────────────────────────────
+
+@execution_router.get("/runs/{run_id}/timeline")
+async def get_timeline(run_id: str):
+    """Time-ordered timeline of all events for a Run."""
+    from aitest.platform.timeline import build_timeline
+
+    entries = build_timeline(run_id)
+    if not entries:
+        raise HTTPException(404, f"Run '{run_id}' not found")
+
+    return {
+        "run_id": run_id,
+        "entries": entries,
+        "total": len(entries),
+    }
+
+
+# ── GET /api/history ────────────────────────────────────────────────
+
+@execution_router.get("/history")
+async def execution_history(
+    workspace_id: str = "",
+    org_id: str = "",
+    status: str = "",
+    module: str = "",
+    agent: str = "",
+    limit: int = 50,
+    offset: int = 0,
+):
+    """Enriched execution history with summary per run."""
+    from aitest.platform.run_store import get_run_store
+    from aitest.platform.timeline import timeline_summary
+
+    store = get_run_store()
+    runs = store.list_runs(
+        workspace_id=workspace_id,
+        org_id=org_id,
+        status=status,
+        limit=min(limit, 200),
+        offset=offset,
+    )
+    total = store.count_runs(workspace_id=workspace_id, org_id=org_id)
+
+    # Filter by module/agent in-memory (simple, good enough for current scale)
+    if module:
+        runs = [r for r in runs if r.module == module]
+    if agent:
+        runs = [r for r in runs if r.agent == agent]
+
+    items = [timeline_summary(r.run_id) for r in runs]
+
+    return {
+        "history": items,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+# ── GET /api/audit ──────────────────────────────────────────────────
+
+@execution_router.get("/audit")
+async def query_audit(
+    org_id: str = "",
+    workspace_id: str = "",
+    event_type: str = "",
+    run_id: str = "",
+    limit: int = 50,
+    offset: int = 0,
+    since: str = "",
+    until: str = "",
+):
+    """Query operational audit log. Append-only, filterable."""
+    from aitest.platform.audit_log import get_audit_logger
+
+    logger = get_audit_logger()
+    entries = logger.query(
+        org_id=org_id,
+        workspace_id=workspace_id,
+        event_type=event_type,
+        run_id=run_id,
+        limit=limit,
+        offset=offset,
+        since=since,
+        until=until,
+    )
+    total = logger.count(
+        org_id=org_id,
+        workspace_id=workspace_id,
+        event_type=event_type,
+    )
+
+    return {
+        "entries": entries,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+# ── GET /api/audit/stats ────────────────────────────────────────────
+
+@execution_router.get("/audit/stats")
+async def audit_stats(org_id: str = ""):
+    """Audit log statistics: event type breakdown, recent activity."""
+    from aitest.platform.audit_log import get_audit_logger
+
+    logger = get_audit_logger()
+    return logger.stats(org_id=org_id)

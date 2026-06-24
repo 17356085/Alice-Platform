@@ -60,6 +60,15 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         log.error("governance_subscriber_failed", error=str(e))
 
+    # ★ v2.3: Activate operational AuditLogger — subscribes to all RunEvents
+    try:
+        from aitest.platform.audit_log import get_audit_logger
+        _audit_logger = get_audit_logger()
+        _audit_logger.start()
+        log.info("audit_logger_started")
+    except Exception as e:
+        log.error("audit_logger_failed", error=str(e))
+
     # P2-ACTIVATION (2026-06-16): Dead Path — 审计未自动调度
     # 后台 asyncio Task 周期性运行 State/SOP/Cost 审计
     from aitest.config import config
