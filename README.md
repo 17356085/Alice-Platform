@@ -39,4 +39,27 @@ Alice/
 | Web 前端 | Vue 3 + Element Plus |
 | Web 自动化 | Python 3 + pytest + Selenium + Allure |
 | 小程序自动化 | Node.js + mp-weixin-automator |
-| CI/CD | Jenkins |
+| CI/CD | GitHub Actions + Jenkins |
+
+## 一键安装 (Docker)
+
+```bash
+# 1. Clone + 配置 API Key
+git clone <repo-url> && cd Alice
+echo "ANTHROPIC_API_KEY=sk-ant-..." >> .env
+
+# 2. 启动平台 + ChromaDB
+docker-compose up -d
+
+# 3. 验证
+curl http://localhost:8000/health
+```
+
+## 本地开发
+
+```bash
+pip install -e .
+aitest server start          # → http://localhost:8000
+aitest graph run --module=x  # 运行测试 SOP
+pytest aitest/tests/ -v      # 运行测试 (92 passed)
+```

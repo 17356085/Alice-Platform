@@ -1,0 +1,56 @@
+# AITest Platform v1.0 — One-click local deployment
+#
+# Usage:
+#   docker-compose up -d              # Start platform + ChromaDB
+#   docker-compose ps                 # Check status
+#   docker-compose logs -f aitest     # Follow platform logs
+#   docker-compose down               # Stop and cleanup
+
+version: "3.8"
+
+services:
+  aitest:
+    build: .
+    container_name: aitest-platform
+    ports:
+      - "${AITEST_PORT:-8000}:8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - AITEST_PROJECT=${AITEST_PROJECT:-}
+      - AITEST_API_KEY=${AITEST_API_KEY:-}
+      - AITEST_AUDIT_INTERVAL=${AITEST_AUDIT_INTERVAL:-86400}
+      - AITEST_OTEL_ENABLED=${AITEST_OTEL_ENABLED:-false}
+      - AITEST_OTEL_ENDPOINT=${AITEST_OTEL_ENDPOINT:-http://jaeger:4317}
+      - DATABASE_URL=sqlite:///data/chat_sessions.db
+    volumes:
+      - aitest_data:/app/data
+      - ./governance:/app/governance:ro
+      - ${TEST_PROJECT_PATH:-./demo}:/app/project:ro
+    depends_on:
+      chromadb:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: aitest-chromadb
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    restart: unless-stopped
+
+volumes:
+  aitest_data:
+  chroma_data:
