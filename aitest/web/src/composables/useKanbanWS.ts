@@ -5,6 +5,9 @@ const connected = ref(false)
 const lastEvent = ref<any>(null)
 let ws: WebSocket | null = null
 let reconnectTimer: number | null = null
+let pingTimer: number | null = null
+
+const PING_INTERVAL = 30_000  // 30s keepalive — prevent idle timeout
 
 export function useKanbanWS() {
   const store = useKanbanStore()
@@ -14,7 +17,15 @@ export function useKanbanWS() {
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
     try {
       ws = new WebSocket(`${protocol}//${location.host}/ws/kanban`)
-      ws.onopen = () => { connected.value = true }
+      ws.onopen = () => {
+        connected.value = true
+        // Start keepalive pings to prevent proxy/OS idle timeout
+        pingTimer = window.setInterval(() => {
+          if (ws?.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ action: 'ping' }))
+          }
+        }, PING_INTERVAL)
+      }
       ws.onmessage = (e) => {
         try {
           const msg = JSON.parse(e.data)
@@ -30,14 +41,19 @@ export function useKanbanWS() {
       }
       ws.onclose = () => {
         connected.value = false
+        if (pingTimer) { clearInterval(pingTimer); pingTimer = null }
         reconnectTimer = window.setTimeout(connect, 3000)
       }
-      ws.onerror = () => { connected.value = false }
+      ws.onerror = () => {
+        connected.value = false
+        if (pingTimer) { clearInterval(pingTimer); pingTimer = null }
+      }
     } catch { connected.value = false }
   }
 
   function disconnect() {
     if (reconnectTimer) clearTimeout(reconnectTimer)
+    if (pingTimer) { clearInterval(pingTimer); pingTimer = null }
     ws?.close()
     ws = null
     connected.value = false

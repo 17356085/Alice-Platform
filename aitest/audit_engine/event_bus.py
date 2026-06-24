@@ -399,7 +399,12 @@ class KnowledgeAgentSubscriber:
         """执行知识管理动作——调用 knowledge-manager Skill。"""
         try:
             from aitest.agents.agent_runner import run_skill
-            prompt = action["prompt_template"].format(**event.data) if event.data else str(event.data)
+            # W06: format() may raise KeyError if event.data missing template fields.
+            # Fall back to raw string concatenation (same as process_pending()).
+            try:
+                prompt = action["prompt_template"].format(**event.data) if event.data else str(event.data)
+            except KeyError:
+                prompt = action["prompt_template"] + " " + str(event.data)
             run_skill(
                 skill_id="knowledge/knowledge-manager",
                 user_input=prompt,

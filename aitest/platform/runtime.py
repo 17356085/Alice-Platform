@@ -320,10 +320,37 @@ class RemoteBrowserRuntime(Runtime):
                 f"Failed to connect to remote browser at {self._ws_url}: {e}"
             )
 
-    async def navigate(self, target: str) -> None:
+    async def navigate(self, target: str, wait_until: str = "domcontentloaded", timeout: float = 30_000) -> None:
+        """Navigate to a page via CDP.
+
+        Default wait_until="domcontentloaded" because:
+        - SUT apps often have persistent WebSocket/SSE connections
+        - "networkidle" never fires on such pages → RESULT_CODE_HUNG
+        - "domcontentloaded" is reliable: DOM ready, visual elements present
+
+        Pass wait_until="networkidle" only for static pages that need full asset load.
+        """
         await self._ensure_connected()
         url = target if target.startswith("http") else f"{self._base_url.rstrip('/')}/#{target.lstrip('#')}"
-        await self._page.goto(url, wait_until="networkidle")
+        try:
+            await self._page.goto(url, wait_until=wait_until, timeout=timeout)
+        except Exception as e:
+            err_msg = str(e)
+            # RESULT_CODE_HUNG: browser tab froze or navigation hung.
+            # Common on pages with persistent connections (WS/SSE/polling).
+            # Fall back to domcontentloaded if we were using a stricter strategy.
+            if "RESULT_CODE_HUNG" in err_msg or "timeout" in err_msg.lower():
+                if wait_until != "domcontentloaded":
+                    from aitest.infra.error_logger import log_error
+                    log_error("runtime.navigate", "hung_fallback",
+                        RuntimeError(f"Navigation hung with wait_until={wait_until}. "
+                                     f"Falling back to domcontentloaded. URL={url}"),
+                        severity="warning")
+                    await self._page.goto(url, wait_until="domcontentloaded", timeout=timeout)
+                else:
+                    raise  # Already at minimum wait_until — re-raise
+            else:
+                raise
 
     async def observe(self) -> PageStructure:
         await self._ensure_connected()
