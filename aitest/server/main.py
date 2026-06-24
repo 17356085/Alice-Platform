@@ -602,6 +602,123 @@ async def operational_metrics():
         return {"error": str(e)[:300]}
 
 
+@app.get("/api/timeline/{project_id}")
+async def timeline(project_id: str, limit: int = 50):
+    """★ v1.1: Agent 活动时间线 — 调试 Agent 的第一入口。
+
+    Returns recent timeline events: phase transitions, artifacts, errors, retries, memory hits.
+    """
+    events = []
+    try:
+        # Operational metrics → timeline entries
+        mc = get_collector()
+        snap = mc.snapshot()
+
+        # Agent runs
+        for agent, data in snap.get("agent_latency_p95", {}).items():
+            if data.get("total", 0) > 0:
+                events.append({
+                    "ts": snap["ts"],
+                    "type": "agent_summary",
+                    "agent": agent,
+                    "message": f"{agent} — {data['total']} runs, p95={data['p95']}s, avg={data['avg']}s",
+                })
+
+        # Workflow status
+        for mod, data in snap.get("workflow", {}).items():
+            events.append({
+                "ts": snap["ts"],
+                "type": "workflow_status",
+                "agent": "workflow",
+                "module": mod,
+                "message": f"{mod}: {data['success']}/{data['total']} ({round(data['rate']*100)}%)",
+                "success": data["rate"] >= 0.9,
+            })
+
+        # Recent trace events from JSONL
+        try:
+            from pathlib import Path
+            trace_file = Path(__file__).resolve().parent.parent.parent / "governance" / ".traces" / "trace_log.jsonl"
+            if trace_file.exists():
+                import json
+                lines = []
+                with open(trace_file, "r", encoding="utf-8") as f:
+                    for line in f:
+                        lines.append(line.strip())
+                for line in lines[-limit:]:
+                    try:
+                        te = json.loads(line)
+                        events.append({
+                            "ts": te.get("timestamp", ""),
+                            "type": te.get("event_type", "trace"),
+                            "agent": te.get("agent_name", ""),
+                            "message": f"{te.get('event_type', '')} — {te.get('provider', '')} {te.get('model', '')} — {te.get('latency_ms', 0)}ms",
+                            "tokens": te.get("token_input", 0) + te.get("token_output", 0),
+                        })
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+    except Exception as e:
+        events.append({"ts": "", "type": "error", "message": str(e)[:200]})
+
+    return {"project": project_id, "events": events[:limit], "total": len(events)}
+
+
+@app.get("/api/artifacts/{project_id}")
+async def artifacts(project_id: str, module: str = "", page: str = ""):
+    """★ v1.1: Artifact 列表 — 项目/模块/页面的 SOP 产物。
+
+    Returns known artifacts with existence status.
+    """
+    items = []
+    try:
+        from aitest.platform.paths import get_project_dir
+
+        project_dir = get_project_dir(project_id)
+        modules_dir = project_dir / "modules"
+        if modules_dir.exists():
+            for mod_dir in sorted(modules_dir.iterdir()):
+                if not mod_dir.is_dir(): continue
+                mod_name = mod_dir.name
+                if module and mod_name != module: continue
+
+                # Module-level artifacts
+                for doc in ["MODULE_CONTEXT.md", "REQUIREMENT_ANALYSIS.md", "PROJECT_CONTEXT.md"]:
+                    path = mod_dir / doc
+                    items.append({
+                        "name": doc,
+                        "path": f"{mod_name}/{doc}",
+                        "module": mod_name,
+                        "exists": path.exists(),
+                        "size": path.stat().st_size if path.exists() else 0,
+                    })
+
+                # Page-level artifacts
+                pages_dir = mod_dir / "pages"
+                if pages_dir.exists():
+                    for page_dir in sorted(pages_dir.iterdir()):
+                        if not page_dir.is_dir(): continue
+                        pname = page_dir.name
+                        if page and pname != page: continue
+                        for doc in ["PAGE_CONTEXT.md", "RISK_MODEL.md", "TEST_CASES.md",
+                                     "TECH_ANALYSIS.md", "AUTO_STRATEGY.md"]:
+                            path = page_dir / doc
+                            items.append({
+                                "name": doc,
+                                "path": f"{mod_name}/pages/{pname}/{doc}",
+                                "module": mod_name,
+                                "page": pname,
+                                "exists": path.exists(),
+                                "size": path.stat().st_size if path.exists() else 0,
+                            })
+    except Exception as e:
+        items.append({"name": "error", "path": "", "exists": False, "error": str(e)[:100]})
+
+    return {"project": project_id, "artifacts": items, "total": len(items)}
+
+
 app.include_router(agents_router)
 app.include_router(webhooks_router)
 app.include_router(workflows_router)
