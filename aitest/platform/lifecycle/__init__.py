@@ -6,11 +6,11 @@ from .registry import (
     LifecycleObject, _Entry, _ObjectRef, _AsyncObjectRef,
     LifecycleRegistry, LeakAnalyzer,
     _capture_stack, _estimate_size, _safe_referrers,
-    get_registry,
 )
 from .guard import (
     _get_process_rss_mb, MemoryGuard, get_memory_guard,
     _GuardedTask, guarded_create_task,
+    get_registry,
 )
 
 __all__ = [

@@ -45,6 +45,11 @@ def _env_int(key: str, default: int = 0) -> int:
 class Config:
     """Unified configuration accessor."""
 
+    @staticmethod
+    def get_env(key: str, default: str = "") -> str:
+        """Read env var with default. P1-3: single access point for os.environ."""
+        return _env(key, default)
+
     # ── Platform ────────────────────────────────────────────────────
     @property
     def aitest_project(self) -> str:

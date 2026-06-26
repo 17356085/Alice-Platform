@@ -10,6 +10,11 @@ import sys
 import time
 import threading
 
+from .registry import (
+    LifecycleRegistry,
+    _MEMORY_SOFT_LIMIT_MB, _MEMORY_HARD_LIMIT_MB, _MEMORY_CHECK_INTERVAL_S,
+)
+
 def _get_process_rss_mb() -> float:
     """Get current process RSS in MB. Tries psutil, then /proc, then resource.
 

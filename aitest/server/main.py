@@ -258,7 +258,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 @app.get("/")
 async def root():
-    return {"name": "TLO Platform", "version": "1.0.0", "frontend": "aitest/web/ (React 18)", "docs": "/docs"}
+    return {"name": "TLO Platform", "version": "2.5.0", "frontend": "aitest/web/ (React 18)", "docs": "/docs"}
 
 
 @app.get("/metrics")
