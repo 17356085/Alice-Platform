@@ -46,7 +46,7 @@ def _is_exempt(path: str) -> bool:
 def _get_api_key() -> str:
     """Get configured API key. Returns empty string if auth is disabled."""
     from aitest.config import config
-    return os.environ.get("AITEST_API_KEY", "")
+    return config.get_env("AITEST_API_KEY", "")
 
 
 # ── Constant-time comparison ──────────────────────────────────────────

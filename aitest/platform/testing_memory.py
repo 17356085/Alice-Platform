@@ -41,6 +41,11 @@ class MemoryType(str, Enum):
     RISK_PATTERN = "risk_pattern"
     WORKFLOW_RECIPE = "workflow_recipe"
 
+    # ── Task 3b (P0): 经验记忆类型 ──
+    DEAD_END = "dead_end"                # Strategy/path that led to repeated failure
+    TASK_CALIBRATION = "task_calibration" # Effort/time estimates vs actual results
+    DECISION = "decision"                # Key decision made during execution
+
 
 class Confidence(str, Enum):
     VERIFIED = "verified"        # 多次验证

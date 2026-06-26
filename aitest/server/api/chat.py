@@ -9,13 +9,15 @@ Chat API — SSE 流式聊天端点。
   GET    /api/chat/sessions/{id}/history    消息历史
 
 架构:
-  浏览器 ←SSE→ FastAPI ←asyncio.Queue← 后台线程(AgentLoop.run_interactive)
+  浏览器 ←SSE→ FastAPI ←asyncio.Queue← asyncio.Task(AgentLoop via to_thread) [P0-3]
 """
 import json
 import uuid
 import time
 import asyncio
 import threading
+import sys
+import traceback as _traceback
 from dataclasses import dataclass, field
 
 from fastapi import APIRouter, Request, HTTPException
@@ -86,24 +88,109 @@ class ChatSession:
     agent: AgentLoop | None = None
     agent_thread: threading.Thread | None = None
     agent_queue: asyncio.Queue | None = None  # AgentEvent → SSE 桥接
+    agent_task: asyncio.Task | None = None  # P0-3: tracked asyncio Task (replaces raw Thread)
     created_at: float = 0.0
     last_active: float = 0.0
+    # ★ RCA RC1: Thread cancel signal — set when SSE client disconnects
+    _cancel_event: threading.Event = field(default_factory=threading.Event)
+
+    _MAX_MESSAGES = 500  # Truncate to prevent unbounded growth
+    _QUEUE_MAXSIZE = 256  # Backpressure — block producer when consumer gone
 
     def __post_init__(self):
         self.created_at = time.time()
         self.last_active = self.created_at
+        # ★ v2.9: Lifecycle registration handled by OwnedDict (ownership.py).
+        # No self-registration — single owner principle. OwnedDict owns the
+        # lifecycle entry under "chat-sessions:{session_id}".
+
+    def append_message(self, msg: dict):
+        """Append message with size cap — oldest evicted if over limit."""
+        self.messages.append(msg)
+        if len(self.messages) > self._MAX_MESSAGES:
+            # Keep last _MAX_MESSAGES entries
+            self.messages = self.messages[-self._MAX_MESSAGES:]
+
+    def destroy(self):
+        """Release all resources held by this session.
+
+        Stops agent thread, clears queue, nulls heavy references.
+        OwnedDict handles lifecycle unregistration — this method only
+        clears internal resources. Idempotent.
+        """
+        # 0. Signal cancel — stop producer thread BEFORE draining queue
+        self._cancel_event.set()
+
+        # 1. Clear agent reference (may hold large state)
+        agent = self.agent
+        self.agent = None
+        if agent is not None and hasattr(agent, 'cancel'):
+            try:
+                agent.cancel()
+            except Exception:
+                pass
+
+        # 2. Drain and close agent queue
+        queue = self.agent_queue
+        self.agent_queue = None
+        if queue is not None:
+            while not queue.empty():
+                try:
+                    queue.get_nowait()
+                except Exception:
+                    break
+
+        # 3. Cancel asyncio Task (P0-3: replaces raw Thread join)
+        task = self.agent_task
+        self.agent_task = None
+        if task is not None and not task.done():
+            task.cancel()
+
+        # 3b. Thread compat: cancel leftover raw Thread (legacy sessions)
+        thread = self.agent_thread
+        self.agent_thread = None
+        if thread is not None and thread.is_alive():
+            thread.join(timeout=2.0)
+
+        # 4. Truncate messages to free memory
+        self.messages.clear()
+
+        # ★ v2.9: Lifecycle unregistration handled by OwnedDict.
+        # No manual unregister — single owner principle.
 
 
-sessions: dict[str, ChatSession] = {}
+# ★ v2.9: OwnedDict replaces bare dict — values auto-registered in LifecycleRegistry,
+# auto-disposed on pop/delete, OwnershipChecker-verifiable. No external strong refs leak.
+from aitest.platform.ownership import OwnedDict
+sessions: OwnedDict[str, ChatSession] = OwnedDict(
+    "chat-sessions", owner="chat:module", ttl_s=1800, max_size=500,
+)
 
 
 def _cleanup_old_sessions(max_age_seconds: int = 1800) -> int:
-    """清理超过 max_age_seconds 未活动的会话。返回清理数量。"""
+    """清理超过 max_age_seconds 未活动的会话。返回清理数量。
+
+    OwnedDict.__delitem__ triggers destroy() via lifecycle.dispose().
+    Single owner — OwnedDict handles both cleanup and lifecycle unregistration.
+    """
     now = time.time()
-    stale = [sid for sid, s in sessions.items() if now - s.last_active > max_age_seconds]
+    stale = [sid for sid, s in list(sessions.items()) if now - s.last_active > max_age_seconds]
     for sid in stale:
-        del sessions[sid]
+        try:
+            del sessions[sid]  # OwnedDict triggers destroy → lifecycle.dispose → unregister
+        except Exception:
+            pass
     return len(stale)
+
+
+def _touch_session(session_id: str) -> None:
+    """Refresh last_touched in LifecycleRegistry to prevent premature TTL sweep.
+    OwnedDict uses lifecycle ID: chat-sessions:{session_id}"""
+    try:
+        from aitest.platform.lifecycle import get_registry
+        get_registry().touch(f"chat-sessions:{session_id}")
+    except Exception:
+        pass
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -126,16 +213,19 @@ async def get_history(session_id: str):
     if not s:
         raise HTTPException(status_code=404, detail="Session not found")
     s.last_active = time.time()
+    _touch_session(session_id)
     return {"session_id": session_id, "messages": s.messages}
 
 
 @chat_router.delete("/sessions/{session_id}")
 async def delete_session(session_id: str):
-    """删除会话。"""
-    if session_id in sessions:
-        del sessions[session_id]
-        return {"status": "deleted", "session_id": session_id}
-    raise HTTPException(status_code=404, detail="Session not found")
+    """删除会话 — 释放所有关联资源（Agent、线程、队列）。
+    OwnedDict.pop() triggers lifecycle.dispose() → destroy() automatically."""
+    s = sessions.pop(session_id, None)
+    if s is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    # destroy() already called by OwnedDict via lifecycle.dispose()
+    return {"status": "deleted", "session_id": session_id}
 
 
 @chat_router.post("/sessions/{session_id}/messages")
@@ -159,6 +249,7 @@ async def send_message(session_id: str, request: Request):
         raise HTTPException(status_code=400, detail="content is required")
 
     s.last_active = time.time()
+    _touch_session(session_id)
     mid = f"msg-{uuid.uuid4().hex[:8]}"
 
     msg = {
@@ -167,7 +258,7 @@ async def send_message(session_id: str, request: Request):
         "content": content,
         "timestamp": time.time(),
     }
-    s.messages.append(msg)
+    s.append_message(msg)
 
     return {
         "session_id": session_id,
@@ -199,6 +290,7 @@ async def interact(session_id: str, request: Request):
         raise HTTPException(status_code=400, detail="response is required")
 
     s.last_active = time.time()
+    _touch_session(session_id)
     s.agent.send_interaction(response)
 
     return {"status": "accepted", "session_id": session_id}
@@ -226,6 +318,7 @@ async def stream_response(session_id: str, message_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Message not found")
 
     s.last_active = time.time()
+    _touch_session(session_id)
     content = user_msg["content"]
 
     # 解析意图
@@ -329,34 +422,47 @@ async def stream_response(session_id: str, message_id: str, request: Request):
         return EventSourceResponse(unknown_generator())
 
     # ── 桥接：后台线程 Agent → asyncio.Queue → SSE ──
-    s.agent_queue = asyncio.Queue()
-    # 捕获当前 event loop（Python 3.12+ 后台线程中 get_event_loop() 不可用）
-    try:
-        agent_loop_ref = asyncio.get_running_loop()
-    except RuntimeError:
-        agent_loop_ref = asyncio.get_event_loop()
+    # ★ RCA RC1: Bounded queue — backpressure when consumer gone (maxsize=256)
+    s.agent_queue = asyncio.Queue(maxsize=s._QUEUE_MAXSIZE)
+    # P0-3: agent_loop_ref removed — asyncio.to_thread() manages thread lifecycle,
+    # no cross-thread call_soon_threadsafe needed.
 
-    # 后台线程
-    def _run_agent():
-        nonlocal agent_loop_ref
-        try:
-            for event in s.agent.run_interactive():
-                agent_loop_ref.call_soon_threadsafe(s.agent_queue.put_nowait, event)
-        except Exception as e:
-            agent_loop_ref.call_soon_threadsafe(
-                s.agent_queue.put_nowait,
-                AgentEvent(type="agent_end", status="fail", error=str(e)),
-            )
+    # ★ RCA RC1: Cancel event — signals producer thread to stop on disconnect
+    cancel_evt = s._cancel_event
+    cancel_evt.clear()  # Reset for this SSE session
 
-    s.agent_thread = threading.Thread(target=_run_agent, daemon=True)
+    # P0-3: _run_agent removed — raw daemon Thread replaced by asyncio Task below.
+    # call_soon_threadsafe + agent_loop_ref no longer needed — producer runs
+    # via asyncio.to_thread() which is managed, cancellable, no threading._active leak.
+    s.agent_thread = None  # No longer raw Thread
     active_interaction_id = None  # 当前待处理的交互 ID
 
     async def agent_event_generator():
         nonlocal active_interaction_id
         accumulated_text = ""
 
-        # 启动 Agent 线程
-        s.agent_thread.start()
+        # P0-3: to_thread binds run_interactive() to managed executor pool.
+        # Task cancel on SSE disconnect → executor thread freed.
+        async def _run_agent_producer():
+            try:
+                events = await asyncio.to_thread(list, s.agent.run_interactive())
+                for event in events:
+                    if cancel_evt.is_set():
+                        break
+                    try:
+                        s.agent_queue.put_nowait(event)
+                    except asyncio.QueueFull:
+                        break
+            except Exception as e:
+                if not cancel_evt.is_set():
+                    try:
+                        s.agent_queue.put_nowait(
+                            AgentEvent(type="agent_end", status="fail", error=str(e)))
+                    except asyncio.QueueFull:
+                        pass
+
+        s.agent_task = asyncio.create_task(
+            _run_agent_producer(), name=f"chat-{session_id[:20]}")
 
         # 先发送一条欢迎消息
         yield {"event": "message", "data": json.dumps(
@@ -480,10 +586,61 @@ async def stream_response(session_id: str, message_id: str, request: Request):
             async for event_data in agent_event_generator():
                 yield event_data
         except Exception as e:
-            import traceback
-            tb = traceback.format_exc()
+            tb = _traceback.format_exc()
             print(f"[Chat SSE ERROR] {tb}", flush=True)
             yield {"event": "error", "data": json.dumps(
                 {"message": f"内部错误: {str(e)[:200]}"}, ensure_ascii=False)}
+        finally:
+            # ★ RCA RC1: Signal thread to stop when SSE stream ends
+            # (client disconnect, error, or natural completion)
+            cancel_evt.set()
 
     return EventSourceResponse(safe_agent_generator())
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  Task 2 (P0): Sentinel-file Pause/Resume endpoints
+#  Storage: governance/.data/{task_id}/  (CONSTITUTION §3.1)
+# ═══════════════════════════════════════════════════════════════════════════
+
+@chat_router.get("/tasks/{task_id}/pause-status")
+async def get_task_pause_status(task_id: str):
+    """Query whether a task is currently paused awaiting user approval.
+
+    Called by frontend polling (every ~3s) to detect paused tasks.
+    Returns 200 with pause data, or 404 if task is not paused.
+    """
+    from aitest.infra.pause_handler import check_pause_status
+
+    status = check_pause_status(task_id)
+    if status is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Task '{task_id}' is not paused or does not exist",
+        )
+    return {"task_id": task_id, "paused": True, **status}
+
+
+@chat_router.post("/tasks/{task_id}/resume")
+async def resume_task(task_id: str):
+    """User approves a paused task — write resume.json to trigger continuation.
+
+    Called by frontend when user clicks the approval button.
+    The backend agent_runner's wait_for_resume() detects this file
+    and continues execution.
+    """
+    from aitest.infra.pause_handler import write_resume_file, check_pause_status
+
+    # Verify task is actually paused (prevent orphaned resume files)
+    if check_pause_status(task_id) is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Task '{task_id}' is not currently paused",
+        )
+
+    write_resume_file(task_id)
+    return {
+        "status": "resumed",
+        "task_id": task_id,
+        "message": f"Task '{task_id}' resumed — agent will continue execution",
+    }

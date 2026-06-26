@@ -30,9 +30,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+from aitest.platform.paths import get_workstudy
 
 
-_WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+_WORKSTUDY = get_workstudy()
 _WORKTREE_ROOT = _WORKSTUDY / ".claude" / "worktrees"
 
 

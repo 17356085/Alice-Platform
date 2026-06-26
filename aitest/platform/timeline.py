@@ -8,11 +8,13 @@ Usage:
     from aitest.platform.timeline import build_timeline
     timeline = build_timeline("run-abc123")
     for entry in timeline:
-        print(f"{entry['ts']}  {entry['type']}  {entry['message']}")
+        _log.info(f"{entry['ts']}  {entry['type']}  {entry['message']}")
 """
 
 from .run_store import get_run_store
 from .run_event import EventType
+from aitest.infra.logging import get_logger
+_log = get_logger(__name__)
 
 
 def build_timeline(run_id: str) -> list[dict]:

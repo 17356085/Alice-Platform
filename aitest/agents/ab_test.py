@@ -28,9 +28,10 @@ import time
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
+from aitest.platform.paths import get_workstudy
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 
 
 @dataclass

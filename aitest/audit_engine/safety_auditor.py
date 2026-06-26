@@ -34,9 +34,10 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from aitest.graphs.state import get_module_dir
+from aitest.platform.paths import get_workstudy
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 TRACE_LOG = GOVERNANCE / ".traces" / "trace_log.jsonl"
 EVENT_DIR = GOVERNANCE / ".events"

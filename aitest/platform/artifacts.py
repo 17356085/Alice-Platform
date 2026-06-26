@@ -21,6 +21,8 @@ import json
 from pathlib import Path
 from typing import Optional
 
+from aitest.platform.paths import get_workstudy
+
 
 class ArtifactStore:
     """
@@ -33,7 +35,7 @@ class ArtifactStore:
 
     def __init__(self, project_id: str = "web-automation"):
         self._project_id = project_id
-        self._root = Path(__file__).resolve().parent.parent.parent
+        self._root = get_workstudy()
 
         # TLO directory (may be None if project has no .tlo/)
         self._tlo_dir: Optional[Path] = self._resolve_tlo_dir()

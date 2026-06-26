@@ -35,9 +35,10 @@ import threading
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import Optional
+from aitest.platform.paths import get_workstudy
 
 # ── 路径 ──
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 DB_PATH = WORKSTUDY / "aitest" / "tasks.db"
 
 

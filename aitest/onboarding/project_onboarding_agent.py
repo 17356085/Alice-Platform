@@ -94,12 +94,48 @@ class OnboardingState:
 
 
 # ── In-memory session store ──────────────────────────────────────────────
+# ★ v2.9: OwnedDict — values auto-registered in LifecycleRegistry,
+# auto-disposed on pop/delete, OwnershipChecker-verifiable.
 
-_sessions: dict[str, OnboardingState] = {}
+from aitest.platform.ownership import OwnedDict
+from aitest.platform.paths import get_workstudy
+_sessions: OwnedDict[str, OnboardingState] = OwnedDict(
+    "onboarding-sessions", owner="onboarding:module", ttl_s=7200, max_size=200,
+)
+_SESSION_MAX_AGE_S = 7200  # 2 hours — sessions older than this are cleaned
 
 
 def get_session(session_id: str) -> Optional[OnboardingState]:
     return _sessions.get(session_id)
+
+
+def cleanup_stale_sessions(max_age_s: float = _SESSION_MAX_AGE_S) -> int:
+    """Remove sessions older than max_age_s. Returns number cleaned.
+
+    Terminal sessions (completed/failed/cancelled) are cleaned immediately.
+    Non-terminal sessions are cleaned if they exceed max_age_s.
+    OwnedDict.__delitem__ triggers lifecycle dispose chain automatically.
+    """
+    import time as _time
+    now = _time.time()
+    stale = []
+    for sid, state in list(_sessions.items()):
+        is_terminal = state.step.value in ("completed", "failed", "cancelled")
+        try:
+            started = _time.mktime(_time.strptime(
+                state.started_at[:19], "%Y-%m-%dT%H:%M:%S"
+            )) if state.started_at else 0
+        except Exception:
+            started = 0
+        age = now - started if started else 0
+        if is_terminal or (started and age > max_age_s):
+            stale.append(sid)
+    for sid in stale:
+        try:
+            del _sessions[sid]  # OwnedDict triggers lifecycle.dispose()
+        except Exception:
+            pass
+    return len(stale)
 
 
 # ── Onboarding Agent ─────────────────────────────────────────────────────
@@ -154,14 +190,21 @@ class ProjectOnboardingAgent:
             started_at=datetime.now().isoformat(),
         )
         self._state = state
-        _sessions[session_id] = state
+        _sessions[session_id] = state  # OwnedDict.__setitem__ auto-registers in lifecycle
 
         # Start background processing
-        asyncio.create_task(self._run(
-            project_id, base_url, credentials, app_type,
-            source_type, project_path,
-            observe_pages, generate_page_objects
-        ))
+        # ★ v2.9: TaskGuard.create_task — tracked, cancellable, TTL-bounded.
+        from aitest.platform.ownership import get_task_guard
+        get_task_guard().create_task(
+            self._run(
+                project_id, base_url, credentials, app_type,
+                source_type, project_path,
+                observe_pages, generate_page_objects
+            ),
+            owner=f"onboarding:start:{project_id}",
+            lifecycle_id=f"onboarding-task:{session_id}",
+            ttl_s=7200,  # 2h — cancel if onboarding hangs
+        )
         return state
 
     async def _run(
@@ -361,8 +404,7 @@ class ProjectOnboardingAgent:
             state.errors.append(str(e))
 
         finally:
-            if self._discovery:
-                await self._discovery.close()
+            await self._release_resources()
 
     # ── HITL: Menu Confirmation ──────────────────────────────────────────
 
@@ -553,11 +595,32 @@ knowledge:
 
     def _project_yaml_path(self, project_id: str) -> Path:
         return (
-            Path(__file__).resolve().parent.parent.parent
+            get_workstudy()
             / "governance" / "context" / "projects" / project_id / "project.yaml"
         )
 
     # ── Helpers ──────────────────────────────────────────────────────────
+
+    async def _release_resources(self):
+        """Release BrowserUseDiscovery, browser, and internal state.
+
+        Called on terminal states (completed/failed/cancelled) and from
+        external cancel. Idempotent — safe to call multiple times.
+        Lifecycle unregistration handled by OwnedDict — not here.
+        """
+        # 1. Close BrowserUseDiscovery (closes Browser + Playwright)
+        discovery = self._discovery
+        self._discovery = None
+        if discovery:
+            try:
+                await discovery.close()
+            except Exception as e:
+                logger.debug("Discovery close error (ignored): %s", e)
+
+        # 2. Clear HITL state
+        self._pause_event = None
+        self._confirm_result = None
+        self._on_step = None
 
     def _set_step(self, step: OnboardingStep, progress: float):
         if self._state:

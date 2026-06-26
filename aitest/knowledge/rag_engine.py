@@ -562,6 +562,114 @@ def recommend_test_patterns(page_description: str, n_results: int = 5) -> list[d
     return results[:n_results]
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  Task 3b (P0): Planner Memory Context — 5-type memory query + graceful degrade
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def build_planner_memory_context(
+    module: str,
+    task_description: str = "",
+    client=None,
+    n_results: int = 5,
+) -> str:
+    """Query 5 memory types and format as planner context for agent injection.
+
+    Memory types queried:
+      - task_calibration    → past timing/effort estimates vs actual
+      - dead_end            → known failure paths (auto-detected)
+      - workflow_recipe     → successful testing strategies
+      - decision            → key decisions from past executions
+      - historical_failure  → failure patterns with known fixes
+
+    Graceful degradation:
+      - Empty ChromaDB (cold start) → returns explicit hint text
+      - DB unavailable (connect fail) → returns "" silently
+      - Partial results → formats only non-empty sections
+
+    Args:
+        module: Business module name (e.g. "equipment").
+        task_description: Human-readable goal for workflow recipe matching.
+        client: Optional ChromaDB PersistentClient (reuse connection).
+        n_results: Max results per memory type.
+
+    Returns:
+        Formatted context string for planner agent injection,
+        or "" on DB failure, or explicit hint on cold start.
+    """
+    if client is None:
+        try:
+            client = get_chroma_client()
+        except Exception:
+            return ""  # DB unreachable → silent fallback
+
+    # Query each memory type — each call is independently try/except safe
+    def _safe_query(query_text: str, collection: str, module_filter: str = None) -> list[dict]:
+        """Query a collection safely. Returns empty list on any failure."""
+        try:
+            return search_context(
+                query=query_text,
+                collection_name=collection,
+                module=module_filter,
+                n_results=n_results,
+                client=client,
+            )
+        except Exception:
+            return []
+
+    try:
+        calibrations = _safe_query(
+            f"{module} effort estimates timing", "project_context", module,
+        )
+        dead_ends = _safe_query(
+            f"{module} dead end failure path", "project_context", module,
+        )
+        recipes = _safe_query(
+            f"{task_description or module} workflow strategy", "project_context", module,
+        )
+        decisions = _safe_query(
+            f"{module} decision made", "project_context", module,
+        )
+        failures = _safe_query(
+            f"{module} failure pattern fix", "project_context", module,
+        )
+    except Exception:
+        return ""  # Catastrophic DB failure → silent fallback
+
+    # Build sections — only include non-empty
+    sections: dict[str, list[dict]] = {}
+    if calibrations:
+        sections["历史标定 (Past Calibrations)"] = calibrations
+    if dead_ends:
+        sections["已知死胡同 (Known Dead Ends)"] = dead_ends
+    if recipes:
+        sections["工作流配方 (Workflow Recipes)"] = recipes
+    if decisions:
+        sections["关键决策 (Key Decisions)"] = decisions
+    if failures:
+        sections["历史失败 (Historical Failures)"] = failures
+
+    # All empty → cold start hint
+    if not sections:
+        return (
+            "[Memory] No relevant project memory found. "
+            "This appears to be a first-time execution for this module. "
+            "Proceed with fresh reasoning — key decisions and outcomes "
+            "will be recorded for future runs."
+        )
+
+    # Format non-empty sections
+    parts = ["## 项目记忆 (Project Memory)\n"]
+    for label, results in sections.items():
+        parts.append(f"### {label}")
+        for r in results[:3]:  # Top 3 per section
+            content = str(r.get("content", r.get("text", "")))[:300]
+            if content.strip():
+                parts.append(f"- {content}")
+        parts.append("")
+    return "\n".join(parts)
+
+
 def search_context(query: str, collection_name: str = "tech_analysis",
                    module: str = None, n_results: int = 5,
                    client = None, max_chars: int = None) -> list[dict]:

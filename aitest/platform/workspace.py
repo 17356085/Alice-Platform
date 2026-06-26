@@ -27,6 +27,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
 from dataclasses import dataclass, field
+from aitest.platform.paths import get_workstudy
 
 
 # ── ExecutionContext ───────────────────────────────────────────────────
@@ -82,7 +83,7 @@ class WorkspaceManager:
     """Manages workspaces within organizations. Enforces isolation."""
 
     def __init__(self, data_dir: Path = None):
-        self._root = data_dir or (Path(__file__).resolve().parent.parent.parent / "governance" / ".data" / "workspaces")
+        self._root = data_dir or (get_workstudy() / "governance" / ".data" / "workspaces")
         self._root.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
 

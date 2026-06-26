@@ -1,12 +1,12 @@
-/** Settings Store — centralized app + project settings.
-
-Replaces scattered localStorage reads across views.
-Structure mirrors Aperant's settings-store.ts: app settings + per-project overrides.
-*/
-import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+/** Settings Store — Zustand port. Centralized app + project settings.
+ *
+ * Persists to localStorage('tlo-settings') on every update.
+ */
+import { create } from 'zustand'
 
 const STORAGE_KEY = 'tlo-settings'
+
+// ── Types ──────────────────────────────────────────────────────
 
 export interface ProviderAccount {
   id: string
@@ -18,41 +18,38 @@ export interface ProviderAccount {
 }
 
 export interface AppSettings {
-  // Appearance
   theme: string           // default | dusk | lime | ocean | retro | neo | forest
   darkMode: boolean
   language: string        // zh | en
   uiScale: number         // 75-200, default 100
 
-  // Provider
   provider: string        // primary provider name
   fallbackChain: string[] // provider fallback order
   accounts: ProviderAccount[]
 
-  // Agent
   defaultModel: string
   thinkingLevel: string   // low | medium | high
 
-  // Audit
   auditInterval: number   // seconds
   costBudget: number      // USD monthly cap
 
-  // Notifications
   notifyBuildComplete: boolean
   notifyRateLimit: boolean
 }
 
 export interface ProjectSettings {
   projectId: string
-  provider?: string          // override global provider
-  model?: string             // override global model
-  maxParallel: number        // max parallel tasks
-  mainBranch: string         // git main branch
+  provider?: string
+  model?: string
+  maxParallel: number
+  mainBranch: string
   githubToken?: string
   githubRepo?: string
   gitlabToken?: string
   gitlabProject?: string
 }
+
+// ── Defaults ───────────────────────────────────────────────────
 
 const defaults: AppSettings = {
   theme: 'default',
@@ -77,51 +74,77 @@ function load(): AppSettings {
   } catch { return { ...defaults } }
 }
 
-export const useSettingsStore = defineStore('settings', () => {
-  const app = ref<AppSettings>(load())
-  const projectOverrides = ref<Record<string, ProjectSettings>>({})
+function persist(v: AppSettings) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(v)) } catch { /* ignore */ }
+}
 
-  // Persist on change
-  watch(app, (v) => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(v)) } catch { /* ignore */ }
-  }, { deep: true })
+// ── State ──────────────────────────────────────────────────────
 
-  // ── App settings ────────────────────────────────────────────
+export interface SettingsState {
+  app: AppSettings
+  projectOverrides: Record<string, ProjectSettings>
 
-  function updateApp(patch: Partial<AppSettings>) {
-    Object.assign(app.value, patch)
-  }
+  // App
+  updateApp: (patch: Partial<AppSettings>) => void
+  addAccount: (account: ProviderAccount) => void
+  removeAccount: (id: string) => void
 
-  function addAccount(account: ProviderAccount) {
-    account.id = account.id || Date.now().toString(36)
-    app.value.accounts.push(account)
-  }
+  // Project
+  getProjectSettings: (projectId: string) => ProjectSettings
+  updateProject: (projectId: string, patch: Partial<ProjectSettings>) => void
 
-  function removeAccount(id: string) {
-    app.value.accounts = app.value.accounts.filter(a => a.id !== id)
-  }
+  // Reset
+  resetApp: () => void
+}
 
-  // ── Project settings ─────────────────────────────────────────
+export const useSettingsStore = create<SettingsState>((set, get) => ({
+  app: load(),
+  projectOverrides: {},
 
-  function getProjectSettings(projectId: string): ProjectSettings {
-    return projectOverrides.value[projectId] || { projectId, maxParallel: 4, mainBranch: 'main' }
-  }
+  updateApp(patch: Partial<AppSettings>) {
+    set(state => {
+      const app = { ...state.app, ...patch }
+      persist(app)
+      return { app }
+    })
+  },
 
-  function updateProject(projectId: string, patch: Partial<ProjectSettings>) {
-    const current = getProjectSettings(projectId)
-    projectOverrides.value[projectId] = { ...current, ...patch, projectId }
-  }
+  addAccount(account: ProviderAccount) {
+    set(state => {
+      const a = { ...account, id: account.id || Date.now().toString(36) }
+      const app = { ...state.app, accounts: [...state.app.accounts, a] }
+      persist(app)
+      return { app }
+    })
+  },
 
-  // ── Reset ───────────────────────────────────────────────────
+  removeAccount(id: string) {
+    set(state => {
+      const app = { ...state.app, accounts: state.app.accounts.filter(a => a.id !== id) }
+      persist(app)
+      return { app }
+    })
+  },
 
-  function resetApp() {
-    app.value = { ...defaults }
-  }
+  getProjectSettings(projectId: string): ProjectSettings {
+    return get().projectOverrides[projectId] || { projectId, maxParallel: 4, mainBranch: 'main' }
+  },
 
-  return {
-    app, projectOverrides,
-    updateApp, addAccount, removeAccount,
-    getProjectSettings, updateProject,
-    resetApp,
-  }
-})
+  updateProject(projectId: string, patch: Partial<ProjectSettings>) {
+    set(state => {
+      const current = get().getProjectSettings(projectId)
+      return {
+        projectOverrides: {
+          ...state.projectOverrides,
+          [projectId]: { ...current, ...patch, projectId },
+        },
+      }
+    })
+  },
+
+  resetApp() {
+    const app = { ...defaults }
+    persist(app)
+    set({ app })
+  },
+}))

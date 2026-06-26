@@ -25,6 +25,9 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
 
+# P2-3: governance/validators/ is the canonical location for SOP governance validation.
+# These validators operate on governance documents (YAML/MD), not runtime state.
+# architecture-review: intentional cross-boundary import — governance is config+validation layer.
 from governance.validators.sop_validator import (
     validate_module_context,
     validate_page_bundle,
@@ -33,6 +36,8 @@ from governance.validators.sop_validator import (
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
 from aitest.platform.paths import get_workstudy, get_test_project_root, get_context_modules, get_governance_dir
+from aitest.infra.logging import get_logger
+_log = get_logger(__name__)
 WORKSTUDY = get_workstudy()
 GOVERNANCE = get_governance_dir()
 CONTEXT_MODULES = get_context_modules()
@@ -363,13 +368,13 @@ if __name__ == "__main__":
     import json
 
     if len(sys.argv) < 2:
-        print("Usage: python agent_scheduler.py check|next|auto [--module=<name>]")
-        print("\nAvailable modules:")
+        _log.info("Usage: python agent_scheduler.py check|next|auto [--module=<name>]")
+        _log.info("\nAvailable modules:")
         if CONTEXT_MODULES.exists():
             for mod_dir in sorted(CONTEXT_MODULES.iterdir()):
                 if mod_dir.is_dir():
                     mc = "✅" if (mod_dir / "MODULE_CONTEXT.md").exists() else "❌"
-                    print(f"  {mc} {mod_dir.name}")
+                    _log.info(f"  {mc} {mod_dir.name}")
         sys.exit(0)
 
     cmd = sys.argv[1]
@@ -394,4 +399,4 @@ if __name__ == "__main__":
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
     else:
-        print(f"Unknown command: {cmd}")
+        _log.info(f"Unknown command: {cmd}")

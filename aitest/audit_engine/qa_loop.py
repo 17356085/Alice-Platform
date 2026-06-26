@@ -32,7 +32,8 @@ from pathlib import Path
 from typing import Optional
 
 from aitest.platform.paths import get_test_project_root
-_WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+from aitest.platform.paths import get_workstudy
+_WORKSTUDY = get_workstudy()
 
 
 class LoopStatus(Enum):

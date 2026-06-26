@@ -21,9 +21,13 @@ logger = logging.getLogger(__name__)
 onboarding_router = APIRouter(prefix="/api/onboarding", tags=["onboarding"])
 
 # ── In-memory agent store (shared with project_onboarding_agent) ─────────
-# Import after router definition to avoid circular imports
-_active_agents: dict[str, "ProjectOnboardingAgent"] = {}
-_active_tasks: dict[str, asyncio.Task] = {}
+# ★ v2.9: OwnedDict — single owner, auto-lifecycle, OwnershipChecker-verifiable.
+# Replaces bare dict that bypassed lifecycle system.
+from aitest.platform.ownership import OwnedDict
+_active_agents: OwnedDict[str, "ProjectOnboardingAgent"] = OwnedDict(
+    "onboarding-agents", owner="onboarding:api", ttl_s=7200, max_size=100,
+)
+# _active_tasks removed — TaskGuard (ownership.py) handles all task tracking
 
 
 def _get_agent():
@@ -218,7 +222,7 @@ async def confirm_menu(session_id: str, req: OnboardingConfirmRequest):
 
 @onboarding_router.post("/{session_id}/cancel")
 async def cancel_onboarding(session_id: str):
-    """Cancel an ongoing onboarding session."""
+    """Cancel an ongoing onboarding session. Releases agent and browser resources."""
     ProjectOnboardingAgent, _sessions, get_session, _ = _get_agent()
 
     state = get_session(session_id)
@@ -228,14 +232,26 @@ async def cancel_onboarding(session_id: str):
     agent = _active_agents.get(session_id)
     if agent:
         await agent.cancel(session_id)
+        # OwnedDict.pop triggers lifecycle.dispose → _release_resources
+        _active_agents.pop(session_id, None)
 
     return {"status": "cancelled", "session_id": session_id}
 
 
 @onboarding_router.get("/sessions")
 async def list_sessions():
-    """List all active onboarding sessions."""
+    """List all active onboarding sessions. Cleans terminal/stale sessions on read."""
     _, _sessions, _, OnboardingStep = _get_agent()
+    from aitest.onboarding.project_onboarding_agent import cleanup_stale_sessions
+
+    # Eager-clean terminal sessions on each list (opportunistic GC)
+    # OwnedDict.pop triggers lifecycle.dispose → _release_resources chain
+    for sid, state in list(_sessions.items()):
+        if state.step.value in ("completed", "failed", "cancelled"):
+            _active_agents.pop(sid, None)  # OwnedDict → dispose chain
+
+    cleanup_stale_sessions()
+
     result = []
     for sid, state in _sessions.items():
         result.append({

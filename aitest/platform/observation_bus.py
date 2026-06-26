@@ -143,15 +143,40 @@ def get_bus() -> ObservationBus:
     global _bus
     if _bus is None:
         _bus = ObservationBus()
+        # ── Task 3b (P0): Register MemoryObserver subscribers ──
+        _register_memory_observer(_bus)
     return _bus
+
+
+def _register_memory_observer(bus: ObservationBus) -> None:
+    """Subscribe MemoryObserver to SKILL_FAILED / SKILL_COMPLETE events.
+
+    Lazy import to avoid circular dependency at module load time.
+    """
+    try:
+        from aitest.platform.memory_observer import (
+            on_skill_failed, on_skill_complete,
+        )
+        bus.subscribe(EventType.SKILL_FAILED, on_skill_failed)
+        bus.subscribe(EventType.SKILL_COMPLETE, on_skill_complete)
+    except Exception:
+        pass  # memory_observer is optional — platform works without it
 
 
 # ══════════════════════════════════════════════════════════════════════════
 #  预置 Consumer: Memory Sync
 # ══════════════════════════════════════════════════════════════════════════
 
+_registered = False  # ★ v2.9: dedup guard
+
 def register_memory_consumer(store=None):
-    """注册 Memory 消费者：自动将观测事件写入 TestingMemoryStore。"""
+    """注册 Memory 消费者：自动将观测事件写入 TestingMemoryStore。
+    Idempotent — subsequent calls are no-ops."""
+    global _registered
+    if _registered:
+        return
+    _registered = True
+
     from aitest.platform.testing_memory import (
         LocatorHistoryMemory, KnownBugMemory, HistoricalFailureMemory, MemoryType,
     )
@@ -161,6 +186,7 @@ def register_memory_consumer(store=None):
         try:
             store = TestingMemoryStore()
         except Exception:
+            _registered = False
             return
 
     bus = get_bus()
@@ -202,6 +228,23 @@ def register_memory_consumer(store=None):
         )
         store.add(mem)
 
-    bus.subscribe(EventType.TEST_FAILED, on_test_failed)
-    bus.subscribe(EventType.TOOL_CALL_FAILED, on_tool_call_failed)
+    # ★ RC3 fix: Use BoundSubscription so callbacks are lifecycle-tracked.
+    # BoundSubscription registers itself in LifecycleRegistry — when owner
+    # (memory-consumer) is disposed, callbacks auto-unsubscribe.
+    # Falls back to bare subscribe if ownership module unavailable.
+    try:
+        from aitest.platform.ownership import BoundSubscription
+        _mem_consumer_subs = [
+            BoundSubscription(bus, EventType.TEST_FAILED, on_test_failed,
+                             owner_id="memory-consumer"),
+            BoundSubscription(bus, EventType.TOOL_CALL_FAILED, on_tool_call_failed,
+                             owner_id="memory-consumer"),
+        ]
+        for sub in _mem_consumer_subs:
+            sub.activate()  # calls bus.subscribe() internally
+    except Exception:
+        # Fallback: bare subscribe when ownership module unavailable
+        bus.subscribe(EventType.TEST_FAILED, on_test_failed)
+        bus.subscribe(EventType.TOOL_CALL_FAILED, on_tool_call_failed)
+
     logger.info("Memory consumer registered on ObservationBus")

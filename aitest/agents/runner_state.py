@@ -159,6 +159,8 @@ class AgentState:
     done: bool = False
     success: bool = False
     termination_reason: str = ""
+    # ── Task 4 (P1): Task FSM state ──
+    task_state: str = "backlog"  # Matches TaskState enum values
 
     def to_dict(self) -> dict:
         return {

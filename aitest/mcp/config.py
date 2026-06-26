@@ -15,7 +15,8 @@ Usage (legacy — still works):
 from pathlib import Path
 
 # ── Root paths (platform-independent) ────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+from aitest.platform.paths import get_workstudy
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 
 # ── Active-project paths — derived from ProjectContext ───────────────────

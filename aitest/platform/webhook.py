@@ -33,6 +33,7 @@ from typing import Optional
 from .consumer import RunEventConsumer
 from .run_event import RunEvent, EventType
 from .event_bus import get_bus
+from aitest.platform.paths import get_workstudy
 
 
 # ── Registry Data ────────────────────────────────────────────────────────
@@ -59,7 +60,7 @@ class WebhookRegistration:
 # ── Registry ─────────────────────────────────────────────────────────────
 
 def _registry_path() -> Path:
-    base = Path(__file__).resolve().parent.parent.parent
+    base = get_workstudy()
     return base / "governance" / ".data" / "webhooks.json"
 
 

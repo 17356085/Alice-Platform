@@ -25,10 +25,12 @@ from datetime import datetime, timezone
 from .consumer import RunEventConsumer
 from .run_event import RunEvent, EventType
 from .event_bus import get_bus
+from .ttl_set import TTLSet
+from aitest.platform.paths import get_workstudy
 
 
 def _metrics_dir() -> Path:
-    base = Path(__file__).resolve().parent.parent.parent
+    base = get_workstudy()
     return base / "governance" / ".data" / "metrics"
 
 
@@ -40,7 +42,7 @@ class MetricsConsumer:
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._active = False
-        self._seen: set[str] = set()  # Idempotency: track processed event_ids
+        self._seen = TTLSet(max_size=10_000, max_age_s=86_400)  # Idempotency: 10k entries, 24h TTL
 
         # Counters
         self._total_runs = 0
@@ -51,9 +53,11 @@ class MetricsConsumer:
         self._total_cost = 0.0
         self._total_duration_ms = 0.0
 
-        # Per-module breakdown
+        # Per-module breakdown — capped LRU eviction (RC2 fix)
         self._by_module: dict[str, dict] = {}  # module → {runs, completed, tokens, cost}
         self._by_agent: dict[str, dict] = {}   # agent → {runs, completed, tokens, cost}
+        self._MAX_BY_MODULE = 200
+        self._MAX_BY_AGENT = 200
 
     # ── Lifecycle ─────────────────────────────────────────────────────
 
@@ -82,28 +86,25 @@ class MetricsConsumer:
     # ── Handlers ──────────────────────────────────────────────────────
 
     def _on_run_completed(self, event: RunEvent):
-        if event.event_id in self._seen:
-            return
+        if not self._seen.add(event.event_id):
+            return  # already processed (TTLSet atomic check-and-add)
         with self._lock:
-            self._seen.add(event.event_id)
             self._total_runs += 1
             self._completed_runs += 1
             self._accumulate(event)
 
     def _on_run_failed(self, event: RunEvent):
-        if event.event_id in self._seen:
+        if not self._seen.add(event.event_id):
             return
         with self._lock:
-            self._seen.add(event.event_id)
             self._total_runs += 1
             self._failed_runs += 1
             self._accumulate(event)
 
     def _on_run_cancelled(self, event: RunEvent):
-        if event.event_id in self._seen:
+        if not self._seen.add(event.event_id):
             return
         with self._lock:
-            self._seen.add(event.event_id)
             self._total_runs += 1
             self._cancelled_runs += 1
 
@@ -116,21 +117,33 @@ class MetricsConsumer:
         self._total_tokens += tokens
         self._total_cost += cost
 
-        # By module
+        now = time.monotonic()
+
+        # By module — with LRU eviction cap (RC2 fix)
         if module not in self._by_module:
+            if len(self._by_module) >= self._MAX_BY_MODULE:
+                oldest = min(self._by_module.keys(),
+                             key=lambda k: self._by_module[k].get("_last_ts", 0))
+                del self._by_module[oldest]
             self._by_module[module] = {"runs": 0, "completed": 0, "tokens": 0, "cost": 0.0}
         self._by_module[module]["runs"] += 1
         self._by_module[module]["completed"] += 1
         self._by_module[module]["tokens"] += tokens
         self._by_module[module]["cost"] += cost
+        self._by_module[module]["_last_ts"] = now
 
-        # By agent
+        # By agent — with LRU eviction cap (RC2 fix)
         if agent not in self._by_agent:
+            if len(self._by_agent) >= self._MAX_BY_AGENT:
+                oldest = min(self._by_agent.keys(),
+                             key=lambda k: self._by_agent[k].get("_last_ts", 0))
+                del self._by_agent[oldest]
             self._by_agent[agent] = {"runs": 0, "completed": 0, "tokens": 0, "cost": 0.0}
         self._by_agent[agent]["runs"] += 1
         self._by_agent[agent]["completed"] += 1
         self._by_agent[agent]["tokens"] += tokens
         self._by_agent[agent]["cost"] += cost
+        self._by_agent[agent]["_last_ts"] = now
 
     # ── Snapshot ──────────────────────────────────────────────────────
 

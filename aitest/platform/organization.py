@@ -33,6 +33,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
 from dataclasses import dataclass, field
+from aitest.platform.paths import get_workstudy
 
 
 # ── Data ───────────────────────────────────────────────────────────────
@@ -73,7 +74,7 @@ class OrganizationManager:
     """Manages organizations, members, and API keys."""
 
     def __init__(self, data_dir: Path = None):
-        self._data_dir = data_dir or (Path(__file__).resolve().parent.parent.parent / "governance" / ".data" / "orgs")
+        self._data_dir = data_dir or (get_workstudy() / "governance" / ".data" / "orgs")
         self._data_dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
 

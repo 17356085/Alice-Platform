@@ -28,9 +28,10 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
+from aitest.platform.paths import get_workstudy
 
 # ── Paths ──────────────────────────────────────────────────────────────
-_WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+_WORKSTUDY = get_workstudy()
 _LOG_DIR = _WORKSTUDY / "governance" / ".traces"
 _LOG_FILE = _LOG_DIR / "app_log.jsonl"
 

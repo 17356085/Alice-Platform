@@ -218,6 +218,14 @@ _避免_: "消息总线"、"事件队列"
 LangGraph Send() API实现的多页面并行执行。N个页面同时走SOP流水线, 理论加速比~Nx。
 _避免_: "并发执行"、"多线程SOP"
 
+**MCP Server**:
+aitest 向外部 AI 暴露的工具端点。实现 `mcp/protocol.py` 协议，工具注册在 `mcp/tools/`。
+_避免_: "MCP 服务"、"工具服务"
+
+**MCP Client**:
+aitest Agent 调用外部 MCP Server 的客户端。通过 `mcp/mcp_client.py` 管理连接生命周期，支持 stdio 和 streamable-http 双传输协议。
+_避免_: "远程工具调用"、"外部工具"
+
 **ComplexityTier** (SIMPLE/STANDARD/COMPLEX):
 页面复杂度三档分类。SIMPLE: ≤20分(2 Agent), STANDARD: 20-60分(5 Agent), COMPLEX: ≥60分(8 Agent完整流水线)。
 _避免_: "难度等级"、"优先级"

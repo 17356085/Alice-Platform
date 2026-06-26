@@ -18,10 +18,15 @@ import operator
 #  New code should use: from aitest.platform import get_project; ctx = get_project()
 # ══════════════════════════════════════════════════════════════════════════
 
-_PATH_BASE = Path(__file__).resolve().parent.parent.parent
+from aitest.platform.paths import (
+    get_context_modules as _get_context_modules,
+    get_test_project_root as _get_test_project_root,
+    get_workstudy,
+)
+
+_PATH_BASE = get_workstudy()
 
 # Legacy constants — derived from ProjectContext, kept for backward compat
-from aitest.platform.paths import get_context_modules as _get_context_modules, get_test_project_root as _get_test_project_root
 _CONTEXT_MODULES = _get_context_modules()
 
 

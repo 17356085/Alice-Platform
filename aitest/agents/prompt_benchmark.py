@@ -28,9 +28,12 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
+from aitest.platform.paths import get_workstudy
+from aitest.infra.logging import get_logger
+_log = get_logger(__name__)
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 BENCH_DIR = GOVERNANCE / "artifacts" / "benchmarks"
 TRACE_LOG = GOVERNANCE / ".traces" / "trace_log.jsonl"
@@ -336,7 +339,7 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
-        print("Usage: python prompt_benchmark.py <skill_id> --versions=v1,v2 [--tag=smoke] [--quick] [--input=<text>]")
+        _log.info("Usage: python prompt_benchmark.py <skill_id> --versions=v1,v2 [--tag=smoke] [--quick] [--input=<text>]")
         sys.exit(0)
 
     skill = sys.argv[1]
@@ -362,11 +365,11 @@ if __name__ == "__main__":
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:
         result = bench.compare(skill, versions, dataset_tag=tag)
-        print(f"\nSkill: {result['skill_id']}")
-        print(f"Winner: {result['winner']}")
-        print(f"Recommendation: {result['recommendation']}")
-        print(f"\nSummary:")
+        _log.info(f"\nSkill: {result['skill_id']}")
+        _log.info(f"Winner: {result['winner']}")
+        _log.info(f"Recommendation: {result['recommendation']}")
+        _log.info(f"\nSummary:")
         for ver, stats in result["summary"].items():
-            print(f"  {ver}: composite={stats['avg_composite_score']:.3f}, "
+            _log.info(f"  {ver}: composite={stats['avg_composite_score']:.3f}, "
                   f"tokens={stats['avg_tokens']}, cost=${stats['avg_cost']:.4f}, "
                   f"final={stats['final_score']:.3f}")

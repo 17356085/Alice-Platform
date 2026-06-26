@@ -34,11 +34,12 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
 from collections import defaultdict
+from aitest.platform.paths import get_workstudy
 
 
 # ── Persistence ────────────────────────────────────────────────────────
 
-_WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+_WORKSTUDY = get_workstudy()
 _METRICS_DIR = _WORKSTUDY / "governance" / "kpi" / "timeseries"
 _METRICS_FILE = _METRICS_DIR / "operational_metrics.jsonl"
 

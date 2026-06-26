@@ -3,6 +3,7 @@
 
 提供:
   make_agent_loop_node()    — ★ P0-1 统一节点：AgentLoop.run() 替代 SubGraph (推荐)
+from aitest.platform.paths import get_workstudy
   make_pass_through_node()  — Phase 1 占位节点（内部调用 AgentLoop.run()）
   make_skill_node()         — Phase 2+ 单个 Skill 的 LLM 调用节点
   make_gate_node()          — Phase 2+ 门禁检查节点
@@ -18,7 +19,7 @@ from aitest.graphs.state import (
     validate_phase_artifacts, MAX_PHASE_RETRY_ROUNDS,
 )
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 
 
 # ══════════════════════════════════════════════════════════════════════════

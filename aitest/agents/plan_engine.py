@@ -8,6 +8,7 @@ import json
 import re
 
 from aitest.agents.runner_state import Observation
+from aitest.platform.paths import get_workstudy
 
 
 def plan_next_action(skill_index: int, perception: dict, skills: list,
@@ -56,10 +57,16 @@ def plan_next_action(skill_index: int, perception: dict, skills: list,
         # LLM decision for ambiguous cases
         return _llm_decide(skill_index, perception, skills, state, provider, logger)
 
+    # ── Task 4 (P1): Task FSM state tracking ──
+    # Inject current task_state into plan result so agent_runner
+    # can update the FSM on phase transitions.
+    current_task_state = getattr(state, "task_state", "backlog")
+
     # Rule 2: sequential advance
     if skill_index < len(skills):
         return {"action": "execute",
                 "skill_id": skills[skill_index],
+                "task_state": current_task_state,
                 "reason": f"Sequential ({skill_index + 1}/{len(skills)})"}
 
     return {"action": "done", "skill_id": "", "reason": "All skills processed"}
@@ -119,8 +126,8 @@ def check_skill_risk_level(skill_id: str) -> tuple:
         import yaml
         from pathlib import Path
         registries = [
-            Path(__file__).resolve().parent.parent.parent / "governance" / "skills" / "skill-registry.yaml",
-            Path(__file__).resolve().parent.parent.parent / "governance" / "skills-dev" / "skill-registry-dev.yaml",
+            get_workstudy() / "governance" / "skills" / "skill-registry.yaml",
+            get_workstudy() / "governance" / "skills-dev" / "skill-registry-dev.yaml",
         ]
         for rp in registries:
             if not rp.exists():
@@ -170,9 +177,16 @@ def _check_skill_confirmation(skill_id: str, state, logger=None) -> dict | None:
         logger(f"  ⚠️  HITL: Skill '{skill_id}' risk={risk_level}, needs_confirm={needs_confirm}")
         logger(f"      等待用户确认后继续...")
 
+    # Build task_id for sentinel file isolation (multi-task safe).
+    # Format: "<module>:<skill-short-name>"
+    # e.g. "equipment:execution/data-sanitization"
+    module = getattr(state, "module", "") or ""
+    task_id = f"{module}:{skill_id}" if module else skill_id
+
     return {
         "action": "confirm_required",
         "skill_id": skill_id,
+        "task_id": task_id,
         "reason": f"HITL confirmation required: risk_level={risk_level}, needs_confirm={needs_confirm}",
         "risk_level": risk_level,
         "needs_confirm": needs_confirm,

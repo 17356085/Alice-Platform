@@ -35,7 +35,8 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta
 from collections import Counter
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+from aitest.platform.paths import get_workstudy
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 
 def _resolve_kpi_data_dir() -> Path:

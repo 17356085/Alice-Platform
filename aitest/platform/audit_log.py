@@ -24,10 +24,11 @@ from datetime import datetime, timezone
 
 from .event_bus import get_bus
 from .run_event import RunEvent
+from aitest.platform.paths import get_workstudy
 
 
 def _audit_db_path() -> Path:
-    base = Path(__file__).resolve().parent.parent.parent
+    base = get_workstudy()
     return base / "governance" / ".data" / "audit.db"
 
 

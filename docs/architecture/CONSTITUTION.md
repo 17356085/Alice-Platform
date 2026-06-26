@@ -75,7 +75,7 @@
 | `aitest/platform/runtime.py` | Runtime ABC（抽象方法签名不可变） |
 | `aitest/llm/reliable_provider.py` | `ReliableProvider.complete()` 签名 |
 | `aitest/agents/agent_runner.py` | `AgentLoop.run()` 签名 + AgentState 结构 |
-| `aitest/graphs/sop_graph.py` | SOP Phase 枚举 + Phase 间转换逻辑 |
+| `aitest/graphs/sop_graph.py` | SOP Phase 枚举 + Phase 间转换逻辑 (可增不可删/改) |
 | `aitest/server/main.py` | REST API 端点路径（/health, /metrics, /api/*） |
 | `aitest/config.py` | `Config` 类公开属性名 |
 | `governance/agents/agent-definitions.yaml` | Agent 定义 Schema |
@@ -184,6 +184,27 @@ Capability Router 负责将 Capability 名称路由到具体实现。更换底�
 
 ---
 
+### 3.1 平台执行状态目录
+
+平台运行时执行状态（pause/resume、agent session state、task FSM 状态）存储于 `governance/.data/`，**不跟随项目 git**。
+
+```
+governance/.data/
+├── {task_id}/
+│   ├── pause.json          # Task 暂停状态 (原因/时间戳/task_id)
+│   ├── resume.json         # 前端写 RESUME → 后端轮询检测
+│   └── task_state.json     # Task FSM 当前状态快照
+```
+
+**与 `.tlo/` 的关系**:
+- `.tlo/` — 项目知识 + 派生数据，跟随项目 git (ADR-001)
+- `.graph_state/` — LangGraph 专用 checkpoint (SqliteSaver)
+- `.data/` — 通用平台执行状态，不跟随项目 (本条新增)
+
+**原则**: 平台执行状态 ≠ 项目知识。Pause/Resume/Session 是平台运行时概念，不写入 `.tlo/`。
+
+---
+
 ## 4. 变更审批流程
 
 ### 4.1 免审批 (直接改)
@@ -221,8 +242,8 @@ Capability Router 负责将 Capability 名称路由到具体实现。更换底�
 | LLM Provider | Anthropic + OpenAI + DeepSeek | — |
 | 向量数据库 | ChromaDB | ≥0.4 |
 | 关系数据库 | SQLite (via SQLAlchemy) | — |
-| 前端框架 | Vue 3 + Pinia | ≥3.5 |
-| UI 组件 | Radix Vue + Tailwind CSS | — |
+| 前端框架 | React 18 + Zustand | ≥18.3 |
+| UI 组件 | Radix UI + Tailwind CSS + Lucide React | — |
 | 观测 | OpenTelemetry + Prometheus | — |
 | 测试 | pytest + Playwright | ≥8.0 |
 | 配置 | YAML + python-dotenv | — |

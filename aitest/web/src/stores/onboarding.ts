@@ -1,7 +1,11 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+/** Onboarding Store — Zustand port. Multi-step project discovery wizard.
+ *  Pinia ref/reactive → Zustand plain state. No Proxy overhead.
+ */
+import { create } from 'zustand'
 import { api } from '@/api/client'
 import { ENDPOINTS } from '@/api/endpoints'
+
+// ── Types ──────────────────────────────────────────────────────
 
 export interface MenuNode {
   label: string
@@ -20,140 +24,116 @@ export interface PageInfo {
   elements?: Record<string, any>
 }
 
+const MAX_ERRORS = 50
+
+// ── Selectors ──────────────────────────────────────────────────
+
+const STEPS = ['init', 'validating', 'scanning_menu', 'confirm_menu', 'discovering_pages', 'observing_pages', 'generating_config', 'indexing', 'completed']
+
+export const selectStepIndex = (state: OnboardingState) => STEPS.indexOf(state.step)
+export const selectIsMenuReady = (state: OnboardingState) => state.step === 'confirm_menu' || STEPS.indexOf(state.step) >= 3
+export const selectIsComplete = (state: OnboardingState) => state.step === 'completed'
+export const selectIsFailed = (state: OnboardingState) => state.step === 'failed'
+
+// ── Store ──────────────────────────────────────────────────────
+
 export interface OnboardingState {
-  session_id: string
-  project_id: string
-  base_url: string
-  step: string
-  progress: number
-  current_page: string
-  total_pages: number
-  completed_pages: number
-  menu_tree: MenuNode[]
-  pages: PageInfo[]
-  errors: string[]
-  result: Record<string, any> | null
-  started_at: string
-  completed_at: string
+  sessionId: string; projectId: string; baseUrl: string
+  sourceType: 'url' | 'local'; projectPath: string
+  step: string; progress: number
+  currentPage: string; totalPages: number; completedPages: number
+  menuTree: MenuNode[]; pages: PageInfo[]
+  errors: string[]; result: Record<string, any> | null
+  isRunning: boolean; wsConnected: boolean
+
+  start: (url: string, pid: string, username: string, password: string) => Promise<void>
+  pollStatus: () => Promise<void>
+  confirmMenu: (editedMenu?: MenuNode[]) => Promise<void>
+  cancel: () => Promise<void>
+  reset: () => void
 }
 
-const API = ENDPOINTS.ONBOARDING_START.replace('/start', '')
+export const useOnboardingStore = create<OnboardingState>((set, get) => ({
+  sessionId: '', projectId: '', baseUrl: '',
+  sourceType: 'url', projectPath: '',
+  step: 'init', progress: 0,
+  currentPage: '', totalPages: 0, completedPages: 0,
+  menuTree: [], pages: [],
+  errors: [], result: null,
+  isRunning: false, wsConnected: false,
 
-export const useOnboardingStore = defineStore('onboarding', () => {
-  const sessionId = ref<string>('')
-  const projectId = ref('')
-  const baseUrl = ref('')
-  const sourceType = ref<'url' | 'local'>('url')
-  const projectPath = ref('')
-  const step = ref('init')
-  const progress = ref(0)
-  const currentPage = ref('')
-  const totalPages = ref(0)
-  const completedPages = ref(0)
-  const menuTree = ref<MenuNode[]>([])
-  const pages = ref<PageInfo[]>([])
-  const errors = ref<string[]>([])
-  const result = ref<Record<string, any> | null>(null)
-  const isRunning = ref(false)
-  const wsConnected = ref(false)
-
-  // Computed
-  const stepIndex = computed(() => {
-    const steps = ['init', 'validating', 'scanning_menu', 'confirm_menu', 'discovering_pages', 'observing_pages', 'generating_config', 'indexing', 'completed']
-    return steps.indexOf(step.value)
-  })
-
-  const isMenuReady = computed(() =>
-    step.value === 'confirm_menu' || stepIndex.value >= 3
-  )
-
-  const isComplete = computed(() => step.value === 'completed')
-  const isFailed = computed(() => step.value === 'failed')
-
-  // Actions
-  async function start(url: string, pid: string, username: string, password: string) {
-    isRunning.value = true
-    errors.value = []
-    projectId.value = pid
-    baseUrl.value = url
-
+  async start(url: string, pid: string, username: string, password: string) {
+    set({ isRunning: true, errors: [], projectId: pid, baseUrl: url })
+    const { sourceType, projectPath } = get()
     try {
       const data = await api.post<{ session_id: string; step: string }>(ENDPOINTS.ONBOARDING_START, {
-        url: sourceType.value === 'url' ? url : '',
+        url: sourceType === 'url' ? url : '',
         project_id: pid,
         username, password,
-        source_type: sourceType.value,
-        project_path: sourceType.value === 'local' ? projectPath.value : '',
-        observe_pages: sourceType.value === 'url',
+        source_type: sourceType,
+        project_path: sourceType === 'local' ? projectPath : '',
+        observe_pages: sourceType === 'url',
         generate_page_objects: false,
       })
-      sessionId.value = data.session_id
-      step.value = data.step
-      progress.value = 0
+      set({ sessionId: data.session_id, step: data.step, progress: 0 })
     } catch (e: any) {
-      errors.value.push(`Start failed: ${e.message}`)
-      isRunning.value = false
+      set(state => ({
+        errors: state.errors.length < MAX_ERRORS ? [...state.errors, `Start failed: ${e.message}`] : state.errors,
+        isRunning: false,
+      }))
     }
-  }
+  },
 
-  async function pollStatus() {
-    if (!sessionId.value) return
+  async pollStatus() {
+    const { sessionId } = get()
+    if (!sessionId) return
     try {
-      const state = await api.get<OnboardingState>(ENDPOINTS.ONBOARDING_STATUS(sessionId.value))
-      step.value = state.step
-      progress.value = state.progress
-      currentPage.value = state.current_page
-      totalPages.value = state.total_pages
-      completedPages.value = state.completed_pages
-      if (state.menu_tree?.length) menuTree.value = state.menu_tree
-      if (state.pages?.length) pages.value = state.pages
-      if (state.errors?.length) errors.value = state.errors
-      if (state.result) result.value = state.result
-      if (['completed', 'failed', 'cancelled'].includes(state.step)) isRunning.value = false
+      const state = await api.get<any>(ENDPOINTS.ONBOARDING_STATUS(sessionId))
+      set(s => {
+        const updates: Partial<OnboardingState> = {
+          step: state.step, progress: state.progress,
+          currentPage: state.current_page, totalPages: state.total_pages, completedPages: state.completed_pages,
+        }
+        if (state.menu_tree?.length) updates.menuTree = state.menu_tree
+        if (state.pages?.length) updates.pages = state.pages
+        if (state.errors?.length) updates.errors = state.errors
+        if (state.result) updates.result = state.result
+        if (['completed', 'failed', 'cancelled'].includes(state.step)) updates.isRunning = false
+        return updates as any
+      })
     } catch (e: any) {
-      errors.value.push(`Poll error: ${e.message}`)
+      set(s => ({
+        errors: s.errors.length < MAX_ERRORS ? [...s.errors, `Poll error: ${e.message}`]
+              : s.errors.length === MAX_ERRORS ? [...s.errors.slice(1), '⚠️ Error log full'] : s.errors,
+      }))
     }
-  }
+  },
 
-  async function confirmMenu(editedMenu?: MenuNode[]) {
-    if (!sessionId.value) return
+  async confirmMenu(editedMenu?: MenuNode[]) {
+    const { sessionId } = get()
+    if (!sessionId) return
     try {
-      await api.post(ENDPOINTS.ONBOARDING_CONFIRM(sessionId.value), { menu_tree: editedMenu || null })
+      await api.post(ENDPOINTS.ONBOARDING_CONFIRM(sessionId), { menu_tree: editedMenu || null })
     } catch {
-      errors.value.push('Confirm failed')
+      set(s => ({ errors: s.errors.length < MAX_ERRORS ? [...s.errors, 'Confirm failed'] : s.errors }))
     }
-  }
+  },
 
-  async function cancel() {
-    if (!sessionId.value) return
-    try { await api.post(ENDPOINTS.ONBOARDING_CANCEL(sessionId.value)) } catch { /* ignore */ }
-    isRunning.value = false
-    step.value = 'cancelled'
-  }
+  async cancel() {
+    const { sessionId } = get()
+    if (!sessionId) return
+    try { await api.post(ENDPOINTS.ONBOARDING_CANCEL(sessionId)) } catch { /* ignore */ }
+    set({ isRunning: false, step: 'cancelled' })
+  },
 
-  function reset() {
-    sessionId.value = ''
-    projectId.value = ''
-    baseUrl.value = ''
-    step.value = 'init'
-    progress.value = 0
-    currentPage.value = ''
-    totalPages.value = 0
-    completedPages.value = 0
-    menuTree.value = []
-    pages.value = []
-    errors.value = []
-    result.value = null
-    isRunning.value = false
-    wsConnected.value = false
-  }
-
-  return {
-    sessionId, projectId, baseUrl, sourceType, projectPath, step, progress,
-    currentPage, totalPages, completedPages,
-    menuTree, pages, errors, result,
-    isRunning, wsConnected,
-    stepIndex, isMenuReady, isComplete, isFailed,
-    start, pollStatus, confirmMenu, cancel, reset,
-  }
-})
+  reset() {
+    set({
+      sessionId: '', projectId: '', baseUrl: '',
+      step: 'init', progress: 0,
+      currentPage: '', totalPages: 0, completedPages: 0,
+      menuTree: [], pages: [],
+      errors: [], result: null,
+      isRunning: false, wsConnected: false,
+    })
+  },
+}))

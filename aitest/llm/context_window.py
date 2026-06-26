@@ -56,6 +56,32 @@ class WindowState:
     max_continuations: int = 5
 
 
+@dataclass
+class ContinuationResult:
+    """Task 5 (P1): Summary of a continuable session.
+
+    Tracks how many continuations occurred and cumulative token usage
+    across all continuation rounds.  Reference: Aperant continuation.ts:70-75.
+    """
+    continuation_count: int = 0
+    cumulative_input_tokens: int = 0
+    cumulative_output_tokens: int = 0
+    total_tokens: int = 0
+
+    @property
+    def was_continued(self) -> bool:
+        return self.continuation_count > 0
+
+    def summary(self) -> str:
+        if not self.was_continued:
+            return "Session completed in one pass."
+        return (
+            f"Session required {self.continuation_count} continuation(s). "
+            f"Total tokens: {self.total_tokens:,} "
+            f"(in: {self.cumulative_input_tokens:,}, out: {self.cumulative_output_tokens:,})."
+        )
+
+
 # ══════════════════════════════════════════════════════════════════════════
 #  ContextWindowMonitor
 # ══════════════════════════════════════════════════════════════════════════

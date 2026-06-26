@@ -505,9 +505,13 @@ def cmd_graph_dev(args):
             print(f"\n  Interrupted. Resume again with: aitest graph-dev resume --run-id={run_id}")
 
     elif args.action == "status":
-        from aitest.graphs_dev.sop_graph_dev import get_dev_checkpointer, list_dev_runs
+        from aitest.graphs_dev.sop_graph_dev import (
+            build_compiled_dev_graph, list_dev_runs,
+        )
+        compiled = build_compiled_dev_graph()
         run_id = args.run_id
         if run_id:
+            thread = {"configurable": {"thread_id": run_id}}
             state = compiled.get_state(thread)
             if state and state.values:
                 sv = state.values

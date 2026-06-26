@@ -33,9 +33,10 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
+from aitest.platform.paths import get_workstudy
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 TRACE_LOG = WORKSTUDY / "governance" / ".traces" / "trace_log.jsonl"
 
 

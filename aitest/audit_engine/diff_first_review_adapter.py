@@ -19,7 +19,8 @@ from aitest.audit_engine.diff_extractor import (
     DiffFile,
 )
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+from aitest.platform.paths import get_workstudy
+WORKSTUDY = get_workstudy()
 
 
 class DiffFirstReviewAdapter:

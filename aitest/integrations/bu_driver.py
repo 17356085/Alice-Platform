@@ -37,6 +37,8 @@ Usage:
 
 import asyncio
 import logging
+import sys
+import warnings
 from pathlib import Path
 
 from aitest.config import config
@@ -167,6 +169,31 @@ class BrowserUseDriver:
                 logger.debug("Browser close error (ignored): %s", e)
             self._browser = None
         logger.info("BrowserUseDriver closed (total tokens: %d)", self._total_tokens)
+
+    def __del__(self):
+        """Fallback cleanup: warn if browser was not explicitly closed.
+
+        A leaked Browser process can consume 200-500 MB RSS. This does NOT
+        close the browser (no async in __del__), but emits a loud warning
+        so the leak is visible in logs and can be traced to its call site.
+        """
+        if self._browser is not None:
+            warnings.warn(
+                f"BrowserUseDriver.__del__: browser was not closed! "
+                f"Provider={self._provider_name}, model={self.model}. "
+                f"Always use 'async with BrowserUseDriver()' or call await driver.close(). "
+                f"This leaks a Chromium process (~200-500 MB RSS).",
+                ResourceWarning,
+                stacklevel=2,
+            )
+            # Best-effort: try to schedule close on the event loop if one is running.
+            # This is a last-resort fallback and may not work in all contexts.
+            try:
+                loop = asyncio.get_running_loop()
+                if loop.is_running():
+                    loop.create_task(self.close())
+            except RuntimeError:
+                pass  # No running loop — nothing we can do
 
     # ═══════════════════════════════════════════════════════════════
     #  LLM Factory

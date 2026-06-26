@@ -13,9 +13,10 @@ from aitest.llm.skill_registry import (
     get_skill_requirements,
     check_provider_compatibility,
 )
+from aitest.platform.paths import get_workstudy
 
 # ── 路径配置 ──────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 
 # P0-1b: 模块级单例 — RAG/文件缓存跨 Skill 共享

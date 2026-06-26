@@ -17,6 +17,7 @@ import subprocess
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Optional, List
+from aitest.platform.paths import get_workstudy
 
 
 @dataclass
@@ -63,7 +64,7 @@ def extract_diff_json(
         DiffFile 列表
     """
     if workstudy_path is None:
-        workstudy_path = Path(__file__).resolve().parent.parent.parent
+        workstudy_path = get_workstudy()
 
     try:
         # 获取 diff 输出（--unified=N format）

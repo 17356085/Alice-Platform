@@ -125,9 +125,9 @@ async def module_sop_status(module: str):
 async def all_modules_status():
     """返回所有已知模块及其页面列表（供侧边栏树使用）。"""
     from pathlib import Path
+    from aitest.platform.paths import get_workstudy, get_project_dir
 
-    governance = Path(__file__).resolve().parent.parent.parent.parent / "governance"
-    from aitest.platform.paths import get_project_dir
+    governance = get_workstudy().parent / "governance"
     modules_dir = get_project_dir() / "modules"
 
     result = {}

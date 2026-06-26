@@ -22,8 +22,9 @@ from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta
 from collections import defaultdict, Counter
+from aitest.platform.paths import get_workstudy
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 TRACE_LOG = GOVERNANCE / ".traces" / "trace_log.jsonl"
 KPI_DATA_DIR = GOVERNANCE / "kpi" / "timeseries"

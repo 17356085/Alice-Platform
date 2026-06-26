@@ -27,6 +27,10 @@ export const ENDPOINTS = {
   // WebSocket
   WS_KANBAN:         '/ws/kanban',
 
+  // HITL Pause/Resume (Task 2 P0)
+  TASK_PAUSE_STATUS:  (tid: string) => `/api/chat/tasks/${tid}/pause-status`,
+  TASK_RESUME:        (tid: string) => `/api/chat/tasks/${tid}/resume`,
+
   // Reports & Knowledge
   KPI_SUMMARY:       '/api/kpi/summary',
   HEALTH:            '/health',

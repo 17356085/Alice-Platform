@@ -23,10 +23,12 @@ from datetime import datetime, timezone
 from .consumer import RunEventConsumer
 from .run_event import RunEvent, EventType, make_event
 from .event_bus import get_bus
+from .ttl_set import TTLSet
+from aitest.platform.paths import get_workstudy
 
 
 def _billing_dir() -> Path:
-    base = Path(__file__).resolve().parent.parent.parent
+    base = get_workstudy()
     return base / "governance" / ".data" / "billing"
 
 
@@ -45,7 +47,7 @@ class BillingHookConsumer:
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._active = False
-        self._seen: set[str] = set()  # Idempotency
+        self._seen = TTLSet(max_size=10_000, max_age_s=86_400)  # Idempotency: 10k entries, 24h TTL
 
     def start(self):
         if self._active:
@@ -71,9 +73,8 @@ class BillingHookConsumer:
 
     def _on_run_completed(self, event: RunEvent):
         """Emit billing.usage_recorded with run summary."""
-        if event.event_id in self._seen:
-            return
-        self._seen.add(event.event_id)
+        if not self._seen.add(event.event_id):
+            return  # already processed (TTLSet atomic check-and-add)
         billing_event = {
             "event": "billing.usage_recorded",
             "run_id": event.run_id,
@@ -100,9 +101,8 @@ class BillingHookConsumer:
 
     def _on_cost_recorded(self, event: RunEvent):
         """Emit billing.cost_recorded."""
-        if event.event_id in self._seen:
-            return
-        self._seen.add(event.event_id)
+        if not self._seen.add(event.event_id):
+            return  # already processed (TTLSet atomic check-and-add)
         billing_event = {
             "event": "billing.cost_recorded",
             "run_id": event.run_id,

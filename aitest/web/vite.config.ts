@@ -1,34 +1,15 @@
-import { defineConfig, type Plugin } from 'vite'
-import vue from '@vitejs/plugin-vue'
+/**
+ * Vite config — AITest Web (React 18 + Tailwind 3)
+ *
+ * P0-1 fix (2026-06-25): cssCodeSplit:true + enhanced manualChunks
+ * breaks the single-CSS-file bottleneck that caused production build OOM.
+ * React.lazy() already splits views; cssCodeSplit lets each chunk carry its own CSS.
+ */
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
-import { readFileSync, writeFileSync } from 'fs'
 
-// v2.5 Stabilization: move CSS to end of body — load after DOM parsed
-function deferCSSPlugin(): Plugin {
-  return {
-    name: 'defer-css',
-    apply: 'build',
-    transformIndexHtml: {
-      order: 'post',
-      handler(html) {
-        // Extract CSS link from head
-        const match = html.match(/<link[^>]*\.css[^>]*>/)
-        if (!match) return html
-        const cssLink = match[0]
-        // Remove from head
-        html = html.replace(cssLink, '')
-        // Insert before </body>
-        html = html.replace('</body>', `  ${cssLink}\n</body>`)
-        return html
-      },
-    },
-  }
-}
-
-// W06: Filter Vite's internal ws proxy socket ECONNABORTED noise.
-// Vite 5.x logs ws proxy socket errors via server.config.logger.error().
-// ECONNABORTED is harmless — browser refresh/tab-close during WS activity.
-// http-proxy's own error event (configure hook) doesn't intercept Vite's log.
+// Filter Vite's internal ws proxy socket ECONNABORTED noise.
 function quietWsProxyLogger() {
   const _info = console.info.bind(console)
   const _warn = console.warn.bind(console)
@@ -49,10 +30,41 @@ function quietWsProxyLogger() {
 }
 
 export default defineConfig({
-  plugins: [vue(), deferCSSPlugin()],
+  plugins: [react()],
   customLogger: quietWsProxyLogger(),
   build: {
-    cssCodeSplit: false,  // v2.5: single CSS file → strip + deferred load
+    // P0-1: true (default) → each lazy chunk gets its own CSS
+    // was false → merged all CSS into one giant file → OOM
+    cssCodeSplit: true,
+    target: 'es2022',
+    cssMinify: 'esbuild',
+    // Raise chunk size warning — lazy chunks with xterm/marked are inherently large
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          // React ecosystem
+          if (id.includes('node_modules/react') ||
+              id.includes('node_modules/react-dom') ||
+              id.includes('node_modules/react-router') ||
+              id.includes('node_modules/scheduler')) return 'vendor-react'
+          // State management
+          if (id.includes('node_modules/zustand')) return 'vendor-state'
+          // Icons — many small components, one chunk
+          if (id.includes('node_modules/lucide')) return 'vendor-icons'
+          // i18n
+          if (id.includes('node_modules/i18next') ||
+              id.includes('node_modules/react-i18next')) return 'vendor-i18n'
+          // Terminal — xterm is ~500KB, only used in AgentTerminalView
+          if (id.includes('node_modules/@xterm')) return 'vendor-xterm'
+          // Markdown — marked is ~50KB, used in multiple views
+          if (id.includes('node_modules/marked')) return 'vendor-markdown'
+          // Zod — schema validation, used in stores
+          if (id.includes('node_modules/zod')) return 'vendor-zod'
+        },
+      },
+    },
   },
   resolve: {
     alias: {

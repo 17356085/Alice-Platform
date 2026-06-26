@@ -27,6 +27,7 @@ Design:
 
 import threading
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor, Future, TimeoutError as FutureTimeout
 from dataclasses import dataclass, field
 from typing import Callable, Optional
@@ -47,6 +48,8 @@ class PoolStats:
 class WorkerPool:
     """Bounded thread pool with per-tenant concurrency control."""
 
+    _MAX_FUTURES = 10_000  # Safety cap: evict oldest if exceeded
+
     def __init__(self, max_workers: int = 4):
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
         self._max_workers = max_workers
@@ -54,6 +57,7 @@ class WorkerPool:
         self._stats = PoolStats(max_workers=max_workers)
         self._tenant_active: dict[str, int] = {}
         self._futures: dict[str, Future] = {}
+        self._submit_counter: int = 0  # monotonic, for unique task IDs
 
     def submit(
         self,
@@ -142,8 +146,26 @@ class WorkerPool:
                     pass
 
         future = self._executor.submit(_wrapped)
-        task_id = f"{tenant_id}-{task_type}-{time.monotonic()}"
-        self._futures[task_id] = future
+        with self._lock:
+            self._submit_counter += 1
+        task_id = f"{tenant_id}-{task_type}-{self._submit_counter}"
+        with self._lock:
+            # Safety cap: if futures dict grows past limit, evict oldest entries
+            # (done callbacks normally prevent this — this is defense-in-depth)
+            while len(self._futures) >= self._MAX_FUTURES:
+                oldest = next(iter(self._futures))
+                old_future = self._futures.pop(oldest)
+                if not old_future.done():
+                    old_future.cancel()
+            self._futures[task_id] = future
+
+        # Auto-cleanup on completion: remove Future reference to prevent
+        # unbounded growth of result/exception/traceback references.
+        def _cleanup(_f: Future):
+            with self._lock:
+                self._futures.pop(task_id, None)
+
+        future.add_done_callback(_cleanup)
         return future
 
     def stats(self) -> PoolStats:

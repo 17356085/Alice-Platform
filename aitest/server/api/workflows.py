@@ -10,10 +10,11 @@ from pathlib import Path
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
+from aitest.platform.paths import get_workstudy
 
 workflows_router = APIRouter(prefix="/api/workflow", tags=["Workflows"])
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent.parent
+WORKSTUDY = get_workstudy().parent
 WORKFLOW_DIR = WORKSTUDY / "governance" / "workflows"
 
 
@@ -21,7 +22,7 @@ class WorkflowRunRequest(BaseModel):
     workflow_id: str            # module-onboarding | automation-implementation | ...
     module: str                 # 模块名
     params: dict = {}           # 额外参数（如 pages, mode, provider）
-    engine: str = "langgraph"   # langgraph (新) | legacy (旧 workflow_engine)
+    engine: str = "langgraph"   # langgraph engine (workflow_engine.py removed 2026-06)
 
 
 @workflows_router.post("/run")

@@ -18,8 +18,9 @@ from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass, field
 from typing import Optional
+from aitest.platform.paths import get_workstudy
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 REVIEW_QUEUE_DIR = WORKSTUDY / "governance" / ".review_queue"
 
 # ── 阈值配置 ─────────────────────────────────────────────

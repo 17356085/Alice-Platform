@@ -1,11 +1,12 @@
-/** Project Store — multi-project management + active project switching.
-
-Enables workspace isolation: Dashboard (all projects) vs Workspace (active project context).
-*/
-import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+/** Project Store — Zustand port. Multi-project management + active switching.
+ *
+ * Zustand plain objects — no Vue deep-proxy overhead.
+ */
+import { create } from 'zustand'
 import { api } from '@/api/client'
 import { ENDPOINTS } from '@/api/endpoints'
+
+// ── Types ──────────────────────────────────────────────────────
 
 export interface ProjectInfo {
   id: string
@@ -26,35 +27,53 @@ function saveProjectId(id: string) {
   try { localStorage.setItem(STORAGE_KEY, id) } catch { /* ignore */ }
 }
 
-export const useProjectStore = defineStore('project', () => {
-  const projects = ref<ProjectInfo[]>([])
-  const activeId = ref<string>(loadProjectId())
-  const loading = ref(false)
-  const error = ref('')
+// ── State ──────────────────────────────────────────────────────
 
-  const activeProject = computed(() =>
-    projects.value.find(p => p.id === activeId.value) || null
-  )
-  const hasProjects = computed(() => projects.value.length > 0)
-  const projectModules = computed(() => activeProject.value?.modules || [])
+export interface ProjectState {
+  projects: ProjectInfo[]
+  activeId: string
+  loading: boolean
+  error: string
 
-  // ── Fetch ───────────────────────────────────────────────────
+  // Derived
+  activeProject: () => ProjectInfo | null
+  hasProjects: () => boolean
+  projectModules: () => string[]
 
-  async function fetchProjects(projectId?: string) {
-    loading.value = true; error.value = ''
+  // Actions
+  fetchProjects: (projectId?: string) => Promise<void>
+  setActive: (id: string) => void
+  addProject: (project: ProjectInfo) => void
+  removeProject: (id: string) => void
+  init: () => void
+}
+
+let _initialized = false
+
+export const useProjectStore = create<ProjectState>((set, get) => ({
+  projects: [],
+  activeId: loadProjectId(),
+  loading: false,
+  error: '',
+
+  activeProject: () => get().projects.find(p => p.id === get().activeId) || null,
+  hasProjects: () => get().projects.length > 0,
+  projectModules: () => get().activeProject()?.modules || [],
+
+  async fetchProjects(projectId?: string) {
+    set({ loading: true, error: '' })
     try {
-      const pid = projectId || activeId.value
+      const pid = projectId || get().activeId
       const qs = pid ? `?project=${encodeURIComponent(pid)}` : ''
-      // Use sop-status as project list proxy (each module maps to a project)
       const data = await api.get<{ modules: Record<string, any>; projects?: ProjectInfo[] }>(ENDPOINTS.SOP_STATUS + qs)
       if (data.projects) {
-        projects.value = data.projects
+        set({ projects: data.projects, loading: false })
       } else {
-        // Fallback: derive from modules if no explicit project list
-        const existing = new Set(projects.value.map(p => p.id))
+        const arr = get().projects.slice()
+        const existing = new Set(arr.map(p => p.id))
         for (const [modId, info] of Object.entries(data.modules || {})) {
           if (!existing.has(modId)) {
-            projects.value.push({
+            arr.push({
               id: modId, name: (info as any).name || modId, path: '',
               modules: (info as any).pages_list || [],
               status: (info as any).status,
@@ -62,43 +81,35 @@ export const useProjectStore = defineStore('project', () => {
             })
           }
         }
+        set({ projects: arr, loading: false })
       }
-    } catch (e: any) { error.value = e.message }
-    finally { loading.value = false }
-  }
-
-  // ── Actions ─────────────────────────────────────────────────
-
-  function setActive(id: string) {
-    activeId.value = id
-    saveProjectId(id)
-  }
-
-  function addProject(project: ProjectInfo) {
-    projects.value.push(project)
-  }
-
-  function removeProject(id: string) {
-    projects.value = projects.value.filter(p => p.id !== id)
-    if (activeId.value === id) {
-      activeId.value = projects.value[0]?.id || ''
-      saveProjectId(activeId.value)
+    } catch (e: any) {
+      set({ error: e.message, loading: false })
     }
-  }
+  },
 
-  // ── Init ────────────────────────────────────────────────────
+  setActive(id: string) {
+    set({ activeId: id })
+    saveProjectId(id)
+  },
 
-  // Auto-fetch on first access
-  let _initialized = false
-  function init() {
+  addProject(project: ProjectInfo) {
+    set(state => ({ projects: [...state.projects, project] }))
+  },
+
+  removeProject(id: string) {
+    set(state => {
+      const projects = state.projects.filter(p => p.id !== id)
+      const activeId = state.activeId === id ? (projects[0]?.id || '') : state.activeId
+      if (activeId !== state.activeId) saveProjectId(activeId)
+      return { projects, activeId }
+    })
+  },
+
+  init() {
     if (!_initialized) {
       _initialized = true
-      fetchProjects(activeId.value || undefined)
+      get().fetchProjects(get().activeId || undefined)
     }
-  }
-
-  return {
-    projects, activeId, activeProject, hasProjects, projectModules, loading, error,
-    fetchProjects, setActive, addProject, removeProject, init,
-  }
-})
+  },
+}))

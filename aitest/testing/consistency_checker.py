@@ -239,7 +239,7 @@ def check_regression_status() -> CheckResult:
     from pathlib import Path
     import yaml
 
-    GOVERNANCE = Path(__file__).resolve().parent.parent.parent / "governance"
+    GOVERNANCE = get_workstudy() / "governance"
     test_cases_path = GOVERNANCE / "tests" / "regression" / "test_cases.yaml"
 
     if not test_cases_path.exists():

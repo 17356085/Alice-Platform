@@ -20,8 +20,8 @@ from typing import Optional
 # ══════════════════════════════════════════════════════════════════════════
 
 def _get_known_modules() -> list[str]:
-    governance = Path(__file__).resolve().parent.parent.parent / "governance"
-    from aitest.platform.paths import get_project_dir
+    from aitest.platform.paths import get_workstudy, get_project_dir
+    governance = get_workstudy() / "governance"
     modules_dir = get_project_dir() / "modules"
     if modules_dir.exists():
         return sorted([d.name for d in modules_dir.iterdir() if d.is_dir()])

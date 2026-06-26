@@ -51,9 +51,10 @@ import uuid
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import Optional, Callable
+from aitest.platform.paths import get_workstudy
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 EVENT_DIR = WORKSTUDY / "governance" / ".events"
 EVENT_DIR.mkdir(parents=True, exist_ok=True)
 

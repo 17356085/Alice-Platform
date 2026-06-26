@@ -25,7 +25,8 @@ from aitest.graphs_dev.state_dev import (
     DEV_MODE_SKIP_MAP, DevPhaseName,
 )
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+from aitest.platform.paths import get_workstudy
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 CONTEXT_DEV = GOVERNANCE / "context" / "projects" / "dev-platform"
 
@@ -126,6 +127,26 @@ def build_dev_sop_graph() -> StateGraph:
 
 def build_compiled_dev_graph(checkpointer=None):
     if checkpointer is None:
-        from aitest.graphs.checkpoint import get_checkpointer
-        checkpointer = get_checkpointer()
+        checkpointer = get_dev_checkpointer()
     return build_dev_sop_graph().compile(checkpointer=checkpointer)
+
+
+def get_dev_checkpointer():
+    """Return SqliteSaver for Dev SOP checkpoint persistence.
+
+    Uses same underlying SQLite DB as test SOP (governance/.graph_state/checkpoints.sqlite).
+    Dev SOP runs are differentiated by thread_id prefix 'dev-sop-'.
+    """
+    from aitest.graphs.checkpoint import get_checkpointer
+    return get_checkpointer()
+
+
+def list_dev_runs(limit: int = 10) -> list[dict]:
+    """List recent Dev SOP runs from the checkpoint database.
+
+    Filters to runs with thread_id starting with 'dev-sop-'.
+    """
+    from aitest.graphs.checkpoint import list_runs
+    all_runs = list_runs(limit=limit * 3)  # Oversample to account for filtering
+    dev_runs = [r for r in all_runs if r.get("run_id", "").startswith("dev-sop-")]
+    return dev_runs[:limit]

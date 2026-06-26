@@ -12,6 +12,7 @@ Skills read pages.json, not MODULE_INDEX.md or directory structure.
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Optional
+from aitest.platform.paths import get_workstudy
 
 
 @dataclass
@@ -102,7 +103,7 @@ class BaseDiscovery(ABC):
 
         # 3. Write to .discovery/
         discovery_dir = (
-            Path(__file__).resolve().parent.parent.parent
+            get_workstudy()
             / "governance" / "context" / "projects"
             / self.project_id / ".discovery"
         )

@@ -30,9 +30,10 @@ import threading
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional
+from aitest.platform.paths import get_workstudy
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 ERROR_DIR = WORKSTUDY / "governance" / ".errors"
 ERROR_LOG = ERROR_DIR / "error_log.jsonl"
 

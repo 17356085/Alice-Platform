@@ -30,7 +30,7 @@ from aitest.llm.provider import LLMResponse, StreamEvent, get_provider
 from aitest.llm.reliable_provider import ReliableProvider, get_reliable_provider, get_usage_tracker  # ★ v1.0
 from aitest.llm.context_window import (  # ★ v1.0
     ContextWindowMonitor, SessionCompactor, build_continuation_prompt,
-    ContextWindowExceededError, WindowStatus,
+    ContextWindowExceededError, WindowStatus, ContinuationResult,  # ★ Task 5
 )
 from aitest.llm.skill_loader import load_skill
 from aitest.llm.skill_registry import (
@@ -82,9 +82,9 @@ class AgentLoop:
     用法:
         agent = AgentLoop("automation-agent", module="equipment", page="alarm-config")
         state = agent.run()
-        print(f"成功: {state.success}, 步骤: {state.step}")
+        _log.info(f"成功: {state.success}, 步骤: {state.step}")
         for obs in state.observations:
-            print(f"  {obs.skill_id}: {obs.status}")
+            _log.info(f"  {obs.skill_id}: {obs.status}")
     """
 
     MAX_RETRIES = 3          # 单个 Skill 最大重试次数
@@ -373,6 +373,27 @@ class AgentLoop:
         estimated_used = self.state.step * 2000
         estimated_remaining = max(1000, self.token_budget - estimated_used)
         vars_["token_budget_remaining"] = estimated_remaining
+
+        # ── Task 3a: 动态上下文发现 (ContextBuilder) ──
+        # Runs once per session — lazy-init via vars_ cache check.
+        # Pure filesystem discovery (steps 1-5), optional Memory (step 6).
+        if zjsn and not vars_.get("builder_context"):
+            try:
+                from aitest.llm.context_builder import build_context
+                builder_ctx = build_context(
+                    module=self.module,
+                    project_root=zjsn,
+                    page=self.page,
+                    task_description=self.state.goal,
+                )
+                vars_["builder_context"] = builder_ctx
+                self._log(
+                    f"  🔍 ContextBuilder: {builder_ctx.source_count} files, "
+                    f"{len(builder_ctx.patterns)} patterns, "
+                    f"memory={'yes' if builder_ctx.memory_hints else 'no'}"
+                )
+            except Exception:
+                pass  # Context discovery failure is non-blocking
 
         if extra:
             vars_.update(extra)
@@ -819,6 +840,8 @@ class AgentLoop:
         self._session_start = time.time()  # ★ v1.1: for operational metrics
 
         # ★ v1.0: Continuation loop (参考 Aperant: 最多 5 次)
+        # ★ Task 5 (P1): ContinuationResult tracking added
+        cr = ContinuationResult()
         while True:
             try:
                 with otel.start_as_current_span(f"agent.{self.agent_name}") as span:
@@ -826,7 +849,15 @@ class AgentLoop:
                     span.set_attribute("provider", self.provider)
                     span.set_attribute("module", self.module or "")
                     span.set_attribute("page", self.page or "")
-                    return self._run_single_session()
+                    result = self._run_single_session()
+                    # Merge continuation stats into state memory for reporting
+                    if cr.was_continued:
+                        self.state.memory["continuation"] = {
+                            "count": cr.continuation_count,
+                            "total_tokens": cr.total_tokens,
+                        }
+                        self._log(f"[CONTINUE] {cr.summary()}")
+                    return result
             except ContextWindowExceededError:
                 if self._continuation_count >= self.MAX_CONTINUATIONS:
                     self._log(f"[CONTINUE] Max continuations ({self.MAX_CONTINUATIONS}) reached. Stopping.")
@@ -834,6 +865,11 @@ class AgentLoop:
                     self.state.success = False
                     self.state.termination_reason = "max_continuations_reached"
                     return self.state
+                cr.continuation_count += 1
+                if self._window_monitor:
+                    cr.cumulative_input_tokens += self._window_monitor._cumulative_input
+                    cr.cumulative_output_tokens += self._window_monitor._cumulative_output
+                cr.total_tokens = cr.cumulative_input_tokens + cr.cumulative_output_tokens
                 self._do_continuation()
 
     def _run_single_session(self) -> AgentState:
@@ -849,6 +885,27 @@ class AgentLoop:
             )
             self._log(f"🔒 Worktree: {self._worktree_ctx.path}")
             self._log(f"   分支: {self._worktree_ctx.branch} (from {self._worktree_ctx.base_branch})")
+
+        # ── Task 6 (P1): MCP Client — connect to external tools ──
+        self._mcp_clients = []
+        try:
+            import asyncio
+            from aitest.mcp.mcp_client import (
+                create_mcp_clients_for_agent, merge_mcp_tools,
+            )
+            self._mcp_clients = asyncio.run(
+                create_mcp_clients_for_agent(self.agent_name)
+            )
+            if self._mcp_clients:
+                mcp_tools = merge_mcp_tools(self._mcp_clients)
+                self._log(f"🔌 MCP: {len(self._mcp_clients)} server(s), "
+                         f"{len(mcp_tools)} tool(s)")
+                self._mcp_tools = mcp_tools
+            else:
+                self._mcp_tools = {}
+        except Exception:
+            self._mcp_tools = {}
+            # MCP connection failure is non-blocking
 
         self._log(f"🤖 Agent: {self.agent_name} | Provider: {self.provider}")
         self._log(f"  目标: {self.state.goal}")
@@ -877,14 +934,65 @@ class AgentLoop:
 
             if plan_result["action"] == "confirm_required":
                 skill_id = plan_result["skill_id"]
+                task_id = plan_result.get("task_id", f"{self.module}:{skill_id}")
+                risk_level = plan_result.get("risk_level", "high")
                 self._log(f"  ⏸️  HITL: 等待确认执行 '{skill_id}' "
-                         f"(risk={plan_result.get('risk_level', 'high')})")
+                         f"(risk={risk_level}, task={task_id})")
+
+                # ── Task 2 (P0): Sentinel-file pause/resume ──
+                # Write pause.json → block until user approves via API.
+                # Replaces the old auto-confirm path.
                 try:
+                    from aitest.infra.pause_handler import (
+                        write_pause_file, wait_for_resume,
+                    )
                     from aitest.agents.plan_engine import confirm_skill
-                    confirm_skill(skill_id, self.module)
-                    self._log(f"  ✅ 已确认 '{skill_id}'，继续执行")
-                except Exception:
-                    pass
+
+                    reason = plan_result.get(
+                        "reason",
+                        f"HITL confirmation required for '{skill_id}'",
+                    )
+                    write_pause_file(
+                        task_id=task_id,
+                        reason=reason,
+                        skill_id=skill_id,
+                        risk_level=risk_level,
+                    )
+                    self._log(f"     📝 pause.json written → {task_id}")
+                    self._log(f"     ⏳ 等待用户审批 (超时=7200s)...")
+
+                    # Block with exponential backoff polling.
+                    # abort_signal lets us cancel on AgentLoop shutdown.
+                    resumed = wait_for_resume(
+                        task_id=task_id,
+                        timeout=7200,
+                        abort_signal=getattr(self, "_abort", None),
+                    )
+
+                    if resumed:
+                        confirm_skill(skill_id, self.module)
+                        self._log(f"  ✅ 审批通过，继续执行 '{skill_id}'")
+                    else:
+                        self._log(
+                            f"  ⏰ 审批超时/取消，跳过 '{skill_id}'"
+                        )
+                        # Advance past the paused skill
+                        plan_result = self.plan(skill_index, perception)
+                        if plan_result["action"] in (
+                            "confirm_required", "done", "abort",
+                        ):
+                            # Advance to next skill
+                            skill_index += 1
+                            perception["last_obs"] = None
+                            plan_result = self.plan(skill_index, perception)
+                except Exception as e:
+                    self._log(f"  ⚠️  Pause handler error: {e}，fallback auto-confirm")
+                    try:
+                        from aitest.agents.plan_engine import confirm_skill
+                        confirm_skill(skill_id, self.module)
+                    except Exception:
+                        pass
+                # Re-plan after confirmation
                 plan_result = self.plan(skill_index, perception)
                 if plan_result["action"] in ("confirm_required", "done", "abort"):
                     continue

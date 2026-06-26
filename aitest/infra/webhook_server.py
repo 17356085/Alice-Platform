@@ -25,8 +25,9 @@ from typing import Optional
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 import uvicorn
+from aitest.platform.paths import get_workstudy
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 sys.path.insert(0, str(WORKSTUDY))
 
 app = FastAPI(title="AI Test Platform Webhook", version="0.1.0")

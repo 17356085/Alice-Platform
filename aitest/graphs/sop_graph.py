@@ -1205,7 +1205,7 @@ def _emit_qa_loop_event(state: SOPState, action: str):
             "max_rounds": state.get("qa_loop_max_rounds", 3),
             "status": action,
         }
-        events_dir = Path(__file__).resolve().parent.parent.parent / "governance" / ".events"
+        events_dir = get_workstudy() / "governance" / ".events"
         events_dir.mkdir(parents=True, exist_ok=True)
         with open(events_dir / "qa_loop.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps(event, ensure_ascii=False) + "\n")

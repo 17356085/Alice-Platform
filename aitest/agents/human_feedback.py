@@ -32,9 +32,12 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional
+from aitest.platform.paths import get_workstudy
+from aitest.infra.logging import get_logger
+_log = get_logger(__name__)
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 FEEDBACK_DIR = GOVERNANCE / ".feedback"
 FEEDBACK_LOG = FEEDBACK_DIR / "human_feedback.jsonl"
@@ -369,10 +372,10 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
-        print("Usage:")
-        print("  python human_feedback.py rate --skill=<s> --score=0.85 [--comment=...] [--rater=...]")
-        print("  python human_feedback.py stats [--days=30] [--skill=<s>]")
-        print("  python human_feedback.py promote <feedback_id> [--case=<id>]")
+        _log.info("Usage:")
+        _log.info("  python human_feedback.py rate --skill=<s> --score=0.85 [--comment=...] [--rater=...]")
+        _log.info("  python human_feedback.py stats [--days=30] [--skill=<s>]")
+        _log.info("  python human_feedback.py promote <feedback_id> [--case=<id>]")
         sys.exit(0)
 
     cmd = sys.argv[1]
@@ -391,7 +394,7 @@ if __name__ == "__main__":
             comment=opts.get("comment", ""),
             rater=opts.get("rater", "human"),
         )
-        print(f"Feedback recorded: {entry.feedback_id} (score={entry.human_score})")
+        _log.info(f"Feedback recorded: {entry.feedback_id} (score={entry.human_score})")
 
     elif cmd == "stats":
         collector = FeedbackCollector()
@@ -403,11 +406,11 @@ if __name__ == "__main__":
 
     elif cmd == "promote":
         if len(sys.argv) < 3:
-            print("Usage: python human_feedback.py promote <feedback_id> [--case=<id>]")
+            _log.info("Usage: python human_feedback.py promote <feedback_id> [--case=<id>]")
             sys.exit(1)
         collector = FeedbackCollector()
         result = collector.promote_to_golden(sys.argv[2], case_id=opts.get("case"))
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
     else:
-        print(f"Unknown command: {cmd}")
+        _log.info(f"Unknown command: {cmd}")

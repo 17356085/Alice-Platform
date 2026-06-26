@@ -31,8 +31,9 @@ import os
 import functools
 from contextlib import contextmanager
 from typing import Optional, Callable
+from aitest.config import config
 
-_ENABLED = os.environ.get("AITEST_OTEL_ENABLED", "").lower() in ("1", "true", "yes")
+_ENABLED = config.get_env("AITEST_OTEL_ENABLED", "").lower() in ("1", "true", "yes")
 _OTEL_AVAILABLE = False
 
 _tracer = None
@@ -56,7 +57,7 @@ def _init_otel():
         from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
         from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-        endpoint = os.environ.get("AITEST_OTEL_ENDPOINT", "http://localhost:4317")
+        endpoint = config.get_env("AITEST_OTEL_ENDPOINT", "http://localhost:4317")
         resource = Resource(attributes={
             SERVICE_NAME: "aitest-platform",
             "service.version": "0.2.0",

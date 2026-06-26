@@ -30,8 +30,9 @@ from pathlib import Path
 from typing import Optional
 from urllib.request import Request, urlopen
 from urllib.error import URLError
+from aitest.platform.paths import get_workstudy
 
-_WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+_WORKSTUDY = get_workstudy()
 
 
 @dataclass

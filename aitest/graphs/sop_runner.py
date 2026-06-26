@@ -22,9 +22,12 @@ from collections.abc import Generator
 from aitest.agents.agent_runner import AgentEvent
 from aitest.graphs.state import create_initial_state
 from aitest.graphs.sop_graph import build_compiled_graph
+from aitest.platform.paths import get_workstudy
+from aitest.infra.logging import get_logger
+_log = get_logger(__name__)
 
 # Path to sync script
-_SYNC_SCRIPT = Path(__file__).resolve().parent.parent.parent / "tools" / "sync_progress.py"
+_SYNC_SCRIPT = get_workstudy() / "tools" / "sync_progress.py"
 
 
 # ── 节点名 → 阶段显示名 + 索引映射 ──

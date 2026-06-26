@@ -16,9 +16,10 @@ from typing import Optional
 
 import chromadb
 from chromadb.config import Settings
+from aitest.platform.paths import get_workstudy
 
 # ── ChromaDB path ────────────────────────────────────────────────────────
-_CHROMA_DIR = Path(__file__).resolve().parent.parent.parent / "governance" / ".chroma"
+_CHROMA_DIR = get_workstudy() / "governance" / ".chroma"
 
 # ── Base collection names (without namespace prefix) ─────────────────────
 KNOWN_ISSUES = "known_issues"

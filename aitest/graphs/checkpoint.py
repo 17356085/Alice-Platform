@@ -12,9 +12,10 @@ from pathlib import Path
 from typing import Optional
 
 from langgraph.checkpoint.sqlite import SqliteSaver
+from aitest.platform.paths import get_workstudy
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 CHECKPOINT_DIR = WORKSTUDY / "governance" / ".graph_state"
 DB_PATH = CHECKPOINT_DIR / "checkpoints.sqlite"
 

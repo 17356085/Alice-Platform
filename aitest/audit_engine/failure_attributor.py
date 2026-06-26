@@ -27,8 +27,9 @@ import json
 from pathlib import Path
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from aitest.platform.paths import get_workstudy
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 ARTIFACTS_DIR = GOVERNANCE / "artifacts"
 

@@ -37,10 +37,12 @@ from dataclasses import dataclass, field
 from typing import Optional, Callable
 
 import yaml
+from aitest.config import config
 
 # ── Default plugin search paths ────────────────────────────────────────
 
-_WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+from aitest.platform.paths import get_workstudy
+_WORKSTUDY = get_workstudy()
 
 
 def _default_plugin_paths() -> list[Path]:
@@ -53,7 +55,7 @@ def _default_plugin_paths() -> list[Path]:
         paths.append(builtin)
 
     # Env var override
-    env_path = os.environ.get("AITEST_PLUGIN_PATH", "")
+    env_path = config.get_env("AITEST_PLUGIN_PATH", "")
     if env_path:
         sep = ";" if sys.platform == "win32" else ":"
         for p in env_path.split(sep):

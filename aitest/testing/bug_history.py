@@ -14,8 +14,9 @@ import time
 import uuid
 from pathlib import Path
 from datetime import datetime, timedelta
+from aitest.platform.paths import get_workstudy
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 DATA_DIR = WORKSTUDY / "governance" / ".data"
 BUG_DB = DATA_DIR / "bugs.db"
 

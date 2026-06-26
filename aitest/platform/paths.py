@@ -13,7 +13,7 @@ Usage:
 
 Migration pattern (replace module-level constants with lazy calls):
     # Before:
-    WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+    WORKSTUDY = get_workstudy()
     ZJSN_TEST = WORKSTUDY / "ZJSN_Test-master526"
 
     # After:

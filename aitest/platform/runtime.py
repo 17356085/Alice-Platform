@@ -110,12 +110,21 @@ class Runtime(ABC):
     def estimated_cost(self) -> float: ...
 
 
+def _default_browser_factory(**kwargs):
+    """P1-6: Single import point for BrowserUseDriver. Easy to swap later."""
+    from aitest.integrations.bu_driver import BrowserUseDriver
+    return BrowserUseDriver(**kwargs)
+
+
 class BrowserRuntime(Runtime):
     """
     Browser runtime with injectable driver factory.
 
-    Default: BrowserUseDriver (lazy-imported from aitest.integrations.bu_driver).
-    Inject alternative: BrowserRuntime(driver_factory=lambda: PlaywrightDriver(...))
+    Default: _default_browser_factory (lazy-imports BrowserUseDriver).
+    Inject: BrowserRuntime(driver_factory=lambda: MyDriver(...))
+
+    P1-6: The default factory consolidates the integrations import into one function.
+    Callers that pass driver_factory explicitly avoid the dependency entirely.
     """
 
     def __init__(
@@ -149,8 +158,7 @@ class BrowserRuntime(Runtime):
             if self._driver_factory is not None:
                 self._driver = self._driver_factory()
             else:
-                from aitest.integrations.bu_driver import BrowserUseDriver
-                self._driver = BrowserUseDriver(
+                self._driver = _default_browser_factory(
                     headless=self._headless,
                     max_steps=self._max_steps,
                     provider=self._provider,

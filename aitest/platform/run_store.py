@@ -20,13 +20,14 @@ from datetime import datetime, timezone
 from .run import Run
 from .run_event import RunEvent
 from .execution_request import ExecutionRequest
+from aitest.platform.paths import get_workstudy
 
 
 # ── DB path ──────────────────────────────────────────────────────────────
 
 def _default_db_path() -> Path:
     """Same directory as session_store DB."""
-    base = Path(__file__).resolve().parent.parent.parent
+    base = get_workstudy()
     return base / "governance" / ".data" / "runs.db"
 
 

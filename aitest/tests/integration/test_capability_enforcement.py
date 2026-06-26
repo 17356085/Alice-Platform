@@ -7,6 +7,7 @@ No real LLM calls. Tests the routing + enforcement wiring.
 """
 import pytest
 from aitest.platform.capability_router.router import CapabilityRouter
+from aitest.platform.paths import get_workstudy
 
 
 class _FakeProvider:
@@ -91,7 +92,7 @@ class TestCapabilityEnforcement:
         import yaml
         from pathlib import Path
 
-        yaml_path = Path(__file__).resolve().parent.parent.parent.parent / \
+        yaml_path = get_workstudy().parent / \
                     "governance" / "agents" / "agent-definitions.yaml"
         data = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
 

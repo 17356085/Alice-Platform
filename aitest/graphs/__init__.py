@@ -10,7 +10,6 @@ aitest/graphs — LangGraph 编排层 (P0-1 统一架构)
   sop_graph.py          — ★ 顶层编排器
   bug_analysis_graph.py — HITL 自动循环修复 (保留)
   execution_graph.py    — execution/report/knowledge (保留: EventBus + RAG)
-  _archived/            — P0-1 归档: project/requirement/test-design/automation SubGraphs
 
 用法:
   from aitest.graphs.sop_graph import build_sop_graph

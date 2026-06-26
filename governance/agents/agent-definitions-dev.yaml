@@ -1,8 +1,10 @@
 # 开发 Agent 定义 — 完整版 (9 Agent)
 # Phase 1→2: 从 3 Agent 扩展到 9 Agent，覆盖完整软件开发生命周期
 
-version: "2.0"
-last_updated: "2026-06-17"
+version: "2.2"
+last_updated: "2026-06-24"
+# v2.1: + capabilities + model_tier per agent
+# v2.2: + mcp_servers per agent (align Task 6 registry)
 
 # ═══════════════════════════════════════════════════════
 # 横向贯穿 Skill（所有 Agent 可用，不绑定特定 Agent）
@@ -24,6 +26,11 @@ agents:
     name: 项目管理 Agent
     category: plan
     phase: "0"
+    capabilities:
+      - plan
+      - analyze
+    model_tier: balanced
+    mcp_servers: []
     description: 任务分解、里程碑规划、进度跟踪、风险分析
     system_prompt_role: 资深技术项目经理
     trigger_keywords:
@@ -53,6 +60,12 @@ agents:
     name: 需求分析 Agent
     category: requirements-dev
     phase: "0.5~1"
+    capabilities:
+      - analyze
+      - knowledge
+    model_tier: balanced
+    mcp_servers:
+      - context7
     description: 功能规格、用户故事、验收标准、数据模型
     system_prompt_role: 资深产品经理 + 需求分析师
     trigger_keywords:
@@ -88,6 +101,12 @@ agents:
     name: 架构 Agent
     category: architecture
     phase: "1"
+    capabilities:
+      - analyze
+      - design
+    model_tier: balanced
+    mcp_servers:
+      - context7
     description: 项目扫描、技术栈分析、组件树设计、API 契约定义
     system_prompt_role: 资深全栈架构师
     trigger_keywords:
@@ -117,6 +136,10 @@ agents:
     name: 组件设计 Agent
     category: component-design
     phase: "2"
+    capabilities:
+      - design
+    model_tier: balanced
+    mcp_servers: []
     description: 组件结构分析、Props 接口、数据流、页面布局
     system_prompt_role: 资深 UI/UX 架构师
     trigger_keywords:
@@ -141,6 +164,11 @@ agents:
     name: 前端开发 Agent
     category: frontend
     phase: "3"
+    capabilities:
+      - codegen
+    model_tier: max
+    mcp_servers:
+      - context7
     description: Vue 3 组件/页面实现、Pinia store、路由、Lint 检查
     system_prompt_role: 资深 Vue 3 + TypeScript 前端开发专家
     trigger_keywords:
@@ -172,6 +200,11 @@ agents:
     name: 后端开发 Agent
     category: backend
     phase: "3"
+    capabilities:
+      - codegen
+    model_tier: max
+    mcp_servers:
+      - context7
     description: FastAPI router/schema/model/CRUD/test 生成
     system_prompt_role: 资深 FastAPI + SQLAlchemy 后端开发专家
     trigger_keywords:
@@ -208,6 +241,11 @@ agents:
     name: 代码审查 Agent
     category: code-review
     phase: "4"
+    capabilities:
+      - analyze
+      - review
+    model_tier: max
+    mcp_servers: []
     description: 代码审查、性能分析、安全扫描、前后端一致性检查
     system_prompt_role: 资深 Code Reviewer + 质量架构师
     trigger_keywords:
@@ -237,6 +275,10 @@ agents:
     name: 测试 Agent
     category: test-dev
     phase: "4"
+    capabilities:
+      - test
+    model_tier: econ
+    mcp_servers: []
     description: 单元测试生成、集成测试生成、覆盖率检查
     system_prompt_role: 资深测试工程师
     trigger_keywords:
@@ -263,6 +305,11 @@ agents:
     name: 调试 Agent
     category: debug
     phase: "5"
+    capabilities:
+      - analyze
+      - debug
+    model_tier: max
+    mcp_servers: []
     description: 错误定位、堆栈分析、修复建议、回归验证
     system_prompt_role: 资深调试专家
     trigger_keywords:
@@ -295,6 +342,10 @@ agents:
     name: 构建 Agent
     category: build
     phase: "5~6"
+    capabilities:
+      - execute
+    model_tier: econ
+    mcp_servers: []
     description: 类型检查、Lint 执行、测试运行、打包构建
     system_prompt_role: 资深 DevOps 工程师
     trigger_keywords:
@@ -322,6 +373,11 @@ agents:
     name: 架构评审 Agent
     category: review
     phase: "meta"
+    capabilities:
+      - review
+      - analyze
+    model_tier: max
+    mcp_servers: []
     description: 系统架构评审、治理覆盖评估、Token效率分析、Prompt质量审查、生产就绪度评估。元治理 — 不执行治理，评估治理的有效性。
     system_prompt_role: 资深系统架构师 + 治理架构师
     trigger_keywords:

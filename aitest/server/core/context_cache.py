@@ -11,7 +11,8 @@ Context Cache — Context 分层缓存。
 import time
 from pathlib import Path
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent.parent
+from aitest.platform.paths import get_workstudy
+WORKSTUDY = get_workstudy().parent
 GOVERNANCE = WORKSTUDY / "governance"
 
 

@@ -17,8 +17,11 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
 from langgraph.graph import StateGraph, END
+from aitest.platform.paths import get_workstudy
+from aitest.infra.logging import get_logger
+_log = get_logger(__name__)
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 OUTPUT_DIR = GOVERNANCE / "artifacts" / "reviews" / "system"
 
@@ -451,8 +454,8 @@ if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "full"
     trigger = sys.argv[2] if len(sys.argv) > 2 else "manual"
 
-    print(f"Review Graph: mode={mode}, trigger={trigger}")
+    _log.info(f"Review Graph: mode={mode}, trigger={trigger}")
     result = run_review(mode=mode, trigger=trigger)
-    print(f"\nStatus: {result.get('status')}")
-    print(f"Report: {result.get('report_path', 'N/A')}")
-    print(f"Phases completed: {list(result.get('review_results', {}).keys())}")
+    _log.info(f"\nStatus: {result.get('status')}")
+    _log.info(f"Report: {result.get('report_path', 'N/A')}")
+    _log.info(f"Phases completed: {list(result.get('review_results', {}).keys())}")

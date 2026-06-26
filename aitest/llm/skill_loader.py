@@ -16,9 +16,10 @@ P0-1 (2026-06-15): Prompt Versioning — @version 语法 + registry 版本解析
 import functools
 from pathlib import Path
 from dataclasses import dataclass
+from aitest.platform.paths import get_workstudy
 
 # ── 路径配置 ──
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 SKILLS_DIR = GOVERNANCE / "skills"
 SKILLS_DEV_DIR = GOVERNANCE / "skills-dev"  # 开发技能目录

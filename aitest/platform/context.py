@@ -25,10 +25,11 @@ from typing import Optional
 from .artifacts import ArtifactStore
 from .knowledge import KnowledgeStore
 from .runtime import Runtime, BrowserRuntime
+from aitest.platform.paths import get_workstudy
 
 
 # ── Root discovery ───────────────────────────────────────────────────────
-_ROOT = Path(__file__).resolve().parent.parent.parent
+_ROOT = get_workstudy()
 _PROJECTS_ROOT = _ROOT / "governance" / "context" / "projects"
 
 

@@ -340,6 +340,32 @@ class ContextInjector:
             }
             return f"{skill_prompt}\n\n## 参考上下文\n\n{focused}"
 
+        # ── Task 3a: 动态上下文增强 (ContextBuilder) ──
+        # Injects dynamically discovered files from builder_context into
+        # the prompt BEFORE the static SKILL_CONTEXT_MAP lookup.
+        # Non-blocking: builder_context absence/malformation is silently skipped.
+        builder_ctx = variables.get("builder_context")
+        dynamic_blocks: list[str] = []
+        if builder_ctx is not None:
+            try:
+                files = getattr(builder_ctx, "files", None) or []
+                for f in files[:10]:  # Cap at 10 to avoid context bloat
+                    label = f"[dynamic:{f.role}] {f.path}"
+                    content = (f.snippet or "")[:500]
+                    if content.strip():
+                        dynamic_blocks.append(
+                            f"### {label}\n```\n{content}\n```"
+                        )
+                if builder_ctx and hasattr(builder_ctx, "patterns"):
+                    pts = getattr(builder_ctx, "patterns", None) or []
+                    if pts:
+                        dynamic_blocks.append(
+                            "### [dynamic:patterns] Detected patterns\n"
+                            + "\n".join(f"- {p}" for p in pts)
+                        )
+            except Exception:
+                pass  # Builder context failure is non-blocking
+
         # ── 固定基座（会话内只加载一次）──
         fixed_base = self._load_fixed_base()
         fixed_chars = len(fixed_base)
@@ -423,6 +449,11 @@ class ContextInjector:
                 label = r.get("metadata", {}).get("type", "RAG")
                 sources.append(f"rag:{label}")
                 context_blocks.append(doc)
+
+        # ── Task 3a: 将动态发现的上下文前置 ──
+        if dynamic_blocks:
+            context_blocks[:0] = dynamic_blocks
+            sources[:0] = ["context_builder:dynamic_discovery"]
 
         # ── 组装最终上下文 ──
         on_demand_chars = sum(len(b) for b in context_blocks)

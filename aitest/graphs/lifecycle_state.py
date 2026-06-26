@@ -27,6 +27,7 @@ from enum import Enum
 from typing import TypedDict, Optional, List, Dict, Any, Annotated, Literal
 import operator
 from pathlib import Path
+from aitest.platform.paths import get_workstudy
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -185,7 +186,7 @@ def create_initial_lifecycle_state(
 def _discover_pages(module: str) -> list[str]:
     """从 SOP_STATUS 自动发现模块页面列表。"""
     import json
-    sop_dir = Path(__file__).resolve().parent.parent.parent / "governance" / "artifacts" / "sop-status"
+    sop_dir = get_workstudy() / "governance" / "artifacts" / "sop-status"
     status_file = sop_dir / f"SOP_STATUS_{module}.json"
     if status_file.exists():
         data = json.loads(status_file.read_text(encoding="utf-8"))

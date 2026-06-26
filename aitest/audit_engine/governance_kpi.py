@@ -19,7 +19,8 @@ from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta
 
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+from aitest.platform.paths import get_workstudy
+WORKSTUDY = get_workstudy()
 
 def _resolve_kpi_dir() -> Path:
     """Resolve KPI directory: .tlo/runtime/kpi/ → legacy governance/kpi/."""

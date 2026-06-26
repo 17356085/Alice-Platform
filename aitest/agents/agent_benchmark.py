@@ -29,9 +29,12 @@ import math
 from pathlib import Path
 from dataclasses import dataclass, field
 from datetime import datetime
+from aitest.platform.paths import get_workstudy
+from aitest.infra.logging import get_logger
+_log = get_logger(__name__)
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 BENCH_DIR = GOVERNANCE / "artifacts" / "benchmarks"
 TRACE_LOG = GOVERNANCE / ".traces" / "trace_log.jsonl"
@@ -294,7 +297,7 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
-        print("Usage: python agent_benchmark.py <agent_name> --module=<m> [--page=<p>] [--repeat=3]")
+        _log.info("Usage: python agent_benchmark.py <agent_name> --module=<m> [--page=<p>] [--repeat=3]")
         sys.exit(0)
 
     agent = sys.argv[1]
@@ -312,13 +315,13 @@ if __name__ == "__main__":
     bench = AgentBenchmark()
     result = bench.run(agent, kwargs, repeat=repeat)
 
-    print(f"\nAgent: {result['agent_name']}")
-    print(f"Task: {result['task']}")
-    print(f"Grade: {result['grade']} (overall={result['overall_score']:.3f})")
-    print(f"Success Rate: {result['success_rate']:.0%}")
-    print(f"3D Score: Q={result['three_d_score']['quality']:.3f} "
+    _log.info(f"\nAgent: {result['agent_name']}")
+    _log.info(f"Task: {result['task']}")
+    _log.info(f"Grade: {result['grade']} (overall={result['overall_score']:.3f})")
+    _log.info(f"Success Rate: {result['success_rate']:.0%}")
+    _log.info(f"3D Score: Q={result['three_d_score']['quality']:.3f} "
           f"E={result['three_d_score']['efficiency']:.3f} "
           f"C={result['three_d_score']['cost']:.3f} "
           f"S={result['three_d_score']['stability']:.3f}")
-    print(f"Avg: {result['avg_tokens_per_run']} tokens, {result['avg_latency_ms']}ms")
-    print(f"Total cost (all runs): ${result['total_cost_all_runs']:.4f}")
+    _log.info(f"Avg: {result['avg_tokens_per_run']} tokens, {result['avg_latency_ms']}ms")
+    _log.info(f"Total cost (all runs): ${result['total_cost_all_runs']:.4f}")

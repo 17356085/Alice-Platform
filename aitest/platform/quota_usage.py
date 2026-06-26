@@ -28,10 +28,12 @@ from .consumer import RunEventConsumer
 from .run_event import RunEvent, EventType
 from .event_bus import get_bus
 from .run_store import get_run_store
+from .ttl_set import TTLSet
+from aitest.platform.paths import get_workstudy
 
 
 def _usage_dir() -> Path:
-    base = Path(__file__).resolve().parent.parent.parent
+    base = get_workstudy()
     return base / "governance" / ".data" / "usage"
 
 
@@ -43,8 +45,9 @@ class QuotaUsageConsumer:
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._active = False
-        self._seen: set[str] = set()  # Idempotency
+        self._seen = TTLSet(max_size=10_000, max_age_s=86_400)  # Idempotency: 10k entries, 24h TTL
         self._usage: dict[str, dict] = {}  # workspace_id → counters
+        self._MAX_USAGE_ENTRIES = 500  # RC2 fix: cap per-workspace entries
 
     def start(self):
         if self._active:
@@ -69,15 +72,20 @@ class QuotaUsageConsumer:
     # ── Handler ───────────────────────────────────────────────────────
 
     def _on_run_completed(self, event: RunEvent):
-        if event.event_id in self._seen:
-            return
+        if not self._seen.add(event.event_id):
+            return  # already processed (TTLSet atomic check-and-add)
         ws_id = event.data.get("workspace_id", "")
         org_id = event.data.get("org_id", "")
         tokens = event.data.get("total_tokens", 0)
         cost = event.data.get("total_cost", 0.0)
 
         with self._lock:
-            self._seen.add(event.event_id)
+            # RC2 fix: LRU eviction if at capacity
+            if ws_id not in self._usage and len(self._usage) >= self._MAX_USAGE_ENTRIES:
+                oldest = min(self._usage.keys(),
+                             key=lambda k: self._usage[k].get("last_updated", ""))
+                del self._usage[oldest]
+
             if ws_id not in self._usage:
                 self._usage[ws_id] = self._empty_usage(ws_id, org_id)
 

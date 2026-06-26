@@ -41,9 +41,10 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional
 import functools
+from aitest.platform.paths import get_workstudy
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-WORKSTUDY = Path(__file__).resolve().parent.parent.parent
+WORKSTUDY = get_workstudy()
 TRACE_DIR = WORKSTUDY / "governance" / ".traces"
 TRACE_LOG = TRACE_DIR / "trace_log.jsonl"
 

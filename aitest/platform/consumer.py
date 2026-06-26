@@ -9,12 +9,14 @@ Usage:
 
     class MyConsumer(RunEventConsumer):
         def handle(self, event: RunEvent) -> None:
-            print(f"Got event: {event.event_type}")
+            _log.info(f"Got event: {event.event_type}")
 """
 
 from typing import Protocol
 
 from .run_event import RunEvent
+from aitest.infra.logging import get_logger
+_log = get_logger(__name__)
 
 
 class RunEventConsumer(Protocol):

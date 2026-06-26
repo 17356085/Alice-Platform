@@ -16,6 +16,7 @@
 | SOP 运行状态 (权威) | governance/.graph_state/checkpoints.sqlite | LangGraph SqliteSaver | 断点续跑 + 时间旅行，程序以 SQLite 为准 |
 | SOP 运行状态 (可读导出) | artifacts/sop-status/SOP_STATUS_<module>.json | JSON 快照 | SQLite 的人类可读导出，不作为独立门禁依据 |
 | Agent 定义 | governance/agents/agent-definitions.yaml | 单一事实源 | agents/README.md + project-index.yaml 从此文件自动生成 |
+| 平台执行状态 (pause/resume/session) | governance/.data/{task_id}/ | pause.json + task_state.json | 不跟随项目 git; 与 .graph_state/ (LangGraph checkpoint) 互补 |
 
 ## 产出物来源标记
 
