@@ -49,8 +49,9 @@ async def lifespan(app: FastAPI):
     else:
         log.info("task_queue_ready", backend="redis",
                  pending=queue.count_by_status().get("pending", 0))
+        worker_flag = " --worker-class rq.SimpleWorker" if sys.platform == "win32" else ""
         log.info("rq_worker_hint",
-                 cmd="rq worker aitest-tasks --url redis://localhost:6379/0")
+                 cmd=f"rq worker aitest-tasks --url redis://localhost:6379/0{worker_flag}")
 
     # Activate platform subscribers (v2.3-v2.5)
     from aitest.server.core.subscribers import activate_subscribers

@@ -364,7 +364,8 @@ def cmd_graph_dev(args):
 
     if args.action == "run":
         module = args.module
-        pages = args.pages.split(",") if args.pages else []
+        pages_raw = getattr(args, 'pages', None) or ''
+        pages = pages_raw.split(",") if pages_raw else []
         mode = args.mode or "full"
         provider = args.provider or "claude"
 

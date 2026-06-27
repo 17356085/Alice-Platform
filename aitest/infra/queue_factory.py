@@ -88,8 +88,5 @@ def _create_sqlite():
 
 def _create_rq(redis_url: str = ""):
     from aitest.infra.rq_queue import RQTaskQueue, RQTaskQueueNotAvailable
-    if redis_url:
-        return RQTaskQueue(redis_url=redis_url), "redis"
-    raise RQTaskQueueNotAvailable(
-        "REDIS_URL not set and Redis not running on localhost. "
-        "Install: pip install rq redis. Start: redis-server.")
+    kwargs = {"redis_url": redis_url} if redis_url else {}
+    return RQTaskQueue(**kwargs), "redis"

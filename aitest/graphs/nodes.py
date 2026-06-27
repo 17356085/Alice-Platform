@@ -40,7 +40,7 @@ def make_agent_loop_node(
     use_context_agent: 为 automation_agent 启用 ContextAgent 精准 context 注入（省 70%+ token）。
     """
 
-    def agent_loop_node(state: SOPState) -> dict:
+    def agent_loop_node(state: dict) -> dict:
         from aitest.agents.agent_runner import AgentLoop
         from aitest.graphs.state import AgentResult
 

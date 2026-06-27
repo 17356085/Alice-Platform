@@ -1409,11 +1409,12 @@ def main():
     p_graph_dev.add_argument("action", choices=["run", "resume", "status", "list"],
                             help="run:执行DevSOP编排 | resume:断点续跑 | status:查看状态 | list:列出runs")
     p_graph_dev.add_argument("--module", "-m", help="模块名（run 模式必填）")
+    p_graph_dev.add_argument("--pages", help="页面列表，逗号分隔（可选，默认自动发现）")
     p_graph_dev.add_argument("--mode", default="full",
                             choices=["full", "resume", "status", "from-architecture", "from-frontend", "from-backend", "review-only"],
                             help="运行模式（默认 full）")
     p_graph_dev.add_argument("--provider", "-p", default="claude",
-                            choices=["claude", "openai", "ollama"],
+                            choices=["claude", "openai", "ollama", "deepseek"],
                             help="LLM Provider（默认 claude）")
     p_graph_dev.add_argument("--run-id", help="运行 ID（resume/status 模式）")
     p_graph_dev.add_argument("--limit", type=int, default=20, help="列出数量（list 模式）")

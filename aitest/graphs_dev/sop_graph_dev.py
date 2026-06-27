@@ -22,7 +22,7 @@ from pathlib import Path
 from langgraph.graph import StateGraph, END
 from aitest.graphs_dev.state_dev import (
     DEV_CANONICAL_PHASES, DEV_PHASE_TO_NODE, ALL_DEV_AGENT_NODES,
-    DEV_MODE_SKIP_MAP, DevPhaseName,
+    DEV_MODE_SKIP_MAP, DevPhaseName, DevSOPState,
 )
 
 from aitest.platform.paths import get_workstudy
@@ -38,7 +38,11 @@ CONTEXT_DEV = GOVERNANCE / "context" / "projects" / "dev-platform"
 def entry_node(state: dict) -> dict:
     mode = state.get("mode", "full")
     skip_phases = list(DEV_MODE_SKIP_MAP.get(mode, []))
-    return {"skip_phases": skip_phases, "current_phase": "Plan", "status": "running"}
+    return {
+        "skip_phases": skip_phases,
+        "current_phase": "Plan",
+        "status": "running",
+    }
 
 
 def exit_node(state: dict) -> dict:
@@ -92,7 +96,7 @@ def dev_route_next_phase(state: dict) -> str:
 # ═══════════════════════════════════════════════════════════════
 
 def build_dev_sop_graph() -> StateGraph:
-    builder = StateGraph(dict)
+    builder = StateGraph(DevSOPState)
 
     from aitest.graphs.nodes import make_agent_loop_node
 
