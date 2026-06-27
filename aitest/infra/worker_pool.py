@@ -36,13 +36,16 @@ import functools
 
 @dataclass
 class PoolStats:
-    """Worker pool statistics snapshot."""
+    """Worker pool statistics snapshot. P4: + oldest_active_s, timed_out_tasks."""
     active_tasks: int = 0
     queued_tasks: int = 0
     completed_tasks: int = 0
     failed_tasks: int = 0
+    timed_out_tasks: int = 0
     max_workers: int = 4
     per_tenant: dict = field(default_factory=dict)
+    oldest_active_s: float = 0.0
+    total_submitted: int = 0
 
 
 class WorkerPool:
@@ -50,13 +53,16 @@ class WorkerPool:
 
     _MAX_FUTURES = 10_000  # Safety cap: evict oldest if exceeded
 
-    def __init__(self, max_workers: int = 4):
+    def __init__(self, max_workers: int = 4, default_timeout: float = 1800):
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
         self._max_workers = max_workers
+        self._default_timeout = default_timeout  # P4: 30min default
         self._lock = threading.Lock()
         self._stats = PoolStats(max_workers=max_workers)
         self._tenant_active: dict[str, int] = {}
         self._futures: dict[str, Future] = {}
+        self._task_started: dict[str, float] = {}  # P4: task_id → start_time
+        self._task_timeouts: dict[str, float] = {}  # P4: task_id → timeout_s
         self._submit_counter: int = 0  # monotonic, for unique task IDs
 
     def submit(
@@ -149,7 +155,11 @@ class WorkerPool:
         with self._lock:
             self._submit_counter += 1
         task_id = f"{tenant_id}-{task_type}-{self._submit_counter}"
+        actual_timeout = timeout or self._default_timeout
         with self._lock:
+            self._task_started[task_id] = time.monotonic()
+            self._task_timeouts[task_id] = actual_timeout
+            self._stats.total_submitted += 1
             # Safety cap: if futures dict grows past limit, evict oldest entries
             # (done callbacks normally prevent this — this is defense-in-depth)
             while len(self._futures) >= self._MAX_FUTURES:
@@ -164,20 +174,56 @@ class WorkerPool:
         def _cleanup(_f: Future):
             with self._lock:
                 self._futures.pop(task_id, None)
+                self._task_started.pop(task_id, None)
+                self._task_timeouts.pop(task_id, None)
 
         future.add_done_callback(_cleanup)
         return future
 
-    def stats(self) -> PoolStats:
-        """Get current pool statistics."""
+    # ── P4: Timeout enforcement ───────────────────────────────────────
+
+    def cleanup_stale(self) -> int:
+        """P4: Cancel tasks that have exceeded their timeout. Returns count cancelled."""
+        now = time.monotonic()
+        cancelled = 0
         with self._lock:
+            stale_ids = []
+            for task_id, started in list(self._task_started.items()):
+                timeout = self._task_timeouts.get(task_id, self._default_timeout)
+                if now - started > timeout:
+                    stale_ids.append(task_id)
+            for task_id in stale_ids:
+                future = self._futures.pop(task_id, None)
+                self._task_started.pop(task_id, None)
+                self._task_timeouts.pop(task_id, None)
+                if future and not future.done():
+                    future.cancel()
+                    self._stats.timed_out_tasks += 1
+                    self._stats.active_tasks = max(0, self._stats.active_tasks - 1)
+                    cancelled += 1
+        if cancelled:
+            import logging
+            logging.getLogger("worker_pool").warning(
+                "stale_tasks_cancelled", count=cancelled)
+        return cancelled
+
+    def stats(self) -> PoolStats:
+        """P4: includes oldest_active_s and timed_out_tasks."""
+        with self._lock:
+            oldest = 0.0
+            if self._task_started:
+                now = time.monotonic()
+                oldest = max(0.0, now - min(self._task_started.values()))
             return PoolStats(
                 active_tasks=self._stats.active_tasks,
                 queued_tasks=self._stats.queued_tasks,
                 completed_tasks=self._stats.completed_tasks,
                 failed_tasks=self._stats.failed_tasks,
+                timed_out_tasks=self._stats.timed_out_tasks,
                 max_workers=self._max_workers,
                 per_tenant=dict(self._tenant_active),
+                oldest_active_s=round(oldest, 1),
+                total_submitted=self._stats.total_submitted,
             )
 
     def shutdown(self, wait: bool = True):

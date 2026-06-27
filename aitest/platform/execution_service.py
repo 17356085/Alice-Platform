@@ -251,13 +251,128 @@ class ExecutionService:
             duration_ms=round(duration_ms, 1),
         )
 
+    def resume(self, run_id: str) -> ExecutionResult | None:
+        """P4: Resume an interrupted Run from its last checkpoint.
+
+        Loads the Run from run_store, re-creates the execution context,
+        and continues the AgentLoop from where it left off.
+        Returns None if the Run is already complete or doesn't exist.
+
+        Args:
+            run_id: The Run.run_id to resume (from a previous failed/interrupted run)
+
+        Returns:
+            ExecutionResult or None if Run is terminal/not found.
+        """
+        run = self._store.load_run(run_id)
+        if run is None:
+            return None
+        if run.is_frozen:
+            return None  # Already terminal — nothing to resume
+
+        t0 = time.perf_counter()
+        pages = run.pages or []
+
+        # Create a new request linking to the resumed run
+        request = ExecutionRequest(
+            request_id=str(uuid.uuid4()),
+            workspace_id=run.workspace_id,
+            org_id=run.org_id,
+            triggered_by=run.triggered_by,
+            trigger_type="resume",
+            module=run.module,
+            pages=pages,
+            mode=run.mode,
+            provider=getattr(run, 'provider', 'claude'),
+        )
+        request.dispatch(run.run_id)
+
+        # Emit execution.resumed
+        ev_resume = make_event(
+            EventType.EXECUTION_REQUESTED,
+            request_id=request.request_id,
+            run_id=run.run_id,
+            module=run.module,
+            pages=pages,
+            agent=run.agent,
+            data={"resume": True, "original_run_id": run.run_id},
+        )
+        self._store.save_event(ev_resume)
+        self._bus.publish(ev_resume)
+        self._store.save_request(request)
+
+        # Re-execute via AgentLoop
+        try:
+            from aitest.agents.agent_runner import AgentLoop
+
+            loop = AgentLoop(
+                agent_name=run.agent,
+                provider=getattr(run, 'provider', 'claude'),
+                module=run.module,
+                page=pages[0] if pages else "",
+                pages=pages,
+                verbose=True,
+            )
+            state = loop.run()
+
+            run.complete(
+                total_tokens=getattr(state, 'total_tokens', 0),
+                total_cost=getattr(state, 'estimated_cost', 0.0),
+                agent_runs=getattr(state, 'step', 0),
+            )
+            request.complete()
+            self._store.save_run(run)
+            self._store.save_request(request)
+
+            ev_completed = make_event(
+                EventType.RUN_COMPLETED,
+                run_id=run.run_id,
+                request_id=request.request_id,
+                module=run.module,
+                agent=run.agent,
+                data={"resumed": True},
+            )
+            self._store.save_event(ev_completed)
+            self._bus.publish(ev_completed)
+
+        except Exception as e:
+            run.fail(str(e))
+            request.fail()
+            self._store.save_run(run)
+            self._store.save_request(request)
+
+            ev_failed = make_event(
+                EventType.RUN_FAILED,
+                run_id=run.run_id,
+                request_id=request.request_id,
+                module=run.module,
+                agent=run.agent,
+                error=str(e),
+            )
+            self._store.save_event(ev_failed)
+            self._bus.publish(ev_failed)
+
+        self._store.save_run(run)
+        duration_ms = (time.perf_counter() - t0) * 1000
+
+        return ExecutionResult(
+            request_id=request.request_id,
+            run_id=run.run_id,
+            status=run.status,
+            total_tokens=run.total_tokens,
+            total_cost=run.total_cost,
+            agent_runs=run.agent_runs,
+            artifacts=run.artifacts,
+            error_message=run.error_message,
+            duration_ms=round(duration_ms, 1),
+        )
+
     def cancel(self, request_id: str) -> bool:
         """Cancel a pending/queued ExecutionRequest. Best-effort.
 
         v2.2: ExecutionRequest is in-memory only. Look up Run by request_id,
         cancel if not yet terminal.
         """
-        # Find Run by request_id
         runs = self._store.list_runs(limit=500)
         run = next((r for r in runs if r.request_id == request_id), None)
 
@@ -269,7 +384,6 @@ class ExecutionService:
         run.cancel()
         self._store.save_run(run)
 
-        # Find and cancel the ExecutionRequest
         request = self._store.load_request(request_id)
         if request:
             request.cancel()

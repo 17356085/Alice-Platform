@@ -11,11 +11,15 @@ async def get_health_response() -> dict:
 
     components: dict = {}
     overall = "healthy"
+    pending_tasks = 0  # P4: aggregate pending tasks from task_queue + worker_pool
 
-    # Task Queue
+    # Task Queue (P4: pending_tasks surfaced)
     try:
         queue = get_queue()
-        components["task_queue"] = {"status": "ok", "stats": queue.count_by_status()}
+        stats = queue.count_by_status()
+        pending = stats.get("pending", 0)
+        pending_tasks += pending
+        components["task_queue"] = {"status": "ok", "stats": stats, "pending": pending}
     except Exception as e:
         components["task_queue"] = {"status": "error", "error": str(e)[:100]}
         overall = "degraded"
@@ -102,14 +106,17 @@ async def get_health_response() -> dict:
     except Exception as e:
         components["cache"] = {"status": "error", "error": str(e)[:100]}
 
-    # Worker Pool
+    # Worker Pool (P4: oldest_active_s + timed_out)
     try:
         from aitest.infra.worker_pool import get_worker_pool
         stats = get_worker_pool().stats()
+        pending_tasks += stats.queued_tasks  # P4: worker pool queued = pending
         components["worker_pool"] = {
             "status": "ok", "max_workers": stats.max_workers,
             "active": stats.active_tasks, "queued": stats.queued_tasks,
             "completed": stats.completed_tasks, "failed": stats.failed_tasks,
+            "timed_out": stats.timed_out_tasks,
+            "oldest_active_s": stats.oldest_active_s,
             "per_tenant": stats.per_tenant,
         }
     except Exception as e:
@@ -161,4 +168,4 @@ async def get_health_response() -> dict:
     except Exception as e:
         components["lifecycle"] = {"status": "error", "error": str(e)[:100]}
 
-    return {"status": overall, "components": components}
+    return {"status": overall, "pending_tasks": pending_tasks, "components": components}

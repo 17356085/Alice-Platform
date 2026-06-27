@@ -1,53 +1,41 @@
-"""
-Task Queue — SQLite 持久化异步任务队列。
+"""Task Queue — SQLite persistent async task queue with retry + stale recovery.
 
-设计原则:
-  1. 零外部依赖 — 纯 Python + SQLite
-  2. 适合单机/低频场景（多用户/高并发时再切 Celery+Redis）
-  3. 通过 FastAPI BackgroundTasks 消费
+Design:
+  1. Zero external deps — pure Python + SQLite
+  2. Single-machine / low-frequency scenarios
+  3. P4 (2026-06-25): retry_count + max_retries + auto-requeue + stale recovery
 
-表结构:
+Schema:
   tasks:
-    - id: TEXT PRIMARY KEY     # UUID
-    - agent: TEXT              # Agent 名称
-    - module: TEXT             # 模块名
-    - page: TEXT               # 页面名（可空）
-    - provider: TEXT           # LLM Provider
-    - status: TEXT             # queued | running | completed | failed
-    - result_json: TEXT        # JSON 结果（完成后写入）
-    - error_msg: TEXT          # 错误信息
-    - created_at: REAL         # 创建时间戳
-    - started_at: REAL         # 开始执行时间戳
-    - completed_at: REAL       # 完成时间戳
-
-用法:
-    from aitest.infra.task_queue import TaskQueue
-    queue = TaskQueue()
-    task_id = queue.enqueue("test-design-agent", module="equipment", page="alarm-config")
-    status = queue.get(task_id)
+    - id: TEXT PRIMARY KEY
+    - agent, module, page, provider
+    - status: queued | running | completed | failed | retrying
+    - result_json, error_msg
+    - retry_count INTEGER DEFAULT 0
+    - max_retries INTEGER DEFAULT 3
+    - created_at, started_at, completed_at
 """
-import os
 import json
+import logging
 import time
 import uuid
 import sqlite3
 import threading
-from pathlib import Path
-from dataclasses import dataclass, asdict
 from typing import Optional
+
 from aitest.platform.paths import get_workstudy
 
-# ── 路径 ──
+logger = logging.getLogger("task_queue")
+
 WORKSTUDY = get_workstudy()
 DB_PATH = WORKSTUDY / "aitest" / "tasks.db"
 
+DEFAULT_MAX_RETRIES = 3
+STALE_TASK_TIMEOUT_S = 1800  # 30 min
 
-# ══════════════════════════════════════════════════════════════════════════
-#  TaskQueue
-# ══════════════════════════════════════════════════════════════════════════
 
 class TaskQueue:
-    """SQLite 持久化异步任务队列。"""
+    """SQLite persistent async task queue. P4: retry + stale recovery."""
 
     def __init__(self, db_path: str = None):
         self._db = db_path or str(DB_PATH)
@@ -73,100 +61,153 @@ class TaskQueue:
                     status TEXT DEFAULT 'queued',
                     result_json TEXT DEFAULT '',
                     error_msg TEXT DEFAULT '',
+                    retry_count INTEGER DEFAULT 0,
+                    max_retries INTEGER DEFAULT 3,
                     created_at REAL,
                     started_at REAL,
                     completed_at REAL
                 )
             """)
-            conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status)
-            """)
-            conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_tasks_created ON tasks(created_at)
-            """)
+            # P4: migrate old tables missing columns
+            for col, col_type in [("retry_count", "INTEGER DEFAULT 0"),
+                                   ("max_retries", "INTEGER DEFAULT 3")]:
+                try:
+                    conn.execute(f"ALTER TABLE tasks ADD COLUMN {col} {col_type}")
+                except sqlite3.OperationalError:
+                    pass
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_tasks_created ON tasks(created_at)")
             conn.commit()
             conn.close()
 
-    def enqueue(
-        self,
-        agent: str,
-        module: str,
-        page: str = "",
-        provider: str = "claude",
-    ) -> str:
-        """入队一个任务。返回 task_id。"""
+    # ── Enqueue / Dequeue ──────────────────────────────────────────────
+
+    def enqueue(self, agent: str, module: str, page: str = "",
+                provider: str = "claude", max_retries: int = DEFAULT_MAX_RETRIES) -> str:
         task_id = f"task-{uuid.uuid4().hex[:12]}"
         now = time.time()
-
         with self._lock:
             conn = self._get_conn()
             conn.execute(
-                """INSERT INTO tasks (id, agent, module, page, provider, status, created_at)
-                   VALUES (?, ?, ?, ?, ?, 'queued', ?)""",
-                (task_id, agent, module, page, provider, now)
-            )
+                """INSERT INTO tasks (id, agent, module, page, provider, status, max_retries, created_at)
+                   VALUES (?, ?, ?, ?, ?, 'queued', ?, ?)""",
+                (task_id, agent, module, page, provider, max_retries, now))
             conn.commit()
             conn.close()
-
         return task_id
 
     def dequeue(self) -> Optional[dict]:
-        """取出下一个 queued 任务并标记为 running。返回任务 dict 或 None。"""
         with self._lock:
             conn = self._get_conn()
             row = conn.execute(
                 "SELECT * FROM tasks WHERE status='queued' ORDER BY created_at LIMIT 1"
             ).fetchone()
-
             if not row:
                 conn.close()
                 return None
-
             now = time.time()
-            conn.execute(
-                "UPDATE tasks SET status='running', started_at=? WHERE id=?",
-                (now, row["id"])
-            )
+            conn.execute("UPDATE tasks SET status='running', started_at=? WHERE id=?",
+                         (now, row["id"]))
             conn.commit()
             conn.close()
-
             return dict(row)
 
+    # ── Complete / Fail ────────────────────────────────────────────────
+
     def mark_completed(self, task_id: str, result: dict):
-        """标记任务完成并写入结果。"""
         now = time.time()
         with self._lock:
             conn = self._get_conn()
             conn.execute(
-                """UPDATE tasks SET status='completed', result_json=?, completed_at=?
-                   WHERE id=?""",
-                (json.dumps(result, ensure_ascii=False), now, task_id)
-            )
+                "UPDATE tasks SET status='completed', result_json=?, completed_at=? WHERE id=?",
+                (json.dumps(result, ensure_ascii=False), now, task_id))
             conn.commit()
             conn.close()
 
     def mark_failed(self, task_id: str, error: str):
-        """标记任务失败。"""
+        """P4: auto-requeue if retry_count < max_retries. Else final fail."""
+        now = time.time()
+        with self._lock:
+            conn = self._get_conn()
+            task = conn.execute("SELECT * FROM tasks WHERE id=?", (task_id,)).fetchone()
+            if not task:
+                conn.close()
+                return
+            retry_count = task["retry_count"] or 0
+            max_retries = task["max_retries"] or DEFAULT_MAX_RETRIES
+
+            if retry_count < max_retries:
+                conn.execute(
+                    "UPDATE tasks SET status='queued', error_msg=?, retry_count=?, completed_at=? WHERE id=?",
+                    (f"[retry {retry_count + 1}/{max_retries}] {error}",
+                     retry_count + 1, now, task_id))
+                conn.commit()
+                conn.close()
+                logger.info("task_retry_queued", task_id=task_id,
+                            retry=f"{retry_count + 1}/{max_retries}")
+                return
+
+            conn.execute(
+                "UPDATE tasks SET status='failed', error_msg=?, completed_at=? WHERE id=?",
+                (f"[exhausted after {retry_count} retries] {error}", now, task_id))
+            conn.commit()
+            conn.close()
+            logger.error("task_exhausted", task_id=task_id, retries=retry_count)
+
+    def mark_failed_no_retry(self, task_id: str, error: str):
+        """P4: fail immediately without retry (unrecoverable errors)."""
         now = time.time()
         with self._lock:
             conn = self._get_conn()
             conn.execute(
-                """UPDATE tasks SET status='failed', error_msg=?, completed_at=?
-                   WHERE id=?""",
-                (error, now, task_id)
-            )
+                "UPDATE tasks SET status='failed', error_msg=?, completed_at=? WHERE id=?",
+                (error, now, task_id))
             conn.commit()
             conn.close()
 
+    # ── P4: Recovery ───────────────────────────────────────────────────
+
+    def recover_stale_tasks(self) -> int:
+        """P4: mark running tasks stalled > STALE_TASK_TIMEOUT_S as failed."""
+        cutoff = time.time() - STALE_TASK_TIMEOUT_S
+        with self._lock:
+            conn = self._get_conn()
+            conn.execute(
+                "UPDATE tasks SET status='failed', error_msg=?, completed_at=?"
+                " WHERE status='running' AND started_at < ?",
+                ("stale task — timed out after 30min", time.time(), cutoff))
+            recovered = conn.total_changes
+            conn.commit()
+            conn.close()
+        if recovered:
+            logger.warning("stale_tasks_recovered", count=recovered)
+        return recovered
+
+    def retry_failed(self, task_id: str) -> bool:
+        """P4: manually requeue a failed task."""
+        with self._lock:
+            conn = self._get_conn()
+            task = conn.execute(
+                "SELECT * FROM tasks WHERE id=? AND status='failed'", (task_id,)
+            ).fetchone()
+            if not task:
+                conn.close()
+                return False
+            conn.execute(
+                "UPDATE tasks SET status='queued', error_msg='', started_at=NULL, completed_at=NULL WHERE id=?",
+                (task_id,))
+            conn.commit()
+            conn.close()
+            return True
+
+    # ── Query ──────────────────────────────────────────────────────────
+
     def get(self, task_id: str) -> Optional[dict]:
-        """查询单个任务状态。"""
         conn = self._get_conn()
         row = conn.execute("SELECT * FROM tasks WHERE id=?", (task_id,)).fetchone()
         conn.close()
-
         if not row:
             return None
-
         task = dict(row)
         if task.get("result_json"):
             try:
@@ -176,39 +217,35 @@ class TaskQueue:
         return task
 
     def list_tasks(self, status: str = None, limit: int = 20) -> list[dict]:
-        """列出任务。"""
         conn = self._get_conn()
         if status:
             rows = conn.execute(
                 "SELECT * FROM tasks WHERE status=? ORDER BY created_at DESC LIMIT ?",
-                (status, limit)
-            ).fetchall()
+                (status, limit)).fetchall()
         else:
             rows = conn.execute(
                 "SELECT * FROM tasks ORDER BY created_at DESC LIMIT ?",
-                (limit,)
-            ).fetchall()
+                (limit,)).fetchall()
         conn.close()
         return [dict(r) for r in rows]
 
     def count_by_status(self) -> dict:
-        """按状态统计任务数。"""
+        """P4: includes 'pending' = queued + running."""
         conn = self._get_conn()
         rows = conn.execute(
-            "SELECT status, COUNT(*) as cnt FROM tasks GROUP BY status"
-        ).fetchall()
+            "SELECT status, COUNT(*) as cnt FROM tasks GROUP BY status").fetchall()
         conn.close()
-        return {r["status"]: r["cnt"] for r in rows}
+        result = {r["status"]: r["cnt"] for r in rows}
+        result["pending"] = result.get("queued", 0) + result.get("running", 0)
+        return result
 
     def cleanup(self, older_than_hours: int = 24):
-        """清理旧任务记录。"""
         cutoff = time.time() - (older_than_hours * 3600)
         with self._lock:
             conn = self._get_conn()
             conn.execute(
                 "DELETE FROM tasks WHERE completed_at < ? AND status IN ('completed', 'failed')",
-                (cutoff,)
-            )
+                (cutoff,))
             deleted = conn.total_changes
             conn.commit()
             conn.close()
@@ -216,20 +253,20 @@ class TaskQueue:
 
 
 # ══════════════════════════════════════════════════════════════════════════
-#  Task Runner（后台消费线程）
+#  Task Runner — background consumer thread
 # ══════════════════════════════════════════════════════════════════════════
 
 class TaskRunner:
-    """后台任务执行器 — 轮询队列并消费任务。"""
+    """Background task consumer. P4: stale recovery + retry-aware error handling."""
 
     def __init__(self, queue: TaskQueue = None, poll_interval: float = 2.0):
         self.queue = queue or TaskQueue()
         self.poll_interval = poll_interval
         self._running = False
         self._thread: Optional[threading.Thread] = None
+        self._stale_check_count = 0
 
     def start(self):
-        """启动后台消费线程。"""
         if self._running:
             return
         self._running = True
@@ -237,42 +274,47 @@ class TaskRunner:
         self._thread.start()
 
     def stop(self):
-        """停止消费线程。"""
         self._running = False
         if self._thread:
             self._thread.join(timeout=5)
 
     def _loop(self):
         while self._running:
+            self._stale_check_count += 1
+            # P4: every 30 polls (~60s), recover stale tasks
+            if self._stale_check_count % 30 == 0:
+                try:
+                    self.queue.recover_stale_tasks()
+                except Exception:
+                    pass
+
             task = self.queue.dequeue()
             if task:
                 try:
                     self._execute(task)
                 except Exception as e:
-                    self.queue.mark_failed(task["id"], str(e))
+                    error_str = str(e)
+                    if any(kw in error_str.lower() for kw in
+                           ("fatal", "context_length", "permission", "denied", "auth")):
+                        self.queue.mark_failed_no_retry(task["id"], error_str)
+                    else:
+                        self.queue.mark_failed(task["id"], error_str)
             else:
                 time.sleep(self.poll_interval)
 
     def _execute(self, task: dict):
-        """执行单个任务（在后台线程中）。"""
-        try:
-            from aitest.agents.agent_runner import run_agent
-
-            result = run_agent(
-                agent_name=task["agent"],
-                provider=task.get("provider", "claude"),
-                module=task["module"],
-                page=task.get("page", ""),
-                verbose=False,
-            )
-            self.queue.mark_completed(task["id"], result)
-        except Exception as e:
-            self.queue.mark_failed(task["id"], str(e))
+        from aitest.agents.agent_runner import run_agent
+        result = run_agent(
+            agent_name=task["agent"],
+            provider=task.get("provider", "claude"),
+            module=task["module"],
+            page=task.get("page", ""),
+            verbose=False,
+        )
+        self.queue.mark_completed(task["id"], result)
 
 
-# ══════════════════════════════════════════════════════════════════════════
-#  全局实例
-# ══════════════════════════════════════════════════════════════════════════
+# ── Global singletons ───────────────────────────────────────────────────
 
 _queue = TaskQueue()
 _runner = TaskRunner(_queue)
