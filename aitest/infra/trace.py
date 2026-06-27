@@ -673,10 +673,12 @@ def _trace_llm_call(fn):
     instance_model = getattr(instance, "model", "") if instance else ""
 
     @functools.wraps(fn)
-    def wrapper(system_prompt="", user_prompt="", **kwargs):
+    def wrapper(system_prompt="", user_prompt="", *args, **kwargs):
         start_ns = time.time()
         # fn 是 bound method，已绑定 instance，不再传 self
-        response = fn(system_prompt, user_prompt, **kwargs)
+        # Accept *args for positional compat (tools, temperature, max_tokens
+        # may be passed positionally from reliable_provider._call_with_timeout)
+        response = fn(system_prompt, user_prompt, *args, **kwargs)
         elapsed_ms = int((time.time() - start_ns) * 1000)
 
         token_usage = response.token_usage or {}

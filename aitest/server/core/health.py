@@ -74,6 +74,41 @@ async def get_health_response() -> dict:
     except Exception as e:
         components["error_log"] = {"status": "error", "error": str(e)[:100]}
 
+    # Redis: Cache
+    try:
+        from aitest.infra.redis_cache import redis_cache
+        components["redis_cache"] = redis_cache.stats()
+    except Exception as e:
+        components["redis_cache"] = {"status": "error", "error": str(e)[:100]}
+
+    # Redis: Session Store
+    try:
+        from aitest.server.redis_session_store import redis_session_store
+        components["redis_session"] = redis_session_store.stats()
+    except Exception as e:
+        components["redis_session"] = {"status": "error", "error": str(e)[:100]}
+
+    # Redis: PubSub
+    try:
+        from aitest.infra.redis_pubsub import pubsub_stats
+        components["redis_pubsub"] = pubsub_stats()
+    except Exception as e:
+        components["redis_pubsub"] = {"status": "error", "error": str(e)[:100]}
+
+    # Redis: Rate Limiter
+    try:
+        from aitest.infra.redis_utils import redis_limiter
+        components["redis_ratelimit"] = redis_limiter.stats()
+    except Exception as e:
+        components["redis_ratelimit"] = {"status": "error", "error": str(e)[:100]}
+
+    # Redis: Vector Search
+    try:
+        from aitest.knowledge.redis_vector import redis_vector_client
+        components["redis_vector"] = redis_vector_client.stats()
+    except Exception as e:
+        components["redis_vector"] = {"status": "error", "error": str(e)[:100]}
+
     # Checkpoint DB
     try:
         from aitest.graphs.checkpoint import DB_PATH, list_runs
