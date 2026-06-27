@@ -8,6 +8,9 @@ import { useChatStore, selectMessages } from '@/stores/chat'
 import ChatSidebar from '@/components/ChatSidebar'
 import ToolIndicator from '@/components/ToolIndicator'
 import Markdown from '@/components/Markdown'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
 
 export default function IntelligenceChatView() {
   const { t } = useTranslation()
@@ -93,13 +96,15 @@ export default function IntelligenceChatView() {
               </div>
               <div className="grid grid-cols-2 gap-2 mt-4">
                 {suggestions.map(s => (
-                  <button
+                  <Button
                     key={s.label}
+                    variant="outline"
+                    size="sm"
                     onClick={() => clickSuggestion(s.q)}
-                    className="flex items-center gap-2 px-3 py-2 text-xs border border-border rounded-lg hover:border-ring hover:bg-accent/50 cursor-pointer font-sans transition-colors"
+                    className="justify-start gap-2 h-auto py-2 text-xs"
                   >
                     <span>{s.icon}</span> {s.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -144,11 +149,11 @@ export default function IntelligenceChatView() {
                           <div className="text-[13px] font-semibold">{t.title}</div>
                           <div className="text-[11px] text-muted-foreground mt-0.5">{t.description}</div>
                           <div className="flex gap-1.5 mt-2">
-                            {t.category && <span className="badge badge-info text-[10px]">{t.category}</span>}
+                            {t.category && <Badge variant="info" className="text-[10px]">{t.category}</Badge>}
                             {t.complexity && <span className="text-[10px] text-muted-foreground">{t.complexity}</span>}
-                            <button className="ml-auto px-2.5 py-0.5 text-[11px] bg-primary text-primary-foreground rounded border-none cursor-pointer font-sans">
+                            <Button size="sm" className="ml-auto h-auto py-0.5 px-2.5 text-[11px]">
                               Create Task
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       ))}
@@ -173,30 +178,25 @@ export default function IntelligenceChatView() {
         {/* Input */}
         <div className="border-t border-border p-3">
           <div className="flex gap-2">
-            <textarea
+            <Textarea
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={onKeydown}
               disabled={streaming}
               placeholder="Ask about your test suite..."
               rows={2}
-              className="flex-1 resize-none px-3 py-2 border border-border rounded-lg bg-background text-sm font-sans focus:border-ring outline-none disabled:opacity-50"
+              className="flex-1 resize-none"
             />
-            <button
+            <Button
               onClick={send}
               disabled={streaming || !input.trim()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg border-none cursor-pointer font-sans text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
+              size="icon"
             >
               ↑
-            </button>
+            </Button>
           </div>
         </div>
       </div>
-
-      <style>{`
-        .badge { display:inline-block; padding:1px 6px; border-radius:9999px; font-weight:600; }
-        .badge-info { background:var(--info-light); color:var(--info); }
-      `}</style>
     </div>
   )
 }

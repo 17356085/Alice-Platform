@@ -1,16 +1,27 @@
-/** Dashboard view — React port. Project list + health + KPIs + quick actions.
- *  Vue computed → React useMemo. Vue router-link → React Router Link.
- */
+/** Dashboard view — shadcn/ui edition. Project list + health + KPIs + quick actions. */
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '../stores/project'
 import { useKanbanStore } from '../stores/kanban'
 import { useHealth } from '../hooks/useHealth'
-import { LayoutDashboard, CheckCircle, AlertTriangle, Play, BarChart3, Activity } from 'lucide-react'
+import { LayoutDashboard, CheckCircle, AlertTriangle, Play, BarChart3, Activity, Search, FileText, Settings2 } from 'lucide-react'
 import ProjectSelector from '../components/ProjectSelector'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+import { useSettingsStore } from '../stores/settings'
+
+const dashHint: Record<string, string> = {
+  default:   'Shadow & Memory',
+  aoko:      'Speed & Power',
+  soujuurou: 'Warmth & Trust',
+}
 
 export default function DashboardView() {
+  const theme = useSettingsStore(s => s.app.theme)
+  const hint = dashHint[theme] || dashHint.default
   const { t } = useTranslation()
   const projects = useProjectStore(s => s.projects)
   const projectLoading = useProjectStore(s => s.loading)
@@ -42,224 +53,192 @@ export default function DashboardView() {
   }, [modules])
 
   return (
-    <div className="dashboard">
+    <div className="p-6 md:p-8 max-w-[1200px]">
       {/* Header */}
-      <div className="dashboard-header">
-        <div className="header-left">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2.5">
           <LayoutDashboard size={24} />
-          <h1>面板</h1>
+          <h1 className="text-[22px] font-bold m-0">面板</h1>
+          <span className="text-[10px] text-muted-foreground/50 tracking-wider uppercase">{hint}</span>
         </div>
         <ProjectSelector />
       </div>
 
-      {/* Stats cards */}
-      <div className="stats-grid">
+      {/* Stats grid */}
+      <div className="grid grid-cols-4 gap-4 mb-8">
         <StatCard icon={BarChart3} value={stats.total} label="总模块" />
-        <StatCard icon={CheckCircle} value={stats.completed} label="已完成" color="green" />
-        <StatCard icon={AlertTriangle} value={stats.withIssues} label="待修复" color="yellow" />
-        <StatCard icon={Play} value={stats.ready} label="就绪" color="blue" />
+        <StatCard icon={CheckCircle} value={stats.completed} label="已完成" color="text-success" />
+        <StatCard icon={AlertTriangle} value={stats.withIssues} label="待修复" color="text-warning" />
+        <StatCard icon={Play} value={stats.ready} label="就绪" color="text-info" />
       </div>
 
       {/* Platform Health */}
-      <div className="section">
-        <div className="section-header">
-          <h2><Activity size={16} /> 平台状态</h2>
-          <button className="btn-refresh" onClick={refreshHealth} disabled={healthLoading}>刷新</button>
+      <section className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold flex items-center gap-1.5 m-0">
+            <Activity size={16} /> 平台状态
+          </h2>
+          <Button variant="outline" size="sm" onClick={refreshHealth} disabled={healthLoading}>
+            刷新
+          </Button>
         </div>
-        {healthLoading && !health && <div className="loading">加载中...</div>}
+
+        {healthLoading && !health && <p className="text-muted-foreground py-3">加载中...</p>}
         {health && (
-          <div className="health-grid">
-            <div className="health-card">
-              <span className={`health-dot ${health.status}`} />
-              <span className="health-label">整体状态</span>
-              <span className="health-value">{health.status === 'healthy' ? '正常' : '降级'}</span>
-            </div>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+            <HealthCard dotColor={health.status === 'healthy' ? 'bg-success' : 'bg-warning'}
+              label="整体状态" value={health.status === 'healthy' ? '正常' : '降级'} />
             {health.components.llm && (
-              <div className="health-card">
-                <span className="health-dot ok" />
-                <span className="health-label">LLM</span>
-                <span className="health-value">{health.components.llm.resolved_provider || '?'}</span>
-                {health.components.llm.circuit_breakers?.open > 0 && (
-                  <span className="health-warn">{health.components.llm.circuit_breakers.open} 熔断</span>
-                )}
-              </div>
+              <HealthCard dotColor="bg-success" label="LLM"
+                value={health.components.llm.resolved_provider || '?'}
+                warn={health.components.llm.circuit_breakers?.open > 0
+                  ? `${health.components.llm.circuit_breakers.open} 熔断` : undefined} />
             )}
             {health.components.worker_pool && (
-              <div className="health-card">
-                <span className={`health-dot ${health.components.worker_pool.status}`} />
-                <span className="health-label">Worker Pool</span>
-                <span className="health-value">活跃 {health.components.worker_pool.active}/{health.components.worker_pool.max_workers}</span>
-              </div>
+              <HealthCard dotColor={health.components.worker_pool.status === 'healthy' ? 'bg-success' : 'bg-warning'}
+                label="Worker Pool"
+                value={`活跃 ${health.components.worker_pool.active}/${health.components.worker_pool.max_workers}`} />
             )}
             {health.components.tenants && (
-              <div className="health-card">
-                <span className="health-dot ok" />
-                <span className="health-label">项目数</span>
-                <span className="health-value">{health.components.tenants.count}</span>
-              </div>
+              <HealthCard dotColor="bg-success" label="项目数"
+                value={String(health.components.tenants.count)} />
             )}
           </div>
         )}
         {!healthLoading && !health && (
-          <div className="muted">后端未连接 — 启动 <code>aitest server start</code></div>
+          <p className="text-muted-foreground text-[13px] py-3">
+            后端未连接 — 启动 <code className="bg-secondary px-1.5 py-0.5 rounded">aitest server start</code>
+          </p>
         )}
-      </div>
+      </section>
 
       {/* Product KPIs */}
       {productKpi && (
-        <div className="section">
-          <h2>本周产品指标</h2>
-          <div className="product-kpi-row">
-            <div className="pkpi-card">
-              <div className="pkpi-value">{productKpi.this_week.runs}</div>
-              <div className="pkpi-label">运行次数</div>
-              <div className={`pkpi-delta ${productKpi.vs_last_week.runs_delta >= 0 ? 'up' : 'down'}`}>
-                {productKpi.vs_last_week.runs_delta >= 0 ? '+' : ''}{productKpi.vs_last_week.runs_delta}
-              </div>
-            </div>
-            <div className="pkpi-card">
-              <div className="pkpi-value">{Math.round(productKpi.this_week.success_rate * 100)}%</div>
-              <div className="pkpi-label">成功率</div>
-              <div className={`pkpi-delta ${productKpi.vs_last_week.trend}`}>
-                {productKpi.vs_last_week.success_rate_delta >= 0 ? '+' : ''}{Math.round(productKpi.vs_last_week.success_rate_delta * 100)}%
-              </div>
-            </div>
-            <div className="pkpi-card">
-              <div className="pkpi-value">${productKpi.this_week.total_cost.toFixed(2)}</div>
-              <div className="pkpi-label">本周成本</div>
-              <div className={`pkpi-delta ${productKpi.vs_last_week.cost_delta <= 0 ? 'up' : 'down'}`}>
-                {productKpi.vs_last_week.cost_delta <= 0 ? '↓' : '↑'}
-              </div>
-            </div>
-            <div className="pkpi-card">
-              <div className="pkpi-value">{productKpi.this_week.agents_used}</div>
-              <div className="pkpi-label">活跃 Agent</div>
-            </div>
+        <section className="mb-8">
+          <h2 className="text-base font-semibold mb-4">本周产品指标</h2>
+          <div className="grid grid-cols-4 gap-3">
+            <KpiCard value={productKpi.this_week.runs} label="运行次数"
+              delta={productKpi.vs_last_week.runs_delta >= 0 ? `+${productKpi.vs_last_week.runs_delta}` : String(productKpi.vs_last_week.runs_delta)}
+              deltaUp={productKpi.vs_last_week.runs_delta >= 0} />
+            <KpiCard value={`${Math.round(productKpi.this_week.success_rate * 100)}%`} label="成功率"
+              delta={`${productKpi.vs_last_week.success_rate_delta >= 0 ? '+' : ''}${Math.round(productKpi.vs_last_week.success_rate_delta * 100)}%`}
+              deltaUp={productKpi.vs_last_week.trend === 'up'} />
+            <KpiCard value={`$${productKpi.this_week.total_cost.toFixed(2)}`} label="本周成本"
+              delta={productKpi.vs_last_week.cost_delta <= 0 ? '↓' : '↑'}
+              deltaUp={productKpi.vs_last_week.cost_delta <= 0} />
+            <KpiCard value={productKpi.this_week.agents_used} label="活跃 Agent" />
           </div>
-        </div>
+        </section>
       )}
 
       {/* Project list */}
-      <div className="section">
-        <h2>项目列表</h2>
-        {projectLoading && <div className="loading">加载中...</div>}
+      <section className="mb-8">
+        <h2 className="text-base font-semibold mb-4">项目列表</h2>
+        {projectLoading && <p className="text-muted-foreground py-3">加载中...</p>}
         {!projectLoading && !hasProjects && (
-          <div className="empty-state">
-            <p>暂无项目。创建一个新项目开始。</p>
-            <Link to="/onboarding" className="btn-primary">+ 新建项目</Link>
-          </div>
+          <Card className="text-center py-10 text-muted-foreground">
+            <CardContent className="pt-6">
+              <p className="mb-4">暂无项目。创建一个新项目开始。</p>
+              <Link to="/onboarding">
+                <Button variant="gradient">+ 新建项目</Button>
+              </Link>
+            </CardContent>
+          </Card>
         )}
         {!projectLoading && hasProjects && (
-          <div className="project-cards">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
             {projects.map(p => (
-              <div
+              <Card
                 key={p.id}
-                className={`project-card${p.id === activeId ? ' active' : ''}`}
+                className={cn(
+                  'p-4 cursor-pointer border-2 transition-all hover:shadow-md',
+                  p.id === activeId && 'border-primary shadow-[var(--primary-glow)]'
+                )}
                 onClick={() => setActive(p.id)}
               >
-                <div className="card-header">
-                  <span className="card-name">{p.name || p.id}</span>
-                  {p.status && <span className={`badge ${p.status}`}>{p.status}</span>}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold">{p.name || p.id}</span>
+                  {p.status && <Badge variant={p.status === 'completed' ? 'success' : p.status === 'issues' ? 'warning' : 'secondary'} className="text-[10px]">{p.status}</Badge>}
                 </div>
-                <div className="card-body">
+                <div className="flex gap-4 text-xs text-muted-foreground mb-3">
                   <span>模块: {p.modules?.length || 0}</span>
                   {p.updated_at && <span>更新: {p.updated_at.slice(0, 10)}</span>}
                 </div>
-                <div className="card-footer">
-                  <Link to="/workspace/kanban" className="card-link" onClick={e => { e.stopPropagation(); setActive(p.id) }}>
+                <div className="text-right">
+                  <Link to="/workspace/kanban" className="text-[13px] text-primary no-underline hover:underline"
+                    onClick={e => { e.stopPropagation(); setActive(p.id) }}>
                     进入工作区 →
                   </Link>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}
-      </div>
+      </section>
 
       {/* Quick actions */}
-      <div className="section">
-        <h2>快速操作</h2>
-        <div className="quick-actions">
-          <Link to="/onboarding" className="action-card">
-            <span className="action-icon">🔍</span><span className="action-text">发现新项目</span>
-          </Link>
-          <Link to="/workspace/kanban" className="action-card">
-            <span className="action-icon">▶️</span><span className="action-text">运行 SOP</span>
-          </Link>
-          <Link to="/workspace/reports" className="action-card">
-            <span className="action-icon">📊</span><span className="action-text">查看报告</span>
-          </Link>
-          <Link to="/settings" className="action-card">
-            <span className="action-icon">⚙️</span><span className="action-text">平台设置</span>
-          </Link>
+      <section>
+        <h2 className="text-base font-semibold mb-4">快速操作</h2>
+        <div className="grid grid-cols-4 gap-3">
+          <QuickAction to="/onboarding" icon={<Search size={24} />} text="发现新项目" />
+          <QuickAction to="/workspace/kanban" icon={<Play size={24} />} text="运行 SOP" />
+          <QuickAction to="/workspace/reports" icon={<FileText size={24} />} text="查看报告" />
+          <QuickAction to="/settings" icon={<Settings2 size={24} />} text="平台设置" />
         </div>
-      </div>
-
-      <style>{`
-        .dashboard { padding: 24px 32px; max-width: 1200px; }
-        .dashboard-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-        .header-left { display: flex; align-items: center; gap: 10px; }
-        .header-left h1 { font-size: 22px; font-weight: 700; margin: 0; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
-        .stat-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; }
-        .stat-icon { margin-bottom: 8px; opacity: .7; }
-        .stat-value { font-size: 28px; font-weight: 700; }
-        .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-        .stat-card.green .stat-icon { color: #22c55e; }
-        .stat-card.yellow .stat-icon { color: #eab308; }
-        .stat-card.blue .stat-icon { color: #3b82f6; }
-        .section { margin-bottom: 32px; }
-        .section h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
-        .project-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-        .project-card { background: var(--bg-primary); border: 2px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
-        .project-card:hover, .project-card.active { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
-        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-        .card-name { font-weight: 600; }
-        .badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
-        .badge.completed { background: #d4edda; color: #155724; }
-        .badge.issues, .badge.completed_with_issues { background: #fff3cd; color: #856404; }
-        .card-body { display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
-        .card-footer { text-align: right; }
-        .card-link { font-size: 13px; color: var(--accent); text-decoration: none; }
-        .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-        .action-card { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 12px; text-decoration: none; color: var(--text-primary); transition: background .15s; }
-        .action-card:hover { background: var(--bg-secondary); }
-        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-        .section-header h2 { display: flex; align-items: center; gap: 6px; margin: 0; }
-        .btn-refresh { font-size: 12px; padding: 4px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-primary); cursor: pointer; }
-        .health-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-        .health-card { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 10px; }
-        .health-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        .health-dot.healthy, .health-dot.ok { background: #22c55e; }
-        .health-dot.degraded { background: #eab308; }
-        .health-dot.error { background: #ef4444; }
-        .health-label { font-size: 12px; color: var(--text-muted); min-width: 60px; }
-        .health-value { font-size: 13px; font-weight: 600; }
-        .health-warn { font-size: 11px; color: #ef4444; background: #fef2f2; padding: 1px 6px; border-radius: 4px; margin-left: auto; }
-        .loading { color: var(--text-muted); padding: 12px 0; }
-        .muted { color: var(--text-muted); font-size: 13px; padding: 12px 0; }
-        .muted code { background: var(--bg-secondary); padding: 2px 6px; border-radius: 3px; }
-        .product-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-        .pkpi-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; }
-        .pkpi-value { font-size: 26px; font-weight: 700; }
-        .pkpi-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-        .pkpi-delta { font-size: 12px; font-weight: 600; margin-top: 4px; }
-        .pkpi-delta.up { color: #22c55e; } .pkpi-delta.down { color: #ef4444; }
-        .action-icon { font-size: 24px; }
-        .action-text { font-size: 13px; font-weight: 500; }
-        .loading, .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
-        .btn-primary { display: inline-block; margin-top: 12px; padding: 8px 20px; background: var(--accent); color: #fff; border-radius: 8px; text-decoration: none; font-size: 13px; }
-      `}</style>
+      </section>
     </div>
   )
 }
 
-function StatCard({ icon: Icon, value, label, color }: { icon: any; value: number; label: string; color?: string }) {
+// ── Sub-components ──
+
+function StatCard({ icon: Icon, value, label, color }: {
+  icon: any; value: number; label: string; color?: string
+}) {
   return (
-    <div className={`stat-card${color ? ` ${color}` : ''}`}>
-      <Icon size={20} className="stat-icon" />
-      <div className="stat-value">{value}</div>
-      <div className="stat-label">{label}</div>
+    <Card className="p-5 text-center">
+      <Icon size={20} className={cn('mx-auto mb-2 opacity-70', color)} />
+      <div className="text-[28px] font-bold">{value}</div>
+      <div className="text-xs text-muted-foreground mt-1">{label}</div>
+    </Card>
+  )
+}
+
+function HealthCard({ dotColor, label, value, warn }: {
+  dotColor: string; label: string; value: string; warn?: string
+}) {
+  return (
+    <div className="flex items-center gap-2 p-3 bg-card border border-border rounded-xl">
+      <span className={cn('w-2 h-2 rounded-full shrink-0', dotColor)} />
+      <span className="text-xs text-muted-foreground min-w-[60px]">{label}</span>
+      <span className="text-[13px] font-semibold">{value}</span>
+      {warn && <span className="text-[11px] text-destructive bg-destructive-light px-1.5 py-0.5 rounded ml-auto">{warn}</span>}
     </div>
+  )
+}
+
+function KpiCard({ value, label, delta, deltaUp }: {
+  value: string | number; label: string; delta?: string; deltaUp?: boolean
+}) {
+  return (
+    <Card className="p-4 text-center">
+      <div className="text-[26px] font-bold">{value}</div>
+      <div className="text-[11px] text-muted-foreground mt-1">{label}</div>
+      {delta && (
+        <div className={cn('text-xs font-semibold mt-1', deltaUp ? 'text-success' : 'text-destructive')}>
+          {delta}
+        </div>
+      )}
+    </Card>
+  )
+}
+
+function QuickAction({ to, icon, text }: { to: string; icon: React.ReactNode; text: string }) {
+  return (
+    <Link to={to}
+      className="flex flex-col items-center gap-2 p-5 bg-card border border-border rounded-xl no-underline text-foreground transition-colors hover:bg-secondary">
+      <span className="text-2xl">{icon}</span>
+      <span className="text-[13px] font-medium">{text}</span>
+    </Link>
   )
 }

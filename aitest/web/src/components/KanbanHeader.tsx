@@ -1,9 +1,11 @@
-/** Header bar — view title + icon + subtitle + WS indicator + extra slot.
- *  React port: <slot name="extra"> → extra prop (React Node).
+/** Header bar — view title + subtitle + WS indicator + extra slot.
+ *  shadcn/ui edition — Badge for WS status.
  */
 import type { ReactNode } from 'react'
 import { Wifi, WifiOff, type LucideIcon } from 'lucide-react'
 import { useKanbanWS } from '@/hooks/useKanbanWS'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 interface KanbanHeaderProps {
   viewTitle: string
@@ -16,27 +18,18 @@ export default function KanbanHeader({ viewTitle, viewIcon: Icon, subtitle, extr
   const { connected } = useKanbanWS()
 
   return (
-    <header
-      className="h-14 flex items-center px-6 gap-3 flex-shrink-0 glass-card !rounded-none !border-x-0 !border-t-0"
-      style={{ borderBottom: '1px solid var(--border)' }}
-    >
-      {Icon && <Icon size={18} strokeWidth={2} className="text-primary flex-shrink-0" />}
+    <header className="h-14 flex items-center px-6 gap-3 shrink-0 border-b border-border bg-card/60 backdrop-blur-sm">
+      {Icon && <Icon size={18} strokeWidth={2} className="text-primary shrink-0" />}
       <h1 className="text-[15px] font-semibold tracking-tight">{viewTitle}</h1>
       <span className="text-xs text-muted-foreground hidden sm:inline">
         {subtitle || 'Testing Lifecycle Orchestrator'}
       </span>
       <div className="flex-1" />
       {extra}
-      <div className="flex items-center gap-1.5 text-[10px]">
-        {connected ? (
-          <Wifi size={13} strokeWidth={2} className="text-success" />
-        ) : (
-          <WifiOff size={13} strokeWidth={2} className="text-destructive" />
-        )}
-        <span className={connected ? 'text-success font-semibold' : 'text-destructive'}>
-          {connected ? 'Live' : 'Offline'}
-        </span>
-      </div>
+      <Badge variant={connected ? 'success' : 'destructive'} className="gap-1 text-[10px]">
+        {connected ? <Wifi size={11} strokeWidth={2} /> : <WifiOff size={11} strokeWidth={2} />}
+        {connected ? 'Live' : 'Offline'}
+      </Badge>
     </header>
   )
 }

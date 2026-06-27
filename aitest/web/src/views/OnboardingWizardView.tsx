@@ -1,7 +1,4 @@
-/** Onboarding Wizard — multi-step project discovery. React port.
- *  Vue computed stepIndex → React useMemo.
- *  Vue v-if → React JSX conditional rendering.
- */
+/** Onboarding Wizard — multi-step project discovery. shadcn/ui edition. */
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useOnboardingStore, selectIsComplete, selectIsMenuReady, selectIsFailed } from '@/stores/onboarding'
@@ -11,6 +8,9 @@ import StepUrlInput from '@/components/onboarding/StepUrlInput'
 import StepScanning from '@/components/onboarding/StepScanning'
 import StepConfirmMenu from '@/components/onboarding/StepConfirmMenu'
 import StepResults from '@/components/onboarding/StepResults'
+import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
+import { cn } from '@/lib/utils'
 import { Globe, Wifi, ListTree, FileSearch, CheckCircle2, AlertTriangle, ArrowRight, FolderOpen } from 'lucide-react'
 
 const STEPS = [
@@ -69,84 +69,82 @@ export default function OnboardingWizardView() {
   }, [disconnect])
 
   return (
-    <div className="onboarding-wizard">
-      <header className="wizard-header">
-        <h2>New Project Onboarding</h2>
-        <p className="subtitle">Enter a URL — TLO auto-discovers the application structure</p>
+    <div className="max-w-[720px] mx-auto py-8 px-6 animate-[fade-in_0.3s_ease-out]">
+      <header className="mb-8 text-center">
+        <h2 className="text-2xl font-bold text-foreground mb-2">New Project Onboarding</h2>
+        <p className="text-sm text-muted-foreground m-0">
+          Enter a URL — TLO auto-discovers the application structure
+        </p>
       </header>
 
-      <nav className="step-indicators">
+      {/* Step indicators */}
+      <nav className="flex justify-center gap-10 mb-6">
         {STEPS.map((step, i) => (
-          <div key={step.key} className={`step-dot${i === currentStepIndex ? ' active' : ''}${i < currentStepIndex ? ' done' : ''}${isFailed && i === currentStepIndex ? ' error' : ''}`}>
-            <step.icon size={18} /><span className="step-label">{step.label}</span>
+          <div key={step.key}
+            className={cn(
+              'flex flex-col items-center gap-1.5 transition-colors',
+              i === currentStepIndex ? 'text-primary' :
+              i < currentStepIndex ? 'text-success' :
+              'text-muted-foreground',
+              isFailed && i === currentStepIndex && 'text-destructive'
+            )}
+          >
+            <step.icon size={18} />
+            <span className="text-xs font-medium">{step.label}</span>
           </div>
         ))}
       </nav>
 
+      {/* Progress bar */}
       {(isRunning || isComplete) && (
-        <div className="progress-bar-wrapper">
-          <div className="progress-bar"><div className={`progress-fill${isComplete ? ' complete' : ''}${isFailed ? ' error' : ''}`} style={{ width: `${progress * 100}%` }} /></div>
-          <span className="progress-text">{Math.round(progress * 100)}%</span>
+        <div className="flex items-center gap-3 mb-6">
+          <Progress
+            value={Math.round(progress * 100)}
+            className={cn(isComplete && '[&>div]:bg-success', isFailed && '[&>div]:bg-destructive')}
+          />
+          <span className="text-xs font-semibold text-muted-foreground min-w-[3em] text-right">
+            {Math.round(progress * 100)}%
+          </span>
         </div>
       )}
 
-      {wsError && <div className="error-banner"><AlertTriangle size={16} /><span>{wsError}</span></div>}
+      {wsError && (
+        <div className="flex items-center gap-2 bg-warning-light text-warning px-4 py-2 rounded-lg mb-4 text-sm">
+          <AlertTriangle size={16} />
+          <span>{wsError}</span>
+        </div>
+      )}
 
-      <main className="wizard-body">
+      <main className="min-h-[300px]">
         {currentStepIndex === 0 && !sourceChosen && <StepChooseSource onChoose={onSourceChoose} />}
         {currentStepIndex === 1 && !isRunning && sourceType === 'url' && <StepUrlInput />}
         {currentStepIndex === 1 && isRunning && <StepScanning />}
         {currentStepIndex === 2 && <StepConfirmMenu />}
         {currentStepIndex === 3 && <StepResults />}
         {isFailed && (
-          <div className="failed-state">
-            <AlertTriangle size={48} className="error-icon" />
-            <h3>Onboarding failed</h3>
-            {errors.length > 0 && <ul className="error-list">{errors.map((err, i) => <li key={i}>{err}</li>)}</ul>}
-            <div className="btn-row"><button className="btn btn-secondary" onClick={() => reset()}>Try Again</button></div>
+          <div className="text-center py-12">
+            <AlertTriangle size={48} className="text-destructive mb-4 mx-auto" />
+            <h3 className="text-destructive mb-4">Onboarding failed</h3>
+            {errors.length > 0 && (
+              <ul className="list-none p-0 text-muted-foreground text-sm">
+                {errors.map((err, i) => <li key={i} className="py-1">{err}</li>)}
+              </ul>
+            )}
+            <div className="flex gap-3 justify-center mt-4">
+              <Button variant="secondary" onClick={() => reset()}>Try Again</Button>
+            </div>
           </div>
         )}
       </main>
 
-      <footer className="wizard-footer">
-        {(isRunning || isMenuReady) && <button className="btn btn-outline" onClick={() => cancel()}>Cancel</button>}
-        {isComplete && <button className="btn btn-primary" onClick={openProject}>Open Project <ArrowRight size={16} /></button>}
+      <footer className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
+        {(isRunning || isMenuReady) && <Button variant="outline" onClick={() => cancel()}>Cancel</Button>}
+        {isComplete && (
+          <Button variant="gradient" onClick={openProject}>
+            Open Project <ArrowRight size={16} />
+          </Button>
+        )}
       </footer>
-
-      <style>{`
-        .onboarding-wizard { max-width: 720px; margin: 0 auto; padding: 32px 24px; animation: fade-in 0.3s ease-out; }
-        .wizard-header { margin-bottom: 32px; text-align: center; }
-        .wizard-header h2 { font-size: 1.5rem; font-weight: 700; color: var(--foreground); margin: 0 0 8px; }
-        .subtitle { color: var(--muted-foreground); font-size: 0.9rem; margin: 0; }
-        .step-indicators { display: flex; justify-content: center; gap: 40px; margin-bottom: 24px; }
-        .step-dot { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--muted-foreground); transition: color 0.2s; }
-        .step-dot.active { color: var(--primary); }
-        .step-dot.done { color: var(--success); }
-        .step-dot.error { color: var(--destructive); }
-        .step-label { font-size: 0.75rem; font-weight: 500; }
-        .progress-bar-wrapper { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-        .progress-bar { flex: 1; height: 6px; background: var(--secondary); border-radius: var(--radius-full); overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--primary); border-radius: var(--radius-full); transition: width 0.5s ease; }
-        .progress-fill.complete { background: var(--success); }
-        .progress-fill.error { background: var(--destructive); }
-        .progress-text { font-size: 0.8rem; font-weight: 600; color: var(--muted-foreground); min-width: 3em; text-align: right; }
-        .wizard-body { min-height: 300px; }
-        .wizard-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
-        .error-banner { display: flex; align-items: center; gap: 8px; background: var(--warning-light); color: var(--warning); padding: 8px 16px; border-radius: var(--radius-md); margin-bottom: 16px; font-size: 0.85rem; }
-        .failed-state { text-align: center; padding: 48px 0; }
-        .error-icon { color: var(--destructive); margin-bottom: 16px; }
-        .failed-state h3 { margin: 0 0 16px; color: var(--destructive); }
-        .error-list { list-style: none; padding: 0; color: var(--muted-foreground); font-size: 0.85rem; }
-        .error-list li { padding: 4px 0; }
-        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 24px; border-radius: var(--radius-md); font-size: 0.9rem; font-weight: 500; cursor: pointer; border: none; transition: background 0.15s; }
-        .btn-primary { background: var(--primary); color: var(--primary-foreground); }
-        .btn-primary:hover { filter: brightness(1.1); }
-        .btn-secondary { background: var(--secondary); color: var(--secondary-foreground); }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted-foreground); }
-        .btn-outline:hover { background: var(--secondary); }
-        .btn-row { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
-        @keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-      `}</style>
     </div>
   )
 }

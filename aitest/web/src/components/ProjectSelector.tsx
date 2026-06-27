@@ -1,10 +1,11 @@
-/** Project selector dropdown — React port.
- *  Vue RouterLink → React Router Link.
- */
+/** Project selector — shadcn/ui edition. Popover + Command. */
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useProjectStore, type ProjectInfo } from '../stores/project'
-import { ChevronDown, Plus, FolderOpen } from 'lucide-react'
+import { ChevronDown, Plus, FolderOpen, Check } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command'
+import { cn } from '@/lib/utils'
 
 export default function ProjectSelector() {
   const projects = useProjectStore(s => s.projects)
@@ -13,111 +14,64 @@ export default function ProjectSelector() {
   const setActive = useProjectStore(s => s.setActive)
 
   const [open, setOpen] = useState(false)
-  const [search, setSearch] = useState('')
 
   const select = (p: ProjectInfo) => {
     setActive(p.id)
     setOpen(false)
   }
 
-  const filtered = useMemo(() => {
-    if (!search) return projects
-    const q = search.toLowerCase()
-    return projects.filter(p => (p.name || p.id).toLowerCase().includes(q))
-  }, [projects, search])
-
   return (
-    <div className="project-selector">
-      <button className="selector-trigger" onClick={() => setOpen(!open)}>
-        <FolderOpen size={16} />
-        <span className="project-name">
-          {activeProject?.name || activeProject?.id || '选择项目'}
-        </span>
-        <ChevronDown size={14} className={open ? 'rotated' : ''} />
-      </button>
-
-      {/* Backdrop */}
-      {open && <div className="backdrop" onClick={() => setOpen(false)} />}
-
-      {open && (
-        <div className="selector-dropdown">
-          <input
-            className="search-input"
-            placeholder="搜索项目..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          <div className="project-list">
-            {filtered.map(p => (
-              <button
-                key={p.id}
-                className={`project-item${p.id === activeId ? ' active' : ''}`}
-                onClick={() => select(p)}
-              >
-                <div className="item-info">
-                  <span className="item-name">{p.name || p.id}</span>
-                  <span className="item-meta">{p.modules?.length || 0} 模块</span>
-                </div>
-                {p.status && (
-                  <span className={`item-status ${p.status}`}>{p.status}</span>
-                )}
-              </button>
-            ))}
-            {!filtered.length && <div className="empty">No projects found</div>}
-          </div>
-          <div className="dropdown-footer">
-            <Link to="/onboarding" className="new-project-btn" onClick={() => setOpen(false)}>
-              <Plus size={14} /> 新建项目
-            </Link>
-          </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          className={cn(
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px]',
+            'bg-secondary border border-border cursor-pointer',
+            'hover:bg-accent transition-colors'
+          )}
+        >
+          <FolderOpen size={16} />
+          <span className="max-w-[140px] truncate">
+            {activeProject?.name || activeProject?.id || '选择项目'}
+          </span>
+          <ChevronDown size={14} className={cn('transition-transform', open && 'rotate-180')} />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[280px] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="搜索项目..." />
+          <CommandList>
+            <CommandEmpty>未找到项目</CommandEmpty>
+            <CommandGroup>
+              {projects.map(p => (
+                <CommandItem
+                  key={p.id}
+                  value={p.name || p.id}
+                  onSelect={() => select(p)}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-medium">{p.name || p.id}</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {p.modules?.length || 0} 模块
+                    </span>
+                  </div>
+                  {p.id === activeId && <Check size={14} className="text-primary" />}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+        <div className="border-t border-border p-1.5">
+          <Link
+            to="/onboarding"
+            onClick={() => setOpen(false)}
+            className="flex items-center justify-center gap-1 w-full px-2 py-2 rounded-md text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground border border-dashed border-border no-underline transition-colors"
+          >
+            <Plus size={14} /> 新建项目
+          </Link>
         </div>
-      )}
-
-      <style>{`
-        .project-selector { position: relative; }
-        .selector-trigger {
-          display: flex; align-items: center; gap: 6px;
-          padding: 6px 12px; border-radius: 8px;
-          background: var(--bg-secondary); border: 1px solid var(--border);
-          cursor: pointer; font-size: 13px; color: var(--text-primary);
-        }
-        .selector-trigger:hover { background: var(--bg-hover); }
-        .project-name { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .rotated { transform: rotate(180deg); transition: transform .2s; }
-        .backdrop { position: fixed; inset: 0; z-index: 99; }
-        .selector-dropdown {
-          position: absolute; top: 100%; left: 0; margin-top: 4px;
-          width: 280px; max-height: 360px;
-          background: var(--bg-primary); border: 1px solid var(--border);
-          border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.15);
-          z-index: 100; overflow: hidden;
-        }
-        .search-input {
-          width: 100%; padding: 10px 12px; border: none; border-bottom: 1px solid var(--border);
-          background: transparent; color: var(--text-primary); outline: none; font-size: 13px;
-        }
-        .project-list { max-height: 260px; overflow-y: auto; }
-        .project-item {
-          display: flex; align-items: center; justify-content: space-between;
-          width: 100%; padding: 10px 12px; border: none; background: transparent;
-          cursor: pointer; font-size: 13px; color: var(--text-primary);
-        }
-        .project-item:hover, .project-item.active { background: var(--bg-secondary); }
-        .item-info { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
-        .item-name { font-weight: 500; }
-        .item-meta { font-size: 11px; color: var(--text-muted); }
-        .item-status { font-size: 10px; padding: 2px 6px; border-radius: 4px; }
-        .item-status.completed { background: #d4edda; color: #155724; }
-        .empty { padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
-        .dropdown-footer { border-top: 1px solid var(--border); padding: 6px; }
-        .new-project-btn {
-          display: flex; align-items: center; gap: 4px; justify-content: center;
-          width: 100%; padding: 8px; border-radius: 6px; border: 1px dashed var(--border);
-          background: transparent; cursor: pointer; font-size: 12px; color: var(--text-secondary);
-          text-decoration: none;
-        }
-        .new-project-btn:hover { background: var(--bg-secondary); }
-      `}</style>
-    </div>
+      </PopoverContent>
+    </Popover>
   )
 }

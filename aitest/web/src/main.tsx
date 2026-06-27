@@ -6,6 +6,7 @@ import i18n from './i18n'
 import App from './App'
 import { initMemoryDebug } from './utils/memoryDebug'
 import './styles/tokens.css'
+import './styles/themes/all.css'
 
 initMemoryDebug()
 

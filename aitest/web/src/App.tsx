@@ -10,7 +10,7 @@ import { LayoutDashboard } from 'lucide-react'
 import SidebarNav from './components/SidebarNav'
 import KanbanHeader from './components/KanbanHeader'
 import ProjectSelector from './components/ProjectSelector'
-import Toast from './components/Toast'
+import { Toaster } from './lib/toast'
 import { useKanbanWS } from './hooks/useKanbanWS'
 import { useProjectStore } from './stores/project'
 
@@ -162,7 +162,8 @@ export default function App() {
         </main>
       </div>
 
-      <Toast />
+      <Toaster />
+      <div className="noise-overlay" />
     </div>
   )
 }

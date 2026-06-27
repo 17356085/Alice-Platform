@@ -14,6 +14,12 @@
    - `docs/adr/ADR_001_TLO_DIRECTORY.md` — .tlo/ 项目目录设计
 4. 需要深入时再读具体文件
 
+## 设计系统
+
+- `docs/design/VISUAL_DESIGN_SPEC.md` — Alice/有珠 视觉规范（月下魔女 · Midnight Iris & Gold）
+- shadcn/ui (React 18 + Tailwind 3 + Radix) — 渐进替换手写组件
+- 8 主题系统 (CSS 自定义属性) — `src/styles/tokens.css` + `themes/all.css`
+
 ## 两条工作线
 
 | 工作线 | 项目路径 | .tlo/ | 详情 |

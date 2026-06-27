@@ -16,7 +16,8 @@ async def activate_subscribers(log) -> dict:
         activated["knowledge-agent-subscriber"] = sub
         log.info("governance_subscriber_activated")
     except Exception as e:
-        log.error("governance_subscriber_failed", error=str(e))
+        import traceback
+        log.error("governance_subscriber_failed", error=str(e), traceback=traceback.format_exc()[:300])
 
     # v2.3: AuditLogger
     try:

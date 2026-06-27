@@ -1,0 +1,68 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-cli/schema.json",
+  "productName": "TLO Platform",
+  "version": "2.5.0",
+  "identifier": "com.tlo.platform",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:15173",
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "title": "TLO — Testing Lifecycle Orchestrator",
+    "windows": [
+      {
+        "title": "TLO Platform",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 1024,
+        "minHeight": 680,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "wix": null,
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    },
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    },
+    "linux": {
+      "deb": {
+        "depends": []
+      }
+    }
+  },
+  "plugins": {
+    "shell": {
+      "open": true,
+      "scope": [
+        {
+          "name": "aitest-server",
+          "cmd": "python",
+          "args": [
+            "-m", "aitest.server.main"
+          ]
+        }
+      ]
+    }
+  }
+}
