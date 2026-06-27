@@ -36,13 +36,21 @@ async def lifespan(app: FastAPI):
     await init_db()
     log.info("session_db_initialized")
 
-    # Task runner
-    from aitest.infra.task_queue import get_runner, get_queue
-    runner = get_runner()
-    runner.start()
+    # Task runner (P4: auto-detect Redis or SQLite)
+    from aitest.infra.queue_factory import get_queue, get_backend
     queue = get_queue()
-    pending = queue.count_by_status().get("queued", 0)
-    log.info("task_runner_started", pending=pending)
+    backend = get_backend()
+    if backend == "sqlite":
+        from aitest.infra.task_queue import get_runner
+        runner = get_runner()
+        runner.start()
+        log.info("task_runner_started", backend="sqlite",
+                 pending=queue.count_by_status().get("pending", 0))
+    else:
+        log.info("task_queue_ready", backend="redis",
+                 pending=queue.count_by_status().get("pending", 0))
+        log.info("rq_worker_hint",
+                 cmd="rq worker aitest-tasks --url redis://localhost:6379/0")
 
     # Activate platform subscribers (v2.3-v2.5)
     from aitest.server.core.subscribers import activate_subscribers

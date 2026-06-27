@@ -6,20 +6,39 @@ from __future__ import annotations
 
 async def get_health_response() -> dict:
     """Aggregate health status across all platform components."""
-    from aitest.infra.task_queue import get_queue
+    from aitest.infra.queue_factory import get_queue
     from aitest.infra.error_logger import get_summary as error_summary
 
     components: dict = {}
     overall = "healthy"
     pending_tasks = 0  # P4: aggregate pending tasks from task_queue + worker_pool
 
-    # Task Queue (P4: pending_tasks surfaced)
+    # Task Queue (P4: pending_tasks + dual backend detection)
     try:
+        from aitest.infra.queue_factory import get_backend
+        backend = get_backend()
         queue = get_queue()
-        stats = queue.count_by_status()
-        pending = stats.get("pending", 0)
-        pending_tasks += pending
-        components["task_queue"] = {"status": "ok", "stats": stats, "pending": pending}
+
+        if backend == "redis":
+            stats = queue.stats()  # RQ returns extended stats
+            pending = stats.get("pending", 0)
+            pending_tasks += pending
+            components["task_queue"] = {
+                "status": "ok" if queue.is_available else "disconnected",
+                "backend": "redis",
+                "redis_version": stats.get("redis_version", "?"),
+                "stats": {k: v for k, v in stats.items()
+                         if k not in ("backend", "redis_version", "queue_name")},
+                "pending": pending,
+            }
+        else:
+            stats = queue.count_by_status()
+            pending = stats.get("pending", 0)
+            pending_tasks += pending
+            components["task_queue"] = {
+                "status": "ok", "backend": "sqlite",
+                "stats": stats, "pending": pending,
+            }
     except Exception as e:
         components["task_queue"] = {"status": "error", "error": str(e)[:100]}
         overall = "degraded"
