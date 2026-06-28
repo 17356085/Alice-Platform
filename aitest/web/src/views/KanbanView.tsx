@@ -5,7 +5,7 @@
  */
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useKanbanStore, selectColumns, selectTotalModules, type ModuleInfo } from '@/stores/kanban'
+import { useKanbanStore, useSelectColumns, selectTotalModules, type ModuleInfo } from '@/stores/kanban'
 import { useKanbanWS } from '@/hooks/useKanbanWS'
 import { RefreshCw } from 'lucide-react'
 import KanbanBoard from '@/components/KanbanBoard'
@@ -22,7 +22,7 @@ export default function KanbanView() {
   const fetchModules = useKanbanStore(s => s.fetchModules)
   const moveCard = useKanbanStore(s => s.moveCard)
   const startSOP = useKanbanStore(s => s.startSOP)
-  const columns = useKanbanStore(selectColumns)
+  const columns = useSelectColumns()
   const totalModules = useKanbanStore(selectTotalModules)
   const { sendCardMove } = useKanbanWS()
 

@@ -211,6 +211,10 @@ def get_agent_terminal_ws() -> AgentTerminalWSManager:
 
 # ── WebSocket endpoint ────────────────────────────────────────────────
 
+# ── Idle timeout (MEM-AUDIT: prevent abandoned connections holding resources) ──
+_WS_IDLE_TIMEOUT = 300  # 5 minutes
+
+
 @terminal_router.websocket("/ws/agent-terminal")
 async def agent_terminal_websocket(ws: WebSocket):
     await _agent_terminal_ws.connect(ws)
@@ -220,11 +224,11 @@ async def agent_terminal_websocket(ws: WebSocket):
             "timestamp": datetime.now().isoformat(),
         }))
         while True:
-            data = await ws.receive_text()
+            data = await asyncio.wait_for(ws.receive_text(), timeout=_WS_IDLE_TIMEOUT)
             msg = _json.loads(data)
             if msg.get("action") == "ping":
                 await ws.send_text(_json.dumps({"type": "pong"}))
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, asyncio.TimeoutError):
         _agent_terminal_ws.disconnect(ws)
     except Exception:
         _agent_terminal_ws.disconnect(ws)

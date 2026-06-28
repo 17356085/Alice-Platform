@@ -62,6 +62,9 @@ class ExecutionService:
     def __init__(self):
         self._store = get_run_store()
         self._bus = get_bus()
+        # ★ v2.6: Track active AgentLoop abort signals for cancel/timeout
+        self._active_aborts: dict[str, threading.Event] = {}
+        self._aborts_lock = threading.Lock()
 
     # ── Public API ────────────────────────────────────────────────────
 
@@ -172,7 +175,14 @@ class ExecutionService:
                 pages=pages,
                 verbose=True,
             )
-            state = loop.run()
+            # Register abort signal so cancel()/timeout can interrupt
+            with self._aborts_lock:
+                self._active_aborts[run.run_id] = loop._abort
+            try:
+                state = loop.run()
+            finally:
+                with self._aborts_lock:
+                    self._active_aborts.pop(run.run_id, None)
 
             # 6. Complete Run — persist before publish
             run.complete(
@@ -372,6 +382,7 @@ class ExecutionService:
 
         v2.2: ExecutionRequest is in-memory only. Look up Run by request_id,
         cancel if not yet terminal.
+        v2.6: Signals AgentLoop._abort to interrupt running execution.
         """
         runs = self._store.list_runs(limit=500)
         run = next((r for r in runs if r.request_id == request_id), None)
@@ -380,6 +391,12 @@ class ExecutionService:
             return False
         if run.is_frozen:
             return False
+
+        # ★ v2.6: Signal AgentLoop abort event if running
+        with self._aborts_lock:
+            abort_ev = self._active_aborts.get(run.run_id)
+        if abort_ev is not None:
+            abort_ev.set()
 
         run.cancel()
         self._store.save_run(run)
@@ -401,3 +418,40 @@ class ExecutionService:
         self._store.save_event(ev_cancelled)
         self._bus.publish(ev_cancelled)
         return True
+
+    def timeout_run(self, run_id: str) -> bool:
+        """Force-timeout a running Run. Sets abort signal + marks DB.
+
+        Returns True if the run was found and timed out.
+        """
+        run = self._store.load_run(run_id)
+        if run is None or run.is_frozen:
+            return False
+
+        # Signal abort
+        with self._aborts_lock:
+            abort_ev = self._active_aborts.get(run_id)
+        if abort_ev is not None:
+            abort_ev.set()
+
+        run.timed_out()
+        self._store.save_run(run)
+
+        ev = make_event(
+            EventType.RUN_FAILED,
+            run_id=run_id,
+            request_id=run.request_id,
+            workspace_id=run.workspace_id,
+            org_id=run.org_id,
+            module=run.module,
+            agent=run.agent,
+            error="timeout",
+        )
+        self._store.save_event(ev)
+        self._bus.publish(ev)
+        return True
+
+    def get_active_run_ids(self) -> list[str]:
+        """Return run_ids of currently executing AgentLoops."""
+        with self._aborts_lock:
+            return list(self._active_aborts.keys())

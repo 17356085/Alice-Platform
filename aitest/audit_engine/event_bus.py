@@ -181,6 +181,23 @@ _subscribers: dict[str, list[Callable]] = {
     event_type: [] for event_type in EVENT_ACTIONS
 }
 
+# Review runner callback — registered at startup to break circular import
+# (event_bus ⇄ review_graph). See set_review_runner().
+_review_runner: Optional[Callable] = None
+
+
+def set_review_runner(runner: Callable) -> None:
+    """Register the review graph runner callback.
+
+    Called during server startup (main.py lifespan) to wire event_bus
+    to review_graph without creating a circular import.
+
+    Args:
+        runner: Callable with signature (mode, trigger, module) -> dict
+    """
+    global _review_runner
+    _review_runner = runner
+
 
 @dataclass
 class Event:
@@ -506,10 +523,16 @@ class ReviewAgentSubscriber:
             mark_processed(event.id, f"Review triggered: {review_mode}")
 
     def _run_review_for_event(self, entry: dict) -> dict:
-        """Execute a review run for a triggered event."""
+        """Execute a review run for a triggered event.
+
+        Uses registered review runner callback (set_review_runner) to avoid
+        circular import with aitest.graphs.review_graph.
+        """
+        global _review_runner
+        if _review_runner is None:
+            return {"status": "skipped", "error": "No review runner registered"}
         try:
-            from aitest.graphs.review_graph import run_review
-            return run_review(
+            return _review_runner(
                 mode=entry["review_mode"],
                 trigger=entry["event_type"],
                 module=entry["event_data"].get("module", "system"),
@@ -531,6 +554,48 @@ class ReviewAgentSubscriber:
     @property
     def pending_count(self) -> int:
         return len(self._triggered)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Retention (MEM-AUDIT: automated cleanup of .events/ JSON files)
+# ══════════════════════════════════════════════════════════════════════════
+
+def cleanup_old_events(max_age_seconds: int = 86400 * 7) -> int:
+    """Delete processed event files older than max_age_seconds. Default: 7 days.
+
+    Also deletes any event files older than 30 days regardless of processed status
+    (stale events that were never processed).
+
+    Returns number of files deleted.
+    """
+    cleaned = 0
+    now = time.time()
+    hard_cutoff = now - (86400 * 30)  # 30 days absolute max
+
+    if not EVENT_DIR.exists():
+        return 0
+
+    for f in EVENT_DIR.glob("*.json"):
+        try:
+            evt = Event.from_file(f)
+            # Processed + older than 7 days → cleanup
+            if evt.processed and now - evt.processed_at > max_age_seconds:
+                f.unlink()
+                cleaned += 1
+            # Unprocessed but older than 30 days → cleanup (stale)
+            elif not evt.processed and evt.updated_at < hard_cutoff:
+                f.unlink()
+                cleaned += 1
+        except Exception:
+            # Corrupt file or can't parse → delete if old enough
+            try:
+                if f.stat().st_mtime < hard_cutoff:
+                    f.unlink()
+                    cleaned += 1
+            except Exception:
+                pass
+
+    return cleaned
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -610,17 +675,8 @@ if __name__ == "__main__":
             print(f"Total events processed: {sub.processed_count}")
 
     elif cmd == "clean":
-        processed = 0
-        for f in EVENT_DIR.glob("*.json"):
-            try:
-                evt = Event.from_file(f)
-                if evt.processed and time.time() - evt.processed_at > 86400:  # 24h old
-                    f.unlink()
-                    processed += 1
-            except Exception as e:
-                from aitest.infra.error_logger import log_error
-                log_error("event_bus.clean", "delete_old_event", e, {"file": str(f)})
-        print(f"Cleaned {processed} old processed events")
+        cleaned = cleanup_old_events()
+        print(f"Cleaned {cleaned} old processed events")
 
     else:
         print(f"Unknown: {cmd}")

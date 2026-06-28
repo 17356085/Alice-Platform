@@ -1,6 +1,26 @@
 """Browser Capability Providers."""
+import asyncio
+import logging
 import time
 from aitest.platform.capability_router.router import CapabilityProvider, ToolDef, ToolCall, ToolResult
+
+logger = logging.getLogger(__name__)
+
+
+def _close_driver(driver) -> None:
+    """Best-effort async driver close, safe for sync callers."""
+    try:
+        loop = asyncio.get_running_loop()
+        if not loop.is_closed():
+            loop.create_task(driver.close())
+    except RuntimeError:
+        # No running loop — create one for cleanup
+        try:
+            asyncio.run(driver.close())
+        except Exception:
+            pass
+    except Exception:
+        pass
 
 
 class BrowserNavigateProvider(CapabilityProvider):
@@ -32,6 +52,7 @@ class BrowserNavigateProvider(CapabilityProvider):
 
     def execute(self, call: ToolCall, context: dict) -> ToolResult:
         start = time.time()
+        driver = None
         try:
             from aitest.bu_adapter import BrowserUseDriver
             driver = BrowserUseDriver()
@@ -41,6 +62,9 @@ class BrowserNavigateProvider(CapabilityProvider):
                 data=info, duration_ms=(time.time()-start)*1000)
         except Exception as e:
             return ToolResult(call_id=call.id, success=False, content=f"导航失败: {e}", error=str(e), duration_ms=(time.time()-start)*1000)
+        finally:
+            if driver is not None:
+                _close_driver(driver)
 
 
 class BrowserScreenshotProvider(CapabilityProvider):
@@ -72,6 +96,7 @@ class BrowserScreenshotProvider(CapabilityProvider):
 
     def execute(self, call: ToolCall, context: dict) -> ToolResult:
         start = time.time()
+        driver = None
         try:
             from aitest.bu_adapter import BrowserUseDriver
             from aitest.platform.paths import get_context_modules
@@ -87,3 +112,6 @@ class BrowserScreenshotProvider(CapabilityProvider):
                 content=f"截图已保存: {path}", data={"path": str(path)}, duration_ms=(time.time()-start)*1000)
         except Exception as e:
             return ToolResult(call_id=call.id, success=False, content=f"截图失败: {e}", error=str(e), duration_ms=(time.time()-start)*1000)
+        finally:
+            if driver is not None:
+                _close_driver(driver)

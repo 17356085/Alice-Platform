@@ -26,6 +26,7 @@ import argparse
 from pathlib import Path
 
 from aitest.platform.paths import get_workstudy, get_test_project_root, get_governance_dir, get_project_dir
+from aitest.audit_engine.event_bus import emit, list_pending, list_all, process_pending, EVENT_DIR
 
 WORKSTUDY = get_workstudy()
 GOVERNANCE = get_governance_dir()
@@ -510,7 +511,6 @@ def cmd_rag(args):
 def cmd_bus(args):
     """事件总线。"""
     sys.path.insert(0, str(WORKSTUDY))
-    from aitest.audit_engine.event_bus import emit, list_pending, list_all, process_pending
 
     if args.action == "emit":
         if not args.event_type:
@@ -537,718 +537,145 @@ def cmd_bus(args):
             print(f"  [{r['type']}] → {r['action']}")
 
 
-def cmd_dashboard(args):
-    """平台总览面板。"""
-    sys.path.insert(0, str(WORKSTUDY))
-    CONTEXT_MODULES = get_project_dir() / "modules"
 
-    width = 70
-    print()
-    print("=" * width)
-    print("  AI Test Platform — Dashboard")
-    print("=" * width)
-
-    # ── 1. 模块 SOP 状态 ──
-    print(f"\n{'─' * width}")
-    print("  Modules")
-    print(f"{'─' * width}")
-
-    from aitest.agents.agent_scheduler import AGENT_TRIGGERS
-    from aitest.knowledge.rag_engine import get_chroma_client
-
-    if (CONTEXT_MODULES).exists():
-        print(f"  {'Module':<20} {'Phase':<12} {'Pages':<8} {'Code':<10}")
-        print(f"  {'-'*18}   {'-'*10}   {'-'*6}   {'-'*8}")
-
-        for mod_dir in sorted(CONTEXT_MODULES.iterdir()):
-            if not mod_dir.is_dir():
-                continue
-            mod = mod_dir.name
-            mc = (mod_dir / "MODULE_CONTEXT.md").exists()
-            pages_dir = mod_dir / "pages"
-            page_count = len([p for p in pages_dir.iterdir() if p.is_dir()]) if pages_dir.exists() else 0
-
-            # 判断当前 Phase
-            from aitest.agents.agent_scheduler import recommend_next_agent
-            try:
-                rec = recommend_next_agent(mod)
-                phase = rec.get("phase", "?")
-            except Exception as e:
-                from aitest.infra.error_logger import log_error
-                log_error("cli.cmd_dashboard", "recommend_agent", e, {"module": mod})
-                phase = "?"
-
-            # 代码状态
-            zjsn = _zjsn()
-            page_code = zjsn / "page" / f"{mod}_page"
-            script_code = zjsn / "script" / mod
-            code_icon = ""
-            if page_code.exists() and script_code.exists():
-                code_icon = "[OK]"
-            elif page_code.exists() or script_code.exists():
-                code_icon = "[!!]"
-            else:
-                code_icon = " -"
-
-            mc_icon = "[OK]" if mc else "[XX]"
-            print(f"  {mc_icon} {mod:<18} {phase:<12} {page_count:<8} {code_icon}")
-
-    # ── 2. 任务队列 ──
-    print(f"\n{'─' * width}")
-    print("  Task Queue")
-    print(f"{'─' * width}")
-
-    from aitest.infra.task_queue import get_queue
-    queue = get_queue()
-    counts = queue.count_by_status()
-    total = sum(counts.values())
-    print(f"  Queued: {counts.get('queued', 0)} | Running: {counts.get('running', 0)} | "
-          f"Completed: {counts.get('completed', 0)} | Failed: {counts.get('failed', 0)}")
-
-    pending = queue.list_tasks(status="queued", limit=3)
-    running = queue.list_tasks(status="running", limit=3)
-    if pending:
-        print(f"  Pending: {', '.join(t['agent'].replace('-agent','') for t in pending)}")
-    if running:
-        print(f"  Running: {', '.join(t['agent'].replace('-agent','') for t in running)}")
-
-    # ── 3. RAG 知识库 ──
-    print(f"\n{'─' * width}")
-    print("  RAG Knowledge Base")
-    print(f"{'─' * width}")
-
-    try:
-        client = get_chroma_client()
-        colls = client.list_collections()
-        total_docs = sum(c.count() for c in colls)
-        print(f"  Collections: {len(colls)} | Documents: {total_docs}")
-        for c in colls:
-            print(f"    {c.name:<25} {c.count():>4} docs  {c.metadata.get('description', '')[:30]}")
-    except Exception as e:
-        print(f"  Status: Disconnected ({str(e)[:50]})")
-
-    # ── 4. Event Bus ──
-    print(f"\n{'─' * width}")
-    print("  Event Bus")
-    print(f"{'─' * width}")
-
-    from aitest.audit_engine.event_bus import list_pending, EVENT_DIR
-    pending_events = list_pending()
-    print(f"  Pending events: {len(pending_events)}")
-    for evt in pending_events[:5]:
-        print(f"    [{evt.type}] {evt.id} — {str(evt.data)[:60]}")
-
-    # ── 5. Bug 历史 ──
-    print(f"\n{'─' * width}")
-    print("  Bug History")
-    print(f"{'─' * width}")
-
-    try:
-        from aitest.testing.bug_history import list_bugs as list_bugs_fn, BUG_DB
-        bugs = list_bugs_fn(limit=10)
-        open_bugs = [b for b in bugs if b.get("status") == "open"]
-        print(f"  Total: {len(bugs)} | Open: {len(open_bugs)}")
-        if open_bugs:
-            for b in open_bugs[:3]:
-                print(f"    [{b.get('severity', '?')}] {b.get('module', '')}/{b.get('page', '')} — {b.get('error_type', '')[:40]}")
-    except Exception as e:
-        print(f"  Status: Unavailable ({str(e)[:50]})")
-
-    # ── 6. Skill 能力分布 ──
-    print(f"\n{'─' * width}")
-    print("  Skills")
-    print(f"{'─' * width}")
-
-    from aitest.llm.skill_registry import get_skill_stats
-    stats = get_skill_stats()
-    print(f"  mechanical: {stats.get('mechanical', 0)} | low: {stats.get('low', 0)} | "
-          f"medium: {stats.get('medium', 0)} | high: {stats.get('high', 0)}")
-
-    from aitest.llm.provider import list_providers
-    print(f"  LLM Providers: {', '.join(list_providers())}")
-
-    print()
-    print("=" * width)
-    print("  aitest server start     — 启动 API 服务")
-    print("  aitest agent run <name> --module=<m> — 执行 Agent")
-    print("  aitest server queue     — 任务队列详情")
-    print("=" * width)
-    print()
-
-
+# Additional CLI commands extracted to submodules (P1 split, 2026-06-27)
+from aitest.infra.cli.dashboard_cmds import cmd_dashboard
+from aitest.infra.cli.debug_cmds import cmd_trace, cmd_errors, cmd_bug
+from aitest.infra.cli.eval_cmds import cmd_ab, cmd_eval, cmd_regression, cmd_testcase
 # Graph commands extracted to aitest/infra/cli/graph_cmds.py (P3-8 God Module split)
 from aitest.infra.cli.graph_cmds import cmd_graph, cmd_graph_dev
 
-def cmd_errors(args):
-    """错误日志查看与清理 (P0-2)。"""
-    sys.path.insert(0, str(WORKSTUDY))
-    from aitest.infra.error_logger import list_recent, get_summary, cleanup_old
 
-    if args.action == "recent":
-        entries = list_recent(
-            limit=args.limit or 20,
-            severity=args.severity,
-            component=args.component,
-        )
-        if not entries:
-            print("No errors recorded.")
-            return
+# ══════════════════════════════════════════════════════════════════════════
+#  DX Commands: inspect, event (v2.6)
+# ══════════════════════════════════════════════════════════════════════════
 
-        print(f"\nRecent errors ({len(entries)}):")
-        print(f"{'─'*70}")
-        for entry in entries:
-            ts = entry.get("timestamp", "?")[:19]
-            comp = entry.get("component", "?")
-            op = entry.get("operation", "?")
-            err_type = entry.get("error_type", "?")
-            msg = entry.get("error_message", "")[:80]
-            sev = entry.get("severity", "?")
-            sev_icon = {"error": "[E]", "critical": "[!!]", "warning": "[W]", "info": "[I]", "debug": "[D]"}.get(sev, "[?]")
-            print(f"  {sev_icon} {ts} | {comp}.{op}: {err_type}: {msg}")
-        print()
+def cmd_inspect(args):
+    """Run Inspector — detailed view of any Run."""
+    from aitest.platform.run_store import get_run_store
+    from aitest.platform.timeline import build_timeline, timeline_summary
 
-    elif args.action == "summary":
-        summary = get_summary(days=args.days or 7)
-        print(f"\nError Summary (since {summary.get('since', '?')[:10]}):")
-        print(f"  Total: {summary['total']}")
-        print(f"\n  By Component:")
-        for comp, count in summary.get("by_component", {}).items():
-            bar = "█" * min(count, 40)
-            print(f"    {comp:<40} {count:>4} {bar}")
-        print(f"\n  By Severity:")
-        for sev, count in summary.get("by_severity", {}).items():
-            print(f"    {sev:<10} {count}")
-        print()
+    rs = get_run_store()
 
-    elif args.action == "clean":
-        deleted = cleanup_old(days=args.days or 7)
-        print(f"Cleaned up {deleted} old error entries (older than {args.days or 7} days).")
+    if args.run_id:
+        run = rs.load_run(args.run_id)
+        if run is None:
+            print(f"Run '{args.run_id}' not found")
+            return 1
 
+        events = rs.list_events(args.run_id) if args.events else []
+        timeline = build_timeline(args.run_id) if args.events else None
 
-def cmd_server(args):
-    """服务管理。"""
-    if args.action == "start":
-        import uvicorn
-        # 先加载 .env 再导入 app，确保 provider.py 在 uvicorn 进程中有正确的环境变量
-        from dotenv import load_dotenv
-        from pathlib import Path
-        _env = Path.cwd() / ".env"
-        if _env.exists():
-            load_dotenv(_env)
-        print("Starting AITest Platform server on http://0.0.0.0:8000")
-        print("API docs: http://localhost:8000/docs")
-        print("Chat UI:  http://localhost:8000/chat")
-        uvicorn.run(
-            "aitest.server.main:app",
-            host=args.host or "0.0.0.0",
-            port=args.port or 8000,
-            reload=args.reload,
-        )
-
-    elif args.action == "task":
-        task_id = args.task_id
-        if not task_id:
-            print("Usage: aitest server task <task_id>")
-            return
-
-        from aitest.infra.task_queue import get_queue
-        queue = get_queue()
-        task = queue.get(task_id)
-
-        if not task:
-            print(f"Task not found: {task_id}")
-            return
-
-        print(f"Task: {task['id']}")
-        print(f"Agent: {task['agent']}")
-        print(f"Module: {task['module']}/{task['page']}")
-        print(f"Status: {task['status']}")
-        print(f"Provider: {task['provider']}")
-
-        if task["status"] == "completed":
-            result = task.get("result", {})
-            print(f"Skills: {result.get('skills_executed', 'N/A')}")
-            print(f"Tokens: {result.get('total_tokens', {})}")
-            print(f"Elapsed: {result.get('total_elapsed', 'N/A')}s")
-        elif task["status"] == "failed":
-            print(f"Error: {task.get('error_msg', 'Unknown')}")
-
-    elif args.action == "queue":
-        from aitest.infra.task_queue import get_queue
-        queue = get_queue()
-        counts = queue.count_by_status()
-        print("Task Queue Stats:")
-        for status, count in counts.items():
-            print(f"  {status}: {count}")
-
-        recent = queue.list_tasks(limit=10)
-        if recent:
-            print(f"\nRecent tasks ({len(recent)}):")
-            for t in recent:
-                status_icon = {"queued": "[..]", "running": "[>>]", "completed": "[OK]", "failed": "[XX]"}.get(t["status"], "[??]")
-                print(f"  {status_icon} {t['id'][:18]} | {t['agent']:25s} | {t['module']}/{t['page']}")
-
-    elif args.action == "cleanup":
-        from aitest.infra.task_queue import get_queue
-        queue = get_queue()
-        deleted = queue.cleanup(older_than_hours=args.hours or 24)
-        print(f"Cleaned up {deleted} old tasks")
-
-
-def cmd_bug(args):
-    """Bug 历史库。"""
-    sys.path.insert(0, str(WORKSTUDY))
-    from aitest.testing.bug_history import (
-        add_bug, list_bugs, get_trends, BUG_DB
-    )
-
-    if args.action == "add":
-        bug_id = add_bug(
-            module=args.module or "",
-            page=args.page or "",
-            error_type=args.error_type or "",
-            root_cause=args.root_cause or "",
-            severity=args.severity or "medium",
-            status="open",
-            matched_issue=args.matched_issue or "",
-        )
-        print(f"Bug added: {bug_id}")
-
-    elif args.action == "list":
-        bugs = list_bugs(
-            module=args.module,
-            severity=args.severity,
-            status=args.status,
-            limit=args.limit or 20,
-        )
-        print(f"\nBug History ({len(bugs)} records):\n")
-        for b in bugs:
-            print(f"  [{b['id']}] {b['date']} | {b['module']}/{b['page']}")
-            print(f"    {b['error_type']} → {b['root_cause'][:60]}")
-            print(f"    severity={b['severity']} status={b['status']} matched={b.get('matched_issue', 'N/A')}")
-            print()
-
-    elif args.action == "trends":
-        trends = get_trends(args.module)
-        print(f"\nBug Trends{f' for {args.module}' if args.module else ''}:\n")
-        for t in trends:
-            print(f"  {t['period']}: {t['total']} bugs (open={t['open']}, fixed={t['fixed']})")
-
-
-def cmd_testcase(args):
-    """测试用例 Excel 导出。"""
-    sys.path.insert(0, str(WORKSTUDY))
-    from aitest.testing.testcase_exporter import export_testcases_to_excel
-    path = export_testcases_to_excel(args.module, args.page, args.output)
-    print(f"Exported: {path}")
-
-
-def cmd_kpi(args):
-    """L4: Governance KPI 仪表板"""
-    sys.path.insert(0, str(WORKSTUDY))
-    from aitest.audit_engine.governance_kpi import run_kpi_summary
-    from aitest.audit_engine.scheduled_audit import run_all_audits, discover_modules
-
-    if args.action == "summary":
-        run_kpi_summary(days=args.days or 30, json_output=args.json)
-    elif args.action == "audit-all":
-        modules = args.modules.split(",") if args.modules else discover_modules()
-        print(f"Auditing {len(modules)} modules...")
-        results = run_all_audits(modules)
         if args.json:
-            import json
-            print(json.dumps(results, ensure_ascii=False, indent=2))
-        else:
-            state_drifts = sum(r.get("drift_count", 0) for r in results["state_audits"].values())
-            sop_v = sum(r.get("violations", 0) for r in results["sop_audits"].values())
-            print(f"\n{len(modules)} modules: {state_drifts} drifts, {sop_v} SOP violations")
-    elif args.action == "export":
-        from aitest.audit_engine.governance_kpi import export_to_excel
-        path = export_to_excel(days=args.days or 30)
-        print(f"Exported: {path}")
+            result = {"run": run.to_dict(), "events": [e.to_dict() for e in events]}
+            if timeline:
+                result["timeline"] = timeline
+            print(json.dumps(result, indent=2, ensure_ascii=False))
+            return 0
+
+        print(f"\n{'='*60}")
+        print(f"  Run Inspector")
+        print(f"{'='*60}")
+        print(f"  Run ID:      {run.run_id}")
+        print(f"  Request ID:  {run.request_id}")
+        print(f"  Status:      {run.status}")
+        print(f"  Agent:       {run.agent}")
+        print(f"  Module:      {run.module}")
+        print(f"  Pages:       {', '.join(run.pages) if run.pages else '—'}")
+        print(f"  Created:     {run.created_at[:19] if run.created_at else '—'}")
+        print(f"  Completed:   {run.completed_at[:19] if run.completed_at else '—'}")
+        print(f"  Tokens:      {run.total_tokens:,}")
+        print(f"  Cost:        ${run.total_cost:.4f}")
+        print(f"  Error:       {run.error_message or '—'}")
+        print(f"{'─'*60}")
+
+        if events:
+            print(f"  Events ({len(events)}):")
+            for e in events:
+                ts = e.timestamp[:19] if e.timestamp else ''
+                print(f"    [{ts}] {e.event_type}")
+            print(f"{'─'*60}")
+
+        if timeline:
+            summary = timeline_summary(args.run_id)
+            if summary:
+                print(f"  Timeline Summary:")
+                for k, v in summary.items():
+                    print(f"    {k}: {v}")
+        print()
     else:
-        print("Usage: aitest kpi summary|audit-all|export [--days=30] [--modules=m1,m2] [--json]")
+        # List recent runs
+        runs = rs.list_runs(limit=args.limit)
+        if not runs:
+            print("No runs found.")
+            return 0
+
+        print(f"\n  Recent Runs ({len(runs)}):")
+        print(f"  {'Run ID':<38} {'Status':<12} {'Agent':<22} {'Module':<20}")
+        print(f"  {'─'*90}")
+        for r in runs:
+            rid = r.run_id[:36]
+            print(f"  {rid:<38} {r.status:<12} {r.agent:<22} {r.module:<20}")
+        print()
 
 
-def cmd_regression(args):
-    """回归测试运行器 (P1-4)"""
-    sys.path.insert(0, str(WORKSTUDY))
-    from aitest.testing.regression import RegressionRunner
+def cmd_event(args):
+    """Event Inspector — browse/filter/tail events."""
+    from aitest.audit_engine.event_bus import list_all, EVENT_DIR, cleanup_old_events
+    from aitest.platform.run_store import get_run_store
 
-    if args.action == "list":
-        runner = RegressionRunner()
-        cases = runner.list_cases(skill_id=args.skill or None)
-        if not cases:
-            print("No regression test cases found.")
-            print(f"Test cases are defined in: governance/tests/regression/test_cases.yaml")
-            return
+    if args.action == "types":
+        rs = get_run_store()
+        all_events = rs.list_events(limit=1000)
+        from collections import Counter
+        type_counts = Counter(e.event_type for e in all_events)
+        print(f"\n  Event Types ({len(type_counts)}):")
+        for t, c in type_counts.most_common(20):
+            print(f"    {t:<30} {c:>6}")
+        print()
 
-        print(f"\n{'='*65}")
-        print(f"  Regression Test Cases — {len(cases)} total")
-        print(f"{'='*65}")
-        for c in cases:
-            tags = ", ".join(c["tags"])
-            baseline_icon = "📄" if c["has_baseline"] else "❌"
-            print(f"\n  [{c['id']}] {baseline_icon}")
-            print(f"    skill:  {c['skill_id']}")
-            print(f"    desc:   {c['description']}")
-            print(f"    tags:   {tags}")
-
-    elif args.action == "run":
-        runner = RegressionRunner(provider=args.provider)
-        results = runner.run_all(
-            tag=args.tag or None,
-            skill_id=args.skill or None,
-        )
-
-        summary = runner.summary()
-        print(f"\n{'='*60}")
-        print(f"  Regression Results")
-        print(f"{'='*60}")
-        print(f"  Total:   {summary['total']}")
-        print(f"  Passed:  {summary['passed']}")
-        print(f"  Failed:  {summary['failed']}")
-        print(f"  Rate:    {summary['pass_rate']:.0%}")
-        print(f"  Avg Score: {summary['avg_score']:.2f}")
-
-        if summary.get("deviations"):
-            print(f"\n  Failures:")
-            for d in summary["deviations"]:
-                print(f"    [{d['case_id']}]")
-                for dev in d["deviations"][-5:]:
-                    print(f"      - {dev}")
-
-        if summary.get("by_skill"):
-            print(f"\n  By Skill:")
-            for sid, stats in summary["by_skill"].items():
-                pr = f"{stats['passed']}/{stats['total']}"
-                print(f"    {sid}: {pr}")
-
-    elif args.action == "capture":
-        if not args.target:
-            print("Error: Case ID is required for capture")
-            print("Usage: aitest regression capture <case_id>")
-            return
-
-        runner = RegressionRunner(provider=args.provider)
+    elif args.action == "tail":
+        print(f"  Watching events (Ctrl+C to stop)...")
+        print(f"  Events dir: {EVENT_DIR}")
         try:
-            path = runner.capture_baseline(args.target)
-            print(f"Baseline captured: {path}")
-        except ValueError as e:
-            print(f"Error: {e}")
-        except Exception as e:
-            print(f"Capture failed: {e}")
+            seen = set()
+            while True:
+                events = list_all(limit=args.limit)
+                for evt in events:
+                    if evt.id not in seen:
+                        seen.add(evt.id)
+                        ts = evt.timestamp[:19] if hasattr(evt, 'timestamp') and evt.timestamp else ''
+                        print(f"  [{ts}] {evt.type}")
+                time.sleep(2)
+        except KeyboardInterrupt:
+            print("\n  Stopped.")
 
+    else:  # list
+        if args.json:
+            events = list_all(limit=args.limit)
+            result = []
+            for e in events:
+                d = {"id": e.id, "type": e.type, "timestamp": e.timestamp,
+                     "processed": e.processed}
+                if hasattr(e, 'data'):
+                    d["data"] = str(e.data)[:200]
+                result.append(d)
+            print(json.dumps(result, indent=2, ensure_ascii=False))
+            return 0
 
-def cmd_ab(args):
-    """A/B 测试运行器 (P1-3)"""
-    sys.path.insert(0, str(WORKSTUDY))
-    from aitest.llm.skill_loader import list_variants
+        # Filter by type or run_id from platform RunStore
+        rs = get_run_store()
+        events = rs.list_events(limit=args.limit or 20)
 
-    if args.action == "list":
-        skill_id = args.skill_id or None
-        variants = list_variants(skill_id)
-        if not variants:
-            print(f"No variants found{f' for {skill_id}' if skill_id else ''}.")
-            print("Variants are registered in governance/skills/skill-registry.yaml")
-            return
+        if args.type:
+            events = [e for e in events if e.event_type == args.type]
+        if args.run_id:
+            events = [e for e in events if e.run_id == args.run_id]
 
-        print(f"\n{'='*60}")
-        print(f"  Prompt Variants{f' — {skill_id}' if skill_id else ''}")
-        print(f"{'='*60}")
-        for v in variants:
-            tags = ", ".join(v.tags) if v.tags else "none"
-            print(f"\n  [{v.variant_id}] v{v.version}")
-            print(f"    skill:  {v.skill_id}")
-            print(f"    tags:   {tags}")
-            print(f"    desc:   {v.description}")
-
-    elif args.action == "compare":
-        if not args.skill_id:
-            print("Error: Skill ID is required")
-            return
-        if not args.a or not args.b:
-            print("Error: --a and --b (variant IDs) are required")
-            return
-        if not args.input:
-            print("Error: --input is required")
-            return
-
-        criteria = {}
-        if args.criteria:
-            try:
-                criteria = json.loads(args.criteria)
-            except json.JSONDecodeError as e:
-                print(f"Error: Invalid criteria JSON: {e}")
-                return
-
-        from aitest.agents.ab_test import ABTestRunner
-        runner = ABTestRunner(provider=args.provider)
-        result = runner.compare(
-            skill_id=args.skill_id,
-            variant_a=args.a,
-            variant_b=args.b,
-            test_input=args.input,
-            criteria=criteria,
-        )
-
-        print(f"\n{'='*60}")
-        print(f"  A/B Test — {result.skill_id}")
-        print(f"{'='*60}")
-        print(f"  A: {result.variant_a}  vs  B: {result.variant_b}")
-        print(f"  Winner:      {result.winner}")
-        print(f"  Score diff:  {result.score_diff:+.3f}  (A={result.run_a.get('score',0):.2f} B={result.run_b.get('score',0):.2f})")
-        print(f"  Cost diff:   ${result.cost_diff:+.6f}")
-        print(f"  Latency diff: {result.latency_diff_ms:+d}ms")
-        if result.run_a.get("errors"):
-            print(f"\n  A errors:")
-            for e in result.run_a["errors"][-5:]:
-                print(f"    - {e}")
-        if result.run_b.get("errors"):
-            print(f"\n  B errors:")
-            for e in result.run_b["errors"][-5:]:
-                print(f"    - {e}")
-
-    elif args.action == "batch":
-        if not args.skill_id:
-            print("Error: Skill ID is required")
-            return
-        if not args.a or not args.b:
-            print("Error: --a and --b (variant IDs) are required")
-            return
-        if not args.cases:
-            print("Error: --cases <yaml-file> is required for batch mode")
-            return
-
-        from aitest.agents.ab_test import ABTestRunner
-        runner = ABTestRunner(provider=args.provider)
-        cases = runner.load_cases_from_yaml(args.cases)
-        results = runner.batch_compare(
-            skill_id=args.skill_id,
-            variant_a=args.a,
-            variant_b=args.b,
-            test_cases=cases,
-        )
-
-        summary = runner.summary()
-        print(f"\n{'='*60}")
-        print(f"  A/B Batch — {args.skill_id} ({len(results)} cases)")
-        print(f"{'='*60}")
-        for i, r in enumerate(results):
-            print(f"  [{i+1}] {r.winner} | score={r.score_diff:+.3f} | cost=${r.cost_diff:+.6f}")
-        print(f"\n  Summary: {summary['recommendation']}")
-
-
-def cmd_eval(args):
-    """Skill 评估运行器 (P1-2)"""
-    sys.path.insert(0, str(WORKSTUDY))
-    from aitest.testing.evaluator import EvalRunner
-
-    if args.action == "run":
-        if not args.target:
-            print("Error: Skill ID is required for eval run")
-            print("Usage: aitest eval run <skill_id> --input=<text> [--criteria=<json>]")
-            return
-        if not args.input:
-            print("Error: --input is required for eval run")
-            return
-
-        criteria = {}
-        if args.criteria:
-            try:
-                criteria = json.loads(args.criteria)
-            except json.JSONDecodeError as e:
-                print(f"Error: Invalid criteria JSON: {e}")
-                return
-
-        runner = EvalRunner(provider=args.provider)
-        result = runner.run(args.target, args.input, criteria)
-
-        print(f"\n{'='*60}")
-        print(f"  Eval Run — {result.skill_id}")
-        print(f"{'='*60}")
-        icon = "PASS" if result.passed else "FAIL"
-        print(f"  Status:     {icon}  (score={result.score:.2f})")
-        print(f"  Latency:    {result.latency_ms}ms")
-        if result.token_usage:
-            print(f"  Tokens:     {result.token_usage.get('input',0)} in / {result.token_usage.get('output',0)} out")
-        print(f"  Errors:     {len(result.errors)}")
-        for e in result.errors[-8:]:
-            print(f"    - {e}")
-        print(f"  Output:     {result.actual_output[:200]}...")
-
-    elif args.action == "agent":
-        if not args.target:
-            print("Error: Agent name is required for eval agent")
-            print("Usage: aitest eval agent <agent_name> --module=<m> [--page=<p>]")
-            return
-
-        runner = EvalRunner(provider=args.provider)
-        result = runner.run_agent(
-            agent_name=args.target,
-            module=args.module or "",
-            page=args.page or "",
-        )
-
-        print(f"\n{'='*60}")
-        print(f"  Agent Eval — {result['agent_name']}")
-        print(f"{'='*60}")
-        icon = "PASS" if result["success"] else "FAIL"
-        print(f"  Status:     {icon}  ({result['termination_reason']})")
-        print(f"  Completed:  {result['completed_skills']}")
-        print(f"  Failed:     {result['failed_skills']}")
-        print(f"  Total latency: {result['total_latency_ms']}ms")
-        print(f"  Total tokens:  {result['total_tokens']}")
-        print(f"\n  Skill details:")
-        for sr in result["skill_results"]:
-            sicon = "✅" if sr["status"] == "pass" else "❌"
-            print(f"    {sicon} {sr['skill_id']}: {sr['status']} ({len(sr['quality_issues'])} issues)")
-
-    elif args.action == "summary":
-        runner = EvalRunner()
-        metrics = runner.metric_from_traces(
-            skill_id=args.skill,
-            run_id=args.run_id,
-        )
-
-        if not metrics:
-            print("No evaluation metrics found. Run 'aitest eval run' first, or check trace data.")
-            return
-
-        print(f"\n{'='*65}")
-        print(f"  Eval Summary — {'all skills' if not args.skill else args.skill}")
-        print(f"{'='*65}")
-        for m in metrics:
-            sr = f"{m.success_rate:.0%}"
-            print(f"\n  {m.skill_id}")
-            print(f"    runs={m.total_runs}  success={sr}  avg_lat={m.avg_latency_ms}ms  cost=${m.avg_cost_per_run:.4f}/run")
-            print(f"    tokens/run={m.tokens_per_run}  (ok={m.success_count} fail={m.failure_count})")
-
-
-def cmd_trace(args):
-    """追踪事件查询 (P1-1 + P0/P1 可观测性)"""
-    sys.path.insert(0, str(WORKSTUDY))
-    from aitest.infra.trace import query_trace_events, get_trace_summary, cleanup_old_traces, get_run_stats, get_cost_leaderboard
-
-    if args.action == "list":
-        events = query_trace_events(
-            run_id=args.run_id,
-            event_type=args.type,
-            skill_id=args.skill,
-            limit=args.limit,
-        )
-        if not events:
-            print("No trace events found.")
-            return
-
-        print(f"\n{'='*70}")
-        print(f"  Trace Events — {len(events)} found")
-        print(f"{'='*70}")
+        print(f"\n  Recent Events ({len(events)}):")
         for e in events:
-            icon = "✅" if e.get("status") == "success" else "❌"
-            cost = e.get("token_cost_estimate", 0)
-            cost_str = f" ${cost:.4f}" if cost > 0 else " free"
-            print(f"\n  {icon} [{e.get('event_type','?')}] {e.get('skill_id','') or e.get('agent_name','')}")
-            print(f"     ts={e.get('timestamp','?')} | provider={e.get('provider','?')} | model={e.get('model','?')}")
-            print(f"     latency={e.get('latency_ms',0)}ms | tokens(in={e.get('token_input',0)} out={e.get('token_output',0)}){cost_str}")
-            preview = e.get("response_preview", "")
-            if preview:
-                print(f"     preview: {preview[:120]}...")
-
-    elif args.action == "summary":
-        if not args.run_id:
-            print("Error: --run-id is required for summary")
-            return
-        summary = get_trace_summary(args.run_id)
-        print(f"\n{'='*60}")
-        print(f"  Trace Summary — {args.run_id}")
-        print(f"{'='*60}")
-        print(f"  Total events:    {summary['total_events']}")
-        print(f"  Total cost:      ${summary['total_cost']:.4f}")
-        print(f"  Total latency:   {summary['total_latency_ms']}ms ({summary['total_latency_ms']/1000:.1f}s)")
-        print(f"  Total tokens:    {summary['total_tokens_input']} in / {summary['total_tokens_output']} out")
-        print(f"  Models:          {', '.join(summary['models_seen']) if summary['models_seen'] else 'N/A'}")
-        print(f"\n  By event type:")
-        for etype, count in sorted(summary.get("by_type", {}).items()):
-            print(f"    {etype}: {count}")
-        print(f"\n  By skill:")
-        for sid, stats in sorted(summary.get("by_skill", {}).items()):
-            sr = stats.get("success_rate", 0)
-            avg_lat = stats.get("avg_latency_ms", 0)
-            print(f"    {sid}: {stats['count']} calls, {sr:.0%} success, avg {avg_lat}ms")
-
-    elif args.action == "stats":
-        # ★ P0: 单次运行的完整 Token/调用/成本统计
-        if not args.run_id:
-            print("Error: --run-id is required for stats")
-            return
-        stats = get_run_stats(args.run_id)
-        if "error" in stats:
-            print(f"Error: {stats['error']}")
-            return
-
-        print(f"\n{'='*60}")
-        print(f"  Run Stats — {args.run_id}")
-        print(f"{'='*60}")
-        print(f"  LLM calls:       {stats['total_llm_calls']}")
-        print(f"  Agent decisions: {stats['agent_decision_calls']}")
-        print(f"  Skill execs:     {stats['skill_executions']}")
-        print(f"  Total tokens:    {stats['total_tokens_in']:,} in / {stats['total_tokens_out']:,} out ({stats['total_tokens']:,} total)")
-        print(f"  Total cost:      ${stats['total_cost']:.4f}")
-        print(f"  Total latency:   {stats['total_latency_ms']}ms ({stats['total_latency_ms']/1000:.1f}s)")
-        print(f"  Models:          {', '.join(stats['models_seen']) if stats['models_seen'] else 'N/A'}")
-
-        if stats.get("by_agent"):
-            print(f"\n  By Agent:")
-            for agent, a in stats["by_agent"].items():
-                print(f"    {agent}: {a['calls']} calls, {a['tokens_in']:,} in, ${a['cost']:.4f}")
-
-        if stats.get("by_skill"):
-            print(f"\n  By Skill:")
-            for sid, s in stats["by_skill"].items():
-                print(f"    {sid}: {s['calls']} calls, {s['tokens_in']:,} in / {s['tokens_out']:,} out, ${s['cost']:.4f}")
-
-    elif args.action == "board":
-        # ★ P1: Agent 成本排行榜
-        days = getattr(args, 'days', 7)
-        limit = getattr(args, 'limit', 10)
-        leaderboard = get_cost_leaderboard(days=days, limit=limit)
-        if not leaderboard:
-            print(f"No trace events found in the last {days} day(s).")
-            return
-
-        print(f"\n{'='*70}")
-        print(f"  Agent Cost Leaderboard (last {days} days)")
-        print(f"{'='*70}")
-        print(f"  {'Rank':<5} {'Agent':<25} {'Calls':<8} {'Tokens In':<12} {'Cost':<10}")
-        print(f"  {'-'*4} {'-'*25} {'-'*8} {'-'*12} {'-'*10}")
-        for i, entry in enumerate(leaderboard, 1):
-            print(f"  {i:<5} {entry['agent']:<25} {entry['calls']:<8} {entry['tokens_in']:>10,}  ${entry['cost']:>8.4f}")
-
-    elif args.action == "advise":
-        # ★ P2: 自动成本优化建议
-        days = getattr(args, 'days', 7)
-        from aitest.cost_advisor import analyze_trace_data
-        suggestions = analyze_trace_data(days=days)
-        if not suggestions:
-            print(f"No optimization suggestions found (last {days} days).")
-            return
-
-        severity_icons = {"high": "🔴", "medium": "🟡", "low": "🟢"}
-        print(f"\n{'='*70}")
-        print(f"  Cost Optimization Suggestions (last {days} days)")
-        print(f"{'='*70}")
-        for s in suggestions:
-            icon = severity_icons.get(s["severity"], "⚪")
-            sev = s["severity"].upper()
-            rule = s["rule"]
-            print(f"\n{icon} {sev} | {rule}")
-            print(f"  {s['finding']}")
-            print(f"  → {s['suggestion']}")
-
-    elif args.action == "clean":
-        deleted = cleanup_old_traces(days=args.days)
-        print(f"Cleaned {deleted} trace events older than {args.days} day(s).")
+            ts = e.timestamp[:19] if e.timestamp else ''
+            print(f"  [{ts}] {e.event_type:<30} run={e.run_id[:20]}...")
 
 
 def main():
@@ -1507,6 +934,22 @@ def main():
     p_kpi.add_argument("--modules", "-m", help="模块列表，逗号分隔 (audit-all)")
     p_kpi.add_argument("--json", action="store_true", help="JSON输出")
 
+    # ── inspect (Run Inspector) ──
+    p_inspect = sub.add_parser("inspect", help="Run Inspector — 查看 Run 详情")
+    p_inspect.add_argument("run_id", nargs="?", help="Run ID (省略则列出最近)")
+    p_inspect.add_argument("--events", "-e", action="store_true", help="显示事件时间线")
+    p_inspect.add_argument("--json", action="store_true", help="JSON 格式输出")
+    p_inspect.add_argument("--limit", "-n", type=int, default=10, help="列出最近 N 个 run")
+
+    # ── event (Event Inspector) ──
+    p_event = sub.add_parser("event", help="Event Inspector — 查看平台事件")
+    p_event.add_argument("action", nargs="?", default="list", choices=["list", "tail", "types"],
+                         help="list:最近事件 | tail:实时跟踪 | types:事件类型统计")
+    p_event.add_argument("--limit", "-n", type=int, default=20, help="显示数量")
+    p_event.add_argument("--type", "-t", help="过滤事件类型")
+    p_event.add_argument("--run-id", help="过滤 Run ID")
+    p_event.add_argument("--json", action="store_true", help="JSON 输出")
+
     # ── testcase (测试用例导出) ──
     p_tc = sub.add_parser("testcase", help="测试用例Excel导出")
     p_tc.add_argument("module", help="模块名 (如 sales)")
@@ -1590,6 +1033,10 @@ def main():
         cmd_graph_dev(args)
     elif args.command == "dashboard":
         cmd_dashboard(args)
+    elif args.command == "inspect":
+        cmd_inspect(args)
+    elif args.command == "event":
+        cmd_event(args)
     else:
         parser.print_help()
 

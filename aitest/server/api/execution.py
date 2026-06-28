@@ -180,6 +180,123 @@ async def cancel_execution(request_id: str):
     return {"request_id": request_id, "status": "cancelled"}
 
 
+# ── POST /api/executions/:run_id/timeout ─────────────────────────────
+
+@execution_router.post("/runs/{run_id}/timeout")
+async def timeout_run(run_id: str):
+    """Force-timeout a running execution. Sets abort + marks DB."""
+    from aitest.platform.execution_service import ExecutionService
+
+    svc = ExecutionService()
+    ok = svc.timeout_run(run_id)
+
+    if not ok:
+        raise HTTPException(404, f"Run '{run_id}' not found or already terminal")
+
+    return {"run_id": run_id, "status": "timed_out"}
+
+
+# ── POST /api/executions/:request_id/resume ──────────────────────────
+
+@execution_router.post("/executions/{request_id}/resume")
+async def resume_execution(request_id: str):
+    """Resume a paused or interrupted execution from its last checkpoint."""
+    from aitest.platform.execution_service import ExecutionService
+    from aitest.platform.run_store import get_run_store
+
+    try:
+        # Resolve request_id → run_id
+        rs = get_run_store()
+        runs = rs.list_runs(limit=500)
+        run = next((r for r in runs if r.request_id == request_id), None)
+
+        if run is None:
+            raise HTTPException(status_code=404, detail=f"Execution '{request_id}' not found")
+        if run.is_frozen:
+            raise HTTPException(status_code=409, detail=f"Execution '{request_id}' already terminal ({run.status})")
+
+        svc = ExecutionService()
+        result = svc.resume(run.run_id)
+        if result is None:
+            raise HTTPException(status_code=400, detail=f"Cannot resume execution '{request_id}'")
+
+        return {
+            "request_id": request_id,
+            "run_id": result.run_id,
+            "status": result.status,
+            "total_tokens": result.total_tokens,
+            "total_cost": result.total_cost,
+            "duration_ms": result.duration_ms,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Resume failed: {str(e)[:200]}")
+
+
+# ── GET /api/runs/:run_id/debug ──────────────────────────────────────
+
+@execution_router.get("/runs/{run_id}/debug")
+async def get_run_debug(run_id: str):
+    """Debug panel for a Run — LLM calls, tool calls, skill invocations.
+
+    Returns structured debug data for the Run Inspector frontend.
+    """
+    from aitest.platform.run_store import get_run_store
+
+    rs = get_run_store()
+    run = rs.load_run(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
+
+    events = rs.list_events(run_id)
+
+    # Classify events into categories
+    timeline = []
+    llm_calls = []
+    tool_calls = []
+    state_changes = []
+
+    for e in events:
+        entry = {
+            "event_id": e.event_id,
+            "event_type": e.event_type,
+            "timestamp": e.timestamp,
+            "data": e.data if isinstance(e.data, dict) else {},
+        }
+        timeline.append(entry)
+
+        if "llm" in e.event_type.lower() or "agent" in e.event_type.lower():
+            llm_calls.append(entry)
+        if "tool" in e.event_type.lower() or "browser" in e.event_type.lower():
+            tool_calls.append(entry)
+        if "state" in e.event_type.lower() or "phase" in e.event_type.lower():
+            state_changes.append(entry)
+
+    return {
+        "run_id": run.run_id,
+        "request_id": run.request_id,
+        "status": run.status,
+        "agent": run.agent,
+        "module": run.module,
+        "pages": run.pages,
+        "created_at": run.created_at,
+        "completed_at": run.completed_at,
+        "total_tokens": run.total_tokens,
+        "total_cost": run.total_cost,
+        "error_message": run.error_message,
+        "debug": {
+            "total_events": len(events),
+            "llm_calls": len(llm_calls),
+            "tool_calls": len(tool_calls),
+            "state_changes": len(state_changes),
+            "timeline": timeline,
+            "llm_calls_detail": llm_calls[:50],
+            "tool_calls_detail": tool_calls[:50],
+        },
+    }
+
+
 # ══════════════════════════════════════════════════════════════════════════
 #  v2.3 Platform Observability — Timeline, History, Audit
 # ══════════════════════════════════════════════════════════════════════════
@@ -311,7 +428,7 @@ class RegisterWebhookRequest(BaseModel):
 @execution_router.post("/workspaces/{ws_id}/webhooks")
 async def register_webhook(ws_id: str, req: RegisterWebhookRequest):
     """Register a webhook endpoint for a workspace."""
-    from aitest.platform.webhook import get_webhook_registry
+    from aitest.platform.hooks.webhook import get_webhook_registry
 
     registry = get_webhook_registry()
     wh = registry.register(
@@ -326,7 +443,7 @@ async def register_webhook(ws_id: str, req: RegisterWebhookRequest):
 @execution_router.get("/workspaces/{ws_id}/webhooks")
 async def list_webhooks(ws_id: str):
     """List webhooks for a workspace."""
-    from aitest.platform.webhook import get_webhook_registry
+    from aitest.platform.hooks.webhook import get_webhook_registry
 
     registry = get_webhook_registry()
     hooks = registry.list(workspace_id=ws_id)
@@ -336,7 +453,7 @@ async def list_webhooks(ws_id: str):
 @execution_router.delete("/workspaces/{ws_id}/webhooks/{webhook_id}")
 async def delete_webhook(ws_id: str, webhook_id: str):
     """Delete a webhook registration."""
-    from aitest.platform.webhook import get_webhook_registry
+    from aitest.platform.hooks.webhook import get_webhook_registry
 
     registry = get_webhook_registry()
     deleted = registry.delete(webhook_id)
@@ -350,7 +467,7 @@ async def delete_webhook(ws_id: str, webhook_id: str):
 @execution_router.get("/metrics/snapshot")
 async def metrics_snapshot():
     """Current platform metrics: runs, cost, by module, by agent."""
-    from aitest.platform.metrics_consumer import get_metrics_consumer
+    from aitest.platform.hooks.metrics_consumer import get_metrics_consumer
 
     mc = get_metrics_consumer()
     return mc.snapshot()
@@ -361,7 +478,7 @@ async def metrics_snapshot():
 @execution_router.get("/billing/records")
 async def billing_records(org_id: str = "", limit: int = 50):
     """Billing hook records. No balance — hook only."""
-    from aitest.platform.billing_hook import get_billing_hook
+    from aitest.platform.hooks.billing_hook import get_billing_hook
 
     hook = get_billing_hook()
     records = hook.query(org_id=org_id, limit=limit)
@@ -373,7 +490,7 @@ async def billing_records(org_id: str = "", limit: int = 50):
 @execution_router.get("/workspaces/{ws_id}/usage")
 async def workspace_usage(ws_id: str):
     """Resource usage for a workspace. Stats only, no enforcement."""
-    from aitest.platform.quota_usage import get_quota_usage
+    from aitest.platform.hooks.quota_usage import get_quota_usage
 
     qu = get_quota_usage()
     return qu.get_usage(ws_id)
@@ -382,7 +499,7 @@ async def workspace_usage(ws_id: str):
 @execution_router.get("/usage")
 async def all_usage():
     """Resource usage for all workspaces."""
-    from aitest.platform.quota_usage import get_quota_usage
+    from aitest.platform.hooks.quota_usage import get_quota_usage
 
     qu = get_quota_usage()
     return {"usage": qu.snapshot()}

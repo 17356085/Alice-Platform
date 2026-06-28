@@ -3,7 +3,7 @@
  * Key difference from Vue: <router-view /> replaced by <Routes>/<Outlet>.
  * No reactive proxy cycle — React's unidirectional data flow breaks the OOM loop.
  */
-import { useEffect, useMemo, lazy, Suspense } from 'react'
+import { useEffect, useMemo, useState, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LayoutDashboard } from 'lucide-react'
@@ -27,8 +27,11 @@ const IntelligenceChatView = lazy(() => import('./views/IntelligenceChatView'))
 const GapDiscoveryView = lazy(() => import('./views/GapDiscoveryView'))
 const StrategyPlannerView = lazy(() => import('./views/StrategyPlannerView'))
 const KanbanView = lazy(() => import('./views/KanbanView'))
+const TimelineView = lazy(() => import('./views/TimelineView'))
 const AgentTerminalView = lazy(() => import('./views/AgentTerminalView'))
 const SettingsView = lazy(() => import('./views/SettingsView'))
+const AgentDetailView = lazy(() => import('./views/AgentDetailView'))
+const KnowledgeGraphView = lazy(() => import('./views/KnowledgeGraphView'))
 const OnboardingWizardView = lazy(() => import('./views/OnboardingWizardView'))
 
 // ── View title mapping ─────────────────────────────────────────
@@ -38,6 +41,7 @@ const viewTitles: Record<string, string> = {
   reports: '测试报告', knowledge: '知识库', settings: '应用设置',
   onboarding: '新建项目', strategy: '策略规划',
   overview: '项目概览', observability: '可观测性', artifacts: '产物',
+  timeline: '时间线', agent: 'Agent 详情', knowledgegraph: '知识图谱',
 }
 
 function useCurrentViewName(): string {
@@ -57,9 +61,20 @@ const Loading = () => <div className="p-8 text-center text-muted-foreground text
 export default function App() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { connect } = useKanbanWS()
+  const { connect, disconnect } = useKanbanWS()
   const init = useProjectStore(s => s.init)
   const currentViewName = useCurrentViewName()
+  const [fade, setFade] = useState(true)
+
+  // Page transition: force render → crossfade on route change
+  const loc = useLocation()
+  useEffect(() => {
+    setFade(false)
+    // Double rAF ensures browser paints opacity:0 before transitioning to 1
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setFade(true))
+    })
+  }, [loc.pathname])
 
   // Theme init
   useEffect(() => {
@@ -79,10 +94,11 @@ export default function App() {
   }, [])
 
   // Kanban WS — connect unless ?nosock=1
+  // MEM-AUDIT: cleanup disconnects on unmount; prevents StrictMode double-connect
   useEffect(() => {
     if (!location.search.includes('nosock=1')) connect()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    return () => disconnect()
+  }, [connect, disconnect])
 
   // Init project store
   useEffect(() => { init() }, [init])
@@ -106,6 +122,7 @@ export default function App() {
           extra={
             (currentViewName === 'dashboard' ||
              currentViewName === 'overview' ||
+             currentViewName === 'timeline' ||
              currentViewName === 'kanban' ||
              currentViewName === 'execution' ||
              currentViewName === 'observability' ||
@@ -122,7 +139,7 @@ export default function App() {
           }
         />
 
-        <main className="flex-1 overflow-y-auto">
+        <main className={`flex-1 overflow-y-auto page-transition ${fade ? 'show' : ''}`}>
           <Suspense fallback={<Loading />}>
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -130,6 +147,9 @@ export default function App() {
 
               {/* Project workspace */}
               <Route path="/projects/:id" element={<ProjectOverviewView />} />
+              <Route path="/projects/:id/timeline" element={<TimelineView />} />
+              <Route path="/projects/:id/agents/:agentId" element={<AgentDetailView />} />
+              <Route path="/projects/:id/knowledgegraph" element={<KnowledgeGraphView />} />
               <Route path="/projects/:id/execution" element={<ExecutionView />} />
               <Route path="/projects/:id/observability" element={<ObservabilityView />} />
               <Route path="/projects/:id/artifacts" element={<ArtifactsView />} />
@@ -145,16 +165,6 @@ export default function App() {
               {/* App-level */}
               <Route path="/settings" element={<SettingsView />} />
               <Route path="/onboarding" element={<OnboardingWizardView />} />
-
-              {/* Legacy redirects */}
-              <Route path="/workspace/*" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/kanban" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/gaps" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/chat" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/execution" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/reports" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/knowledge" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/strategy" element={<Navigate to="/dashboard" replace />} />
 
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>

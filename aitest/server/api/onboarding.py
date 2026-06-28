@@ -12,6 +12,7 @@ Endpoints:
 import asyncio
 import json
 import logging
+import time
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -286,11 +287,22 @@ async def onboarding_websocket(ws: WebSocket, session_id: str):
         await ws.close()
         return
 
+    # MEM-AUDIT: idle timeout — close connection after 2h max (matches OwnedDict TTL)
+    _MAX_POLL_SECONDS = 7200  # 2 hours
+    _started_at = time.time()
     last_step = None
     last_progress = -1
 
     try:
         while True:
+            # Hard timeout — close connection if session runs too long
+            if time.time() - _started_at > _MAX_POLL_SECONDS:
+                await ws.send_json({
+                    "type": "timeout",
+                    "message": "Session exceeded maximum duration (2h)",
+                })
+                break
+
             # Refresh state
             state = get_session(session_id)
             if not state:

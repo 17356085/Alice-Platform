@@ -16,7 +16,6 @@ Schema:
     - created_at, started_at, completed_at
 """
 import json
-import logging
 import time
 import uuid
 import sqlite3
@@ -24,8 +23,9 @@ import threading
 from typing import Optional
 
 from aitest.platform.paths import get_workstudy
+from aitest.infra.logging import get_logger
 
-logger = logging.getLogger("task_queue")
+logger = get_logger("task_queue")
 
 WORKSTUDY = get_workstudy()
 DB_PATH = WORKSTUDY / "aitest" / "tasks.db"
@@ -63,6 +63,7 @@ class TaskQueue:
                     error_msg TEXT DEFAULT '',
                     retry_count INTEGER DEFAULT 0,
                     max_retries INTEGER DEFAULT 3,
+                    retry_at REAL DEFAULT 0,
                     created_at REAL,
                     started_at REAL,
                     completed_at REAL
@@ -70,7 +71,8 @@ class TaskQueue:
             """)
             # P4: migrate old tables missing columns
             for col, col_type in [("retry_count", "INTEGER DEFAULT 0"),
-                                   ("max_retries", "INTEGER DEFAULT 3")]:
+                                   ("max_retries", "INTEGER DEFAULT 3"),
+                                   ("retry_at", "REAL DEFAULT 0")]:
                 try:
                     conn.execute(f"ALTER TABLE tasks ADD COLUMN {col} {col_type}")
                 except sqlite3.OperationalError:
@@ -99,13 +101,16 @@ class TaskQueue:
     def dequeue(self) -> Optional[dict]:
         with self._lock:
             conn = self._get_conn()
+            now = time.time()
+            # v2.6: skip tasks whose retry backoff hasn't elapsed
             row = conn.execute(
-                "SELECT * FROM tasks WHERE status='queued' ORDER BY created_at LIMIT 1"
+                "SELECT * FROM tasks WHERE status='queued' AND (retry_at IS NULL OR retry_at <= ?) "
+                "ORDER BY created_at LIMIT 1",
+                (now,)
             ).fetchone()
             if not row:
                 conn.close()
                 return None
-            now = time.time()
             conn.execute("UPDATE tasks SET status='running', started_at=? WHERE id=?",
                          (now, row["id"]))
             conn.commit()
@@ -125,7 +130,11 @@ class TaskQueue:
             conn.close()
 
     def mark_failed(self, task_id: str, error: str):
-        """P4: auto-requeue if retry_count < max_retries. Else final fail."""
+        """P4: auto-requeue if retry_count < max_retries. Else final fail.
+
+        v2.6: Exponential backoff with jitter between retries (1s-60s).
+        """
+        import random
         now = time.time()
         with self._lock:
             conn = self._get_conn()
@@ -137,14 +146,19 @@ class TaskQueue:
             max_retries = task["max_retries"] or DEFAULT_MAX_RETRIES
 
             if retry_count < max_retries:
+                # Exponential backoff: 1s * 2^retry + jitter, capped at 60s
+                delay = min(1.0 * (2 ** retry_count), 60.0)
+                delay += random.uniform(0, delay * 0.3)  # 30% jitter
+                retry_at = now + delay
                 conn.execute(
-                    "UPDATE tasks SET status='queued', error_msg=?, retry_count=?, completed_at=? WHERE id=?",
+                    "UPDATE tasks SET status='queued', error_msg=?, retry_count=?, retry_at=?, completed_at=? WHERE id=?",
                     (f"[retry {retry_count + 1}/{max_retries}] {error}",
-                     retry_count + 1, now, task_id))
+                     retry_count + 1, retry_at, now, task_id))
                 conn.commit()
                 conn.close()
                 logger.info("task_retry_queued", task_id=task_id,
-                            retry=f"{retry_count + 1}/{max_retries}")
+                            retry=f"{retry_count + 1}/{max_retries}",
+                            backoff_s=round(delay, 1))
                 return
 
             conn.execute(

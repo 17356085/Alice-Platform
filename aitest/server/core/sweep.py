@@ -68,6 +68,56 @@ async def lifecycle_sweep_loop(log, lifecycle_registry, memory_guard, ownership_
         if task_stats["active"] > 20:
             actions.append(f"active_tasks:{task_stats['active']}")
 
+        # 7. Checkpoint retention cleanup (every 6th cycle = ~6min)
+        try:
+            if ownership_checker._scan_count % 6 == 0:
+                from aitest.graphs.checkpoint import cleanup_old_checkpoints, get_checkpoint_stats
+                removed = cleanup_old_checkpoints()
+                if removed:
+                    actions.append(f"checkpoint_cleanup:{removed}")
+                else:
+                    stats = get_checkpoint_stats()
+                    if stats["size_mb"] > 100:
+                        actions.append(f"checkpoint_size:{stats['size_mb']}MB")
+        except Exception:
+            pass
+
+        # 8. Audit log retention (every 6th cycle = ~6min)
+        try:
+            if ownership_checker._scan_count % 6 == 0:
+                from aitest.platform.audit_log import get_audit_logger
+                alog = get_audit_logger()
+                removed = alog.cleanup_old_entries()
+                if removed:
+                    actions.append(f"audit_cleanup:{removed}")
+        except Exception:
+            pass
+
+        # 9. RunStore retention (every 6th cycle = ~6min)
+        try:
+            if ownership_checker._scan_count % 6 == 0:
+                from aitest.platform.run_store import get_run_store
+                rs = get_run_store()
+                removed = rs.cleanup_old_runs()
+                if removed:
+                    actions.append(f"runstore_cleanup:{removed}")
+                else:
+                    rs_stats = rs.get_stats()
+                    if rs_stats["event_count"] > 10000:
+                        actions.append(f"runstore_events:{rs_stats['event_count']}")
+        except Exception:
+            pass
+
+        # 10. Governance event file cleanup (every 6th cycle)
+        try:
+            if ownership_checker._scan_count % 6 == 0:
+                from aitest.audit_engine.event_bus import cleanup_old_events
+                removed = cleanup_old_events()
+                if removed:
+                    actions.append(f"eventfile_cleanup:{removed}")
+        except Exception:
+            pass
+
         if actions:
             log.info("sweep_cycle", actions=", ".join(actions))
 

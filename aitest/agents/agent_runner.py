@@ -133,6 +133,9 @@ class AgentLoop:
         )
         self._worktree_ctx = None
 
+        # ★ v2.6: Abort signal — set by ExecutionService.cancel() / timeout
+        self._abort = threading.Event()
+
         # ★ v1.0: Reliability + Context Window
         self._use_reliable = use_reliable_provider
         self._use_window = use_window_monitor
@@ -162,7 +165,13 @@ class AgentLoop:
 
         # 初始化可靠性 Provider
         if self._use_reliable:
-            self._reliable_provider = get_reliable_provider(primary=provider)
+            # Pass resolved model to override provider default
+            chain_override = None
+            if model and model != self._resolve_model_for_provider(provider):
+                chain_override = [{"provider": provider, "model": model}]
+            self._reliable_provider = get_reliable_provider(
+                primary=provider, fallback_chain=chain_override,
+            )
 
         # 初始化窗口监控器
         if self._use_window:
@@ -285,6 +294,10 @@ class AgentLoop:
     def _resolve_artifact_path(self, pattern: str) -> str:
         """将 glob pattern 中的变量替换为实际值。"""
         page_name = self._slug_to_page_name(self.page)
+        # Fallback: when page is empty (dev SOP self-build), use module name
+        if not page_name and self.module:
+            page_name = self._slug_to_page_name(self.module)
+        page_slug = self.page or self.module
         resolved = pattern
         # 开发 Agent 使用 dev-platform 上下文路径
         if self.agent_name in DEV_AGENT_SKILL_MAP:
@@ -293,9 +306,9 @@ class AgentLoop:
             module_dir = str(CONTEXT_MODULES / self.module)
         resolved = resolved.replace("{module_dir}", module_dir)
         resolved = resolved.replace("{module}", self.module)
-        resolved = resolved.replace("{page}", self.page)
+        resolved = resolved.replace("{page}", page_slug)
         resolved = resolved.replace("{PageName}", page_name)
-        resolved = resolved.replace("{page_underscore}", self._page_slug_to_underscore(self.page))
+        resolved = resolved.replace("{page_underscore}", self._page_slug_to_underscore(page_slug))
         # Replace {test_project_root} with actual test project root (from project.yaml)
         zjsn = get_test_project_root()
         if zjsn:
@@ -623,6 +636,85 @@ class AgentLoop:
         from aitest.agents.output_persistence import persist_review_report
         persist_review_report(self.module, self.page, content)
 
+    def _persist_skill_artifact(self, skill_id: str, content: str) -> str:
+        """Save skill output to expected artifact file immediately.
+
+        Resolves the artifact rule's glob_pattern via _resolve_path() to
+        determine the EXACT filepath that observe() will check. This
+        guarantees the artifact check finds the file — preventing retry loops.
+        """
+        if not content or not self.module:
+            return ""
+        try:
+            from pathlib import Path
+            import re
+            from aitest.agents.runner_state import _ALL_ARTIFACT_RULES
+
+            # Priority 1: Use artifact rule glob_pattern for exact path match
+            rules = _ALL_ARTIFACT_RULES.get(skill_id, [])
+            filepath = None
+            for rule in rules:
+                if rule.required:
+                    filepath = self._resolve_path(rule.glob_pattern)
+                    break
+
+            # Priority 2: Static fallback for skills without artifact rules
+            if filepath is None:
+                artifact_map = {
+                    "plan/create-project-plan": "PROJECT_PLAN.md",
+                    "plan/progress-tracker": "PROGRESS_REPORT.md",
+                    "plan/risk-analyzer": "RISK_ANALYSIS.md",
+                    "plan/sprint-planner": "SPRINT_PLAN.md",
+                    "requirements-dev/feature-spec": "FEATURE_SPEC.md",
+                    "requirements-dev/user-story-writer": "USER_STORIES.md",
+                    "requirements-dev/acceptance-criteria": "ACCEPTANCE_CRITERIA.md",
+                    "requirements-dev/data-model-spec": "DATA_MODEL.md",
+                    "architecture/project-scanner": "PROJECT_STRUCTURE.md",
+                    "architecture/tech-stack-decider": "TECH_STACK.md",
+                    "architecture/component-tree-designer": "COMPONENT_TREE.md",
+                    "architecture/api-contract-designer": "API_CONTRACTS.md",
+                    "component-design/component-spec": "COMPONENT_SPEC.md",
+                    "component-design/props-interface": "PROPS_INTERFACE.yaml",
+                    "component-design/data-flow": "DATA_FLOW.md",
+                    "component-design/layout-mockup": "LAYOUT_MOCKUP.md",
+                    "code-review/source-code-reviewer": "CODE_REVIEW.md",
+                    "code-review/performance-analyzer": "PERFORMANCE_REPORT.md",
+                    "code-review/security-scanner": "SECURITY_REPORT.md",
+                    "code-review/consistency-enforcer": "CONSISTENCY_REPORT.md",
+                    "test-dev/coverage-checker": "COVERAGE_REPORT.md",
+                    "debug/error-locator": "ERROR_DIAGNOSIS.md",
+                    "debug/stack-trace-analyzer": "STACK_ANALYSIS.md",
+                    "debug/fix-suggester": "FIX_PROPOSAL.md",
+                    "debug/regression-verifier": "REGRESSION_REPORT.md",
+                    "build/type-checker": "TYPE_CHECK.md",
+                    "build/lint-executor": "LINT_REPORT.md",
+                    "build/test-runner": "TEST_RESULTS.md",
+                    "build/package-bundler": "BUILD_REPORT.md",
+                }
+                filename = artifact_map.get(skill_id)
+                if not filename:
+                    filename = skill_id.replace("/", "_").replace("-", "_") + ".md"
+                if self.agent_name in DEV_AGENT_SKILL_MAP:
+                    parent_dir = GOVERNANCE / "context" / "projects" / "dev-platform"
+                else:
+                    parent_dir = CONTEXT_MODULES / self.module
+                parent_dir.mkdir(parents=True, exist_ok=True)
+                filepath = parent_dir / filename
+
+            filepath.parent.mkdir(parents=True, exist_ok=True)
+
+            # Extract markdown from response (document skills only)
+            content_md = content
+            if str(filepath).endswith('.md') or str(filepath).endswith('.yaml'):
+                md_match = re.search(r'```(?:markdown|md|yaml)?\s*\n(.*?)```', content, re.DOTALL)
+                if md_match:
+                    content_md = md_match.group(1).strip()
+
+            filepath.write_text(content_md, encoding="utf-8")
+            return str(filepath)
+        except Exception:
+            return ""
+
     # ── 4. Observe（观察）────────────────────────────────────────
 
     def observe(self, skill_id: str, response: LLMResponse) -> Observation:
@@ -637,7 +729,8 @@ class AgentLoop:
         """
         obs = Observation(
             skill_id=skill_id,
-            raw_output_preview=response.content[:200] if response.content else "",
+            raw_output_preview=response.content[:500] if response.content else "",
+            raw_output_full=response.content or "",  # ★ Full content for artifact persistence
             token_usage=response.token_usage,
         )
 
@@ -934,7 +1027,8 @@ class AgentLoop:
 
             if plan_result["action"] == "confirm_required":
                 skill_id = plan_result["skill_id"]
-                task_id = plan_result.get("task_id", f"{self.module}:{skill_id}")
+                safe_skill = skill_id.replace("/", "_").replace(":", "_")
+                task_id = plan_result.get("task_id", f"{self.module}--{safe_skill}")
                 risk_level = plan_result.get("risk_level", "high")
                 self._log(f"  ⏸️  HITL: 等待确认执行 '{skill_id}' "
                          f"(risk={risk_level}, task={task_id})")
@@ -1026,6 +1120,12 @@ class AgentLoop:
                 self._emit_obs(EventType.SKILL_START, {"skill_id": skill_id})
 
             response = self.act(skill_id)
+
+            # Persist artifact IMMEDIATELY — before observe() checks file existence
+            if response.content and response.finish_reason != "error":
+                saved = self._persist_skill_artifact(skill_id, response.content)
+                if saved:
+                    self._log(f"  📄 saved: {Path(saved).name}")
 
             if not is_retry and response.finish_reason != "error":
                 elapsed = response.token_usage.get("elapsed_seconds", 0)
@@ -1128,26 +1228,42 @@ class AgentLoop:
                 pass
 
         # ★ v1.1: Record operational metrics
+        # NOTE: get_collector() uses threading.Lock which may deadlock
+        # when called from within ThreadPoolExecutor (agent.run() may be
+        # invoked from a non-main thread). Wrapped in timeout-safe pattern.
         try:
-            from aitest.platform.operational_metrics import get_collector
-            mc = get_collector()
-            duration = time.time() - self._session_start if hasattr(self, '_session_start') else 0
-            tokens = self.state.usage.get("total_tokens", 0) if hasattr(self.state, 'usage') else 0
-            tokens_in = self.state.usage.get("input_tokens", 0) if hasattr(self.state, 'usage') else 0
-            tokens_out = self.state.usage.get("output_tokens", 0) if hasattr(self.state, 'usage') else 0
-            mc.record_agent_run(
-                self.agent_name,
-                duration_s=max(duration, 0.1),
-                tokens_in=tokens_in,
-                tokens_out=tokens_out,
-                success=self.state.success,
-            )
-            mc.record_workflow(self.module or "unknown", self.state.success)
-            if not self.state.success:
-                mc.record_recovery(self.agent_name, recovered=False)
-            mc.persist()
+            import threading
+            metrics_done = threading.Event()
+            metrics_result = [False]
+
+            def _record_metrics():
+                try:
+                    from aitest.platform.operational_metrics import get_collector
+                    mc = get_collector()
+                    duration = time.time() - self._session_start if hasattr(self, '_session_start') else 0
+                    mc.record_agent_run(
+                        self.agent_name,
+                        duration_s=max(duration, 0.1),
+                        tokens_in=0, tokens_out=0,
+                        success=self.state.success,
+                    )
+                    mc.record_workflow(self.module or "unknown", self.state.success)
+                    if not self.state.success:
+                        mc.record_recovery(self.agent_name, recovered=False)
+                    mc.persist()
+                    metrics_result[0] = True
+                except Exception:
+                    pass
+                finally:
+                    metrics_done.set()
+
+            t = threading.Thread(target=_record_metrics, daemon=True)
+            t.start()
+            t.join(timeout=5)  # 5s max for metrics
+            if not metrics_done.is_set():
+                pass  # metrics timed out — non-blocking
         except Exception:
-            pass  # metrics never block execution
+            pass
 
         return self.state
 

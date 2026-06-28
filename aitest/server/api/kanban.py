@@ -47,6 +47,15 @@ class KanbanWSManager:
     def active_connections(self) -> int:
         return len(self._connections)
 
+    async def dispose(self):
+        """Close all connections and clear list. Called on server shutdown."""
+        for ws in list(self._connections):
+            try:
+                await ws.close()
+            except Exception:
+                pass
+        self._connections.clear()
+
     async def broadcast_sop_phase(self, module: str, phase: str, status: str = "running",
                                    progress: int = 0, message: str = ""):
         await self.broadcast({
@@ -149,6 +158,10 @@ async def sop_start(request: Request):
     return {"module": module, "status": "started", "total_phases": total, "phases": phases}
 
 
+# ── Idle timeout (MEM-AUDIT: prevent abandoned connections holding resources) ──
+_WS_IDLE_TIMEOUT = 300  # 5 minutes, matches typical browser tab lifecycle
+
+
 @kanban_router.websocket("/ws/kanban")
 async def kanban_websocket(ws: WebSocket):
     await _kanban_ws.connect(ws)
@@ -158,7 +171,7 @@ async def kanban_websocket(ws: WebSocket):
             "timestamp": datetime.now().isoformat(),
         }))
         while True:
-            data = await ws.receive_text()
+            data = await asyncio.wait_for(ws.receive_text(), timeout=_WS_IDLE_TIMEOUT)
             msg = _json.loads(data)
             action = msg.get("action", "")
             if action == "ping":
@@ -170,7 +183,7 @@ async def kanban_websocket(ws: WebSocket):
                     "timestamp": datetime.now().isoformat(),
                 })
                 _update_module_stage(msg.get("module", ""), msg.get("to_stage", ""))
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, asyncio.TimeoutError):
         _kanban_ws.disconnect(ws)
     except Exception:
         _kanban_ws.disconnect(ws)

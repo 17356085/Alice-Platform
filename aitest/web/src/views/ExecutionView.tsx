@@ -1,11 +1,24 @@
-/** Execution view — SOP control + Agent graph + Terminal. React port. */
-import { useState, useEffect, useMemo } from 'react'
+/** Execution view — SOP control + Agent graph + Terminal + Run Inspector. */
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useKanbanStore } from '../stores/kanban'
 import { useProjectStore } from '../stores/project'
 import LiveAgentGraph from '../components/LiveAgentGraph'
 import TerminalPanel from '../components/TerminalPanel'
-import { Play, Pause, Square, Activity } from 'lucide-react'
+import { Play, Pause, Square, Activity, Eye, RefreshCw } from 'lucide-react'
+
+interface DebugInfo {
+  total_events: number; llm_calls: number; tool_calls: number; state_changes: number
+  timeline: Array<{ event_id: string; event_type: string; timestamp: string }>
+  llm_calls_detail: Array<{ event_type: string; timestamp: string }>
+  tool_calls_detail: Array<{ event_type: string; timestamp: string }>
+}
+interface RunDetail {
+  run_id: string; request_id: string; status: string; agent: string
+  module: string; pages: string[]; created_at: string; completed_at: string
+  total_tokens: number; total_cost: number; error_message: string
+  debug: DebugInfo
+}
 
 const SOP_PHASES = [
   { id: 'project-agent', label: '项目', phase: 0 },
@@ -28,6 +41,31 @@ export default function ExecutionView() {
   const [selectedModule, setSelectedModule] = useState(searchParams.get('module') || '')
   const [sopMode, setSopMode] = useState('full')
   const [running, setRunning] = useState(false)
+
+  // ── Run Inspector state ──
+  const [runs, setRuns] = useState<Array<{ run_id: string; status: string; agent: string; module: string }>>([])
+  const [selectedRun, setSelectedRun] = useState<RunDetail | null>(null)
+  const [inspectorOpen, setInspectorOpen] = useState(false)
+
+  const fetchRuns = useCallback(async () => {
+    try {
+      const res = await fetch('/api/runs?limit=10')
+      const data = await res.json()
+      setRuns(data.runs || [])
+    } catch {}
+  }, [])
+
+  const inspectRun = useCallback(async (runId: string) => {
+    try {
+      const res = await fetch(`/api/runs/${runId}/debug`)
+      if (res.ok) {
+        setSelectedRun(await res.json())
+        setInspectorOpen(true)
+      }
+    } catch {}
+  }, [])
+
+  useEffect(() => { fetchRuns() }, [fetchRuns])
 
   const moduleList = useMemo(() =>
     Object.keys(modules).map(id => ({ id, name: (modules[id] as any)?.name || id })),
@@ -94,6 +132,70 @@ export default function ExecutionView() {
         </div>
       )}
 
+      {/* ── Run Inspector (v2.6 DX) ── */}
+      <div className="run-inspector-section">
+        <div className="ri-header">
+          <h3><Eye size={14} /> Run Inspector</h3>
+          <button className="ri-refresh" onClick={fetchRuns}><RefreshCw size={12} /></button>
+        </div>
+        <div className="ri-body">
+          <div className="ri-list">
+            {runs.length === 0 ? (
+              <div className="ri-empty">No runs yet</div>
+            ) : (
+              runs.map(r => (
+                <div key={r.run_id} className={`ri-row ${selectedRun?.run_id === r.run_id ? 'active' : ''}`}
+                  onClick={() => inspectRun(r.run_id)}>
+                  <span className={`ri-status ${r.status}`}>{r.status}</span>
+                  <span className="ri-agent">{r.agent}</span>
+                  <span className="ri-module">{r.module}</span>
+                </div>
+              ))
+            )}
+          </div>
+          {inspectorOpen && selectedRun && (
+            <div className="ri-detail">
+              <div className="ri-detail-header">
+                <span>Run: {selectedRun.run_id.slice(0, 20)}...</span>
+                <button className="ri-close" onClick={() => setInspectorOpen(false)}>×</button>
+              </div>
+              <div className="ri-detail-grid">
+                <div><span>Status:</span> {selectedRun.status}</div>
+                <div><span>Agent:</span> {selectedRun.agent}</div>
+                <div><span>Module:</span> {selectedRun.module}</div>
+                <div><span>Tokens:</span> {selectedRun.total_tokens?.toLocaleString()}</div>
+                <div><span>Cost:</span> ${selectedRun.total_cost?.toFixed(4)}</div>
+                <div><span>Events:</span> {selectedRun.debug?.total_events}</div>
+                <div><span>LLM Calls:</span> {selectedRun.debug?.llm_calls}</div>
+                <div><span>Tool Calls:</span> {selectedRun.debug?.tool_calls}</div>
+              </div>
+              {selectedRun.debug?.llm_calls > 0 && (
+                <details className="ri-detail-events">
+                  <summary>LLM Calls ({selectedRun.debug.llm_calls})</summary>
+                  {selectedRun.debug.llm_calls_detail.slice(0, 20).map((e, i) => (
+                    <div key={i} className="ri-event">
+                      <span className="ri-ts">{e.timestamp?.slice(11, 19) || '—'}</span>
+                      <span>{e.event_type}</span>
+                    </div>
+                  ))}
+                </details>
+              )}
+              {selectedRun.debug?.tool_calls > 0 && (
+                <details className="ri-detail-events">
+                  <summary>Tool Calls ({selectedRun.debug.tool_calls})</summary>
+                  {selectedRun.debug.tool_calls_detail.slice(0, 20).map((e, i) => (
+                    <div key={i} className="ri-event">
+                      <span className="ri-ts">{e.timestamp?.slice(11, 19) || '—'}</span>
+                      <span>{e.event_type}</span>
+                    </div>
+                  ))}
+                </details>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="exec-body">
         <div className="graph-section">
           <div className="section-label"><Activity size={12} /> Agent 执行图</div>
@@ -114,20 +216,48 @@ export default function ExecutionView() {
         .sel { font-size: 13px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-primary); }
         .sel-sm { width: 130px; }
         .btn-run, .btn-pause, .btn-cancel { display: flex; align-items: center; gap: 4px; font-size: 13px; padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: 500; }
-        .btn-run { background: #3b82f6; }
+        .btn-run { background: hsl(var(--info)); }
         .btn-run:disabled { opacity: .5; cursor: not-allowed; }
-        .btn-pause { background: #eab308; color: #1e1e1e; }
-        .btn-cancel { background: #ef4444; }
+        .btn-pause { background: hsl(var(--warning)); color: hsl(var(--warning-foreground)); }
+        .btn-cancel { background: hsl(var(--destructive)); }
         .progress-bar-wrap { margin-bottom: 16px; }
         .phase-dots { display: flex; gap: 4px; align-items: center; }
-        .phase-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; border: 2px solid #d1d5db; color: #9ca3af; background: #f9fafb; }
-        .phase-dot.completed { border-color: #22c55e; background: #dcfce7; color: #166534; }
-        .phase-dot.running { border-color: #3b82f6; background: #dbeafe; color: #1e40af; animation: pulse 1.5s infinite; }
-        .phase-dot.failed { border-color: #ef4444; background: #fef2f2; color: #991b1b; }
+        .phase-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; border: 2px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); background: hsl(var(--card)); }
+        .phase-dot.completed { border-color: hsl(var(--success)); background: hsl(var(--success-light)); color: hsl(var(--success)); }
+        .phase-dot.running { border-color: hsl(var(--info)); background: hsl(var(--info-light)); color: hsl(var(--info)); animation: pulse 1.5s infinite; }
+        .phase-dot.failed { border-color: hsl(var(--destructive)); background: hsl(var(--destructive-light)); color: hsl(var(--destructive)); }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
         .exec-body { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-height: 440px; }
         .graph-section, .terminal-section { display: flex; flex-direction: column; gap: 8px; }
         .section-label { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
+
+        /* ── Run Inspector ── */
+        .run-inspector-section { margin-top: 24px; border-top: 1px solid hsl(var(--border)); padding-top: 16px; }
+        .ri-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .ri-header h3 { margin: 0; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .ri-refresh { background: none; border: 1px solid hsl(var(--border)); border-radius: 4px; padding: 3px 6px; cursor: pointer; }
+        .ri-body { display: grid; grid-template-columns: 280px 1fr; gap: 12px; }
+        .ri-list { max-height: 200px; overflow-y: auto; }
+        .ri-empty { font-size: 13px; color: hsl(var(--muted-foreground)); padding: 12px; text-align: center; }
+        .ri-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; cursor: pointer; border-radius: 4px; font-size: 12px; }
+        .ri-row:hover { background: hsl(var(--accent)); }
+        .ri-row.active { background: hsl(var(--accent)); }
+        .ri-status { font-weight: 600; width: 72px; text-transform: uppercase; font-size: 10px; padding: 1px 4px; border-radius: 3px; text-align: center; }
+        .ri-status.completed { background: hsl(var(--success-light)); color: hsl(var(--success)); }
+        .ri-status.failed { background: hsl(var(--destructive-light)); color: hsl(var(--destructive)); }
+        .ri-status.running { background: hsl(var(--info-light)); color: hsl(var(--info)); }
+        .ri-status.timed_out { background: hsl(var(--warning-light)); color: hsl(var(--warning)); }
+        .ri-agent { color: hsl(var(--muted-foreground)); width: 80px; overflow: hidden; text-overflow: ellipsis; }
+        .ri-module { color: hsl(var(--muted-foreground)); }
+        .ri-detail { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 12px; font-size: 12px; max-height: 300px; overflow-y: auto; }
+        .ri-detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; }
+        .ri-close { background: none; border: none; font-size: 18px; cursor: pointer; color: hsl(var(--muted-foreground)); }
+        .ri-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+        .ri-detail-grid div span { color: hsl(var(--muted-foreground)); }
+        .ri-detail-events { margin-top: 8px; }
+        .ri-detail-events summary { cursor: pointer; font-weight: 500; margin-bottom: 4px; }
+        .ri-event { display: flex; gap: 8px; padding: 2px 0; font-size: 11px; font-family: monospace; }
+        .ri-ts { color: hsl(var(--muted-foreground)); width: 60px; }
       `}</style>
     </div>
   )

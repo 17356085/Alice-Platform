@@ -5,9 +5,11 @@
  * Derived values (columns, totalModules) exposed as selectors for useMemo-like behavior.
  */
 import { create } from 'zustand'
+import { shallow } from 'zustand/shallow'
 import { Flag, ClipboardList, FileText, Wrench, Play, Search, Brush, BarChart3, Brain } from 'lucide-react'
 import { api } from '@/api/client'
 import { ENDPOINTS } from '@/api/endpoints'
+import { addTimelineEvent } from './timeline'
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -68,6 +70,26 @@ export const selectColumns = (state: KanbanState) => {
 }
 
 export const selectTotalModules = (state: KanbanState) => Object.keys(state.modules).length
+
+/**
+ * MEM-AUDIT: Stabilized columns selector.
+ * Uses zustand/shallow to prevent re-render when columns content hasn't changed.
+ * Replaces raw `useKanbanStore(selectColumns)` which created new objects every call.
+ */
+export function useSelectColumns() {
+  return useKanbanStore(
+    state => {
+      const cols: Record<string, [string, ModuleInfo][]> = {}
+      for (const c of SOP_COLS) cols[c.key] = []
+      for (const [mod, info] of Object.entries(state.modules)) {
+        const stage = computeStage(info, state.running)
+        if (cols[stage]) cols[stage].push([mod, info])
+      }
+      return cols
+    },
+    shallow,
+  )
+}
 
 // ── Store ──────────────────────────────────────────────────────
 
@@ -147,6 +169,26 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
       const newRunning = new Set(state.running)
       if (event.status === 'running') newRunning.add(event.module)
       else if (event.status === 'completed') { newRunning.delete(event.module) }
+
+      // ── Timeline integration ──
+      if (event.status === 'running') {
+        addTimelineEvent({
+          type: 'phase_start', module: event.module, phase: event.phase,
+          message: `${event.module} — Phase ${event.phase} started`,
+        })
+      } else if (event.status === 'completed') {
+        addTimelineEvent({
+          type: 'phase_complete', module: event.module, phase: event.phase,
+          message: `${event.module} — Phase ${event.phase} completed`,
+          detail: `progress: ${event.progress}%`,
+        })
+      } else if (event.status === 'failed') {
+        addTimelineEvent({
+          type: 'error', module: event.module, phase: event.phase,
+          message: `${event.module} — Phase ${event.phase} failed`,
+        })
+      }
+
       return {
         modules: {
           ...state.modules,
@@ -164,6 +206,10 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
 
   async startSOP(mod: string) {
     set(state => ({ running: new Set([...state.running, mod]) }))
+    addTimelineEvent({
+      type: 'phase_start', module: mod,
+      message: `SOP started for ${mod}`,
+    })
     try {
       await api.post(ENDPOINTS.SOP_START, { module: mod, mode: 'full' })
     } catch {

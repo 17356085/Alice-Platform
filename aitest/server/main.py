@@ -53,6 +53,11 @@ async def lifespan(app: FastAPI):
         log.info("rq_worker_hint",
                  cmd=f"rq worker aitest-tasks --url redis://localhost:6379/0{worker_flag}")
 
+    # Wire event_bus → review_graph (break circular import, P0 2026-06-27)
+    from aitest.audit_engine.event_bus import set_review_runner
+    from aitest.graphs.review_graph import run_review
+    set_review_runner(run_review)
+
     # Activate platform subscribers (v2.3-v2.5)
     from aitest.server.core.subscribers import activate_subscribers
     activated = await activate_subscribers(log)
@@ -68,6 +73,8 @@ async def lifespan(app: FastAPI):
     # Agent terminal WS — register for lifecycle tracking
     from aitest.server.api.terminal import get_agent_terminal_ws
     agent_terminal_ws = get_agent_terminal_ws()
+    from aitest.server.api.kanban import get_kanban_ws
+    kanban_ws = get_kanban_ws()
     for lid, obj in [
         ("audit-logger", activated.get("audit-logger")),
         ("webhook-dispatcher", activated.get("webhook-dispatcher")),
@@ -75,6 +82,7 @@ async def lifespan(app: FastAPI):
         ("billing-hook", activated.get("billing-hook")),
         ("quota-usage", activated.get("quota-usage")),
         ("agent-terminal-ws", agent_terminal_ws),
+        ("kanban-ws", kanban_ws),
     ]:
         if obj is not None:
             lifecycle_registry.register(_ObjectRef(lid, "main:lifespan", obj))
@@ -98,6 +106,19 @@ async def lifespan(app: FastAPI):
         rate_state_cleanup_loop(_rate_state, _rate_lock, _RATE_WINDOW),
         owner="main:lifespan", lifecycle_id="rate-cleanup",
     )
+
+    # ★ v2.6: Crash recovery — detect in-flight runs from previous session
+    try:
+        from aitest.platform.run_store import get_run_store
+        rs = get_run_store()
+        orphaned = rs.recover_crashed_runs()
+        if orphaned:
+            log.warning("crash_recovery", orphaned_runs=orphaned)
+        from aitest.infra.task_queue import get_queue
+        tq = get_queue()
+        tq.recover_stale_tasks()
+    except Exception:
+        pass
 
     log.info("server_started", audit_interval_s=config.audit_interval)
 
@@ -265,8 +286,8 @@ async def generic_exception_handler(request: Request, exc: Exception):
 #  Core Endpoints
 # ══════════════════════════════════════════════════════════════════════════
 
-@app.get("/")
-async def root():
+@app.get("/api/info")
+async def api_info():
     return {"name": "TLO Platform", "version": "2.5.0", "frontend": "aitest/web/ (React 18)", "docs": "/docs"}
 
 
@@ -304,6 +325,7 @@ from aitest.server.api.audit import audit_router
 from aitest.server.api.kpi import kpi_router
 from aitest.server.api.kanban import kanban_router
 from aitest.server.api.terminal import terminal_router
+from aitest.server.api.observability import obs_router
 
 app.include_router(platform_router)
 app.include_router(workspace_router)
@@ -321,13 +343,21 @@ app.include_router(audit_router)
 app.include_router(kpi_router)
 app.include_router(kanban_router)
 app.include_router(terminal_router)
+app.include_router(obs_router)
 
 # Static files
 _STATIC_DIR = Path(__file__).resolve().parent / "static"
 _STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
+# SPA frontend (Tauri desktop shell loads from this)
+_DIST_DIR = Path(__file__).resolve().parents[1] / "web" / "dist"
+if _DIST_DIR.is_dir():
+    app.mount("/assets", StaticFiles(directory=str(_DIST_DIR / "assets")), name="assets")
+    # SPA fallback: index.html for unmatched routes
+    app.mount("/", StaticFiles(directory=str(_DIST_DIR), html=True), name="spa")
+
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="::", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

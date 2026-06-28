@@ -93,6 +93,8 @@ class ChatSession:
     last_active: float = 0.0
     # ★ RCA RC1: Thread cancel signal — set when SSE client disconnects
     _cancel_event: threading.Event = field(default_factory=threading.Event)
+    # MEM-AUDIT: track persist tasks so they can be cancelled on destroy
+    _persist_tasks: set = field(default_factory=set)
 
     _MAX_MESSAGES = 500  # Truncate to prevent unbounded growth
     _QUEUE_MAXSIZE = 256  # Backpressure — block producer when consumer gone
@@ -151,6 +153,12 @@ class ChatSession:
         self.agent_thread = None
         if thread is not None and thread.is_alive():
             thread.join(timeout=2.0)
+
+        # 3c. Cancel pending persist tasks (MEM-AUDIT fix)
+        for t in list(self._persist_tasks):
+            if not t.done():
+                t.cancel()
+        self._persist_tasks.clear()
 
         # 4. Truncate messages to free memory
         self.messages.clear()
@@ -573,10 +581,12 @@ async def stream_response(session_id: str, message_id: str, request: Request):
             if m.get("message_id") == f"resp-{message_id}":
                 m["content"] = accumulated_text or (event.summary if 'event' in dir() else "") or ""
 
-        # 持久化会话到 SQLite（best-effort）
+        # 持久化会话到 SQLite（best-effort, tracked for cleanup）
         try:
             loop = asyncio.get_running_loop()
-            loop.create_task(_persist_session(session_id, s.messages))
+            task = loop.create_task(_persist_session(session_id, s.messages))
+            s._persist_tasks.add(task)
+            task.add_done_callback(lambda t: s._persist_tasks.discard(t))
         except RuntimeError:
             pass
 

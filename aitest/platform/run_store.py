@@ -302,6 +302,111 @@ class RunStore:
         d["data"] = json.loads(d.get("data", "{}"))
         return RunEvent(**d)
 
+    # ── Retention ───────────────────────────────────────────────────────────
+
+    def cleanup_old_runs(self, max_age_days: int = 30) -> int:
+        """Delete completed/failed/cancelled runs older than max_age_days.
+
+        Also deletes associated run_events and execution_requests.
+        Returns number of runs deleted.
+        """
+        import time
+        cutoff = time.time() - (max_age_days * 86400)
+        cutoff_iso = datetime.fromtimestamp(cutoff, tz=timezone.utc).isoformat()
+        deleted = 0
+
+        try:
+            with self._lock:
+                conn = sqlite3.connect(str(self._default_db_path()))
+                # Find old terminal runs
+                cursor = conn.execute(
+                    """SELECT run_id FROM runs
+                       WHERE status IN ('completed', 'failed', 'cancelled', 'timed_out')
+                         AND completed_at < ?""",
+                    (cutoff_iso,)
+                )
+                old_run_ids = [row[0] for row in cursor.fetchall()]
+
+                for rid in old_run_ids:
+                    conn.execute("DELETE FROM run_events WHERE run_id = ?", (rid,))
+                    conn.execute("DELETE FROM runs WHERE run_id = ?", (rid,))
+                    deleted += 1
+
+                # Clean orphaned execution_requests (no matching run)
+                conn.execute(
+                    """DELETE FROM execution_requests
+                       WHERE request_id NOT IN (
+                           SELECT DISTINCT request_id FROM runs
+                           UNION
+                           SELECT DISTINCT request_id FROM run_events
+                       )
+                         AND created_at < ?""",
+                    (cutoff_iso,)
+                )
+
+                conn.commit()
+                if deleted > 100:
+                    conn.execute("VACUUM")
+                conn.close()
+        except Exception:
+            pass
+
+        return deleted
+
+    def recover_crashed_runs(self) -> int:
+        """Mark all 'running' runs as 'failed' (crash recovery on startup).
+
+        Returns number of runs recovered.
+        """
+        recovered = 0
+        try:
+            with self._lock:
+                conn = sqlite3.connect(str(self._default_db_path()))
+                cursor = conn.execute(
+                    "SELECT run_id FROM runs WHERE status = 'running'"
+                )
+                run_ids = [row[0] for row in cursor.fetchall()]
+                for rid in run_ids:
+                    conn.execute(
+                        "UPDATE runs SET status='failed', "
+                        "error_message='Server crash — run interrupted', "
+                        f"completed_at='{datetime.now(timezone.utc).isoformat()}' "
+                        "WHERE run_id=?",
+                        (rid,)
+                    )
+                    recovered += 1
+                conn.commit()
+                conn.close()
+        except Exception:
+            pass
+        return recovered
+
+    def get_stats(self) -> dict:
+        """Return storage stats for observability dashboard."""
+        db_path = self._default_db_path()
+        stats = {
+            "db_path": str(db_path),
+            "exists": db_path.exists(),
+            "size_kb": 0,
+            "run_count": 0,
+            "event_count": 0,
+            "request_count": 0,
+        }
+        if not db_path.exists():
+            return stats
+
+        try:
+            stats["size_kb"] = round(db_path.stat().st_size / 1024, 1)
+            conn = sqlite3.connect(str(db_path))
+            for table, key in [("runs", "run_count"), ("run_events", "event_count"),
+                               ("execution_requests", "request_count")]:
+                row = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()
+                stats[key] = row[0] if row else 0
+            conn.close()
+        except Exception:
+            pass
+        return stats
+
 
 # ── Singleton ────────────────────────────────────────────────────────────
 

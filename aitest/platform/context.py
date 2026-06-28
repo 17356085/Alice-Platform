@@ -157,6 +157,7 @@ class ProjectContext:
         self._artifacts: Optional[ArtifactStore] = None
         self._knowledge: Optional[KnowledgeStore] = None
         self._runtime: Optional[Runtime] = None
+        self._closed = False
 
     # ── Identity ─────────────────────────────────────────────────────────
 
@@ -260,6 +261,54 @@ class ProjectContext:
         return (
             self.artifacts()._sop_status_dir / f"SOP_STATUS_{module}.json"
         )
+
+    # ── Lifecycle ──────────────────────────────────────────────────────
+
+    async def close(self) -> None:
+        """Release all resources held by this context (runtime, stores, etc.)."""
+        if self._closed:
+            return
+        self._closed = True
+
+        if self._runtime is not None:
+            try:
+                await self._runtime.close()
+            except Exception:
+                pass
+            self._runtime = None
+
+        if self._artifacts is not None:
+            try:
+                self._artifacts.close()
+            except Exception:
+                pass
+            self._artifacts = None
+
+        if self._knowledge is not None:
+            try:
+                self._knowledge.close()
+            except Exception:
+                pass
+            self._knowledge = None
+
+    def __del__(self):
+        """Best-effort cleanup on GC."""
+        if not self._closed and self._runtime is not None:
+            import warnings
+            warnings.warn(
+                f"ProjectContext({self._project_id}).__del__: context was not closed! "
+                f"Always call 'await ctx.close()' to release browser resources.",
+                ResourceWarning,
+                stacklevel=2,
+            )
+            # Best-effort: schedule async close on the event loop
+            try:
+                import asyncio
+                loop = asyncio.get_running_loop()
+                if not loop.is_closed():
+                    loop.create_task(self.close())
+            except RuntimeError:
+                pass
 
 
 # ── Global accessor (cached for explicit IDs only) ──────────────────────

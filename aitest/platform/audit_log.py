@@ -239,6 +239,45 @@ class AuditLogger:
             ],
         }
 
+    # ── Retention ──────────────────────────────────────────────────────
+
+    def cleanup_old_entries(self, max_age_days: int = 30) -> int:
+        """Delete audit entries older than max_age_days. Returns count deleted.
+
+        Default: 30 days retention. Called by lifecycle sweep every ~6 minutes.
+        """
+        import time
+        try:
+            cutoff = datetime.now(timezone.utc).replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+            from datetime import timedelta
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=max_age_days)).isoformat()
+
+            with self._lock:
+                conn = sqlite3.connect(str(self._path))
+                cursor = conn.execute(
+                    "DELETE FROM audit_entries WHERE created_at < ?", (cutoff,)
+                )
+                deleted = cursor.rowcount
+                conn.commit()
+
+                # VACUUM if we deleted significant amount
+                if deleted > 1000:
+                    size_before = self._path.stat().st_size
+                    conn.execute("VACUUM")
+                    size_after = self._path.stat().st_size
+                    import logging
+                    logging.getLogger(__name__).info(
+                        "AuditLog cleanup: %d entries deleted, DB %.0fKB → %.0fKB",
+                        deleted, size_before / 1024, size_after / 1024,
+                    )
+
+                conn.close()
+            return deleted
+        except Exception:
+            return 0
+
 
 # ── Singleton ────────────────────────────────────────────────────────────
 

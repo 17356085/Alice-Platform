@@ -15,6 +15,7 @@ interface TerminalPanelProps {
 
 const MAX_RECONNECT_DELAY = 30_000
 const BASE_RECONNECT_DELAY = 1_000
+const MAX_RECONNECT_ATTEMPTS = 5
 
 export default function TerminalPanel({ wsUrl, autoConnect = true }: TerminalPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -48,6 +49,11 @@ export default function TerminalPanel({ wsUrl, autoConnect = true }: TerminalPan
     }
     socket.onclose = () => {
       setConnected(false)
+      // MEM-AUDIT: stop retrying after max attempts
+      if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+        term.writeln(`\x1b[31m  ❌ Disconnected — giving up after ${MAX_RECONNECT_ATTEMPTS} retries\x1b[0m`)
+        return
+      }
       term.writeln('\x1b[31m  ❌ Disconnected — retrying...\x1b[0m')
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
       const delay = Math.min(BASE_RECONNECT_DELAY * Math.pow(2, reconnectAttemptsRef.current), MAX_RECONNECT_DELAY)

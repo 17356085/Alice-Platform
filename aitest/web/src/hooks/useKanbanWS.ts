@@ -11,11 +11,13 @@ import { useKanbanStore } from '@/stores/kanban'
 const PING_INTERVAL = 30_000
 const MAX_RECONNECT_DELAY = 30_000
 const BASE_RECONNECT_DELAY = 1_000
+const MAX_RECONNECT_ATTEMPTS = 5
 
 let ws: WebSocket | null = null
 let reconnectTimer: number | null = null
 let pingTimer: number | null = null
 let reconnectAttempts = 0
+let manualClose = false  // MEM-AUDIT: prevent reconnect after explicit disconnect()
 
 // Subscribers for React reactivity
 const listeners = new Set<() => void>()
@@ -45,6 +47,7 @@ function connect() {
     ws.onopen = () => {
       connected = true
       reconnectAttempts = 0
+      manualClose = false
       if (pingTimer) { clearInterval(pingTimer); pingTimer = null }
       pingTimer = window.setInterval(() => {
         if (ws?.readyState === WebSocket.OPEN) {
@@ -69,6 +72,16 @@ function connect() {
     ws.onclose = () => {
       connected = false
       if (pingTimer) { clearInterval(pingTimer); pingTimer = null }
+      // MEM-AUDIT: stop reconnecting if manually disconnected or max attempts reached
+      if (manualClose) {
+        notify()
+        return
+      }
+      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        console.warn('[KanbanWS] Max reconnect attempts (%d) reached — giving up', MAX_RECONNECT_ATTEMPTS)
+        notify()
+        return
+      }
       const delay = backoffDelay()
       reconnectAttempts++
       reconnectTimer = window.setTimeout(connect, delay)
@@ -86,6 +99,7 @@ function connect() {
 }
 
 function disconnect() {
+  manualClose = true  // MEM-AUDIT: prevent reconnect after explicit disconnect
   if (reconnectTimer) clearTimeout(reconnectTimer)
   if (pingTimer) { clearInterval(pingTimer); pingTimer = null }
   ws?.close()
