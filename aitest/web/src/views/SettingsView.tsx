@@ -10,9 +10,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 const themes = [
-  { value: 'default', label: 'Alice' },
-  { value: 'aoko', label: 'Aoko' },
-  { value: 'soujuurou', label: 'Soujuurou' },
+  { value: 'alice', label: 'Alice — Winter Mansion' },
+  { value: 'aoko', label: 'Aoko — Clear Sky' },
+  { value: 'soujuurou', label: 'Soujuurou — Mountain Wood' },
 ]
 
 export default function SettingsView() {

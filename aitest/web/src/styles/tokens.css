@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════
-   Alice Design Tokens — 魔法使之夜 · Mahoyo atmosphere
-   冬 · 夜 · 洋館 · 静謐の魔法
-   shadcn/ui compatible — HSL format
+   Alice Studio Design Tokens — DESIGN.md → CSS
+   三つの人格 · Three Characters: Alice / Aoko / Soujuurou
+   Ghost Border Rule · 10% Accent Rule · One Temperature Rule
    ═══════════════════════════════════════════════════════════════ */
 
 @tailwind base;
@@ -9,37 +9,40 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* ═══════════════════════════════════════════════════════════════
+     Alice — Winter Mansion (default)
+     冬の洋館 · Mage Violet #5A4F8A · Candle Brass #B89A60
+     ═══════════════════════════════════════════════════════════════ */
+  :root, [data-theme="alice"] {
     /* ── Base — 冬の書斎 · Winter study ── */
-    --background: 248 16% 93%;         /* #EDEAEF 紫を帯びた紙 */
-    --foreground: 248 18% 16%;         /* #23202A 墨 */
-    --card: 0 0% 100%;
-    --card-foreground: 248 18% 16%;
-    --border: 248 14% 83%;
-    --input: 248 14% 83%;
-    --ring: 250 42% 52%;               /* #6B5DB8 魔術の印 */
+    --background: 285 18% 93%;          /* #ECEAEF Paper Chill */
+    --foreground: 248 18% 15%;          /* #252433 Neutral Ink */
+    --card: 0 0% 100%;                  /* Neutral Card */
+    --card-foreground: 248 18% 15%;
+    --border: 248 12% 84%;              /* Ghost Border — barely visible */
+    --border-strong: 248 15% 16%;       /* Ghost Border dark mode */
+    --input: 248 12% 84%;
+    --ring: 285 28% 44%;                /* #5A4F8A Mage Violet */
 
-    /* ── Brand — 魔術刻印 · Mage's Crest ── */
-    --primary: 250 42% 52%;            /* #6B5DB8 久遠寺の魔術 */
+    /* ── Brand — 魔術刻印 · Mage's Crest (≤10% of screen) ── */
+    --primary: 285 28% 44%;             /* #5A4F8A Alice Primary */
     --primary-foreground: 0 0% 100%;
-    --primary-gradient: linear-gradient(135deg, hsl(250 42% 52%) 0%, hsl(262 35% 45%) 100%);
-    --primary-glow: 0 0 45px hsla(250 42% 52% / 0.10);
-    --secondary: 248 15% 91%;
-    --secondary-foreground: 248 18% 16%;
-    --muted: 248 12% 89%;
-    --muted-foreground: 248 12% 44%;
-    --accent: 250 22% 90%;
-    --accent-foreground: 250 42% 52%;
+    --secondary: 285 15% 91%;
+    --secondary-foreground: 248 18% 15%;
+    --muted: 285 12% 90%;              /* Neutral Muted */
+    --muted-foreground: 248 10% 46%;
+    --accent: 285 20% 90%;
+    --accent-foreground: 285 28% 44%;
 
     /* ── 蝋燭の灯 · Candlelight gold ── */
-    --gold: 40 45% 52%;                /* #B8995A 真鍮の燭台 */
+    --gold: 40 28% 50%;                 /* #B89A60 Candle Brass */
     --gold-foreground: 0 0% 100%;
-    --gold-light: 40 38% 88%;
+    --gold-light: 40 25% 88%;
 
     /* ── Semantic — 冬の庭 · Winter garden ── */
-    --success: 150 25% 38%;
+    --success: 150 22% 36%;
     --success-foreground: 0 0% 100%;
-    --success-light: 150 20% 88%;
+    --success-light: 150 18% 88%;
     --warning: 38 35% 50%;
     --warning-foreground: 0 0% 100%;
     --warning-light: 38 30% 88%;
@@ -51,41 +54,37 @@
     --info-light: 220 25% 90%;
 
     /* ── Sidebar — 洋館の廊下 · Mansion corridor ── */
-    --sidebar: 248 14% 91%;
-    --sidebar-foreground: 248 14% 38%;
-    --sidebar-active: 250 42% 52%;
-    --sidebar-active-bg: 250 42% 52% / 0.08;
-    --sidebar-hover: 248 16% 86%;
-    --sidebar-border: 248 14% 83%;
-    --sidebar-logo: 248 18% 16%;
-    --sidebar-logo-dot: 250 42% 52%;
+    --sidebar: 285 14% 91%;
+    --sidebar-foreground: 285 12% 40%;
+    --sidebar-active: 285 28% 44%;
+    --sidebar-active-bg: 285 28% 44% / 0.08;
+    --sidebar-hover: 285 14% 86%;
+    --sidebar-border: 248 12% 84%;
 
-    /* ── Radius — 洋館の窓枠 · Window frames ── */
-    --radius: 0.5rem;
-
-    /* ── Shadows — 月光の階調 · Moonlight gradation ── */
-    --shadow-xs: 0 1px 2px rgba(26, 24, 40, 0.04);
-    --shadow-sm: 0 2px 6px rgba(26, 24, 40, 0.05);
-    --shadow-md: 0 4px 12px rgba(26, 24, 40, 0.06);
-    --shadow-lg: 0 8px 24px rgba(26, 24, 40, 0.07);
-    --shadow-xl: 0 12px 32px rgba(26, 24, 40, 0.08);
-    --shadow-focus: 0 0 0 3px hsla(248 30% 45% / 0.18);
-    --shadow-glow: 0 0 50px hsla(248 30% 45% / 0.06);
-    --shadow-gold: 0 0 30px hsla(38 40% 52% / 0.10);
+    /* ── Radius — 洋館の窓枠 · Window frames (Alice: 0.375rem) ── */
+    --radius: 0.375rem;
 
     /* ── Typography — 洋書の活字 · Typeset pages ── */
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-    --font-serif: 'Lora', 'Noto Serif SC', 'Georgia', serif;
-    --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
-    --tracking-tight: -0.01em;
-    --tracking-wide: 0.02em;
+    --font-display: 'Lora', 'Noto Serif SC', 'Georgia', serif;
+    --font-body: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --font-size-display: 1.6rem;
+    --font-size-headline: 1.25rem;
+    --font-size-title: 1.05rem;
+    --font-size-body: 0.933rem;
+    --font-size-label: 0.733rem;
+    --tracking-label: 0.02em;
 
-    /* ── Transitions — 時計の針 · Clock hands ── */
-    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    /* ── Transitions — 時計の針 · Clock hands (Alice: slow, deliberate) ── */
+    --transition-fast: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 240ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 360ms cubic-bezier(0.4, 0, 0.2, 1);
 
     /* ── Legacy aliases ── */
+    --font-sans: var(--font-body);
+    --font-serif: var(--font-display);
+    --tracking-tight: -0.01em;
+    --tracking-wide: 0.02em;
     --bg-primary: hsl(var(--background));
     --bg-secondary: hsl(var(--secondary));
     --bg-hover: hsl(var(--accent));
@@ -95,67 +94,312 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════
-     Dark mode — 冬の夜 · Winter Night
-     窓の外は雪。暖炉の灯が揺れる。
+     Alice Dark — 冬の夜 · Winter Night
+     Night Sky #100F1A · Frosted Glass · Candle warmth
      ═══════════════════════════════════════════════════════════════ */
-  .dark {
-    --background: 248 25% 7%;          /* #100F1A 冬夜の空 */
-    --foreground: 248 15% 80%;
-    --card: 248 20% 10%;
-    --card-foreground: 248 15% 80%;
-    --border: 248 18% 15%;
-    --input: 248 18% 15%;
-    --ring: 250 48% 62%;               /* #7A6CC8 月明かりの紫 */
+  .dark, [data-theme="alice"] .dark {
+    --background: 285 18% 8%;           /* #100F1A Night Sky */
+    --foreground: 285 12% 80%;
+    --card: 285 15% 10%;                /* Frosted Glass at 85% opacity effect */
+    --card-foreground: 285 12% 80%;
+    --border: 248 15% 16%;              /* Ghost Border dark */
+    --border-strong: 248 15% 16%;
+    --input: 248 15% 16%;
+    --ring: 285 28% 58%;
 
-    --primary: 250 48% 62%;            /* #7A6CC8 月光の魔術 */
-    --primary-foreground: 248 25% 7%;
-    --primary-gradient: linear-gradient(135deg, hsl(250 48% 62%) 0%, hsl(264 40% 54%) 100%);
-    --primary-glow: 0 0 60px hsla(250 48% 62% / 0.09);
-    --secondary: 248 18% 13%;
-    --secondary-foreground: 248 15% 80%;
-    --muted: 248 15% 12%;
-    --muted-foreground: 248 12% 52%;
-    --accent: 250 22% 15%;
-    --accent-foreground: 250 48% 62%;
+    --primary: 285 28% 58%;             /* Lighter violet for dark */
+    --primary-foreground: 285 18% 8%;
+    --secondary: 285 15% 12%;
+    --secondary-foreground: 285 12% 80%;
+    --muted: 285 12% 10%;
+    --muted-foreground: 285 10% 52%;
+    --accent: 285 18% 14%;
+    --accent-foreground: 285 28% 58%;
 
-    --gold: 40 42% 55%;
-    --gold-foreground: 248 25% 7%;
-    --gold-light: 40 28% 12%;
+    --gold: 40 28% 52%;
+    --gold-foreground: 285 18% 8%;
+    --gold-light: 40 20% 12%;
 
-    --success: 150 24% 42%;
-    --success-light: 150 20% 12%;
-    --warning: 38 32% 50%;
-    --warning-light: 38 20% 12%;
-    --destructive: 0 40% 52%;
-    --destructive-light: 0 22% 12%;
-    --info: 220 30% 50%;
-    --info-light: 220 20% 12%;
+    --success: 150 22% 40%;
+    --success-light: 150 18% 12%;
+    --warning: 38 32% 48%;
+    --warning-light: 38 18% 12%;
+    --destructive: 0 38% 50%;
+    --destructive-light: 0 20% 12%;
+    --info: 220 28% 50%;
+    --info-light: 220 18% 12%;
 
-    --sidebar: 248 28% 5%;            /* #0B0A14 廊下の闇 */
-    --sidebar-foreground: 248 12% 48%;
-    --sidebar-active: 250 48% 62%;
-    --sidebar-active-bg: 250 48% 62% / 0.09;
-    --sidebar-hover: 248 18% 11%;
-    --sidebar-border: 248 18% 13%;
-    --sidebar-logo: 248 15% 80%;
-    --sidebar-logo-dot: 250 48% 62%;
+    --sidebar: 285 22% 5%;
+    --sidebar-foreground: 285 10% 48%;
+    --sidebar-active: 285 28% 58%;
+    --sidebar-active-bg: 285 28% 58% / 0.09;
+    --sidebar-hover: 285 15% 10%;
+    --sidebar-border: 248 15% 14%;
 
-    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.45);
-    --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.5);
-    --shadow-focus: 0 0 0 3px hsla(248 32% 58% / 0.25);
-    --shadow-glow: 0 0 55px hsla(248 32% 58% / 0.06);
-    --shadow-gold: 0 0 35px hsla(38 38% 55% / 0.10);
-
-    /* ── Legacy aliases dark ── */
+    /* ── Legacy dark aliases ── */
     --bg-primary: hsl(var(--background));
     --bg-secondary: hsl(var(--secondary));
     --bg-hover: hsl(var(--accent));
     --text-primary: hsl(var(--foreground));
     --text-secondary: hsl(var(--secondary-foreground));
     --text-muted: hsl(var(--muted-foreground));
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     Aoko — Clear Sky
+     青空 · Azure Direct #1E90FF · Burnt Orange #E87830
+     Flat, no glass. Sharp, minimal. Aoko rejects ornament.
+     ═══════════════════════════════════════════════════════════════ */
+  [data-theme="aoko"] {
+    --background: 210 50% 96%;           /* #F0F6FC Sky White */
+    --foreground: 220 30% 12%;
+    --card: 0 0% 100%;                   /* Solid white, no glass */
+    --card-foreground: 220 30% 12%;
+    --border: 210 20% 84%;
+    --border-strong: 210 20% 84%;
+    --input: 210 20% 84%;
+    --ring: 210 100% 56%;                /* #1E90FF Azure Direct */
+
+    --primary: 210 100% 56%;             /* Azure Direct — higher saturation */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 25% 92%;
+    --secondary-foreground: 220 30% 12%;
+    --muted: 210 20% 90%;
+    --muted-foreground: 210 15% 44%;
+    --accent: 210 30% 90%;
+    --accent-foreground: 210 100% 56%;
+
+    --gold: 25 70% 52%;                  /* #E87830 Burnt Orange — only warm note */
+    --gold-foreground: 0 0% 100%;
+    --gold-light: 25 50% 90%;
+
+    --success: 160 30% 38%;
+    --success-light: 160 20% 88%;
+    --warning: 30 55% 50%;
+    --warning-light: 30 35% 88%;
+    --destructive: 0 45% 50%;
+    --destructive-light: 0 35% 90%;
+    --info: 210 100% 56%;
+
+    --sidebar: 210 35% 91%;
+    --sidebar-foreground: 210 20% 40%;
+    --sidebar-active: 210 100% 56%;
+    --sidebar-active-bg: 210 100% 56% / 0.08;
+    --sidebar-hover: 210 25% 86%;
+    --sidebar-border: 210 20% 84%;
+
+    /* Aoko radius: 0.25rem — sharp, precise */
+    --radius: 0.25rem;
+
+    /* Aoko typography: Inter throughout, no serif */
+    --font-display: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-body: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+    /* Aoko transitions: fast, direct */
+    --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 160ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 240ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    --font-sans: var(--font-body);
+    --font-serif: var(--font-display);
+    --bg-primary: hsl(var(--background));
+    --bg-secondary: hsl(var(--secondary));
+    --bg-hover: hsl(var(--accent));
+    --text-primary: hsl(var(--foreground));
+    --text-secondary: hsl(var(--secondary-foreground));
+    --text-muted: hsl(var(--muted-foreground));
+  }
+
+  [data-theme="aoko"].dark {
+    --background: 220 50% 6%;            /* #0A1220 Deep Blue Night */
+    --foreground: 210 25% 80%;
+    --card: 220 35% 10%;                 /* Solid, no blur */
+    --card-foreground: 210 25% 80%;
+    --border: 220 25% 14%;
+    --input: 220 25% 14%;
+    --ring: 210 100% 60%;
+
+    --primary: 210 100% 60%;
+    --primary-foreground: 220 50% 6%;
+    --secondary: 220 25% 12%;
+    --secondary-foreground: 210 25% 80%;
+    --muted: 220 20% 10%;
+    --muted-foreground: 210 15% 48%;
+    --accent: 220 30% 14%;
+    --accent-foreground: 210 100% 60%;
+
+    --gold: 25 65% 52%;
+    --gold-light: 25 25% 12%;
+
+    --success: 160 28% 42%;
+    --success-light: 160 18% 12%;
+    --warning: 30 50% 48%;
+    --warning-light: 30 20% 12%;
+    --destructive: 0 42% 50%;
+    --destructive-light: 0 20% 12%;
+    --info: 210 100% 60%;
+
+    --sidebar: 220 40% 5%;
+    --sidebar-foreground: 210 15% 45%;
+    --sidebar-active: 210 100% 60%;
+    --sidebar-active-bg: 210 100% 60% / 0.1;
+    --sidebar-hover: 220 25% 10%;
+    --sidebar-border: 220 25% 14%;
+
+    --bg-primary: hsl(var(--background));
+    --bg-secondary: hsl(var(--secondary));
+    --bg-hover: hsl(var(--accent));
+    --text-primary: hsl(var(--foreground));
+    --text-secondary: hsl(var(--secondary-foreground));
+    --text-muted: hsl(var(--muted-foreground));
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     Soujuurou — Mountain Wood
+     山小屋 · Forest Calm #4A7850 · Earth Clay #8B6940
+     Warm, matte. No glass. The warmth is in the color.
+     ═══════════════════════════════════════════════════════════════ */
+  [data-theme="soujuurou"] {
+    --background: 35 25% 88%;             /* #EAE0D0 Sunlit Wood */
+    --foreground: 30 20% 10%;
+    --card: 35 20% 96%;                   /* Matte warm white */
+    --card-foreground: 30 20% 10%;
+    --border: 35 15% 78%;
+    --border-strong: 35 15% 78%;
+    --input: 35 15% 78%;
+    --ring: 140 22% 40%;                  /* #4A7850 Forest Calm */
+
+    --primary: 140 22% 40%;               /* Forest Calm — muted green */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 35 18% 84%;
+    --secondary-foreground: 30 20% 10%;
+    --muted: 35 15% 82%;
+    --muted-foreground: 35 12% 40%;
+    --accent: 140 18% 88%;
+    --accent-foreground: 140 22% 40%;
+
+    --gold: 30 32% 42%;                   /* #8B6940 Earth Clay */
+    --gold-foreground: 0 0% 100%;
+    --gold-light: 35 25% 82%;
+
+    --success: 140 22% 36%;
+    --success-light: 140 18% 82%;
+    --warning: 35 35% 44%;
+    --warning-light: 35 25% 82%;
+    --destructive: 5 35% 48%;
+    --destructive-light: 5 25% 88%;
+    --info: 150 18% 40%;
+
+    --sidebar: 35 20% 82%;
+    --sidebar-foreground: 35 15% 36%;
+    --sidebar-active: 140 22% 40%;
+    --sidebar-active-bg: 140 22% 40% / 0.08;
+    --sidebar-hover: 35 18% 78%;
+    --sidebar-border: 35 15% 76%;
+
+    /* Soujuurou radius: 0.5rem — warm, rounded */
+    --radius: 0.5rem;
+
+    /* Soujuurou typography: Georgia serif for display */
+    --font-display: 'Georgia', 'Noto Serif SC', 'Lora', serif;
+    --font-body: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+    /* Soujuurou transitions: warm, slow */
+    --transition-fast: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 280ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    --font-sans: var(--font-body);
+    --font-serif: var(--font-display);
+    --bg-primary: hsl(var(--background));
+    --bg-secondary: hsl(var(--secondary));
+    --bg-hover: hsl(var(--accent));
+    --text-primary: hsl(var(--foreground));
+    --text-secondary: hsl(var(--secondary-foreground));
+    --text-muted: hsl(var(--muted-foreground));
+  }
+
+  [data-theme="soujuurou"].dark {
+    --background: 30 20% 6%;              /* #15120C Mountain Night */
+    --foreground: 30 18% 78%;
+    --card: 30 15% 10%;                   /* Matte, no glass */
+    --card-foreground: 30 18% 78%;
+    --border: 30 15% 14%;
+    --input: 30 15% 14%;
+    --ring: 140 22% 46%;
+
+    --primary: 140 22% 46%;
+    --primary-foreground: 30 20% 6%;
+    --secondary: 30 15% 12%;
+    --secondary-foreground: 30 18% 78%;
+    --muted: 30 12% 10%;
+    --muted-foreground: 30 12% 46%;
+    --accent: 140 16% 14%;
+    --accent-foreground: 140 22% 46%;
+
+    --gold: 30 30% 44%;
+    --gold-light: 30 18% 12%;
+
+    --success: 140 22% 40%;
+    --success-light: 140 16% 12%;
+    --warning: 35 30% 44%;
+    --warning-light: 35 18% 12%;
+    --destructive: 5 32% 46%;
+    --destructive-light: 5 18% 12%;
+    --info: 150 18% 42%;
+
+    --sidebar: 30 22% 5%;
+    --sidebar-foreground: 30 12% 44%;
+    --sidebar-active: 140 22% 46%;
+    --sidebar-active-bg: 140 22% 46% / 0.09;
+    --sidebar-hover: 30 14% 10%;
+    --sidebar-border: 30 15% 14%;
+
+    --bg-primary: hsl(var(--background));
+    --bg-secondary: hsl(var(--secondary));
+    --bg-hover: hsl(var(--accent));
+    --text-primary: hsl(var(--foreground));
+    --text-secondary: hsl(var(--secondary-foreground));
+    --text-muted: hsl(var(--muted-foreground));
+  }
+
+  /* ── 質感層 · Interaction polish ── */
+  @layer base {
+    /* Smooth scroll everywhere */
+    html { scroll-behavior: smooth; }
+
+    /* Card hover lift — across all themes */
+    [data-theme] .transition-all,
+    [data-theme] .transition-colors,
+    [data-theme] .transition-opacity,
+    [data-theme] .transition-transform { transition-duration: var(--transition-base); }
+
+    /* Button press — smooth scale with transition */
+    button {
+      transition: transform calc(var(--transition-fast) * 0.7) ease-out, opacity calc(var(--transition-fast) * 0.7) ease-out;
+    }
+    button:active:not([disabled]) { transform: scale(0.96); opacity: 0.85; }
+    button[aria-disabled="true"]:active { transform: none; opacity: 1; }
+
+    /* Scrollbar fade */
+    ::-webkit-scrollbar-thumb { transition: background 0.5s ease; }
+
+    /* Page crossfade — slow dissolve + blur on route change */
+    .page-transition {
+      opacity: 0;
+      filter: blur(4px);
+      transform: translateY(8px);
+      transition: opacity 350ms cubic-bezier(0.4, 0, 0.2, 1),
+                  filter 350ms cubic-bezier(0.4, 0, 0.2, 1),
+                  transform 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .page-transition.show {
+      opacity: 1;
+      filter: blur(0);
+      transform: translateY(0);
+    }
   }
 }
 
@@ -165,7 +409,12 @@
   html { font-size: 15px; }
 
   body {
-    background: hsl(var(--background));
+    background:
+      /* subtle dot grid — glass blurs through this */
+      radial-gradient(circle, hsl(var(--foreground) / 0.03) 1px, transparent 1px),
+      hsl(var(--background));
+    background-size: 24px 24px;
+    background-attachment: fixed;
     color: hsl(var(--foreground));
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -173,14 +422,75 @@
     letter-spacing: var(--tracking-tight);
   }
 
-  /* ── 冬の夜のヴィネット · Winter night vignette ── */
-  .dark body {
+  /* ── 冬の夜のヴィネット · Winter night vignette (Alice) ── */
+  .dark body, [data-theme="alice"] .dark body {
     background:
-      radial-gradient(ellipse 80% 60% at 50% 40%, hsl(248 18% 12%) 0%, transparent 100%),
-      radial-gradient(ellipse 50% 30% at 30% 70%, hsl(260 15% 10% / 0.6) 0%, transparent 100%),
-      radial-gradient(ellipse 40% 25% at 70% 20%, hsl(245 20% 10% / 0.4) 0%, transparent 100%),
+      /* Star-field — subtle violet particles */
+      radial-gradient(circle at 20% 30%, hsl(285 20% 14% / 0.5) 0%, transparent 50%),
+      radial-gradient(circle at 70% 60%, hsl(260 18% 12% / 0.6) 0%, transparent 40%),
+      radial-gradient(circle at 50% 80%, hsl(285 15% 10% / 0.4) 0%, transparent 50%),
       hsl(var(--background));
     background-attachment: fixed;
+  }
+
+  /* Aoko dark — Azure energy sparks · 青空の夜 */
+  [data-theme="aoko"] .dark body {
+    background:
+      radial-gradient(circle at 80% 20%, hsl(210 60% 12% / 0.5) 0%, transparent 40%),
+      radial-gradient(circle at 20% 70%, hsl(220 50% 8% / 0.6) 0%, transparent 50%),
+      hsl(var(--background));
+    background-attachment: fixed;
+  }
+
+  /* Soujuurou dark — Campfire embers · 山小屋の夜 */
+  [data-theme="soujuurou"] .dark body {
+    background:
+      radial-gradient(circle at 50% 80%, hsl(30 30% 10% / 0.5) 0%, transparent 50%),
+      radial-gradient(circle at 85% 15%, hsl(25 25% 8% / 0.4) 0%, transparent 40%),
+      hsl(var(--background));
+    background-attachment: fixed;
+  }
+
+  /* ── Ghost Border Rule ──
+     Light: hsla(248 12% 84%) — barely visible
+     Dark:  hsla(248 15% 16%) — a suggestion, not a declaration
+     If a border is the first thing you notice on a card, it's too strong. */
+  [data-theme="alice"] .card, [data-theme="alice"] .rounded-lg {
+    border-color: hsla(248 12% 84% / 0.6);
+  }
+  [data-theme="alice"] .dark .card, [data-theme="alice"] .dark .rounded-lg {
+    border-color: hsla(248 15% 16% / 0.6);
+  }
+
+  /* ── Material surfaces ──
+     Alice: Frosted glass (backdrop-blur)
+     Aoko:  Flat solid (no blur, no glass)
+     Soujuurou: Matte warm (no blur, warm paper) */
+  [data-theme="aoko"] .glass-card {
+    background: hsl(var(--card));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid hsl(var(--border));
+  }
+  [data-theme="soujuurou"] .glass-card {
+    background: hsl(var(--card));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid hsl(var(--border));
+  }
+
+  /* ── 洋館の廊下 · Sidebar depth separation ── */
+  aside {
+    box-shadow: 1px 0 24px rgba(0, 0, 0, 0.06), 0 0 0 1px hsl(var(--sidebar-border) / 0.3);
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Smooth nav button transitions */
+  aside button,
+  aside [role="button"] {
+    transition: background-color var(--transition-base), color var(--transition-base), opacity var(--transition-base);
+    will-change: background-color;
   }
 
   /* ── 洋書のタイポグラフィ · Serif headings ── */
@@ -214,17 +524,27 @@
 
 /* ── Shared component classes — 洋館の調度品 ── */
 @layer components {
-  /* Frosted glass — 冬の窓ガラス */
+  /* Frosted glass — 冬の窓ガラス · True translucency */
   .glass-card {
-    background: hsl(var(--card));
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card) / 0.55);
+    backdrop-filter: blur(28px) saturate(1.4);
+    -webkit-backdrop-filter: blur(28px) saturate(1.4);
+    border: 1px solid hsl(var(--border) / 0.4);
     border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 8px 32px hsl(var(--foreground) / 0.04), inset 0 1px 0 hsl(var(--border) / 0.5);
     transition: all var(--transition-base);
   }
-  .glass-card:hover { box-shadow: var(--shadow-md); }
+  .glass-card:hover {
+    background: hsl(var(--card) / 0.65);
+    backdrop-filter: blur(32px) saturate(1.5);
+    -webkit-backdrop-filter: blur(32px) saturate(1.5);
+    box-shadow: 0 12px 40px hsl(var(--foreground) / 0.06), inset 0 1px 0 hsl(var(--border) / 0.7);
+  }
+
+  /* Glass surface for light mode — visible blur over pattern */
+  body .glass-card {
+    background: hsl(var(--card) / 0.6);
+  }
 
   /* Primary button — 魔術刻印 */
   .btn-primary {

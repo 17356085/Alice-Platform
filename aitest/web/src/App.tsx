@@ -33,6 +33,7 @@ const SettingsView = lazy(() => import('./views/SettingsView'))
 const AgentDetailView = lazy(() => import('./views/AgentDetailView'))
 const KnowledgeGraphView = lazy(() => import('./views/KnowledgeGraphView'))
 const OnboardingWizardView = lazy(() => import('./views/OnboardingWizardView'))
+const RunInspectorView = lazy(() => import('./views/RunInspectorView'))
 
 // ── View title mapping ─────────────────────────────────────────
 const viewTitles: Record<string, string> = {
@@ -42,6 +43,7 @@ const viewTitles: Record<string, string> = {
   onboarding: '新建项目', strategy: '策略规划',
   overview: '项目概览', observability: '可观测性', artifacts: '产物',
   timeline: '时间线', agent: 'Agent 详情', knowledgegraph: '知识图谱',
+  runs: 'Run Inspector',
 }
 
 function useCurrentViewName(): string {
@@ -76,11 +78,12 @@ export default function App() {
     })
   }, [loc.pathname])
 
-  // Theme init
+  // Theme init — Alice Studio three-character system
   useEffect(() => {
-    const savedTheme = localStorage.getItem('tlo-theme-name') || 'default'
+    const savedTheme = localStorage.getItem('tlo-theme-name') || 'alice'
+    const theme = savedTheme === 'default' ? 'alice' : savedTheme  // backward compat
     const savedDark = localStorage.getItem('tlo-theme') === 'dark'
-    document.documentElement.setAttribute('data-theme', savedTheme)
+    document.documentElement.setAttribute('data-theme', theme)
     if (savedDark) document.documentElement.classList.add('dark')
 
     const onStorage = (e: StorageEvent) => {
@@ -133,6 +136,7 @@ export default function App() {
              currentViewName === 'strategy' ||
              currentViewName === 'chat' ||
              currentViewName === 'terminal' ||
+             currentViewName === 'runs' ||
              currentViewName === 'settings')
               ? <ProjectSelector />
               : undefined
@@ -161,6 +165,7 @@ export default function App() {
               <Route path="/projects/:id/strategy" element={<StrategyPlannerView />} />
               <Route path="/projects/:id/kanban" element={<KanbanView />} />
               <Route path="/projects/:id/terminal" element={<AgentTerminalView />} />
+              <Route path="/projects/:id/runs/:runId" element={<RunInspectorView />} />
 
               {/* App-level */}
               <Route path="/settings" element={<SettingsView />} />

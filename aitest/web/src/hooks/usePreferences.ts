@@ -5,11 +5,14 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
-const themeNames = ['default', 'dusk', 'lime', 'ocean', 'retro', 'neo', 'forest', 'oscura']
+const themeNames = ['alice', 'aoko', 'soujuurou']
 
 export function usePreferences() {
   const { i18n } = useTranslation()
-  const [currentTheme, setCurrentTheme] = useState(localStorage.getItem('tlo-theme-name') || 'default')
+  const storedTheme = localStorage.getItem('tlo-theme-name') || 'alice'
+  // Backward compat: 'default' → 'alice'
+  const initialTheme = storedTheme === 'default' ? 'alice' : storedTheme
+  const [currentTheme, setCurrentTheme] = useState(initialTheme)
   const [isDark, setIsDark] = useState(localStorage.getItem('tlo-theme') === 'dark')
   const [lang, setLangState] = useState(localStorage.getItem('tlo-lang') || 'zh')
 

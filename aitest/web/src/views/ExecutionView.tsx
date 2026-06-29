@@ -1,11 +1,11 @@
 /** Execution view — SOP control + Agent graph + Terminal + Run Inspector. */
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useKanbanStore } from '../stores/kanban'
 import { useProjectStore } from '../stores/project'
 import LiveAgentGraph from '../components/LiveAgentGraph'
 import TerminalPanel from '../components/TerminalPanel'
-import { Play, Pause, Square, Activity, Eye, RefreshCw } from 'lucide-react'
+import { Play, Pause, Square, Activity, Eye, RefreshCw, ExternalLink } from 'lucide-react'
 
 interface DebugInfo {
   total_events: number; llm_calls: number; tool_calls: number; state_changes: number
@@ -34,6 +34,7 @@ const SOP_PHASES = [
 export default function ExecutionView() {
   const { id } = useParams<{ id: string }>()
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const modules = useKanbanStore(s => s.modules)
   const fetchModules = useKanbanStore(s => s.fetchModules)
   const setActive = useProjectStore(s => s.setActive)
@@ -157,7 +158,13 @@ export default function ExecutionView() {
             <div className="ri-detail">
               <div className="ri-detail-header">
                 <span>Run: {selectedRun.run_id.slice(0, 20)}...</span>
-                <button className="ri-close" onClick={() => setInspectorOpen(false)}>×</button>
+                <div className="flex items-center gap-2">
+                  <button className="ri-full" title="Open full inspector"
+                    onClick={() => navigate(`/projects/${id}/runs/${selectedRun.run_id}`)}>
+                    <ExternalLink size={14} />
+                  </button>
+                  <button className="ri-close" onClick={() => setInspectorOpen(false)}>×</button>
+                </div>
               </div>
               <div className="ri-detail-grid">
                 <div><span>Status:</span> {selectedRun.status}</div>
