@@ -456,8 +456,16 @@ class OpenAIProvider(LLMProvider):
                     "input": tc.function.arguments,
                 })
 
+        # ★ v2.7: Reasoning models (DeepSeek-v4, o1, etc.) may return
+        # empty content with reasoning_content holding the actual answer.
+        content = message.content or ""
+        if not content:
+            reasoning = getattr(message, "reasoning_content", None)
+            if reasoning:
+                content = reasoning
+
         return LLMResponse(
-            content=message.content or "",
+            content=content,
             tool_calls=tool_calls,
             token_usage={
                 "input": completion.usage.prompt_tokens if completion.usage else 0,
@@ -754,17 +762,17 @@ class DeepSeekProvider(LLMProvider):
     DeepSeek API Provider（OpenAI 兼容接口）。
 
     环境变量: DEEPSEEK_API_KEY
-    默认模型: deepseek-chat (DeepSeek-V3)
-    备选模型: deepseek-reasoner (DeepSeek-R1, 推理模型)
+    默认模型: deepseek-v4-flash (快速)
+    备选模型: deepseek-v4-pro (复杂推理) / deepseek-reasoner (R1)
 
     用法:
         llm = get_provider("deepseek")
-        llm = get_provider("deepseek", model="deepseek-reasoner")
+        llm = get_provider("deepseek", model="deepseek-v4-pro")  # 复杂任务
     """
 
     BASE_URL = "https://api.deepseek.com"
 
-    def __init__(self, model: str = "deepseek-chat", api_key: str = "", base_url: str = ""):
+    def __init__(self, model: str = "deepseek-v4-flash", api_key: str = "", base_url: str = ""):
         api_key = api_key or _get_config().deepseek_api_key
         if not api_key:
             raise ValueError(
@@ -836,8 +844,16 @@ class DeepSeekProvider(LLMProvider):
                     "input": tc.function.arguments,
                 })
 
+        # ★ v2.7: Reasoning models (DeepSeek-v4, o1, etc.) may return
+        # empty content with reasoning_content holding the actual answer.
+        content = message.content or ""
+        if not content:
+            reasoning = getattr(message, "reasoning_content", None)
+            if reasoning:
+                content = reasoning
+
         return LLMResponse(
-            content=message.content or "",
+            content=content,
             tool_calls=tool_calls,
             token_usage={
                 "input": completion.usage.prompt_tokens if completion.usage else 0,

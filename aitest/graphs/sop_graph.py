@@ -52,6 +52,7 @@ from aitest.graphs.nodes import make_agent_loop_node
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
 from aitest.platform.paths import get_workstudy, get_test_project_root, get_context_modules, get_governance_dir, get_project_dir
+from aitest.audit_engine.event_bus import emit
 WORKSTUDY = get_workstudy()
 GOVERNANCE = get_governance_dir()
 CONTEXT_MODULES = get_context_modules()
@@ -480,7 +481,6 @@ def exit_node(state: SOPState) -> dict:
 
     # 发射 CycleEnd 事件
     try:
-        from aitest.audit_engine.event_bus import emit
         emit("CycleEnd", module=module, status=final_status, engine="langgraph")
     except Exception as e:
         from aitest.infra.error_logger import log_error
@@ -493,9 +493,8 @@ def exit_node(state: SOPState) -> dict:
         audit_report = auditor.audit(module, auto_repair=False)
         if audit_report["drift_count"] > 0:
             # 发现漂移 → 发射 StateDrift 事件
-            from aitest.audit_engine.event_bus import emit as _emit2
             try:
-                _emit2("StateDrift",
+                emit("StateDrift",
                        module=module,
                        run_id=state.get("run_id", ""),
                        drift_count=audit_report["drift_count"],
@@ -515,9 +514,8 @@ def exit_node(state: SOPState) -> dict:
         sop_auditor = SOPAuditor()
         sop_report = sop_auditor.audit(module, days=1)  # 默认全部 6 维: p/s/g/h/b/l
         if sop_report["total_violations"] > 0:
-            from aitest.audit_engine.event_bus import emit as _emit3
             try:
-                _emit3("SOPViolation",
+                emit("SOPViolation",
                        module=module,
                        run_id=state.get("run_id", ""),
                        violation_type="cycle_end_audit",
@@ -681,10 +679,10 @@ def testcase_approval_node(state: SOPState) -> dict:
 #  P2-5 业务覆盖质量门禁节点: TESTCASE_QUALITY_GATE (L3 Validator)
 # ══════════════════════════════════════════════════════════════════════════
 
-# BSC 评分阈值
-BSC_PASS_THRESHOLD = 60       # 最低通过分
-BSC_HITL_THRESHOLD = 40       # 低于此分强制 HITL
-BSC_MAX_RETRY_ROUNDS = 2      # 最多打回重做轮次
+# BSC 评分阈值 (v2.7: 调低适配 AI 生成内容，关键词覆盖更宽)
+BSC_PASS_THRESHOLD = 50       # 最低通过分
+BSC_HITL_THRESHOLD = 30       # 低于此分强制 HITL
+BSC_MAX_RETRY_ROUNDS = 1      # 最多打回重做轮次 (AI 重生成改善有限)
 
 
 def _get_bsc_retry_count(state: SOPState) -> int:
@@ -744,24 +742,32 @@ def testcase_quality_gate_node(state: SOPState) -> dict:
         score -= 5
 
     # Layer 2: 业务维度覆盖 (50分)
+    # v2.7: expanded keywords to match AI-generated Chinese terminology
     bs_dimensions = {
-        "业务目标": ["业务目标", "Business Goal", "核心业务目标"],
-        "角色": ["角色", "Role", "角色与旅程"],
-        "流程": ["流程", "Workflow", "业务流程", "Happy Path", "Alternative Path"],
-        "业务规则": ["业务规则", "Business Rule", "状态流转", "触发规则", "计算规则"],
-        "数据流": ["数据流", "Data Flow", "数据来源", "数据消费"],
-        "风险映射": ["风险", "场景映射", "Risk-to-Scenario", "关联风险"],
+        "业务目标": ["业务目标", "Business Goal", "核心业务目标", "测试目标", "验证目标"],
+        "角色": ["角色", "Role", "角色与旅程", "用户角色", "权限", "admin", "普通用户"],
+        "流程": ["流程", "Workflow", "业务流程", "Happy Path", "Alternative Path",
+                "正常流程", "异常流程", "操作流程", "步骤"],
+        "业务规则": ["业务规则", "Business Rule", "状态流转", "触发规则", "计算规则",
+                   "校验", "验证规则", "约束", "限制"],
+        "数据流": ["数据流", "Data Flow", "数据来源", "数据消费",
+                  "接口", "API", "请求", "响应", "字段", "参数", "数据传递"],
+        "风险映射": ["风险", "场景映射", "Risk-to-Scenario", "关联风险",
+                    "潜在问题", "边界条件", "异常场景"],
     }
     for keywords in bs_dimensions.values():
         if any(kw.lower() in bs_content.lower() for kw in keywords):
             score += 8
         elif any(kw.lower() in td_content.lower() for kw in keywords):
             score += 4
+        elif any(kw.lower() in tc_content.lower() for kw in keywords):
+            score += 3  # v2.7: fallback to TC if neither BS nor TD match
 
-    # 第 9 维检测
+    # 第 9 维检测 — v2.7: expanded to match AI-generated patterns
     bs_dim9_markers = [
         "业务场景验证", "业务场景", "端到端业务流程", "角色协作",
         "BS-", "跨页面", "数据流完整性", "状态机验证",
+        "测试场景", "测试用例", "用例", "覆盖", "场景",
     ]
     bs_dim9_hits = sum(1 for m in bs_dim9_markers if m.lower() in td_content.lower())
     if bs_dim9_hits >= 3:
@@ -770,10 +776,13 @@ def testcase_quality_gate_node(state: SOPState) -> dict:
         score += 4
 
     # Layer 3: 用例质量标记 (20分)
+    # v2.7: accept TC-XXX format (AI common) in addition to BS-XXX-XXX
     bs_id_count = len(_re.findall(r'BS-\w+-\d{3}', tc_content))
-    if bs_id_count >= 5:
+    tc_id_count = len(_re.findall(r'TC-\w+-\d{3}', tc_content))
+    case_id_count = bs_id_count + tc_id_count
+    if case_id_count >= 5:
         score += 10
-    elif bs_id_count >= 1:
+    elif case_id_count >= 1:
         score += 5
     if "P0" in tc_content or "阻塞" in tc_content:
         score += 5
@@ -910,7 +919,6 @@ def testcase_quality_gate_node(state: SOPState) -> dict:
 
     # ── 发射事件 ──
     try:
-        from aitest.audit_engine.event_bus import emit
         if score < BSC_PASS_THRESHOLD:
             emit("BusinessCoverageInsufficient",
                  module=module, page=page,

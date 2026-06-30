@@ -21,6 +21,7 @@ from pathlib import Path
 from collections.abc import Generator
 from typing import Optional
 import io
+import threading
 
 # Fix Windows GBK encoding for emoji output
 if hasattr(sys.stdout, 'buffer'):

@@ -1,0 +1,25 @@
+application:
+  runtime: browser
+  source_type: url
+  type: web
+connection:
+  base_url: https://aiwechatminidemo.cimc-digital.com/
+  login_method: form
+  login_required: true
+discovery:
+  strategy: browser-use
+knowledge:
+  chroma_namespace: aiwechatminidemo-cimc-digital-com
+project:
+  id: aiwechatminidemo-cimc-digital-com
+  name: aiwechatminidemo-cimc-digital-com
+test_project:
+  categories:
+  - smoke
+  - functional
+  - regression
+  - ui
+  - security
+  code_path: ../TestingProject/ZJSN_Test-master526
+  tech: pytest-selenium
+  type: pytest-selenium
