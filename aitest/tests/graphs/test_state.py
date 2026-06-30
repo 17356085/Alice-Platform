@@ -214,7 +214,8 @@ class TestCreateInitialState:
 
     def test_default_provider(self):
         state = create_initial_state(module="m", pages=["p"])
-        assert state["provider"] == "claude"
+        # Default provider comes from config.resolve_llm_provider()
+        assert state["provider"] in ("claude", "mimo", "deepseek")  # depends on env
 
     def test_custom_provider(self):
         state = create_initial_state(module="m", pages=["p"], provider="deepseek")

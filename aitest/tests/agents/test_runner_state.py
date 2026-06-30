@@ -143,7 +143,7 @@ class TestAgentState:
         assert state.max_steps == 12
         assert state.done is False
         assert state.success is False
-        assert state.provider == "claude"
+        assert state.provider is None  # Resolved at runtime from config
 
     def test_custom_values(self):
         state = AgentState(
