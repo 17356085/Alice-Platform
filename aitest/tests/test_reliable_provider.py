@@ -142,13 +142,13 @@ class TestUsageTracker:
 # ── Fallback Config ───────────────────────────────────────────────────
 
 class TestFallbackConfig:
-    def test_default_chain_has_three_providers(self):
+    def test_default_chain_has_four_providers(self):
         config = FallbackConfig()
-        assert len(config.chain) == 3
+        assert len(config.chain) == 4  # mimo → deepseek → openai → claude
 
-    def test_default_chain_starts_with_claude(self):
+    def test_default_chain_starts_with_mimo(self):
         config = FallbackConfig()
-        assert config.chain[0]["provider"] == "claude"
+        assert config.chain[0]["provider"] == "mimo"
 
     def test_custom_chain_overrides(self):
         custom = [{"provider": "openai", "model": "gpt-4o"}]
@@ -169,7 +169,7 @@ class TestReliableProviderInit:
     def test_init_with_default_config(self):
         rp = ReliableProvider()
         assert rp.fallback_config is not None
-        assert len(rp.fallback_config.chain) == 3
+        assert len(rp.fallback_config.chain) == 4
 
     def test_init_with_custom_config(self):
         config = FallbackConfig(chain=[{"provider": "openai", "model": "gpt-4o"}])
