@@ -956,7 +956,8 @@ def data_sanitization_node(state: SOPState) -> dict:
     import re
 
     module = state.get("module", "")
-    scan_script = ZJSN_TEST / "tools" / "cleanup" / "scan_and_clean.py"
+    zjsn_test = get_test_project_root()
+    scan_script = (zjsn_test / "tools" / "cleanup" / "scan_and_clean.py") if zjsn_test else None
 
     updates: dict = {
         "agent_outputs": {**state.get("agent_outputs", {})},
@@ -964,7 +965,7 @@ def data_sanitization_node(state: SOPState) -> dict:
         "completed_phases": ["Data Sanitization"],
     }
 
-    if not scan_script.exists():
+    if not scan_script or not scan_script.exists():
         updates["agent_outputs"]["data-sanitization"] = {
             "residual_count": 0, "cleaned_count": 0,
             "threshold_exceeded": False,
@@ -978,7 +979,7 @@ def data_sanitization_node(state: SOPState) -> dict:
         result = secure_run(
             ["python", str(scan_script), "--force"],
             capture_output=True, text=True, timeout=120,
-            cwd=str(ZJSN_TEST),
+            cwd=str(zjsn_test),
             check=False,  # 不抛异常，手动检查返回码
         )
         stdout = result.stdout + result.stderr

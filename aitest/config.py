@@ -152,7 +152,7 @@ class Config:
             "deepseek": {
                 "max": "deepseek-v4-pro",
                 "balanced": "deepseek-v4-pro",
-                "econ": "deepseek-v3",
+                "econ": "deepseek-v4-flash",
             },
             "mimo": {
                 "max": "mimo-v2.5-pro",

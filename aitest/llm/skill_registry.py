@@ -275,7 +275,7 @@ PROVIDER_CAPABILITIES = {
     "qwen3-8b":             {"tier": "low",     "tools": False, "max_tokens": 32768},
     "llama3-70b":           {"tier": "medium",  "tools": False, "max_tokens": 8192},
     "llama3-8b":            {"tier": "low",     "tools": False, "max_tokens": 8192},
-    "deepseek-v3":          {"tier": "high",    "tools": False, "max_tokens": 131072},
+    "deepseek-v4-flash":    {"tier": "econ",   "tools": False, "max_tokens": 131072},
 }
 
 
