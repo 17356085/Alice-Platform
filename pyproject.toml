@@ -47,3 +47,42 @@ aitest = "aitest.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["aitest*"]
+
+[tool.pytest.ini_options]
+testpaths = ["aitest/tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--disable-warnings",
+]
+markers = [
+    "slow: Slow tests (real LLM, browser, network) — skipped in CI fast mode",
+    "integration: Integration tests (multiple modules, real DB/Redis)",
+    "unit: Unit tests (single module, all deps mocked)",
+    "llm: Tests that require a real LLM API key (not mocked)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["aitest"]
+omit = [
+    "aitest/tests/*",
+    "aitest/web/*",
+    "aitest/tools/*",
+    "aitest/infra/cli/*",
+]
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "def __repr__",
+    "def __str__",
+]
+fail_under = 0  # raise once we hit 20%

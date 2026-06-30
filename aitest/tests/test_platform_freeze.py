@@ -136,7 +136,8 @@ class TestEventBus:
         from aitest.platform.run_event import RunEvent, EventType
         bus = EventBus()
         received = []
-        bus.subscribe(EventType.RUN_COMPLETED, received.append)
+        cb = received.append
+        bus.subscribe(EventType.RUN_COMPLETED, cb)
         ev = RunEvent(event_id="e1", event_type=EventType.RUN_COMPLETED, run_id="r1")
         bus.publish(ev)
         assert len(received) == 1
@@ -147,8 +148,9 @@ class TestEventBus:
         from aitest.platform.run_event import RunEvent, EventType
         bus = EventBus()
         received = []
-        bus.subscribe(EventType.RUN_COMPLETED, received.append)
-        bus.unsubscribe(EventType.RUN_COMPLETED, received.append)
+        cb = received.append
+        bus.subscribe(EventType.RUN_COMPLETED, cb)
+        bus.unsubscribe(EventType.RUN_COMPLETED, cb)
         ev = RunEvent(event_id="e2", event_type=EventType.RUN_COMPLETED, run_id="r1")
         bus.publish(ev)
         assert len(received) == 0
@@ -158,7 +160,8 @@ class TestEventBus:
         from aitest.platform.run_event import RunEvent, EventType
         bus = EventBus()
         received = []
-        bus.subscribe("*", received.append)
+        cb = received.append
+        bus.subscribe("*", cb)
         bus.publish(RunEvent(event_id="e3", event_type=EventType.RUN_COMPLETED, run_id="r1"))
         bus.publish(RunEvent(event_id="e4", event_type=EventType.RUN_FAILED, run_id="r2"))
         assert len(received) == 2
@@ -172,8 +175,9 @@ class TestEventBus:
             raise RuntimeError("boom")
 
         good = []
+        good_cb = good.append
         bus.subscribe(EventType.RUN_COMPLETED, bad_handler)
-        bus.subscribe(EventType.RUN_COMPLETED, good.append)
+        bus.subscribe(EventType.RUN_COMPLETED, good_cb)
         bus.publish(RunEvent(event_id="e5", event_type=EventType.RUN_COMPLETED, run_id="r1"))
         assert len(good) == 1  # second handler still called
 
@@ -342,7 +346,7 @@ class TestConsumers:
     """Consumers: start/stop lifecycle, idempotency, protocol compliance."""
 
     def test_metrics_consumer_lifecycle(self):
-        from aitest.platform.metrics_consumer import MetricsConsumer
+        from aitest.platform.hooks.metrics_consumer import MetricsConsumer
         mc = MetricsConsumer()
         assert not mc.is_active
         mc.start()
@@ -351,7 +355,7 @@ class TestConsumers:
         assert not mc.is_active
 
     def test_metrics_consumer_idempotent_start(self):
-        from aitest.platform.metrics_consumer import MetricsConsumer
+        from aitest.platform.hooks.metrics_consumer import MetricsConsumer
         mc = MetricsConsumer()
         mc.start()
         mc.start()  # duplicate
@@ -361,7 +365,7 @@ class TestConsumers:
 
     def test_metrics_consumer_idempotent_counting(self):
         from aitest.platform.run_event import make_event, EventType
-        from aitest.platform.metrics_consumer import MetricsConsumer
+        from aitest.platform.hooks.metrics_consumer import MetricsConsumer
         mc = MetricsConsumer()
         mc.start()
 
@@ -378,7 +382,7 @@ class TestConsumers:
 
     def test_quota_usage_idempotent(self):
         from aitest.platform.run_event import make_event, EventType
-        from aitest.platform.quota_usage import QuotaUsageConsumer
+        from aitest.platform.hooks.quota_usage import QuotaUsageConsumer
         qu = QuotaUsageConsumer()
         qu.start()
 
@@ -395,7 +399,7 @@ class TestConsumers:
 
     def test_billing_hook_idempotent(self):
         from aitest.platform.run_event import make_event, EventType
-        from aitest.platform.billing_hook import BillingHookConsumer
+        from aitest.platform.hooks.billing_hook import BillingHookConsumer
         bh = BillingHookConsumer()
         bh.start()
 
@@ -412,9 +416,9 @@ class TestConsumers:
     def test_consumer_protocol(self):
         """All consumers must structurally match RunEventConsumer Protocol."""
         from aitest.platform.consumer import RunEventConsumer
-        from aitest.platform.metrics_consumer import MetricsConsumer
-        from aitest.platform.quota_usage import QuotaUsageConsumer
-        from aitest.platform.billing_hook import BillingHookConsumer
+        from aitest.platform.hooks.metrics_consumer import MetricsConsumer
+        from aitest.platform.hooks.quota_usage import QuotaUsageConsumer
+        from aitest.platform.hooks.billing_hook import BillingHookConsumer
         from aitest.platform.audit_log import AuditLogger
 
         for cls in [MetricsConsumer, QuotaUsageConsumer, BillingHookConsumer, AuditLogger]:

@@ -396,7 +396,7 @@ def load_variant(skill_id: str, variant_id: str) -> str:
         FileNotFoundError: 变体文件不存在
     """
     registry = _load_registry()
-    variants = registry.get("variants", [])
+    variants = registry.get("variants") or []
 
     for v in variants:
         if v.get("id") == variant_id and v.get("skill_id") == skill_id:

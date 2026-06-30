@@ -20,6 +20,7 @@ import shlex
 import logging
 from pathlib import Path
 from typing import Callable, Optional
+from aitest.audit_engine.event_bus import emit
 
 logger = logging.getLogger(__name__)
 
@@ -323,13 +324,11 @@ class PromptInjectionGuard:
         if detected:
             # 记录安全事件
             try:
-                from aitest.audit_engine.event_bus import emit
-                emit("security.prompt_injection_detected", {
-                    "patterns": detected,
-                    "source": source,
-                    "text_preview": text[:200],
-                })
-            except ImportError:
+                emit("security.prompt_injection_detected",
+                    patterns=detected,
+                    source=source,
+                    text_preview=text[:200])
+            except (ImportError, ValueError):
                 pass
 
         return cls.sanitize(text)

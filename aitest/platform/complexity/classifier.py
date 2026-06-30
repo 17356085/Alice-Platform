@@ -73,7 +73,8 @@ class ComplexityClassifier:
                 profile.tier = ComplexityTier.SIMPLE
                 return profile
 
-        components = " ".join(str(data.get("components", data.get("ui_components", [])))).lower()
+        comp_raw = data.get("components", data.get("ui_components", []))
+        components = (" ".join(comp_raw) if isinstance(comp_raw, list) else str(comp_raw)).lower()
         if any(kw.lower() in f"{title_lower} {components}" for kw in IMMEDIATE_COMPLEX_PAGE_TITLES):
             profile = PageComplexityProfile(tier=ComplexityTier.COMPLEX, score=70)
             profile.has_workflow = True
@@ -91,8 +92,10 @@ class ComplexityClassifier:
         profile.button_count = len(data.get("buttons", data.get("actions", [])))
 
         # 组件检测
-        components = " ".join(str(data.get("components", data.get("ui_components", [])))).lower()
-        interactions = " ".join(str(data.get("interactions", []))).lower()
+        comp_raw = data.get("components", data.get("ui_components", []))
+        components = (" ".join(comp_raw) if isinstance(comp_raw, list) else str(comp_raw)).lower()
+        inter_raw = data.get("interactions", [])
+        interactions = (" ".join(inter_raw) if isinstance(inter_raw, list) else str(inter_raw)).lower()
         page_type = str(data.get("page_type", data.get("type", ""))).lower()
 
         profile.has_dialog = any(c in components for c in ["dialog", "modal", "drawer"])

@@ -328,8 +328,6 @@ def _query_memory(
             task_description=task_description,
         )
     except Exception:
-        return ""  # Memory unavailable → graceful degradation
-    except Exception:
         # Memory DB not initialized / connection failed → silent fallback
         return ""
 

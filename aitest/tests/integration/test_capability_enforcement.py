@@ -92,8 +92,7 @@ class TestCapabilityEnforcement:
         import yaml
         from pathlib import Path
 
-        yaml_path = get_workstudy().parent / \
-                    "governance" / "agents" / "agent-definitions.yaml"
+        yaml_path = get_workstudy() / "governance" / "agents" / "agent-definitions.yaml"
         data = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
 
         agents_with_caps = 0

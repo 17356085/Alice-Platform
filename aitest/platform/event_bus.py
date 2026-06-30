@@ -43,7 +43,12 @@ class EventBus:
         """Wrap bound methods in weakref to prevent RC3 leak. Plain functions keep strong ref."""
         if hasattr(callback, '__self__') and not isinstance(callback.__self__, type):
             # Bound method on instance — use weakref to allow GC
-            return weakref.WeakMethod(callback)
+            try:
+                return weakref.WeakMethod(callback)
+            except TypeError:
+                # Built-in methods (e.g. list.append) are not weakref-able.
+                # Keep a strong reference — caller must unsubscribe explicitly.
+                return callback
         return callback  # Plain function / static method — strong ref is fine
 
     @staticmethod
