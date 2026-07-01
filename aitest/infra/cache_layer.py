@@ -120,7 +120,7 @@ class CacheLayer:
         store = self._stores.get(cache_type)
         if store is None:
             return
-        store.set(key, value, tokens_saved, time_saved)
+        store.set(key, value, tokens_saved, time_saved_ms)
 
         # Sync to operational metrics
         try:
