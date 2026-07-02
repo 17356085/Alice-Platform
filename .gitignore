@@ -51,9 +51,20 @@ governance/artifacts/audits/*.json
 governance/kpi/timeseries/
 
 # Runtime databases
-chat_sessions.db
-tasks.db
+*.db
+*.db.bak
+*.sqlite
 .chroma_testing/
+
+# .tlo platform data (runtime, not source)
+.tlo/data/
+.tlo/events/
+.tlo/chroma/
+.tlo/cache/
+.tlo/runtime/
+
+# Generated DDL
+create_tables*.sql
 
 # Local work data
 downloads/
@@ -68,5 +79,14 @@ aitest/web/dist-test/
 # Node modules
 node_modules/
 aitest/web/node_modules/
+
+# Tauri build artifacts
+aitest/web/src-tauri/target/
+aitest/web/src-tauri/gen/
+src-tauri/target/
+
+# Lock files and generated
+uv.lock
+project_tree.txt
 
 # ZJSN project — migrated to WorkStudy2 (d:/Desktop/WorkStudy2/ZJSN_Test-master526/)
