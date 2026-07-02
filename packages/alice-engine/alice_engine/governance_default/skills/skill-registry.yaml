@@ -1,0 +1,246 @@
+# Skill Registry — alice-engine default behavior pack
+# 每个 skill 包含 contract 定义，确保 fallback 层行为一致性。
+version: "1.0"
+
+skills:
+  # ── project ──
+  - id: project/project-context-manager
+    file: skills/project/project-context-manager.md
+    category: project
+    description: "初始化项目上下文，发现模块和页面"
+    contract:
+      input: ["project.yaml"]
+      output: ["MODULE_CONTEXT.md", "PAGE_CONTEXT.md"]
+      stability: core
+
+  - id: project/context-sync
+    file: skills/project/context-sync.md
+    category: project
+    description: "同步项目上下文到 governance 目录"
+    contract:
+      input: ["project.yaml"]
+      output: ["governance/context/projects/{id}/project.yaml"]
+      stability: core
+
+  - id: project/hygiene-check
+    file: skills/project/hygiene-check.md
+    category: project
+    description: "检查项目治理文档完整性"
+    contract:
+      input: ["governance/context/projects/{id}/"]
+      output: ["检查报告"]
+      stability: extended
+
+  # ── requirements ──
+  - id: requirements/module-modeling
+    file: skills/requirements/module-modeling.md
+    category: requirements
+    description: "建模模块的页面结构和路由关系"
+    contract:
+      input: ["MODULE_CONTEXT.md", "路由配置"]
+      output: ["pages 列表", "路由映射表"]
+      stability: core
+
+  - id: requirements/requirement-analysis
+    file: skills/requirements/requirement-analysis.md
+    category: requirements
+    description: "分析业务需求，确定测试范围"
+    contract:
+      input: ["MODULE_CONTEXT.md", "PAGE_CONTEXT.md"]
+      output: ["TEST_CASES.md"]
+      stability: core
+
+  # ── test-design ──
+  - id: test-design/page-analysis
+    file: skills/test-design/page-analysis.md
+    category: test-design
+    description: "分析页面结构，设计测试方案"
+    contract:
+      input: ["PAGE_CONTEXT.md", "TEST_CASES.md"]
+      output: ["TEST_DESIGN.md"]
+      stability: core
+
+  - id: test-design/page-observe
+    file: skills/test-design/page-observe.md
+    category: test-design
+    description: "观察页面 DOM 结构，提取可测元素"
+    contract:
+      input: ["页面 URL", "登录凭证"]
+      output: ["PAGE_CONTEXT.md"]
+      stability: core
+
+  - id: test-design/risk-modeling
+    file: skills/test-design/risk-modeling.md
+    category: test-design
+    description: "评估页面测试风险等级"
+    contract:
+      input: ["PAGE_CONTEXT.md", "TEST_CASES.md"]
+      output: ["RISK_MODEL.md"]
+      stability: core
+
+  - id: test-design/testcase-design
+    file: skills/test-design/testcase-design.md
+    category: test-design
+    description: "设计页面级测试用例"
+    contract:
+      input: ["PAGE_CONTEXT.md", "RISK_MODEL.md"]
+      output: ["TEST_CASES.md"]
+      stability: core
+
+  - id: test-design/pair-seed
+    file: skills/test-design/pair-seed.md
+    category: test-design
+    description: "生成配对测试数据种子"
+    contract:
+      input: ["TEST_CASES.md", "PAGE_CONTEXT.md"]
+      output: ["测试数据种子文件"]
+      stability: extended
+
+  # ── automation ──
+  - id: automation/tech-analysis
+    file: skills/automation/tech-analysis.md
+    category: automation
+    description: "分析技术栈，确定自动化方案"
+    contract:
+      input: ["TEST_DESIGN.md", "PAGE_CONTEXT.md"]
+      output: ["TECH_ANALYSIS.md"]
+      stability: core
+
+  - id: automation/auto-strategy
+    file: skills/automation/auto-strategy.md
+    category: automation
+    description: "制定自动化测试策略"
+    contract:
+      input: ["TEST_CASES.md", "TECH_ANALYSIS.md", "RISK_MODEL.md"]
+      output: ["AUTO_STRATEGY.md"]
+      stability: core
+
+  - id: automation/page-object-generator
+    file: skills/automation/page-object-generator.md
+    category: automation
+    description: "生成 Page Object 模式代码"
+    contract:
+      input: ["PAGE_CONTEXT.md"]
+      output: ["{Page}Page.py"]
+      stability: core
+
+  - id: automation/test-script-generator
+    file: skills/automation/test-script-generator.md
+    category: automation
+    description: "生成 pytest 测试脚本"
+    contract:
+      input: ["TEST_CASES.md", "{Page}Page.py"]
+      output: ["test_{page}.py"]
+      stability: core
+
+  - id: automation/code-consistency-checker
+    file: skills/automation/code-consistency-checker.md
+    category: automation
+    description: "检查自动化代码一致性"
+    contract:
+      input: ["Page Object", "测试脚本"]
+      output: ["一致性检查报告"]
+      stability: extended
+
+  # ── execution ──
+  - id: execution/env-checker
+    file: skills/execution/env-checker.md
+    category: execution
+    description: "检查测试环境可用性"
+    contract:
+      input: ["环境 URL", "测试账号"]
+      output: ["环境检查报告"]
+      stability: core
+
+  - id: execution/data-preparer
+    file: skills/execution/data-preparer.md
+    category: execution
+    description: "准备测试执行所需数据"
+    contract:
+      input: ["测试数据种子", "环境信息"]
+      output: ["已准备的测试数据"]
+      stability: extended
+
+  - id: execution/allure-report-analyzer
+    file: skills/execution/allure-report-analyzer.md
+    category: execution
+    description: "分析测试执行结果"
+    contract:
+      input: ["Allure 报告数据"]
+      output: ["执行结果摘要", "失败用例列表"]
+      stability: core
+
+  - id: execution/excel-exporter
+    file: skills/execution/excel-exporter.md
+    category: execution
+    description: "导出测试用例为 Excel 文件"
+    contract:
+      input: ["TEST_CASES.md"]
+      output: ["{page}-testcases.xlsx"]
+      stability: extended
+
+  - id: execution/evidence-collector
+    file: skills/execution/evidence-collector.md
+    category: execution
+    description: "收集测试失败的证据"
+    contract:
+      input: ["失败用例信息"]
+      output: ["证据包"]
+      stability: extended
+
+  - id: execution/data-sanitization
+    file: skills/execution/data-sanitization.md
+    category: execution
+    description: "清理测试数据，避免环境污染"
+    contract:
+      input: ["测试执行记录", "测试数据种子"]
+      output: ["清理后的数据摘要"]
+      stability: extended
+
+  # ── diagnosis ──
+  - id: diagnosis/bug-analysis
+    file: skills/diagnosis/bug-analysis.md
+    category: diagnosis
+    description: "分析失败用例，定位根因"
+    contract:
+      input: ["失败用例信息", "错误日志"]
+      output: ["根因分析", "修复建议"]
+      stability: core
+
+  - id: diagnosis/root-cause-analyzer
+    file: skills/diagnosis/root-cause-analyzer.md
+    category: diagnosis
+    description: "定位测试失败的根本原因"
+    contract:
+      input: ["失败用例", "证据包"]
+      output: ["根因分类", "修复方案"]
+      stability: core
+
+  # ── reporting ──
+  - id: reporting/report-generator
+    file: skills/reporting/report-generator.md
+    category: reporting
+    description: "生成结构化测试报告"
+    contract:
+      input: ["执行结果", "根因分析", "覆盖率数据"]
+      output: ["测试报告.md"]
+      stability: core
+
+  # ── knowledge ──
+  - id: knowledge/knowledge-manager
+    file: skills/knowledge/knowledge-manager.md
+    category: knowledge
+    description: "沉淀测试知识，更新知识库"
+    contract:
+      input: ["测试报告", "根因分析"]
+      output: ["知识条目更新"]
+      stability: extended
+
+  - id: knowledge/completeness-check
+    file: skills/knowledge/completeness-check.md
+    category: knowledge
+    description: "检查知识库完整性"
+    contract:
+      input: ["已有知识条目", "模块列表"]
+      output: ["缺失知识清单"]
+      stability: extended

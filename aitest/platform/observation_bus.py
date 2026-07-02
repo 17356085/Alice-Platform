@@ -143,24 +143,7 @@ def get_bus() -> ObservationBus:
     global _bus
     if _bus is None:
         _bus = ObservationBus()
-        # ── Task 3b (P0): Register MemoryObserver subscribers ──
-        _register_memory_observer(_bus)
     return _bus
-
-
-def _register_memory_observer(bus: ObservationBus) -> None:
-    """Subscribe MemoryObserver to SKILL_FAILED / SKILL_COMPLETE events.
-
-    Lazy import to avoid circular dependency at module load time.
-    """
-    try:
-        from aitest.platform.memory_observer import (
-            on_skill_failed, on_skill_complete,
-        )
-        bus.subscribe(EventType.SKILL_FAILED, on_skill_failed)
-        bus.subscribe(EventType.SKILL_COMPLETE, on_skill_complete)
-    except Exception:
-        pass  # memory_observer is optional — platform works without it
 
 
 # ══════════════════════════════════════════════════════════════════════════

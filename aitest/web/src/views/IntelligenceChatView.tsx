@@ -59,7 +59,6 @@ export default function IntelligenceChatView() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
   }
 
-  function selSuggestion(q: string) { setInput(q); /* will send in next tick via useEffect? No — manually call send */ }
   function clickSuggestion(q: string) {
     setInput(q)
     // Need to send after state update. Use setTimeout to ensure input is set.

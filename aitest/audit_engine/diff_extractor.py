@@ -91,7 +91,8 @@ def extract_diff_json(
         return _parse_unified_diff(diff_text, context_lines)
 
     except Exception as e:
-        print(f"[DiffExtractor] Error: {e}")
+        import logging
+        logging.getLogger(__name__).warning(f"DiffExtractor error: {e}")
         return []
 
 

@@ -25,7 +25,7 @@ export interface ModuleInfo {
 }
 
 export interface KanbanColumn {
-  key: string; label: string; icon: any; idx: number
+  key: string; label: string; icon: React.ComponentType<{ className?: string }>; idx: number
 }
 
 // ── Constants ──────────────────────────────────────────────────
@@ -145,8 +145,8 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
       const qs = projectId ? `?project=${encodeURIComponent(projectId)}` : ''
       const data = await api.get<{ modules: Record<string, ModuleInfo>; sop_phases: string[] }>(ENDPOINTS.SOP_STATUS + qs)
       set({ modules: data.modules || {}, sopPhases: data.sop_phases || [], loading: false })
-    } catch (e: any) {
-      set({ error: e.message, loading: false })
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : String(e), loading: false })
     }
   },
 
@@ -233,7 +233,7 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
         delete next[taskId]
         return { pausedTasks: next }
       })
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(`[kanban] Failed to resume task ${taskId}:`, e)
     }
   },

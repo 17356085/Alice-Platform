@@ -179,9 +179,9 @@ async def get_health_response() -> dict:
     # Platform Consumers
     try:
         from aitest.platform.audit_log import get_audit_logger
-        from aitest.platform.metrics_consumer import get_metrics_consumer
-        from aitest.platform.quota_usage import get_quota_usage
-        from aitest.platform.billing_hook import get_billing_hook
+        from aitest.platform.hooks.metrics_consumer import get_metrics_consumer
+        from aitest.platform.hooks.quota_usage import get_quota_usage
+        from aitest.platform.hooks.billing_hook import get_billing_hook
         from aitest.platform.event_bus import get_bus
         from aitest.platform.run_store import get_run_store
         from aitest.server.api.terminal import get_agent_terminal_ws

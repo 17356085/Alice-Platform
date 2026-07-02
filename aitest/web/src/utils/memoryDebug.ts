@@ -4,6 +4,15 @@
  *
  * Usage: http://localhost:15173/?debug=1
  */
+
+// Chrome-specific performance.memory API
+interface ChromeMemory {
+  usedJSHeapSize: number; jsHeapSizeLimit: number; totalJSHeapSize: number
+}
+declare global {
+  interface Performance { memory?: ChromeMemory }
+}
+
 export function initMemoryDebug() {
   if (!location.search.includes('debug=1')) return
 
@@ -20,11 +29,12 @@ export function initMemoryDebug() {
 
   // ── Collect stats ──
   function stats() {
-    const mem = (performance as any).memory
+    const mem = performance.memory
     const heapMB = mem ? (mem.usedJSHeapSize / 1024 / 1024).toFixed(1) : '?'
     const heapLimitMB = mem ? (mem.jsHeapSizeLimit / 1024 / 1024).toFixed(0) : '?'
     const domNodes = document.querySelectorAll('*').length
-    const vueApps = (document.getElementById('app') as any)?._vnode ? 1 : 0
+    const appEl = document.getElementById('app') as HTMLElement & { _vnode?: unknown } | null
+    const vueApps = appEl?._vnode ? 1 : 0
 
     return [
       `Heap: ${heapMB} / ${heapLimitMB} MB`,

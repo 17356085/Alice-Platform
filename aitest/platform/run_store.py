@@ -191,6 +191,7 @@ class RunStore:
         workspace_id: str = "",
         org_id: str = "",
         status: str = "",
+        request_id: str = "",
         limit: int = 50,
         offset: int = 0,
     ) -> list[Run]:
@@ -206,6 +207,9 @@ class RunStore:
         if status:
             where.append("status = ?")
             params.append(status)
+        if request_id:
+            where.append("request_id = ?")
+            params.append(request_id)
 
         sql = "SELECT * FROM runs"
         if where:

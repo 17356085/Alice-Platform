@@ -17,3 +17,10 @@ discovery:
 
 knowledge:
   chroma_namespace: "BlueAlbum"
+
+test_project:
+  code_path: "D:\Desktop\BlueAlbum\tests"
+  type: "pytest-selenium"
+  categories:
+    - smoke
+    - functional

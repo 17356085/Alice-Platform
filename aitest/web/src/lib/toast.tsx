@@ -25,5 +25,5 @@ export function Toaster() {
 
 // Expose globally for non-React callers
 if (typeof window !== 'undefined') {
-  (window as any).__tlo_toast = { add: toast }
+  window.__tlo_toast = { add: toast }
 }

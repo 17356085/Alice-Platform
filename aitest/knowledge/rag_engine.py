@@ -747,21 +747,21 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
-        print("Usage: python rag_engine.py index|search|status")
+        logger.info("Usage: python rag_engine.py index|search|status")
         sys.exit(0)
 
     cmd = sys.argv[1]
 
     if cmd == "index":
-        print("Building indices...")
+        logger.info("Building indices...")
         results = index_all()
         for name, count in results.items():
-            print(f"  {name}: {count} documents")
-        print(f"Done. Data: {CHROMA_DIR}")
+            logger.info(f"  {name}: {count} documents")
+        logger.info(f"Done. Data: {CHROMA_DIR}")
 
     elif cmd == "search":
         if len(sys.argv) < 3:
-            print("Usage: python rag_engine.py search '<query>' [collection]")
+            logger.info("Usage: python rag_engine.py search '<query>' [collection]")
             sys.exit(1)
         query = sys.argv[2]
         coll = sys.argv[3] if len(sys.argv) > 3 else "known_issues"
@@ -773,12 +773,12 @@ if __name__ == "__main__":
         else:
             results = search_context(query, coll)
         for r in results:
-            print(f"  [{r['id']}] dist={r['distance']:.4f} | {r['metadata']}")
-            print(f"    {r['document'][:200]}")
-            print()
+            logger.info(f"  [{r['id']}] dist={r['distance']:.4f} | {r['metadata']}")
+            logger.info(f"    {r['document'][:200]}")
+            logger.info()
 
     elif cmd == "status":
         client = get_chroma_client()
         collections = client.list_collections()
         for c in collections:
-            print(f"  {c.name}: {c.count()} docs | {c.metadata}")
+            logger.info(f"  {c.name}: {c.count()} docs | {c.metadata}")

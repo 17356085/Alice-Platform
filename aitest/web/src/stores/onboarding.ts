@@ -25,6 +25,39 @@ export interface PageInfo {
 }
 
 const MAX_ERRORS = 50
+const SESSION_STORAGE_KEY = 'tlo-onboarding-session'
+
+function saveSessionToStorage(state: Partial<OnboardingState>) {
+  try {
+    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
+      sessionId: state.sessionId,
+      projectId: state.projectId,
+      baseUrl: state.baseUrl,
+      sourceType: state.sourceType,
+      projectPath: state.projectPath,
+      step: state.step,
+      savedAt: Date.now(),
+    }))
+  } catch { /* quota exceeded */ }
+}
+
+function clearSessionFromStorage() {
+  try { sessionStorage.removeItem(SESSION_STORAGE_KEY) } catch { /* */ }
+}
+
+export function getStoredSession(): { sessionId: string; projectId: string; baseUrl: string; sourceType: 'url' | 'local'; projectPath: string; step: string } | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    // Expire after 2 hours (matches backend TTL)
+    if (Date.now() - parsed.savedAt > 2 * 60 * 60 * 1000) {
+      sessionStorage.removeItem(SESSION_STORAGE_KEY)
+      return null
+    }
+    return parsed
+  } catch { return null }
+}
 
 // ── Selectors ──────────────────────────────────────────────────
 
@@ -45,12 +78,14 @@ export interface OnboardingState {
   menuTree: MenuNode[]; pages: PageInfo[]
   errors: string[]; result: Record<string, any> | null
   isRunning: boolean; wsConnected: boolean
+  checkpoint: Record<string, any> | null   // partial results from previous cancelled session
 
-  start: (url: string, pid: string, username: string, password: string) => Promise<void>
+  start: (url: string, pid: string, username: string, password: string, outputPath?: string, resume?: boolean) => Promise<void>
   pollStatus: () => Promise<void>
   confirmMenu: (editedMenu?: MenuNode[]) => Promise<void>
   cancel: () => Promise<void>
   reset: () => void
+  restore: (saved: { sessionId: string; projectId: string; baseUrl: string; sourceType: 'url' | 'local'; projectPath: string }) => void
 }
 
 export const useOnboardingStore = create<OnboardingState>((set, get) => ({
@@ -61,24 +96,37 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
   menuTree: [], pages: [],
   errors: [], result: null,
   isRunning: false, wsConnected: false,
+  checkpoint: null,
 
-  async start(url: string, pid: string, username: string, password: string) {
-    set({ isRunning: true, errors: [], projectId: pid, baseUrl: url })
+  async start(url: string, pid: string, username: string, password: string, outputPath: string = '', resume: boolean = false) {
     const { sourceType, projectPath } = get()
+    set({ isRunning: true, errors: [], projectId: pid, baseUrl: url })
     try {
-      const data = await api.post<{ session_id: string; step: string }>(ENDPOINTS.ONBOARDING_START, {
+      const data = await api.post<{ session_id: string; step: string; progress: number; checkpoint: Record<string, unknown> | null }>(ENDPOINTS.ONBOARDING_START, {
         url: sourceType === 'url' ? url : '',
         project_id: pid,
         username, password,
         source_type: sourceType,
         project_path: sourceType === 'local' ? projectPath : '',
+        output_path: outputPath,
+        resume: resume,
         observe_pages: sourceType === 'url',
         generate_page_objects: false,
       })
-      set({ sessionId: data.session_id, step: data.step, progress: 0 })
-    } catch (e: any) {
+      set(s => {
+        const updates: Partial<OnboardingState> = {
+          sessionId: data.session_id,
+          step: data.step,
+          progress: data.progress ?? 0,
+          checkpoint: data.checkpoint ?? null,
+        }
+        saveSessionToStorage({ ...s, ...updates })
+        return updates
+      })
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
       set(state => ({
-        errors: state.errors.length < MAX_ERRORS ? [...state.errors, `Start failed: ${e.message}`] : state.errors,
+        errors: state.errors.length < MAX_ERRORS ? [...state.errors, `Start failed: ${msg}`] : state.errors,
         isRunning: false,
       }))
     }
@@ -98,12 +146,27 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
         if (state.pages?.length) updates.pages = state.pages
         if (state.errors?.length) updates.errors = state.errors
         if (state.result) updates.result = state.result
-        if (['completed', 'failed', 'cancelled'].includes(state.step)) updates.isRunning = false
-        return updates as any
+        if (['completed', 'failed', 'cancelled'].includes(state.step)) {
+          updates.isRunning = false
+          clearSessionFromStorage()
+        }
+        // Persist step for refresh recovery
+        if (!['completed', 'failed', 'cancelled'].includes(state.step)) {
+          saveSessionToStorage({ ...s, ...updates })
+        }
+        return updates as Partial<OnboardingState>
       })
-    } catch (e: any) {
+    } catch (e: unknown) {
+      // 404 = session expired (server restart, TTL, etc.) → auto-reset
+      const status = (e as { status?: number }).status
+      const msg = e instanceof Error ? e.message : String(e)
+      if (status === 404 || msg.includes('404')) {
+        clearSessionFromStorage()
+        set({ isRunning: false, step: 'failed', errors: ['Session expired — server may have restarted. Please try again.'] })
+        return
+      }
       set(s => ({
-        errors: s.errors.length < MAX_ERRORS ? [...s.errors, `Poll error: ${e.message}`]
+        errors: s.errors.length < MAX_ERRORS ? [...s.errors, `Poll error: ${msg}`]
               : s.errors.length === MAX_ERRORS ? [...s.errors.slice(1), '⚠️ Error log full'] : s.errors,
       }))
     }
@@ -123,10 +186,26 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
     const { sessionId } = get()
     if (!sessionId) return
     try { await api.post(ENDPOINTS.ONBOARDING_CANCEL(sessionId)) } catch { /* ignore */ }
-    set({ isRunning: false, step: 'cancelled' })
+    // Don't clear sessionStorage — keep checkpoint data for potential resume
+    set(s => {
+      saveSessionToStorage({ ...s, step: 'cancelled', isRunning: false })
+      return { isRunning: false, step: 'cancelled' }
+    })
+  },
+
+  restore(saved: { sessionId: string; projectId: string; baseUrl: string; sourceType: 'url' | 'local'; projectPath: string }) {
+    set({
+      sessionId: saved.sessionId,
+      projectId: saved.projectId,
+      baseUrl: saved.baseUrl,
+      sourceType: saved.sourceType,
+      projectPath: saved.projectPath,
+      isRunning: true,
+    })
   },
 
   reset() {
+    clearSessionFromStorage()
     set({
       sessionId: '', projectId: '', baseUrl: '',
       step: 'init', progress: 0,
@@ -134,6 +213,7 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       menuTree: [], pages: [],
       errors: [], result: null,
       isRunning: false, wsConnected: false,
+      checkpoint: null,
     })
   },
 }))

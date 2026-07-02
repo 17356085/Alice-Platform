@@ -58,7 +58,6 @@ export default function GapDiscoveryView() {
       {/* Filters */}
       <div className="flex gap-2 mb-4 flex-wrap">
         <button onClick={() => setSelectedType('all')} className={`filter-chip ${selectedType === 'all' ? 'active' : ''}`}>全部</button>
-        {Object.values(useGapScanner).length ? null : null}
         <button onClick={() => setSelectedType('missing_test')} className={`filter-chip ${selectedType === 'missing_test' ? 'active' : ''}`}>❌ 缺失测试</button>
         <button onClick={() => setSelectedType('missing_type')} className={`filter-chip ${selectedType === 'missing_type' ? 'active' : ''}`}>⚠️ 缺失类型</button>
         <button onClick={() => setSelectedType('low_coverage')} className={`filter-chip ${selectedType === 'low_coverage' ? 'active' : ''}`}>📉 覆盖不足</button>

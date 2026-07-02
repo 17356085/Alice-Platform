@@ -205,10 +205,10 @@ async def resume_execution(request_id: str):
     from aitest.platform.run_store import get_run_store
 
     try:
-        # Resolve request_id → run_id
+        # Resolve request_id → run_id (indexed query, no O(n) scan)
         rs = get_run_store()
-        runs = rs.list_runs(limit=500)
-        run = next((r for r in runs if r.request_id == request_id), None)
+        runs = rs.list_runs(request_id=request_id, limit=1)
+        run = runs[0] if runs else None
 
         if run is None:
             raise HTTPException(status_code=404, detail=f"Execution '{request_id}' not found")
@@ -295,6 +295,191 @@ async def get_run_debug(run_id: str):
             "tool_calls_detail": tool_calls[:50],
         },
     }
+
+
+# ── GET /api/runs/:run_id/inspector ──────────────────────────────────
+
+@execution_router.get("/runs/{run_id}/inspector")
+async def get_run_inspector(run_id: str):
+    """Run Inspector — comprehensive execution detail for full-page view.
+
+    Aggregates Run + RunEvents + Timeline + Artifacts + Phase breakdown.
+    Pure consumer of Frozen Core (Run + RunEvent). No mutation.
+    """
+    from aitest.platform.run_store import get_run_store
+    from aitest.platform.timeline import build_timeline, timeline_summary
+    from aitest.platform.run_event import EventType
+
+    rs = get_run_store()
+    run = rs.load_run(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
+
+    events = rs.list_events(run_id, limit=500)
+
+    # ── Header ──
+    started = run.created_at
+    ended = run.completed_at or started
+    duration_ms = 0
+    try:
+        from datetime import datetime
+        s = datetime.fromisoformat(started)
+        e = datetime.fromisoformat(ended)
+        duration_ms = int((e - s).total_seconds() * 1000)
+    except Exception:
+        pass
+
+    header = {
+        "run_id": run.run_id,
+        "request_id": run.request_id,
+        "workspace_id": run.workspace_id,
+        "org_id": run.org_id,
+        "triggered_by": run.triggered_by,
+        "capability": run.capability,
+        "agent": run.agent,
+        "module": run.module,
+        "pages": run.pages,
+        "mode": run.mode,
+        "status": run.status,
+        "created_at": run.created_at,
+        "completed_at": run.completed_at,
+        "duration_ms": duration_ms,
+        "total_tokens": run.total_tokens,
+        "total_cost": run.total_cost,
+        "agent_runs": run.agent_runs,
+        "artifacts_count": len(run.artifacts),
+        "error_message": run.error_message,
+    }
+
+    # ── Timeline (from existing module) ──
+    timeline = build_timeline(run_id)
+
+    # ── Phase breakdown ──
+    phases = []
+    phase_events = [e for e in events if e.event_type in (
+        EventType.PHASE_STARTED, EventType.PHASE_COMPLETED
+    )]
+    # Group phase events by phase name
+    phase_map: dict[str, dict] = {}
+    for e in phase_events:
+        name = e.data.get("phase", "unknown") if isinstance(e.data, dict) else "unknown"
+        if name not in phase_map:
+            phase_map[name] = {"name": name, "started_at": None, "completed_at": None, "status": "unknown"}
+        if e.event_type == EventType.PHASE_STARTED:
+            phase_map[name]["started_at"] = e.timestamp
+        elif e.event_type == EventType.PHASE_COMPLETED:
+            phase_map[name]["completed_at"] = e.timestamp
+
+    for name, p in phase_map.items():
+        dur = 0
+        if p["started_at"] and p["completed_at"]:
+            try:
+                from datetime import datetime
+                dur = int((datetime.fromisoformat(p["completed_at"]) - datetime.fromisoformat(p["started_at"])).total_seconds() * 1000)
+            except Exception:
+                pass
+        p["duration_ms"] = dur
+        p["status"] = "completed" if p["completed_at"] else ("running" if p["started_at"] else "pending")
+        phases.append(p)
+    phases.sort(key=lambda p: p.get("started_at") or "")
+
+    # ── Agent calls (LLM interactions) ──
+    agent_calls = []
+    llm_events = [e for e in events if "llm" in e.event_type.lower() or "agent" in e.event_type.lower()]
+    for e in llm_events:
+        d = e.data if isinstance(e.data, dict) else {}
+        agent_calls.append({
+            "event_id": e.event_id,
+            "event_type": e.event_type,
+            "timestamp": e.timestamp,
+            "agent": d.get("agent", ""),
+            "prompt": d.get("prompt", "")[:2000] if d.get("prompt") else "",
+            "response": d.get("response", "")[:2000] if d.get("response") else "",
+            "tokens": d.get("tokens", 0),
+            "cost": d.get("cost", 0),
+            "tool_calls": d.get("tool_calls", []) if isinstance(d.get("tool_calls"), list) else [],
+        })
+
+    # ── Artifacts ──
+    artifact_events = [e for e in events if e.event_type == EventType.ARTIFACT_CREATED]
+    artifacts = []
+    for e in artifact_events:
+        d = e.data if isinstance(e.data, dict) else {}
+        artifacts.append({
+            "event_id": e.event_id,
+            "timestamp": e.timestamp,
+            "path": d.get("path", ""),
+            "type": d.get("type", "unknown"),
+            "size": d.get("size", 0),
+            "mime_type": d.get("mime_type", ""),
+            "source_phase": d.get("phase", ""),
+        })
+
+    # ── Logs (all events as structured log) ──
+    logs = []
+    for e in events:
+        d = e.data if isinstance(e.data, dict) else {}
+        level = "error" if "fail" in e.event_type.lower() or "error" in e.event_type.lower() else \
+                "warn" if "cancel" in e.event_type.lower() or "timeout" in e.event_type.lower() else \
+                "info"
+        logs.append({
+            "timestamp": e.timestamp,
+            "level": level,
+            "event_type": e.event_type,
+            "message": d.get("message", "") or d.get("error", "") or e.event_type,
+        })
+
+    # ── Execution tree (phase → step → action) ──
+    execution_tree = _build_execution_tree(events, phases)
+
+    return {
+        "header": header,
+        "timeline": timeline,
+        "phases": phases,
+        "agent_calls": agent_calls,
+        "artifacts": artifacts,
+        "logs": logs,
+        "execution_tree": execution_tree,
+        "summary": timeline_summary(run_id),
+    }
+
+
+def _build_execution_tree(events: list, phases: list[dict]) -> list[dict]:
+    """Build nested execution tree: Phase → Step → Action."""
+    from aitest.platform.run_event import EventType
+
+    tree = []
+    current_phase: dict | None = None
+
+    for e in events:
+        if e.event_type == EventType.PHASE_STARTED:
+            name = e.data.get("phase", "unknown") if isinstance(e.data, dict) else "unknown"
+            current_phase = {
+                "type": "phase",
+                "name": name,
+                "timestamp": e.timestamp,
+                "status": "running",
+                "children": [],
+            }
+            tree.append(current_phase)
+        elif e.event_type == EventType.PHASE_COMPLETED and current_phase:
+            current_phase["status"] = "completed"
+            current_phase = None
+        elif e.event_type == EventType.ARTIFACT_CREATED and current_phase:
+            d = e.data if isinstance(e.data, dict) else {}
+            current_phase["children"].append({
+                "type": "artifact",
+                "name": d.get("path", "unknown"),
+                "timestamp": e.timestamp,
+                "status": "created",
+            })
+        elif e.event_type == EventType.RUN_FAILED:
+            if current_phase:
+                current_phase["status"] = "failed"
+            if tree:
+                tree[-1]["status"] = "failed"
+
+    return tree
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -411,6 +596,32 @@ async def audit_stats(org_id: str = ""):
 
     logger = get_audit_logger()
     return logger.stats(org_id=org_id)
+
+
+# ── GET /api/runs/:run_id/report ──────────────────────────────────────
+
+@execution_router.get("/runs/{run_id}/report")
+async def get_run_report(run_id: str):
+    """AI-generated execution summary for a Run. Returns None if not yet generated."""
+    from aitest.platform.hooks.report_consumer import get_report_consumer
+
+    rc = get_report_consumer()
+    report = rc.get_report(run_id)
+    if report is None:
+        return {"run_id": run_id, "report": None, "message": "Report not yet generated. Reports are auto-generated on run completion."}
+    return {"run_id": run_id, "report": report}
+
+
+# ── GET /api/reports ───────────────────────────────────────────────────
+
+@execution_router.get("/reports")
+async def list_reports(limit: int = 50):
+    """List all generated AI reports."""
+    from aitest.platform.hooks.report_consumer import get_report_consumer
+
+    rc = get_report_consumer()
+    reports = rc.list_reports(limit=min(limit, 100))
+    return {"reports": reports, "total": len(reports)}
 
 
 # ══════════════════════════════════════════════════════════════════════════

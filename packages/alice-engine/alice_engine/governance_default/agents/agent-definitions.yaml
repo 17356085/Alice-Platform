@@ -1,0 +1,81 @@
+# Agent Definitions — alice-engine default behavior pack
+# 每个 agent 绑定多个 skill，覆盖完整测试流程。
+
+version: "1.0"
+description: "alice-engine default governance pack"
+
+agents:
+  project-agent:
+    name: "Project Agent"
+    phase: "Project Init"
+    description: "初始化项目上下文，发现模块和页面"
+    skills:
+      - project/project-context-manager
+      - project/context-sync
+      - project/hygiene-check
+      - knowledge/completeness-check
+
+  requirement-agent:
+    name: "Requirement Agent"
+    phase: "Requirement"
+    description: "分析需求，建模模块结构"
+    skills:
+      - requirements/module-modeling
+      - requirements/requirement-analysis
+
+  test-design-agent:
+    name: "Test Design Agent"
+    phase: "Test Design"
+    description: "设计测试用例，评估风险"
+    skills:
+      - test-design/page-analysis
+      - test-design/page-observe
+      - test-design/risk-modeling
+      - test-design/testcase-design
+      - test-design/pair-seed
+
+  automation-agent:
+    name: "Automation Agent"
+    phase: "Automation"
+    description: "分析技术栈，生成自动化代码"
+    skills:
+      - automation/tech-analysis
+      - automation/auto-strategy
+      - automation/page-object-generator
+      - automation/test-script-generator
+      - automation/code-consistency-checker
+
+  execution-agent:
+    name: "Execution Agent"
+    phase: "Execute & Debug"
+    description: "执行测试，收集证据"
+    skills:
+      - execution/env-checker
+      - execution/data-preparer
+      - execution/allure-report-analyzer
+      - execution/excel-exporter
+      - execution/evidence-collector
+      - execution/data-sanitization
+
+  bug-analysis-agent:
+    name: "Bug Analysis Agent"
+    phase: "Bug Analysis"
+    description: "分析失败用例，定位根因"
+    skills:
+      - diagnosis/bug-analysis
+      - diagnosis/root-cause-analyzer
+
+  report-agent:
+    name: "Report Agent"
+    phase: "Report"
+    description: "生成测试报告"
+    skills:
+      - reporting/report-generator
+
+  knowledge-agent:
+    name: "Knowledge Agent"
+    phase: "Knowledge"
+    description: "沉淀知识，更新知识库"
+    skills:
+      - knowledge/knowledge-manager
+      - knowledge/completeness-check

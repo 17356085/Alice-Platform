@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alice-governance-suite"
+version = "1.0.0"
+description = "Alice Engine — Governance Suite (skills-dev + sop_dev + validators)"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["alice_governance_suite*"]
+
+[tool.setuptools.package-data]
+alice_governance_suite = [
+    "skills-dev/**/*.yaml",
+    "skills-dev/**/*.md",
+    "sop_dev/**/*.yaml",
+    "sop_dev/**/*.md",
+    "validators/**/*.py",
+]

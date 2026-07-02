@@ -21,6 +21,11 @@ from pathlib import Path
 from datetime import datetime
 
 from aitest.platform.paths import get_context_modules
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 CONTEXT_MODULES = get_context_modules()
 
 # 默认审计间隔（秒）
@@ -96,15 +101,15 @@ def run_scheduled(interval: int = DEFAULT_INTERVAL, modules: list[str] = None):
     if modules is None:
         modules = discover_modules()
 
-    print(f"[ScheduledAudit] Started. Interval={interval}s, Modules={modules}")
-    print(f"[ScheduledAudit] Press Ctrl+C to stop.\n")
+    logger.info(f"[ScheduledAudit] Started. Interval={interval}s, Modules={modules}")
+    logger.info(f"[ScheduledAudit] Press Ctrl+C to stop.\n")
 
     iteration = 0
     try:
         while True:
             iteration += 1
             started = time.time()
-            print(f"[ScheduledAudit] #{iteration} — {datetime.now().strftime('%H:%M:%S')}")
+            logger.info(f"[ScheduledAudit] #{iteration} — {datetime.now().strftime('%H:%M:%S')}")
 
             results = run_all_audits(modules)
 
@@ -119,14 +124,14 @@ def run_scheduled(interval: int = DEFAULT_INTERVAL, modules: list[str] = None):
             )
             cost_alerts = (results.get("cost_audit") or {}).get("alert_count", 0)
 
-            print(f"  State:  {state_drifts} drifts across {len(results['state_audits'])} modules")
-            print(f"  SOP:    {sop_violations} violations across {len(results['sop_audits'])} modules")
-            print(f"  Cost:   {cost_alerts} alerts, ${results.get('cost_audit', {}).get('total_cost', 0):.4f}")
-            print(f"  Done in {time.time() - started:.1f}s\n")
+            logger.info(f"  State:  {state_drifts} drifts across {len(results['state_audits'])} modules")
+            logger.info(f"  SOP:    {sop_violations} violations across {len(results['sop_audits'])} modules")
+            logger.info(f"  Cost:   {cost_alerts} alerts, ${results.get('cost_audit', {}).get('total_cost', 0):.4f}")
+            logger.info(f"  Done in {time.time() - started:.1f}s\n")
 
             time.sleep(interval)
     except KeyboardInterrupt:
-        print(f"\n[ScheduledAudit] Stopped. {iteration} iterations completed.")
+        logger.info(f"\n[ScheduledAudit] Stopped. {iteration} iterations completed.")
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -152,12 +157,12 @@ if __name__ == "__main__":
         results = run_all_audits(modules)
         if args.json:
             import json
-            print(json.dumps(results, ensure_ascii=False, indent=2))
+            logger.info(json.dumps(results, ensure_ascii=False, indent=2))
         else:
-            print(f"\nModules audited: {len(modules)}")
-            print(f"State drifts: {sum(r.get('drift_count', 0) for r in results['state_audits'].values())}")
-            print(f"SOP violations: {sum(r.get('violations', 0) for r in results['sop_audits'].values())}")
+            logger.info(f"\nModules audited: {len(modules)}")
+            logger.info(f"State drifts: {sum(r.get('drift_count', 0) for r in results['state_audits'].values())}")
+            logger.info(f"SOP violations: {sum(r.get('violations', 0) for r in results['sop_audits'].values())}")
             cost = results.get("cost_audit", {})
-            print(f"Cost: ${cost.get('total_cost', 0):.4f}, {cost.get('alert_count', 0)} alerts")
+            logger.info(f"Cost: ${cost.get('total_cost', 0):.4f}, {cost.get('alert_count', 0)} alerts")
     else:
         run_scheduled(interval=args.interval, modules=modules)

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Globe, FolderOpen, FileCode, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react'
 import { api } from '../../api/client'
 import { ENDPOINTS } from '../../api/endpoints'
+import { pickFolder } from '../../lib/browseFolder'
 
 interface StepChooseSourceProps {
   onChoose: (sourceType: 'url' | 'local', value: string) => void
@@ -46,7 +47,7 @@ export default function StepChooseSource({ onChoose }: StepChooseSourceProps) {
       if (!result.exists) { setPathError(result.error || '路径不存在'); return false }
       if (!result.has_package_json) { setPathError(result.error || '未找到 package.json'); return false }
       return true
-    } catch (e: any) { setPathError(`验证失败: ${e.message}`); return false }
+    } catch (e: unknown) { setPathError(`验证失败: ${e instanceof Error ? e.message : String(e)}`); return false }
     finally { setPathValidating(false) }
   }
 
@@ -62,24 +63,12 @@ export default function StepChooseSource({ onChoose }: StepChooseSourceProps) {
   }
 
   async function browseFolder() {
-    if ('showDirectoryPicker' in window) {
-      try {
-        const handle = await (window as any).showDirectoryPicker()
-        const p = handle.path || handle.name || ''
-        setProjectPath(p)
-        if (!handle.path) setPathError(`已选择 "${handle.name}"，请手动补全完整路径`)
-      } catch { /* cancelled */ }
+    const path = await pickFolder()
+    if (path) {
+      setProjectPath(path)
     } else {
-      const input = document.createElement('input'); input.type = 'file'
-      ;(input as any).webkitdirectory = true
-      input.onchange = (e: any) => {
-        if (e.target.files?.length) {
-          const folder = e.target.files[0].webkitRelativePath.split('/')[0]
-          setProjectPath(folder)
-          setPathError(`已选择 "${folder}"，请手动补全完整路径`)
-        }
-      }
-      input.click()
+      // Browser couldn't get a path — user must type it
+      setPathError('无法获取完整路径。请手动输入项目文件夹的完整路径，例如: D:\\Projects\\my-app')
     }
   }
 
@@ -153,8 +142,8 @@ export default function StepChooseSource({ onChoose }: StepChooseSourceProps) {
         .hint { color: var(--muted-foreground); font-size: .75rem; margin: 4px 0 0; }
         .status-row { display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; padding: 8px 12px; border-radius: var(--radius-md); font-size: .8rem; }
         .status-row.validating { background: var(--secondary); color: var(--secondary-foreground); }
-        .status-row.success { background: #d4edda; color: #155724; }
-        .status-row.warning { background: #fff3cd; color: #856404; flex-direction: column; }
+        .status-row.success { background: hsl(var(--success-light)); color: hsl(var(--success)); }
+        .status-row.warning { background: hsl(var(--warning-light)); color: hsl(var(--warning)); flex-direction: column; }
         .suggestions { margin-top: 4px; }
         .suggestions p { margin: 2px 0; font-size: .75rem; opacity: .85; }
         .error-msg { color: var(--destructive); font-size: .82rem; margin: 8px 0; }

@@ -20,6 +20,11 @@ from dataclasses import dataclass, field
 from typing import Optional
 from aitest.platform.paths import get_workstudy
 
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 WORKSTUDY = get_workstudy()
 REVIEW_QUEUE_DIR = WORKSTUDY / "governance" / ".review_queue"
 
@@ -206,8 +211,8 @@ def check_and_enqueue(dry_run: bool = False) -> list[ReviewTask]:
         if new_entries:
             existing.extend(new_entries)
             queue_file.write_text(json.dumps(existing, indent=2, ensure_ascii=False), encoding="utf-8")
-            print(f"[ReviewTrigger] Enqueued {len(new_entries)} review(s): "
-                  f"{', '.join(e['mode'] for e in new_entries)}")
+            logger.info(f"[ReviewTrigger] Enqueued {len(new_entries)} review(s): "
+                        f"{', '.join(e['mode'] for e in new_entries)}")
 
     return tasks
 
@@ -250,7 +255,7 @@ def mark_completed(mode: str) -> None:
         completed["last_full_review"] = datetime.now().isoformat()
     completed[f"last_{mode}_review"] = datetime.now().isoformat()
     completed_file.write_text(json.dumps(completed, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"[ReviewTrigger] Marked '{mode}' review as completed.")
+    logger.info(f"[ReviewTrigger] Marked '{mode}' review as completed.")
 
 
 def clear_queue() -> None:
@@ -259,7 +264,7 @@ def clear_queue() -> None:
     queue_file = REVIEW_QUEUE_DIR / "pending.json"
     if queue_file.exists():
         queue_file.write_text("[]", encoding="utf-8")
-        print("[ReviewTrigger] Queue cleared.")
+        logger.info("[ReviewTrigger] Queue cleared.")
 
 
 def format_queue_summary() -> str:
@@ -287,20 +292,20 @@ if __name__ == "__main__":
     if "--dry-run" in sys.argv:
         tasks = check_and_enqueue(dry_run=True)
         if tasks:
-            print(f"Would enqueue: {[t.mode for t in tasks]}")
+            logger.info(f"Would enqueue: {[t.mode for t in tasks]}")
         else:
-            print("No reviews needed (thresholds not met).")
+            logger.info("No reviews needed (thresholds not met).")
     elif "--list" in sys.argv:
         pending = list_queue()
         if pending:
-            print(json.dumps(pending, indent=2, ensure_ascii=False))
+            logger.info(json.dumps(pending, indent=2, ensure_ascii=False))
         else:
-            print("Queue empty.")
+            logger.info("Queue empty.")
     elif "--clear" in sys.argv:
         clear_queue()
     else:
         tasks = check_and_enqueue()
         if tasks:
-            print(json.dumps([t.__dict__ for t in tasks], indent=2, ensure_ascii=False))
+            logger.info(json.dumps([t.__dict__ for t in tasks], indent=2, ensure_ascii=False))
         else:
-            print("No thresholds exceeded.")
+            logger.info("No thresholds exceeded.")

@@ -97,7 +97,7 @@ class VueComponentExtractor(BaseExtractor):
         extractor = VueComponentExtractor(project_root, framework, file_index)
         components = extractor.extract()
         for comp in components:
-            print(f"{comp.component_name.value}: {len(comp.template_elements)} elements")
+            logger.info(f"{comp.component_name.value}: {len(comp.template_elements)} elements")
     """
 
     def can_extract(self) -> bool:

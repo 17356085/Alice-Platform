@@ -1,0 +1,23 @@
+application:
+  runtime: browser
+  source_type: url
+  type: web
+connection:
+  base_url: https://aiwechatminidemo.cimc-digital.com/
+  login_method: form
+  login_required: true
+discovery:
+  strategy: browser-use
+knowledge:
+  chroma_namespace: test-cimc-aiwechat
+project:
+  id: test-cimc-aiwechat
+  name: test-cimc-aiwechat
+test_project:
+  categories:
+  - smoke
+  - functional
+  - regression
+  code_path: D:/Desktop/TestProject/aiwechat-tests
+  tech: pytest-selenium
+  type: pytest-selenium

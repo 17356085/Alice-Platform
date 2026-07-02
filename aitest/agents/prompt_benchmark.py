@@ -16,7 +16,7 @@ Prompt Benchmark — P2-1: 多版本/多变体对比矩阵 + 自动推荐最优�
         versions=["1.0", "2.0"],
         dataset_tag="smoke",
     )
-    print(result["winner"], result["matrix"])
+    logger.info(result["winner"], result["matrix"])
 
 CLI:
     aitest benchmark prompt <skill_id> --versions=v1.0,v2.0 [--tag=smoke] [--provider=claude]
@@ -362,7 +362,7 @@ if __name__ == "__main__":
 
     if quick_mode and quick_input:
         result = bench.quick_compare(skill, versions, quick_input)
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        logger.info(json.dumps(result, ensure_ascii=False, indent=2))
     else:
         result = bench.compare(skill, versions, dataset_tag=tag)
         _log.info(f"\nSkill: {result['skill_id']}")

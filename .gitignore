@@ -52,6 +52,8 @@ governance/kpi/timeseries/
 
 # Runtime databases
 chat_sessions.db
+tasks.db
+.chroma_testing/
 
 # Local work data
 downloads/
@@ -61,6 +63,7 @@ downloads/
 dist/
 aitest/web/dist/
 aitest/web/dist-test/
+{test_project_root}/
 
 # Node modules
 node_modules/

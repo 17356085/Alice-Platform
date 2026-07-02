@@ -52,8 +52,8 @@ export default function ObservabilityView() {
       if (!res.ok) throw new Error(`${res.status}`)
       setSnap(await res.json())
       setError('')
-    } catch (e: any) {
-      setError(e.message)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e))
     }
   }, [])
 

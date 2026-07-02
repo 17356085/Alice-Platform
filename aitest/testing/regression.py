@@ -29,6 +29,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
 from aitest.platform.paths import get_workstudy
+from aitest.audit_engine.event_bus import emit
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
 WORKSTUDY = get_workstudy()
@@ -609,7 +610,6 @@ def promote_skill_version(skill_id: str, new_version: str, provider: str = "clau
 
         # 发射 PromptChanged 事件
         try:
-            from aitest.audit_engine.event_bus import emit
             emit("PromptChanged",
                  skill_id=skill_id,
                  old_version=old_version,
@@ -628,7 +628,6 @@ def promote_skill_version(skill_id: str, new_version: str, provider: str = "clau
     else:
         # 失败 → 发射 EvalRegressed 事件
         try:
-            from aitest.audit_engine.event_bus import emit
             for failure in gate.failures:
                 emit("EvalRegressed",
                      skill_id=skill_id,

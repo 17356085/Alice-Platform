@@ -1,0 +1,1 @@
+Authorization: Bearer <jwt_access_token>

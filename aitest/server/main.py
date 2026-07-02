@@ -40,6 +40,7 @@ async def lifespan(app: FastAPI):
     from aitest.infra.queue_factory import get_queue, get_backend
     queue = get_queue()
     backend = get_backend()
+    runner = None
     if backend == "sqlite":
         from aitest.infra.task_queue import get_runner
         runner = get_runner()
@@ -81,6 +82,7 @@ async def lifespan(app: FastAPI):
         ("metrics-consumer", activated.get("metrics-consumer")),
         ("billing-hook", activated.get("billing-hook")),
         ("quota-usage", activated.get("quota-usage")),
+        ("report-consumer", activated.get("report-consumer")),
         ("agent-terminal-ws", agent_terminal_ws),
         ("kanban-ws", kanban_ws),
     ]:
@@ -117,8 +119,8 @@ async def lifespan(app: FastAPI):
         from aitest.infra.task_queue import get_queue
         tq = get_queue()
         tq.recover_stale_tasks()
-    except Exception:
-        pass
+    except Exception as e:
+        log.warning("crash_recovery_failed", error=str(e))
 
     log.info("server_started", audit_interval_s=config.audit_interval)
 
@@ -130,26 +132,32 @@ async def lifespan(app: FastAPI):
     cancelled = task_guard.cancel_all()
     log.info("task_guard_cancel_all", cancelled=cancelled)
 
-    # Dispose session stores
+    # Dispose session stores (best-effort — log but don't block shutdown)
     try:
         from aitest.server.api.chat import sessions as _chat_sessions
         _chat_sessions.dispose_all()
-    except Exception:
-        pass
+    except Exception as e:
+        log.warning("chat_sessions_dispose_failed", error=str(e))
     try:
         from aitest.onboarding.project_onboarding_agent import _sessions as _onb_sessions
         _onb_sessions.dispose_all()
-    except Exception:
-        pass
+    except Exception as e:
+        log.warning("onboarding_sessions_dispose_failed", error=str(e))
     try:
         from aitest.server.api.onboarding import _active_agents as _onb_agents
         _onb_agents.dispose_all()
-    except Exception:
-        pass
+    except Exception as e:
+        log.warning("onboarding_agents_dispose_failed", error=str(e))
+
+    # Deactivate subscribers (stop hooks, consumers, dispatchers)
+    from aitest.server.core.subscribers import deactivate_subscribers
+    stopped = await deactivate_subscribers(activated, log)
+    log.info("subscribers_deactivated", count=stopped)
 
     count = lifecycle_registry.dispose_all()
     log.info("lifecycle_dispose_all_complete", count=count)
-    runner.stop()
+    if runner is not None:
+        runner.stop()
     log.info("server_shutdown_complete")
 
 

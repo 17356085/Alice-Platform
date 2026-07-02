@@ -272,8 +272,8 @@ class BrowserUseSkillAdapter:
                 parsed = BrowserUseSkillAdapter._try_parse_json(fr)
                 if parsed:
                     return parsed
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"extract_result: final_result() path failed: {e}")
 
         # Path 2: extracted_content (MiMo sometimes outputs JSON in step, not done)
         try:
@@ -282,12 +282,18 @@ class BrowserUseSkillAdapter:
                 parsed = BrowserUseSkillAdapter._try_parse_json(ec)
                 if parsed:
                     return parsed
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"extract_result: extracted_content() path failed: {e}")
 
         # Path 3: full str(result)
         text = str(result)
-        return BrowserUseSkillAdapter._try_parse_json(text)
+        parsed = BrowserUseSkillAdapter._try_parse_json(text)
+        if parsed is None:
+            logger.warning(
+                "extract_result: all 3 paths failed to extract JSON from result "
+                f"(preview: {text[:200]})"
+            )
+        return parsed
 
     @staticmethod
     def _try_parse_json(text: str):

@@ -17,7 +17,7 @@ Agent Benchmark — P2-2: 端到端 Agent 任务基准测试。
         task={"module": "equipment", "page": "alarm-config"},
         repeat=3,
     )
-    print(result["success_rate"], result["three_d_score"])
+    logger.info(result["success_rate"], result["three_d_score"])
 
 CLI:
     aitest benchmark agent <agent_name> --module=<m> --page=<p> [--repeat=3]

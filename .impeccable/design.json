@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-28T00:00:00Z",
+  "title": "Design System: Alice Studio",
+  "extensions": {
+    "colorMeta": {
+      "alice-primary": { "role": "primary", "displayName": "Mage Violet", "canonical": "oklch(42% 0.08 285)", "tonalRamp": ["oklch(15% 0.06 285)", "oklch(25% 0.07 285)", "oklch(35% 0.08 285)", "oklch(42% 0.08 285)", "oklch(55% 0.07 285)", "oklch(68% 0.06 285)", "oklch(82% 0.04 285)", "oklch(93% 0.02 285)"] },
+      "alice-bg": { "role": "neutral", "displayName": "Paper Chill", "canonical": "oklch(93% 0.005 285)" },
+      "alice-gold": { "role": "secondary", "displayName": "Candle Brass", "canonical": "oklch(68% 0.08 85)" },
+      "aoko-primary": { "role": "primary", "displayName": "Azure Direct", "canonical": "oklch(58% 0.18 250)" },
+      "aoko-flame": { "role": "secondary", "displayName": "Burnt Orange", "canonical": "oklch(60% 0.15 55)" },
+      "soujuurou-primary": { "role": "primary", "displayName": "Forest Calm", "canonical": "oklch(45% 0.08 150)" },
+      "soujuurou-earth": { "role": "secondary", "displayName": "Earth Clay", "canonical": "oklch(48% 0.07 65)" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page titles — one per screen. Serif in Alice/Soujuurou, bold sans in Aoko." },
+      "body": { "displayName": "Body", "purpose": "Content text. Inter throughout, max 65–75ch." }
+    },
+    "shadows": [
+      { "name": "ambient-low", "value": "0 2px 6px rgba(26,24,40,0.05)", "purpose": "Card rest state. Barely perceptible." },
+      { "name": "ambient-mid", "value": "0 4px 12px rgba(26,24,40,0.06)", "purpose": "Card hover. Subtle lift." },
+      { "name": "glow-focus", "value": "0 0 0 3px hsla(250 42% 52% / 0.18)", "purpose": "Focus ring. The only shadow that asserts itself." }
+    ],
+    "motion": [
+      { "name": "alice-base", "value": "300ms cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Alice theme default. Slow, elegant." },
+      { "name": "aoko-base", "value": "150ms cubic-bezier(0.4, 0, 0.4, 1)", "purpose": "Aoko theme default. Fast, direct." },
+      { "name": "soujuurou-base", "value": "250ms cubic-bezier(0.4, 0, 0.6, 1)", "purpose": "Soujuurou theme default. Natural, steady." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button (Alice)",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Gradient violet button. Used for primary actions — run SOP, save, confirm.",
+      "html": "<button class=\"ds-btn-primary\">Run SOP</button>",
+      "css": ".ds-btn-primary { background: linear-gradient(135deg, hsl(250 42% 52%), hsl(262 35% 45%)); color: #fff; padding: 8px 20px; font-size: 13px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 6px rgba(26,24,40,0.05); } .ds-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,24,40,0.08); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px hsla(250 42% 52% / 0.18); }"
+    },
+    {
+      "name": "Card (Alice)",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Frosted glass card with subtle backdrop-blur. Used for content containers.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-title\">Module Status</div><div class=\"ds-card-body\">12 pages · 68 test cases</div></div>",
+      "css": ".ds-card { background: hsla(0 0% 100% / 0.85); backdrop-filter: blur(12px); border: 1px solid hsla(248 12% 84% / 1); border-radius: 6px; padding: 16px; box-shadow: 0 2px 6px rgba(26,24,40,0.05); transition: all 0.3s ease; } .ds-card:hover { box-shadow: 0 4px 12px rgba(26,24,40,0.06); } .ds-card-title { font-family: Lora, Georgia, serif; font-size: 1.05rem; font-weight: 600; margin-bottom: 8px; } .ds-card-body { font-size: 0.933rem; color: hsla(248 12% 44% / 1); }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Transparent input with ghost border, purple focus ring.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Search modules...\" />",
+      "css": ".ds-input { width: 100%; height: 36px; padding: 0 12px; font-size: 0.933rem; background: transparent; border: 1px solid hsla(248 14% 83% / 1); border-radius: 6px; color: hsl(248 18% 16%); transition: border 0.2s; } .ds-input::placeholder { color: hsla(248 12% 44% / 0.5); } .ds-input:focus { outline: none; border-color: hsl(250 42% 52%); box-shadow: 0 0 0 3px hsla(250 42% 52% / 0.18); }"
+    },
+    {
+      "name": "Sidebar Navigation",
+      "kind": "nav",
+      "refersTo": "sidebar",
+      "description": "Dark sidebar, 232px fixed width, with character-theme logo and ghost buttons.",
+      "html": "<nav class=\"ds-sidebar\"><div class=\"ds-sidebar-logo\">TLO <span>Alice</span></div><button class=\"ds-nav-item active\">Dashboard</button><button class=\"ds-nav-item\">Timeline</button></nav>",
+      "css": ".ds-sidebar { width: 232px; height: 100vh; background: hsl(248 28% 5%); border-right: 1px solid hsla(248 18% 13% / 1); display: flex; flex-direction: column; padding: 12px 8px; } .ds-sidebar-logo { font-family: Inter, sans-serif; font-size: 15px; font-weight: 700; color: hsl(248 15% 80%); padding: 0 12px 16px; } .ds-nav-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 12px; border: none; border-radius: 8px; background: transparent; color: hsl(248 12% 48%); font-size: 13px; cursor: pointer; transition: all 0.2s; } .ds-nav-item:hover { background: hsla(250 48% 62% / 0.05); } .ds-nav-item.active { background: hsla(250 48% 62% / 0.09); color: hsl(250 48% 62%); }"
+    },
+    {
+      "name": "Timeline Event",
+      "kind": "custom",
+      "refersTo": "timeline-event",
+      "description": "Vertical timeline entry with spine dot, timestamp, badge, and collapsible detail.",
+      "html": "<div class=\"ds-timeline\"><div class=\"ds-timeline-spine\"></div><div class=\"ds-timeline-event\"><span class=\"ds-event-time\">09:42</span><span class=\"ds-event-badge\">Complete</span><p class=\"ds-event-msg\">automation-agent — Phase 4 completed</p></div></div>",
+      "css": ".ds-timeline { position: relative; padding-left: 32px; } .ds-timeline-spine { position: absolute; left: 15px; top: 8px; bottom: 8px; width: 1px; background: hsla(248 18% 15% / 1); } .ds-timeline-event { padding: 8px 0; } .ds-event-time { font-family: JetBrains Mono, monospace; font-size: 12px; color: hsla(248 12% 52% / 1); } .ds-event-badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 10px; font-weight: 600; background: hsla(150 22% 42% / 0.15); color: hsl(150 22% 42%); } .ds-event-msg { margin: 4px 0 0; font-size: 14px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Apple-level calm applied to a complex developer system",
+    "overview": "Alice Studio is a testing orchestration platform dressed as a quiet operating system. Three character themes inhabit the same spatial framework but each carries a distinct temperature, rhythm, and material feel. Apple's core principles guide every surface: extreme clarity of hierarchy, strong visual breathing room, minimal visual noise, subtle depth through layering rather than borders, and content-first layouts where the UI disappears into the background.",
+    "keyCharacteristics": [
+      "Dark mode as first-class citizen",
+      "Three-character theme system: color, font, radius, animation tempo",
+      "Depth through translucent surface layering, not shadows",
+      "Typography-driven hierarchy with serif display / sans body pairing",
+      "Subdued ghost borders: structural hints, not design features"
+    ],
+    "rules": [
+      { "name": "The 10% Rule", "body": "The primary accent color occupies no more than 10% of any given screen's surface area. Its rarity is the point.", "section": "colors" },
+      { "name": "The Ghost Border Rule", "body": "Borders should be barely visible — a suggestion, not a declaration. If a border is the first thing you notice on a card, it's too strong.", "section": "colors" },
+      { "name": "The One Serif Rule", "body": "Serif faces appear only in headings (h1–h4) and italic pull-quotes. Body text, labels, buttons, inputs, and navigation are always sans.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. Shadows appear only as a response to state (hover, elevation, focus).", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use dark mode as the default and primary design surface",
+      "Do use the primary accent on ≤10% of any screen",
+      "Do use translucent layering in Alice theme only",
+      "Do let whitespace carry structure — 24px gaps between sections",
+      "Do use the timeline as the primary debugging tool"
+    ],
+    "donts": [
+      "Don't use Inter for everything — headings get serif in Alice and Soujuurou",
+      "Don't use purple-to-blue gradients",
+      "Don't use pure black (#000) or pure white (#FFF) as backgrounds",
+      "Don't use thick borders (>1px) or colored border stripes",
+      "Don't use equal-weight card grids where every card demands the same attention",
+      "Don't use cyberpunk neon, cyan glow, or heavy glassmorphism",
+      "Don't add anime/manga visual elements"
+    ]
+  }
+}

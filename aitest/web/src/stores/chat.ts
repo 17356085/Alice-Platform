@@ -45,7 +45,7 @@ export const ChatMemory = {
 
 // ── Helpers ────────────────────────────────────────────────────
 
-function makeMessage(role: 'user' | 'assistant', content: string, tools?: any[], tasks?: any[]): ChatMessage {
+function makeMessage(role: 'user' | 'assistant', content: string, tools?: unknown[], tasks?: unknown[]): ChatMessage {
   const truncated = content.length > ChatMemory.MAX_CONTENT
     ? content.slice(0, ChatMemory.MAX_CONTENT) + '\n\n...\n> ⚠️ Response truncated (exceeded 20KB)'
     : content
@@ -100,7 +100,10 @@ function persist(sessions: ChatSession[]) {
   }
 }
 
-// ── SSE module-level singleton ─────────────────────────────────
+// ── SSE session-scoped stream ──────────────────────────────────
+// Module-level singleton by design: only one active stream at a time.
+// Guarded by _activeSid → cross-session events silently ignored.
+// HMR: Vite dispose handler closes stale EventSource on hot reload.
 
 type SSECallbacks = {
   onChunk: (text: string) => void
@@ -113,16 +116,27 @@ type SSECallbacks = {
 let _es: EventSource | null = null
 let _accumulated: string[] = []
 let _sseCallbacks: SSECallbacks | null = null
+let _activeSid: string | null = null
 
-function sseStart(streamUrl: string, callbacks: SSECallbacks) {
+// HMR safety — Vite hot reload closes stale EventSource
+// @ts-ignore — import.meta.hot provided by Vite at build time
+if (import.meta?.hot) {
+  import.meta.hot.dispose(() => { sseCancel() })
+}
+
+function sseStart(sid: string, streamUrl: string, callbacks: SSECallbacks) {
   sseCancel()
+  _activeSid = sid
   _sseCallbacks = callbacks
   _accumulated = []
 
   const es = new EventSource(streamUrl)
   _es = es
 
+  const guard = () => _activeSid === sid
+
   es.onmessage = (event: MessageEvent) => {
+    if (!guard()) return  // stale session — ignore
     try {
       const data = JSON.parse(event.data)
       const t = data.type || ''
@@ -137,16 +151,17 @@ function sseStart(streamUrl: string, callbacks: SSECallbacks) {
       } else if (t === 'done') {
         callbacks.onDone(_accumulated.join(''))
         es.close()
-        _es = null
+        _es = null; _activeSid = null
       } else if (t === 'error') {
         callbacks.onError(data.error_message || 'Stream error')
         es.close()
-        _es = null
+        _es = null; _activeSid = null
       } else if (typeof event.data === 'string') {
         _accumulated.push(event.data)
         callbacks.onChunk(event.data)
       }
     } catch {
+      if (!guard()) return
       if (typeof event.data === 'string') {
         _accumulated.push(event.data)
         callbacks.onChunk(event.data)
@@ -155,8 +170,9 @@ function sseStart(streamUrl: string, callbacks: SSECallbacks) {
   }
 
   es.onerror = () => {
+    if (!guard()) { es.close(); return }
     es.close()
-    _es = null
+    _es = null; _activeSid = null
     const full = _accumulated.join('')
     if (full) callbacks.onDone(full)
     else callbacks.onError('SSE connection lost')
@@ -165,6 +181,7 @@ function sseStart(streamUrl: string, callbacks: SSECallbacks) {
 
 function sseCancel() {
   if (_es) { _es.close(); _es = null }
+  _activeSid = null
   _accumulated = []
   _sseCallbacks = null
 }
@@ -190,7 +207,7 @@ export interface ChatState {
   newSession: () => void
   deleteSession: (id: string) => void
   renameSession: (id: string, name: string) => void
-  addMessage: (role: 'user' | 'assistant', content: string, tools?: any[], tasks?: any[]) => void
+  addMessage: (role: 'user' | 'assistant', content: string, tools?: unknown[], tasks?: unknown[]) => void
   sendMessage: (text: string) => Promise<void>
   cancelStream: () => void
 }
@@ -258,7 +275,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       persist(get().sessions)
     },
 
-    addMessage(role: 'user' | 'assistant', content: string, tools?: any[], tasks?: any[]) {
+    addMessage(role: 'user' | 'assistant', content: string, tools?: unknown[], tasks?: unknown[]) {
       let sid = get().activeId
       if (!sid) {
         get().newSession()
@@ -311,10 +328,11 @@ export const useChatStore = create<ChatState>((set, get) => {
         const result = await api.post<{ stream_url: string; message_id: string }>(
           ENDPOINTS.CHAT_MESSAGES(sid), { content: text },
         )
-        sseStart(result.stream_url, sseCallbacks)
-      } catch (e: any) {
-        set({ error: `Failed to start chat: ${e.message}`, streaming: false })
-        get().addMessage('assistant', `[Error] ${e.message}`)
+        sseStart(sid, result.stream_url, sseCallbacks)
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e)
+        set({ error: `Failed to start chat: ${msg}`, streaming: false })
+        get().addMessage('assistant', `[Error] ${msg}`)
       }
     },
 

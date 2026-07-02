@@ -39,6 +39,7 @@ def entry_node(state: dict) -> dict:
     mode = state.get("mode", "full")
     skip_phases = list(DEV_MODE_SKIP_MAP.get(mode, []))
     return {
+        **state,  # StateGraph(dict) needs explicit key passthrough
         "skip_phases": skip_phases,
         "current_phase": "Plan",
         "status": "running",
@@ -56,6 +57,7 @@ def exit_node(state: dict) -> dict:
     else:
         final_status = "completed"
     return {
+        **state,  # StateGraph(dict) needs explicit key passthrough
         "status": final_status,
         "current_phase": "Complete",
         "fatal_error": fatal if final_status == "failed" else None,
@@ -96,7 +98,7 @@ def dev_route_next_phase(state: dict) -> str:
 # ═══════════════════════════════════════════════════════════════
 
 def build_dev_sop_graph() -> StateGraph:
-    builder = StateGraph(DevSOPState)
+    builder = StateGraph(dict)
 
     from aitest.graphs.nodes import make_agent_loop_node
 

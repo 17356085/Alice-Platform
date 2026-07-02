@@ -35,10 +35,10 @@ from .audit_log import AuditLogger, get_audit_logger
 
 # ★ v2.4 Platform Governance
 from .consumer import RunEventConsumer
-from .webhook import WebhookDispatcher, WebhookRegistry, WebhookRegistration, get_webhook_registry, get_webhook_dispatcher
-from .metrics_consumer import MetricsConsumer, get_metrics_consumer
-from .billing_hook import BillingHookConsumer, get_billing_hook
-from .quota_usage import QuotaUsageConsumer, get_quota_usage
+from .hooks.webhook import WebhookDispatcher, WebhookRegistry, WebhookRegistration, get_webhook_registry, get_webhook_dispatcher
+from .hooks.metrics_consumer import MetricsConsumer, get_metrics_consumer
+from .hooks.billing_hook import BillingHookConsumer, get_billing_hook
+from .hooks.quota_usage import QuotaUsageConsumer, get_quota_usage
 
 # ★ v2.0 Platform Foundation
 from .organization import Organization, OrganizationManager, get_org_manager

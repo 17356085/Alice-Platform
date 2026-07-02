@@ -1,0 +1,25 @@
+{
+  "module": "",
+  "status": "failed",
+  "completed_phases": [],
+  "failed_phases": [
+    "Project Init"
+  ],
+  "pages_processed": [],
+  "per_page_results": [],
+  "agent_summary": {
+    "preflight_auto_detect": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": ""
+    },
+    "project-agent": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": "exception: 'module'"
+    }
+  },
+  "run_id": "",
+  "updated_at": "2026-06-30T11:43:20",
+  "engine": "langgraph"
+}

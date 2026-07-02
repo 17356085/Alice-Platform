@@ -13,6 +13,7 @@ import asyncio
 import json
 import logging
 import time
+from pathlib import Path
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -53,6 +54,8 @@ class OnboardingStartRequest(BaseModel):
     app_type: str = Field(default="vue-hash-router", description="vue-hash-router | standard-url | react-spa")
     source_type: str = Field(default="url", description="url | local | openapi")
     project_path: str = Field(default="", description="Local project path (for source_type=local)")
+    output_path: str = Field(default="", description="Test project output directory. Required for URL source. Defaults to {project_path}/tests/ for local source.")
+    resume: bool = Field(default=False, description="Resume from previous checkpoint if available")
     observe_pages: bool = Field(default=True)
     generate_page_objects: bool = Field(default=False)
 
@@ -67,7 +70,32 @@ class OnboardingConfirmRequest(BaseModel):
 @onboarding_router.post("/start")
 async def start_onboarding(req: OnboardingStartRequest):
     """Start project onboarding. Returns session_id for polling."""
+    # Validate: URL source requires output_path
+    if req.source_type == "url" and not req.output_path.strip():
+        raise HTTPException(422, "output_path is required when source_type=url. "
+                                 "Please specify where test project files will be stored.")
+
     ProjectOnboardingAgent, _sessions, _, _ = _get_agent()
+
+    # Conflict detection: refuse duplicate onboarding for same project_id
+    for sid, s in list(_sessions.items()):
+        if s.project_id == req.project_id and s.step.value not in ("completed", "failed", "cancelled"):
+            raise HTTPException(
+                409,
+                f"Project '{req.project_id}' already has an active onboarding (session: {sid}). "
+                f"Wait for it to complete or cancel it first."
+            )
+
+    # Resolve output_path for checkpoint lookup
+    resolved_output = req.output_path
+    if not resolved_output and req.source_type == "local" and req.project_path:
+        resolved_output = str(Path(req.project_path) / "tests")
+
+    # Check for existing checkpoint
+    checkpoint = None
+    if resolved_output:
+        from aitest.onboarding.project_onboarding_agent import ProjectOnboardingAgent as _POA
+        checkpoint = _POA.load_checkpoint(resolved_output)
 
     agent = ProjectOnboardingAgent(headless=True)
     state = await agent.start(
@@ -77,8 +105,10 @@ async def start_onboarding(req: OnboardingStartRequest):
         app_type=req.app_type,
         source_type=req.source_type,
         project_path=req.project_path,
+        output_path=req.output_path,
         observe_pages=req.observe_pages,
         generate_page_objects=req.generate_page_objects,
+        resume=req.resume,
     )
 
     _active_agents[state.session_id] = agent
@@ -87,7 +117,9 @@ async def start_onboarding(req: OnboardingStartRequest):
         "session_id": state.session_id,
         "project_id": state.project_id,
         "step": state.step.value,
+        "progress": state.progress,
         "started_at": state.started_at,
+        "checkpoint": checkpoint,  # null if no previous session, or partial results dict
     }
 
 
@@ -237,6 +269,60 @@ async def cancel_onboarding(session_id: str):
         _active_agents.pop(session_id, None)
 
     return {"status": "cancelled", "session_id": session_id}
+
+
+# ── Project Config Save (post-onboarding) ─────────────────────────────
+
+class ProjectConfigRequest(BaseModel):
+    project_id: str = Field(..., description="Project ID")
+    test_categories: list[str] = Field(default_factory=list)
+    test_tech: str = Field(default="pytest-selenium")
+    test_path: str = Field(default="")
+    network_url: str = Field(default="")
+    source_type: str = Field(default="url")
+
+
+@onboarding_router.post("/config")
+async def save_project_config(req: ProjectConfigRequest):
+    """Save project configuration after onboarding. Updates project.yaml."""
+    from aitest.platform.context import _PROJECTS_ROOT, _load_project_yaml
+    import yaml as _yaml
+
+    project_dir = _PROJECTS_ROOT / req.project_id
+    project_dir.mkdir(parents=True, exist_ok=True)
+
+    # Load existing or create new
+    yaml_path = project_dir / "project.yaml"
+    existing = {}
+    if yaml_path.exists():
+        try:
+            existing = _yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
+        except Exception:
+            pass
+
+    # Update with config
+    if "test_project" not in existing:
+        existing["test_project"] = {}
+    existing["test_project"]["categories"] = req.test_categories
+    existing["test_project"]["tech"] = req.test_tech
+    existing["test_project"]["code_path"] = req.test_path
+
+    if "connection" not in existing:
+        existing["connection"] = {}
+    if req.network_url:
+        existing["connection"]["base_url"] = req.network_url
+
+    if "application" not in existing:
+        existing["application"] = {}
+    existing["application"]["source_type"] = req.source_type
+
+    yaml_path.write_text(_yaml.dump(existing, allow_unicode=True, default_flow_style=False), encoding="utf-8")
+
+    return {
+        "status": "saved",
+        "project_id": req.project_id,
+        "yaml_path": str(yaml_path),
+    }
 
 
 @onboarding_router.get("/sessions")

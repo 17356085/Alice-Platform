@@ -39,8 +39,19 @@ def _get_org_manager():
 
 
 def _get_current_user(request: Request) -> str:
-    """Extract user identity. In production, from JWT/OAuth. For now, from header or default."""
-    return request.headers.get("X-User-Id", "admin")
+    """Extract user identity from auth middleware (request.state.user_id).
+
+    Falls back to "admin" only when auth is explicitly disabled
+    (no AITEST_API_KEY configured).
+    """
+    user = getattr(request.state, "user_id", None)
+    if user:
+        return user
+    # Auth disabled — dev mode fallback
+    from aitest.config import config
+    if not config.get_env("AITEST_API_KEY", ""):
+        return "admin"
+    raise HTTPException(401, "Authentication required")
 
 
 # ── Organization CRUD ──────────────────────────────────────────────────

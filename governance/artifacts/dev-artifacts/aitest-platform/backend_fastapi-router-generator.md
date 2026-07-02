@@ -1,0 +1,1 @@
+请为 module = "equipment" 生成 router

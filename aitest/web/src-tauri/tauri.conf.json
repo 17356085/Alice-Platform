@@ -10,7 +10,6 @@
     "beforeBuildCommand": "pnpm build"
   },
   "app": {
-    "title": "TLO — Testing Lifecycle Orchestrator",
     "windows": [
       {
         "title": "TLO Platform",
@@ -19,7 +18,8 @@
         "minWidth": 1024,
         "minHeight": 680,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "url": "about:blank"
       }
     ],
     "security": {
@@ -53,16 +53,7 @@
   },
   "plugins": {
     "shell": {
-      "open": true,
-      "scope": [
-        {
-          "name": "aitest-server",
-          "cmd": "python",
-          "args": [
-            "-m", "aitest.server.main"
-          ]
-        }
-      ]
+      "open": true
     }
   }
 }

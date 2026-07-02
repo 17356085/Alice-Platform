@@ -149,7 +149,10 @@ def parse_intent(message: str) -> dict:
     return result
 
 
-def parse_with_llm(message: str, provider: str = "claude") -> dict:
+def parse_with_llm(message: str, provider: str = None) -> dict:
+    if provider is None:
+        from aitest.config import config
+        provider = config.resolve_llm_provider()
     """
     LLM 兜底：复杂意图用 LLM 分类。
 

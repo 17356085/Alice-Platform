@@ -3,16 +3,44 @@
 端点:
   POST /api/webhook/jenkins  — Jenkins Pipeline 完成时自动入队对应 Agent
   GET  /api/webhook/health   — Webhook 健康检查
+
+安全:
+  HMAC-SHA256 签名验证。Jenkins 配置 `X-Hub-Signature-256` header。
+  密钥通过 AITEST_WEBHOOK_SECRET 环境变量配置。未配置时拒绝请求。
 """
-from fastapi import APIRouter, Request
+import hashlib
+import hmac
+from fastapi import APIRouter, Request, HTTPException
 
 webhooks_router = APIRouter(prefix="/api/webhook", tags=["Webhooks"])
+
+
+def _verify_webhook_signature(request: Request, body: bytes) -> None:
+    """Verify HMAC-SHA256 signature. Rejects if secret not configured."""
+    from aitest.config import config
+    secret = config.get_env("AITEST_WEBHOOK_SECRET", "")
+    if not secret:
+        raise HTTPException(status_code=501,
+                           detail="Webhook secret not configured (set AITEST_WEBHOOK_SECRET)")
+
+    sig_header = request.headers.get("X-Hub-Signature-256", "")
+    if not sig_header.startswith("sha256="):
+        raise HTTPException(status_code=401, detail="Missing or invalid signature header")
+
+    expected = "sha256=" + hmac.new(
+        secret.encode("utf-8"), body, hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(expected, sig_header):
+        raise HTTPException(status_code=401, detail="Signature mismatch")
 
 
 @webhooks_router.post("/jenkins")
 async def jenkins_webhook(request: Request):
     """
     Jenkins CI 完成后回调。自动入队异步任务。
+
+    安全: 需要 X-Hub-Signature-256 HMAC header (密钥: AITEST_WEBHOOK_SECRET)。
 
     预期 Payload:
       {
@@ -29,7 +57,10 @@ async def jenkins_webhook(request: Request):
     """
     from aitest.infra.task_queue import get_queue
 
-    payload = await request.json()
+    body = await request.body()
+    _verify_webhook_signature(request, body)
+    import json
+    payload = json.loads(body)
     build_status = payload.get("build_status", "UNKNOWN")
     module = payload.get("module", "")
     build_id = payload.get("build_id", "N/A")
@@ -40,7 +71,7 @@ async def jenkins_webhook(request: Request):
         task_id = queue.enqueue(
             agent="bug-analysis-agent",
             module=module,
-            provider="claude",
+            provider=None,  # auto-resolved
         )
         return {
             "action": "trigger_bug_analysis",
@@ -54,7 +85,7 @@ async def jenkins_webhook(request: Request):
         task_id = queue.enqueue(
             agent="report-agent",
             module=module,
-            provider="claude",
+            provider=None,  # auto-resolved
         )
         return {
             "action": "trigger_report",

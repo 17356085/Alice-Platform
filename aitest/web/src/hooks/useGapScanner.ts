@@ -4,6 +4,13 @@
  */
 import { useState, useMemo, useCallback } from 'react'
 
+// Toast notification bridge (injected by lib/toast.tsx)
+declare global {
+  interface Window {
+    __tlo_toast?: { add: (msg: string, level?: string) => string | number }
+  }
+}
+
 export interface TestGap {
   id: string
   module: string
@@ -131,10 +138,10 @@ export function useGapScanner() {
 
       setGaps(discovered)
       setProgress(`Done — ${discovered.length} gaps found across ${modKeys.length} modules`)
-      ;(window as any).__tlo_toast?.add(`${discovered.length} test gaps discovered`, 'success')
-    } catch (e: any) {
-      setProgress(`Scan failed: ${e.message}`)
-      ;(window as any).__tlo_toast?.add('Gap scan failed', 'error')
+      try { window.__tlo_toast?.add(`${discovered.length} test gaps discovered`, 'success') } catch {}
+    } catch (e: unknown) {
+      setProgress(`Scan failed: ${e instanceof Error ? e.message : String(e)}`)
+      try { window.__tlo_toast?.add('Gap scan failed', 'error') } catch {}
     } finally {
       setScanning(false)
     }
@@ -151,7 +158,7 @@ export function useGapScanner() {
   const convertToTask = useCallback((id: string) => {
     setGaps(prev => prev.map(g => {
       if (g.id === id) {
-        ;(window as any).__tlo_toast?.add(`Task created: ${g.title}`, 'success')
+        ;window.__tlo_toast?.add(`Task created: ${g.title}`, 'success')
         return { ...g, status: 'converted' as const }
       }
       return g

@@ -119,7 +119,10 @@ def _update_module_stage(module: str, new_stage: str):
 
 @kanban_router.post("/api/sop/start")
 async def sop_start(request: Request):
-    body = await request.json() if await request.body() else {}
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
     module = body.get("module", "")
     pages = body.get("pages", [])
     mode = body.get("mode", "full")

@@ -59,6 +59,12 @@ async def jenkins_webhook(request: Request):
         data = await request.json()
     except Exception as e:
         from aitest.infra.error_logger import log_error
+from aitest.audit_engine.event_bus import emit
+
+import logging
+
+logger = logging.getLogger(__name__)
+
         log_error("webhook_server", "parse_json", e)
         data = {}
 
@@ -102,7 +108,6 @@ async def jenkins_webhook(request: Request):
             })
 
         # 发射 Event Bus 事件
-        from aitest.audit_engine.event_bus import emit
         emit("BugClosed", **{
             "bug_id": f"CI-{build_id}",
             "module": module,
@@ -123,7 +128,6 @@ async def jenkins_webhook(request: Request):
             "mode": "precipitate",
         })
 
-        from aitest.audit_engine.event_bus import emit
         emit("CycleEnd", **{
             "module": module,
             "stats": f"build #{build_id}: {total_count} tests passed"
@@ -213,12 +217,12 @@ def main():
     parser.add_argument("--host", default="0.0.0.0")
     args = parser.parse_args()
 
-    print(f"AI Test Platform Webhook starting on {args.host}:{args.port}")
-    print(f"Endpoints:")
-    print(f"  POST /webhook/jenkins   — Jenkins CI callback")
-    print(f"  POST /webhook/github    — GitHub push callback")
-    print(f"  GET  /webhook/status    — Recent webhook history")
-    print(f"  GET  /health            — Health check")
+    logger.info(f"AI Test Platform Webhook starting on {args.host}:{args.port}")
+    logger.info(f"Endpoints:")
+    logger.info(f"  POST /webhook/jenkins   — Jenkins CI callback")
+    logger.info(f"  POST /webhook/github    — GitHub push callback")
+    logger.info(f"  GET  /webhook/status    — Recent webhook history")
+    logger.info(f"  GET  /health            — Health check")
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
 
 

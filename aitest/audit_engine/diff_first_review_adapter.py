@@ -245,7 +245,8 @@ def adapt_review_graph_node(
         from aitest.agents.agent_runner import run_skill
 
         try:
-            resp = run_skill(skill_id, user_input, provider="claude", max_tokens=8192)
+            from aitest.config import config
+            resp = run_skill(skill_id, user_input, provider=config.resolve_llm_provider(), max_tokens=8192)
             result = resp.content
         except Exception as e:
             result = f"[SKILL ERROR] {skill_id}: {str(e)}"

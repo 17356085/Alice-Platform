@@ -17,7 +17,7 @@ Human Feedback Loop — P2-4: 人工评分接口 + Human-as-Judge + 反馈闭环
     # 反馈收集
     collector = FeedbackCollector()
     stats = collector.comparison_stats(days=30)
-    print(stats["human_vs_llm_correlation"])
+    logger.info(stats["human_vs_llm_correlation"])
 
 CLI:
     aitest feedback rate --skill=<s> --score=0.85 [--comment="..."]
@@ -169,7 +169,7 @@ class FeedbackCollector:
     用法:
         collector = FeedbackCollector()
         stats = collector.comparison_stats(days=30)
-        print(stats["human_avg"], stats["llm_avg"], stats["correlation"])
+        logger.info(stats["human_avg"], stats["llm_avg"], stats["correlation"])
     """
 
     def load_feedback(self, skill_id: str = None, days: int = 30) -> list[FeedbackEntry]:
@@ -402,7 +402,7 @@ if __name__ == "__main__":
             skill_id=opts.get("skill"),
             days=int(opts.get("days", 30)),
         )
-        print(json.dumps(stats, ensure_ascii=False, indent=2))
+        logger.info(json.dumps(stats, ensure_ascii=False, indent=2))
 
     elif cmd == "promote":
         if len(sys.argv) < 3:
@@ -410,7 +410,7 @@ if __name__ == "__main__":
             sys.exit(1)
         collector = FeedbackCollector()
         result = collector.promote_to_golden(sys.argv[2], case_id=opts.get("case"))
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        logger.info(json.dumps(result, ensure_ascii=False, indent=2))
 
     else:
         _log.info(f"Unknown command: {cmd}")

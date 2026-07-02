@@ -8,7 +8,7 @@ import { useSettingsStore } from '../stores/settings'
 import {
   LayoutDashboard, LayoutGrid, Search, MessageSquare, Play,
   BarChart3, BookOpen, Settings, Plus, FolderOpen, Terminal,
-  Lightbulb, Link2, Clock, Eye, ChevronDown, Moon, Zap, TreePine,
+  Lightbulb, Link2, Clock, Eye, ChevronDown, Moon, Zap, TreePine, Network,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -20,9 +20,10 @@ interface SidebarNavProps {
   onNavigate: (view: string) => void
 }
 
-type TierItem = { id: string; icon: any; key: string }
+type TierItem = { id: string; icon: React.ComponentType<{ className?: string }>; key: string }
 
 const tier1Items: TierItem[] = [
+  { id: 'timeline', icon: Clock, key: '时间线' },
   { id: 'execution', icon: Play, key: '执行中心' },
   { id: 'artifacts', icon: FolderOpen, key: '产物' },
 ]
@@ -31,6 +32,7 @@ const tier2Items: TierItem[] = [
   { id: 'observability', icon: Clock, key: '可观测性' },
   { id: 'reports', icon: BarChart3, key: '报告' },
   { id: 'knowledge', icon: BookOpen, key: '知识' },
+  { id: 'knowledgegraph', icon: Network, key: '知识图谱' },
   { id: 'kanban', icon: LayoutGrid, key: '看板' },
 ]
 
@@ -65,30 +67,31 @@ export default function SidebarNav({ currentView, onNavigate }: SidebarNavProps)
   const LogoIcon = themeIcon[theme] || Moon
 
   const hasProjectData = useMemo(() => {
-    try {
-      const mods = JSON.parse(localStorage.getItem('tlo-modules') || '{}')
-      return Object.keys(mods).length > 0
-    } catch { return false }
-  }, [])
+    // Check if active project has modules or if any project exists
+    return (activeProject?.modules?.length ?? 0) > 0 || !!activeId
+  }, [activeProject, activeId])
 
   const section = currentSection(currentView)
   const projectActive = (itemId: string) => currentView === itemId
 
   const NavBtn = ({ active, onClick, icon: Icon, label }: {
-    active: boolean; onClick: () => void; icon: any; label: string
+    active: boolean; onClick: () => void; icon: React.ComponentType<{ className?: string }>; label: string
   }) => (
     <Button
       variant="ghost"
       size="sm"
       onClick={onClick}
+      aria-label={label}
+      aria-current={active ? 'page' : undefined}
       className={cn(
-        'justify-start gap-3 w-full h-9 px-3 text-[13px] font-medium',
+        'justify-start gap-3 w-full h-9 pl-2.5 pr-3 text-[13px] font-medium relative border-l-[3px]',
+        'transition-all duration-300 ease-out',
         active
-          ? 'bg-sidebar-active-bg text-sidebar-active [&>svg]:stroke-[2.5]'
-          : 'text-sidebar-foreground hover:bg-sidebar-active-bg/50 [&>svg]:stroke-[1.8]'
+          ? 'bg-sidebar-active-bg text-sidebar-active border-l-sidebar-active [&>svg]:stroke-[2.5]'
+          : 'text-sidebar-foreground border-l-transparent hover:bg-sidebar-hover hover:text-sidebar-foreground/90 hover:border-l-sidebar-foreground/20 [&>svg]:stroke-[1.8]'
       )}
     >
-      <Icon size={18} className="shrink-0" />
+      <Icon size={18} className="shrink-0" aria-hidden="true" />
       <span className="truncate">{label}</span>
     </Button>
   )

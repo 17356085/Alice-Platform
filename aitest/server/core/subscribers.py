@@ -11,7 +11,7 @@ async def activate_subscribers(log) -> dict:
     # P1-ACTIVATION: KnowledgeAgentSubscriber
     try:
         from aitest.audit_engine.event_bus import KnowledgeAgentSubscriber
-        sub = KnowledgeAgentSubscriber(provider="claude", auto_process=True)
+        sub = KnowledgeAgentSubscriber(auto_process=True)  # provider auto-resolved
         sub.activate()
         activated["knowledge-agent-subscriber"] = sub
         log.info("governance_subscriber_activated")
@@ -31,7 +31,7 @@ async def activate_subscribers(log) -> dict:
 
     # v2.4: WebhookDispatcher
     try:
-        from aitest.platform.webhook import get_webhook_dispatcher
+        from aitest.platform.hooks.webhook import get_webhook_dispatcher
         obj = get_webhook_dispatcher()
         obj.start()
         activated["webhook-dispatcher"] = obj
@@ -41,7 +41,7 @@ async def activate_subscribers(log) -> dict:
 
     # v2.4: MetricsConsumer
     try:
-        from aitest.platform.metrics_consumer import get_metrics_consumer
+        from aitest.platform.hooks.metrics_consumer import get_metrics_consumer
         obj = get_metrics_consumer()
         obj.start()
         activated["metrics-consumer"] = obj
@@ -51,7 +51,7 @@ async def activate_subscribers(log) -> dict:
 
     # v2.5: BillingHook
     try:
-        from aitest.platform.billing_hook import get_billing_hook
+        from aitest.platform.hooks.billing_hook import get_billing_hook
         obj = get_billing_hook()
         obj.start()
         activated["billing-hook"] = obj
@@ -61,7 +61,7 @@ async def activate_subscribers(log) -> dict:
 
     # v2.5: QuotaUsage
     try:
-        from aitest.platform.quota_usage import get_quota_usage
+        from aitest.platform.hooks.quota_usage import get_quota_usage
         obj = get_quota_usage()
         obj.start()
         activated["quota-usage"] = obj
@@ -69,4 +69,34 @@ async def activate_subscribers(log) -> dict:
     except Exception as e:
         log.error("quota_usage_failed", error=str(e))
 
+    # v3: ReportConsumer — AI execution summary
+    try:
+        from aitest.platform.hooks.report_consumer import get_report_consumer
+        obj = get_report_consumer()
+        obj.start()
+        activated["report-consumer"] = obj
+        log.info("report_consumer_started")
+    except Exception as e:
+        log.error("report_consumer_failed", error=str(e))
+
     return activated
+
+
+async def deactivate_subscribers(activated: dict, log) -> int:
+    """Deactivate all platform subscribers. Returns count of stopped objects.
+
+    Calls .stop() / .deactivate() on each active subscriber.
+    Best-effort — a failure in one does not prevent the rest from stopping.
+    """
+    count = 0
+    for name, obj in list(activated.items()):
+        try:
+            if hasattr(obj, "stop"):
+                obj.stop()
+            elif hasattr(obj, "deactivate"):
+                obj.deactivate()
+            count += 1
+            log.info("subscriber_stopped", name=name)
+        except Exception as e:
+            log.error("subscriber_stop_failed", name=name, error=str(e))
+    return count

@@ -1,0 +1,12 @@
+components:
+  <ComponentName>:
+    props:
+      - name: <propName>
+        type: <TypeScriptType>
+        required: true|false
+        default: <defaultValue | null>
+        description: <从规格提取的描述>
+    events:
+      - name: <eventName>
+        payload: <payloadType>
+        description: <事件描述>

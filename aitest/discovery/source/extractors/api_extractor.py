@@ -71,7 +71,7 @@ class ApiExtractor(BaseExtractor):
         extractor = ApiExtractor(project_root, framework, file_index)
         apis = extractor.extract()
         for api in apis:
-            print(f"{api.method.value} {api.path.value}")
+            logger.info(f"{api.method.value} {api.path.value}")
     """
 
     def can_extract(self) -> bool:

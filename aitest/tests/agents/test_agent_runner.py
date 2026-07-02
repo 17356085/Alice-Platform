@@ -198,7 +198,7 @@ class TestRunAgent:
         mock_loop = MagicMock()
         mock_loop.run.return_value = mock_state
 
-        monkeypatch.setattr("aitest.agents.agent_runner.AgentLoop",
+        monkeypatch.setattr("aitest.engine.executor.AgentLoop",
                             lambda *a, **kw: mock_loop)
 
         result = run_agent("project-agent", provider="fake", module="m", page="p")

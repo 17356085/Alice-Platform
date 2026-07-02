@@ -97,8 +97,8 @@ export function useOnboardingWS() {
         useOnboardingStore.setState({ wsConnected: false })
         if (useOnboardingStore.getState().isRunning) startPolling()
       }
-    } catch (e: any) {
-      setWsError(e.message)
+    } catch (e: unknown) {
+      setWsError(e instanceof Error ? e.message : String(e))
       startPolling()
     }
   }, [stopPolling, startPolling])

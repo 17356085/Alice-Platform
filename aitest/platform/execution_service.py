@@ -76,7 +76,7 @@ class ExecutionService:
         pages: list[str] | None = None,
         agent: str = "automation-agent",
         mode: str = "full",
-        provider: str = "claude",
+        provider: str = None,
         priority: int = 0,
     ) -> ExecutionResult:
         """
@@ -317,7 +317,7 @@ class ExecutionService:
 
             loop = AgentLoop(
                 agent_name=run.agent,
-                provider=getattr(run, 'provider', 'claude'),
+                provider=getattr(run, 'provider', None),
                 module=run.module,
                 page=pages[0] if pages else "",
                 pages=pages,

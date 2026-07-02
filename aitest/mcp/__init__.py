@@ -31,6 +31,11 @@ from aitest.mcp.protocol import build_list_tools_handler, build_call_tool_handle
 from aitest.mcp.prompts import build_list_prompts_handler, build_get_prompt_handler
 
 
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 def create_server() -> Server:
     """工厂函数：创建并配置 MCP Server 实例。"""
     server = Server("aitest-tools")
@@ -63,8 +68,8 @@ async def run_http(host: str = "127.0.0.1", port: int = 9020):
         from mcp.server.streaming_http import StreamingHttpServer
         import uvicorn
     except ImportError:
-        print("HTTP transport requires: pip install uvicorn starlette sse-starlette")
-        print("Falling back to stdio transport.")
+        logger.info("HTTP transport requires: pip install uvicorn starlette sse-starlette")
+        logger.info("Falling back to stdio transport.")
         return await run_stdio()
 
     server = create_server()

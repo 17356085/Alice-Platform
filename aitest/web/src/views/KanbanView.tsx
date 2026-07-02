@@ -4,7 +4,7 @@
  *  Vue store access → Zustand selectors.
  */
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useKanbanStore, useSelectColumns, selectTotalModules, type ModuleInfo } from '@/stores/kanban'
 import { useKanbanWS } from '@/hooks/useKanbanWS'
 import { RefreshCw } from 'lucide-react'
@@ -12,8 +12,9 @@ import KanbanBoard from '@/components/KanbanBoard'
 import ModuleDetailSheet from '@/components/ModuleDetailSheet'
 
 export default function KanbanView() {
+  const { id: routeId } = useParams()
   const [searchParams] = useSearchParams()
-  const projectId = searchParams.get('project') || ''
+  const projectId = routeId || searchParams.get('project') || ''
 
   const modules = useKanbanStore(s => s.modules)
   const loading = useKanbanStore(s => s.loading)

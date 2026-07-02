@@ -19,7 +19,7 @@ Usage:
     # Agent side — block until user approves
     resumed = wait_for_resume(task_id="equipment-alarm-config", timeout=7200)
     if resumed:
-        print("User approved, continuing...")
+        logger.info("User approved, continuing...")
 
     # API side — user approves
     from aitest.infra.pause_handler import write_resume_file

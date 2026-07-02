@@ -75,7 +75,7 @@ class VueRouterExtractor(BaseExtractor):
         extractor = VueRouterExtractor(project_root, framework, file_index)
         routes = extractor.extract()
         for route in routes:
-            print(f"{route.path.value} → {route.component_file.value}")
+            logger.info(f"{route.path.value} → {route.component_file.value}")
     """
 
     def can_extract(self) -> bool:

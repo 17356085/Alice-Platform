@@ -36,6 +36,7 @@ export default function ExecutionView() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const modules = useKanbanStore(s => s.modules)
+  const modulesLoading = useKanbanStore(s => s.loading)
   const fetchModules = useKanbanStore(s => s.fetchModules)
   const setActive = useProjectStore(s => s.setActive)
 
@@ -69,18 +70,24 @@ export default function ExecutionView() {
   useEffect(() => { fetchRuns() }, [fetchRuns])
 
   const moduleList = useMemo(() =>
-    Object.keys(modules).map(id => ({ id, name: (modules[id] as any)?.name || id })),
+    Object.keys(modules).map(id => ({ id, name: id })),
     [modules]
   )
 
   const graphPhases = useMemo(() => {
-    const mod = modules[selectedModule] as any
-    const donePhases: number[] = mod?.completed_phases || []
-    const currentPhase: number = mod?.current_phase ?? -1
+    const mod = modules[selectedModule]
+    // TODO: ModuleInfo uses phase_status (string→bool map), not completed_phases.
+    // SOP_PHASES uses numeric indices. Need backend data model alignment.
+    // For now: derive done from phase_status entries.
+    const phaseStatus: Record<string, boolean> = mod?.phase_status || {}
+    const donePhaseNames = Object.entries(phaseStatus)
+      .filter(([, done]) => done)
+      .map(([name]) => name)
+    const currentPhaseName: string = mod?.current_phase || ''
     return SOP_PHASES.map(p => ({
       ...p,
-      status: donePhases.includes(p.phase) ? 'completed'
-            : p.phase === currentPhase ? 'running'
+      status: donePhaseNames.includes(p.label) ? 'completed'
+            : p.label === currentPhaseName ? 'running'
             : 'pending',
     }))
   }, [modules, selectedModule])
@@ -98,8 +105,8 @@ export default function ExecutionView() {
           <h1>执行中心</h1>
         </div>
         <div className="header-controls">
-          <select value={selectedModule} onChange={e => setSelectedModule(e.target.value)} className="sel">
-            <option value="">选择模块</option>
+          <select value={selectedModule} onChange={e => setSelectedModule(e.target.value)} className="sel" disabled={modulesLoading}>
+            <option value="">{modulesLoading ? '加载中...' : moduleList.length === 0 ? '无可用模块' : '选择模块'}</option>
             {moduleList.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
           <select value={sopMode} onChange={e => setSopMode(e.target.value)} className="sel sel-sm">

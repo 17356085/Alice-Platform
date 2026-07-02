@@ -25,6 +25,7 @@ TLO:     ChromaDB + 元数据关联 + 跨模块模式匹配
 from __future__ import annotations
 
 import json
+import logging
 import re
 import hashlib
 from collections import defaultdict
@@ -34,6 +35,7 @@ from pathlib import Path
 from typing import Optional
 from aitest.platform.paths import get_workstudy
 
+_log = logging.getLogger(__name__)
 _WORKSTUDY = get_workstudy()
 
 
@@ -312,12 +314,12 @@ class KnowledgeExtractor:
                         "source": "knowledge_extractor",
                     } for p in items]
                     collection.add(ids=ids, documents=documents, metadatas=metadatas)
-                    print(f"[KnowledgeExtractor] Indexed {len(items)} pattern(s) → {coll_name}")
+                    _log.info(f"Indexed {len(items)} pattern(s) → {coll_name}")
                 except Exception as e:
-                    print(f"[KnowledgeExtractor] Index error ({coll_name}): {e}")
+                    _log.warning(f"Index error ({coll_name}): {e}")
 
         except Exception as e:
-            print(f"[KnowledgeExtractor] ChromaDB unavailable: {e}")
+            _log.warning(f"ChromaDB unavailable: {e}")
 
     # ── Reporting ──
 
@@ -345,5 +347,5 @@ def auto_extract(
     """便捷函数 — 从执行结果自动提取知识。"""
     extractor = KnowledgeExtractor(auto_index=True)
     extractor.extract_from_execution(module, trace_events, execution_results, run_id)
-    print(f"[KnowledgeExtractor] {extractor.summary}")
+    _log.info(f"{extractor.summary}")
     return extractor.summary

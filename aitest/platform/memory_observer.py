@@ -254,3 +254,27 @@ def get_dead_ends(module: str) -> list[dict]:
         )
     except Exception:
         return []
+
+
+# ── Self-registration: subscribe to ObservationBus on import ─────
+# Moved here from observation_bus.py to break circular dependency.
+# Registration is idempotent — each handler deduplicates itself.
+_registered_handlers = False
+
+
+def _register_with_bus() -> None:
+    """Register MemoryObserver handlers with ObservationBus. Idempotent."""
+    global _registered_handlers
+    if _registered_handlers:
+        return
+    _registered_handlers = True
+    try:
+        from aitest.platform.observation_bus import get_bus, EventType
+        bus = get_bus()
+        bus.subscribe(EventType.SKILL_FAILED, on_skill_failed)
+        bus.subscribe(EventType.SKILL_COMPLETE, on_skill_complete)
+    except Exception:
+        pass  # observation_bus is optional — memory_observer works without it
+
+
+_register_with_bus()

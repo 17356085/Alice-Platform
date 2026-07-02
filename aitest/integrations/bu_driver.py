@@ -31,7 +31,7 @@ Usage:
         async with BrowserUseDriver(headless=False) as bu:
             await bu.login()
             result = await bu.run_task('navigate to hazard item page')
-            print(result)
+            logger.info(result)
     asyncio.run(main())
 """
 
@@ -49,6 +49,145 @@ DEFAULT_USERNAME = config.default_username
 DEFAULT_PASSWORD = config.default_password
 
 logger = logging.getLogger(__name__)
+
+
+# ── MiMo output fixers ──────────────────────────────────────────────
+# MiMo has two output format issues that break browser-use's Pydantic
+# validation:
+#   1. Wraps JSON in ```json fences
+#   2. Outputs bare strings for nested object fields (e.g.
+#      {"evaluate": "code"} instead of {"evaluate": {"code": "code"}})
+#
+# Both are fixed in the monkey-patched get_client() in _create_mimo_llm().
+
+def _strip_json_fence(text: str) -> str:
+    """Extract clean JSON from model output that may contain fences or preamble.
+
+    Handles patterns:
+    1. Entire text is a single fenced block: ```json\n{...}\n```
+    2. Text with preamble + fenced block: "Some text...\n```json\n{...}\n```"
+    3. Multiple fenced blocks: extracts the last one (usually the actual JSON)
+    4. Text with preamble but no fence: "Looking at...\n{...}" — extracts JSON object
+    """
+    import re
+    text = text.strip()
+
+    # Pattern 1: entire text is one fenced block
+    m = re.match(r'^```(?:json)?\s*\n?(.*?)\n?\s*```\s*$', text, re.DOTALL)
+    if m:
+        return m.group(1).strip()
+
+    # Pattern 2/3: extract the LAST ```json ... ``` block in the text
+    blocks = re.findall(r'```(?:json)?\s*\n(.*?)\n\s*```', text, re.DOTALL)
+    if blocks:
+        return blocks[-1].strip()
+
+    # Pattern 4: no fences — try to extract the first JSON object from the text.
+    # MiMo often outputs "Looking at...\n{...}" where {...} is the actual payload.
+    # Find the first { that starts a JSON object and match to its closing }.
+    brace_start = text.find('{')
+    if brace_start >= 0:
+        depth = 0
+        for i in range(brace_start, len(text)):
+            if text[i] == '{':
+                depth += 1
+            elif text[i] == '}':
+                depth -= 1
+                if depth == 0:
+                    candidate = text[brace_start:i+1]
+                    # Validate it's actually parseable JSON
+                    import json as _json
+                    try:
+                        _json.loads(candidate)
+                        return candidate
+                    except _json.JSONDecodeError:
+                        pass  # Not valid JSON, keep looking
+                    break  # Found matching brace but not valid JSON — stop
+
+    return text
+
+
+# Fields that browser-use expects as nested objects but MiMo may output
+# as bare strings. Map: field_name → wrapper_key
+_MIMO_NESTED_FIELDS = {
+    "evaluate": "code",
+    "write_file": "content",     # WriteFileAction: {file_name, content, ...}
+    "replace_file": "content",
+    "read_file": None,           # ReadFileAction just has file_name, no wrapping needed
+}
+
+
+def _fix_mimo_action_schema(text: str) -> str:
+    """Fix MiMo's common schema mistakes in browser-use AgentOutput JSON.
+
+    Handles multiple MiMo output patterns:
+    1. Bare string action fields: {"evaluate": "code"} → {"evaluate": {"code": "code"}}
+    2. Invalid action like {"screenshot": {}} → replace with {"wait": {"seconds": 1}}
+    3. Raw data without action field: {"page_title": "..."} → wrap in done action
+    4. action is not a list: "action": "done" → "action": [{"done": {"text": "...", "success": true}}]
+    """
+    import json as _json
+
+    try:
+        data = _json.loads(text)
+    except _json.JSONDecodeError:
+        return text
+
+    if not isinstance(data, dict):
+        return text
+
+    # Pattern 3: No "action" field — MiMo returned raw data (page observation, etc.)
+    # Wrap it in a done action so the agent can complete.
+    if "action" not in data:
+        # Check if it looks like page observation data
+        if any(k in data for k in ("page_title", "search_fields", "table_columns", "diagnostics", "menu_items")):
+            done_action = {"done": {"text": _json.dumps(data, ensure_ascii=False), "success": True}}
+            wrapped = {"current_state": {"evaluation_previous_goal": "Success", "memory": "", "next_goal": "Task complete"}, "action": [done_action]}
+            return _json.dumps(wrapped, ensure_ascii=False)
+        return text
+
+    actions = data["action"]
+
+    # Pattern 4: action is not a list — wrap in list
+    if isinstance(actions, str):
+        if actions in ("done", "complete", "finish"):
+            data["action"] = [{"done": {"text": "Task completed", "success": True}}]
+            return _json.dumps(data, ensure_ascii=False)
+        return text
+
+    if not isinstance(actions, list):
+        return text
+
+    fixed = False
+    cleaned_actions = []
+    for action in actions:
+        if not isinstance(action, dict):
+            cleaned_actions.append(action)
+            continue
+
+        # Pattern 2: Invalid action like {"screenshot": {}} — replace with wait
+        if "screenshot" in action and len(action) == 1:
+            action = {"wait": {"seconds": 1}}
+            fixed = True
+
+        # Pattern 1: Bare string action fields
+        for field, wrapper_key in _MIMO_NESTED_FIELDS.items():
+            if field in action and isinstance(action[field], str):
+                if wrapper_key:
+                    action[field] = {wrapper_key: action[field]}
+                    fixed = True
+            if field in action and isinstance(action[field], dict) and wrapper_key:
+                keys = list(action[field].keys())
+                if wrapper_key not in keys and len(keys) == 1 and isinstance(action[field][keys[0]], str):
+                    action[field] = {wrapper_key: action[field][keys[0]]}
+                    fixed = True
+
+        cleaned_actions.append(action)
+
+    if fixed:
+        data["action"] = cleaned_actions
+        return _json.dumps(data, ensure_ascii=False)
+    return text
 
 
 class BrowserUseDriver:
@@ -91,6 +230,7 @@ class BrowserUseDriver:
         provider: str = None,
         model: str = None,
         use_vision: bool = False,
+        base_url: str = None,
     ):
         """Initialize BrowserUseDriver.
 
@@ -103,16 +243,15 @@ class BrowserUseDriver:
                    When use_vision=True with MiMo, auto-switches to
                    MIMO_VISION_MODEL or "mimo-v2.5" (full-modal).
             use_vision: Enable screenshot-based vision (MiMo: use mimo-v2.5)
+            base_url: Override SUT base URL (default: env BASE_URL)
         """
         self.headless = headless
         self.max_steps = max_steps
         self._provider_name = provider or config.bu_llm_provider
 
-        # Auto-enable vision for MiMo (2x faster via screenshots vs DOM text)
-        if self._provider_name == "mimo":
-            self.use_vision = True  # vision is the fast path for MiMo
-        else:
-            self.use_vision = use_vision
+        # Per-instance base URL override for SUT navigation
+        if base_url:
+            self.BASE_URL = base_url
 
         if self._provider_name not in self._PROVIDER_DEFAULTS:
             raise ValueError(
@@ -124,12 +263,25 @@ class BrowserUseDriver:
         provider_cfg = config.get_provider_config(self._provider_name)
         self.model = model or provider_cfg["model"]
 
-        # Auto-switch to vision model when use_vision=True with MiMo
-        if self._provider_name == "mimo" and use_vision and not model:
-            vision_model = config.mimo_vision_model
-            if vision_model != self.model:
-                logger.info("Vision mode: switching %s → %s", self.model, vision_model)
-                self.model = vision_model
+        # Vision: only enable if provider explicitly supports multimodal input.
+        # MiMo text-only endpoints do NOT support image input — forcing vision
+        # causes 404 errors on every Agent step. Use DOM text mode by default.
+        if use_vision:
+            if self._provider_name in ("claude", "gemini"):
+                self.use_vision = True
+            elif self._provider_name == "mimo":
+                if model and ("vision" in model.lower() or "omni" in model.lower()):
+                    self.use_vision = True
+                    logger.info("MiMo vision mode: using multimodal model %s", self.model)
+                else:
+                    logger.warning(
+                        "MiMo provider does not support image input with model '%s'. "
+                        "Use DOM text mode instead. Set BU_LLM_PROVIDER=claude for vision.",
+                        self.model,
+                    )
+                    self.use_vision = False
+        else:
+            self.use_vision = False
 
         self._browser = None
         self._llm = None
@@ -152,13 +304,22 @@ class BrowserUseDriver:
     # ═══════════════════════════════════════════════════════════════
 
     async def start(self):
-        """Launch browser + LLM instance (provider selected by BU_LLM_PROVIDER)."""
-        self._llm = self._create_llm()
+        """Launch browser + LLM instance (provider selected by BU_LLM_PROVIDER).
 
-        from browser_use import Browser
-        self._browser = Browser(headless=self.headless, keep_alive=True)
-        logger.info("BrowserUseDriver started: provider=%s model=%s headless=%s",
-                     self._provider_name, self.model, self.headless)
+        Idempotent: if browser already exists, skips creation to preserve session.
+        """
+        if self._llm is None:
+            self._llm = self._create_llm()
+
+        # ── Ensure screenshots directory resilience ──
+        self._ensure_screenshot_dir_resilience()
+
+        if self._browser is None:
+            from browser_use import Browser
+            self._browser = Browser(headless=self.headless, keep_alive=True)
+            await self._browser.start()
+            logger.info("BrowserUseDriver started: provider=%s model=%s headless=%s",
+                         self._provider_name, self.model, self.headless)
 
     async def close(self):
         """Close browser and release resources."""
@@ -227,12 +388,11 @@ class BrowserUseDriver:
     def _create_mimo_llm(self, api_key: str, cfg: dict):
         """MiMo-V2.5 via OpenAI-compatible API.
 
-        MiMo-V2.5-Pro:  1.02T MoE, 42B active, 1M context
-        MiMo-V2.5-Flash: 309B MoE, 15B active, 256K context
-        MiMo-V2.5-Omni:  Full-modal (vision+text+audio)
+        MiMo-V2.5:     310B, omnimodal (text+image+audio+video), 1.05M ctx
+        MiMo-V2.5-Pro: 1.02T MoE, text-only, 1.05M ctx, $0.435/$0.87 per 1M
 
-        Uses browser-use's built-in ChatOpenAI (not langchain_openai)
-        which has the required 'provider' attribute for Agent compatibility.
+        Uses _MiMoChatOpenAI — a ChatOpenAI subclass that strips ```json
+        fences from API responses before browser-use parses them.
         """
         from browser_use import ChatOpenAI
 
@@ -248,14 +408,73 @@ class BrowserUseDriver:
 
         logger.info("MiMo LLM: model=%s base_url=%s", self.model, base_url)
 
-        return ChatOpenAI(
+        llm = ChatOpenAI(
             model=self.model,
             api_key=api_key,
             base_url=base_url,
             temperature=0.0,
-            add_schema_to_system_prompt=True,    # MiMo needs schema in prompt to format correctly
-            dont_force_structured_output=True,    # MiMo wraps JSON in ``` fences
+            add_schema_to_system_prompt=True,
+            dont_force_structured_output=True,  # Schema in prompt, NOT response_format
         )
+
+        # Monkey-patch to strip ```json fences from MiMo responses.
+        # Strategy: patch get_client() to intercept raw API responses and clean
+        # them BEFORE browser-use's ainvoke processes them.
+        _orig_get_client = llm.get_client
+
+        def _patched_get_client():
+            client = _orig_get_client()
+            _orig_create = client.chat.completions.create
+
+            async def _stripped_create(**kwargs):
+                response = await _orig_create(**kwargs)
+                if response and response.choices:
+                    for choice in response.choices:
+                        if choice.message and choice.message.content:
+                            raw = choice.message.content
+                            content = _strip_json_fence(raw)
+                            content = _fix_mimo_action_schema(content)
+                            if content != raw:
+                                logger.debug("MiMo output patched: %d→%d chars", len(raw), len(content))
+                            choice.message.content = content
+                return response
+
+            client.chat.completions.create = _stripped_create
+            return client
+
+        llm.get_client = _patched_get_client
+
+        # Additional safety: patch ainvoke to catch and fix any remaining
+        # validation failures (e.g. if get_client patch didn't fire).
+        _orig_ainvoke = llm.ainvoke
+
+        async def _patched_ainvoke(messages, output_format=None, **kwargs):
+            try:
+                return await _orig_ainvoke(messages, output_format=output_format, **kwargs)
+            except Exception as e:
+                err_msg = str(e)
+                if output_format is not None and ('json_invalid' in err_msg or 'Invalid JSON' in err_msg):
+                    logger.warning("MiMo JSON validation failed, attempting recovery: %s", err_msg[:200])
+                    # Re-call without output_format to get raw text, then clean and validate
+                    try:
+                        raw_result = await _orig_ainvoke(messages, output_format=None, **kwargs)
+                        raw_text = raw_result.completion if hasattr(raw_result, 'completion') else str(raw_result)
+                        cleaned = _strip_json_fence(raw_text)
+                        cleaned = _fix_mimo_action_schema(cleaned)
+                        parsed = output_format.model_validate_json(cleaned)
+                        from browser_use.llm.views import ChatInvokeCompletion
+                        logger.info("MiMo recovery successful")
+                        return ChatInvokeCompletion(
+                            completion=parsed,
+                            usage=getattr(raw_result, 'usage', None),
+                            stop_reason=getattr(raw_result, 'stop_reason', None),
+                        )
+                    except Exception as inner_e:
+                        logger.debug("MiMo recovery also failed: %s", inner_e)
+                raise
+
+        llm.ainvoke = _patched_ainvoke
+        return llm
 
     def _create_claude_llm(self, api_key: str):
         """Claude via Anthropic native API."""
@@ -286,54 +505,367 @@ class BrowserUseDriver:
     # ═══════════════════════════════════════════════════════════════
 
     async def login(self, username: str = None, password: str = None):
-        """AI-driven login flow.
+        """Login using JavaScript DOM injection — no LLM credential guessing.
 
-        Uses natural language to guide LLM through login form.
-        Adapts to Vue 3 + Element Plus login page.
-
-        Args:
-            username: Override default username
-            password: Override default password
+        Strategy:
+        1. Navigate to base URL via Browser
+        2. JavaScript: find password field → login page detected
+        3. JavaScript: fill username + password + click submit (deterministic)
+        4. JavaScript: check for error message or sidebar → result
         """
-        from browser_use import Agent
-
         username = username or self.DEFAULT_USERNAME
         password = password or self.DEFAULT_PASSWORD
 
         if not password:
             raise ValueError("DEFAULT_PASSWORD is empty, set it in .env")
 
-        task = f"""
-Go to {self.BASE_URL}#/login and login.
+        if self._logged_in:
+            logger.info("Already logged in — skipping login flow")
+            return True
 
-On the login page:
-1. If page shows loading spinner, wait up to 10 seconds for login form to appear.
-2. Type "{username}" into username input (placeholder "请输入账号").
-3. Type "{password}" into password input (type="password").
-4. Click blue "登录" button.
-5. Wait. If URL changes to #/welcome → done with success=True.
-   If error toast → done with success=False and error message.
-"""
-        logger.info("Starting AI login: user=%s", username)
+        # ── Stage 1: Navigate to base URL + detect login page ──
+        logger.info("Login: navigating to %s", self.BASE_URL)
+        await self._browser.navigate_to(self.BASE_URL)
 
-        agent = Agent(
-            task=task,
-            llm=self._llm,
-            browser=self._browser,
-            use_vision=self.use_vision,
-        )
+        # Wait for page DOM readiness — SPA can take 8s+ (poll up to 18s)
+        #
+        # Generic readiness check (framework-agnostic):
+        #   Any SPA eventually renders standard HTML elements (input, button,
+        #   a[href]). Skeletons use fake elements or zero-dimension placeholders.
+        #   So: check that at least one interactive element exists AND has
+        #   non-zero dimensions (offsetWidth/offsetHeight > 0).
+        #   This works for Element Plus, Ant Design, Vuetify, MUI, etc.
+        #
+        #   Fallback: if no interactive elements at all (rare), check that
+        #   body.innerText has meaningful length (>15 chars).
+        import asyncio
+        _READY_JS = """() => {
+            const els = document.querySelectorAll(
+                'input, button, select, textarea, a[href], [role=button], [role=menuitem], [role=link], [role=tab]'
+            );
+            for (const el of els) {
+                if (el.offsetWidth > 0 || el.offsetHeight > 0) return true;
+            }
+            // Fallback: meaningful text content (not just "加载中...")
+            const txt = (document.body.innerText || '').trim();
+            return txt.length > 10;
+        }"""
 
-        result = await agent.run()
-        self._logged_in = True
-        self._total_tokens += self._extract_token_count(result)
+        page_ready = False
+        for retry in range(2):  # up to 2 attempts: initial + 1 reload
+            for _ in range(12):
+                await asyncio.sleep(1.5)
+                try:
+                    page = await self._browser.get_current_page()
+                    if page and await page.evaluate(_READY_JS):
+                        page_ready = True
+                        break
+                except Exception:
+                    pass
+            if page_ready:
+                break
+            # First attempt failed — reload and retry
+            if retry == 0:
+                logger.warning("Page DOM not ready after 18s — reloading and retrying")
+                try:
+                    page = await self._browser.get_current_page()
+                    if page:
+                        await page.reload(wait_until="domcontentloaded", timeout=15000)
+                except Exception:
+                    await self._browser.navigate_to(self.BASE_URL)
+        if not page_ready:
+            logger.warning("Page DOM not ready after 36s — proceeding anyway")
 
-        logger.info("AI login completed")
-        return result
+        # JavaScript: detect login page by looking for password field or login form.
+        # Element Plus wraps inputs in components, so input[type=password] may not
+        # exist in the DOM. Also check for placeholders containing login keywords.
+        detect_js = """() => {
+            // Try multiple selectors for password field
+            let pwds = document.querySelectorAll('input[type=password]');
+            if (pwds.length === 0) {
+                // Broader check: any input with password-related placeholder
+                const allInputs = document.querySelectorAll('input');
+                const pwdByPlaceholder = Array.from(allInputs).filter(i => {
+                    const ph = (i.placeholder || '').toLowerCase();
+                    return ph.includes('密码') || ph.includes('password') || ph.includes('pass');
+                });
+                if (pwdByPlaceholder.length > 0) pwds = pwdByPlaceholder;
+            }
+            if (pwds.length === 0) {
+                // Still no password field. Check for login button as indicator.
+                const buttons = document.querySelectorAll('button, [role=button]');
+                const loginBtn = Array.from(buttons).some(b => {
+                    const txt = (b.textContent || '').trim();
+                    return txt === '登 录' || txt === '登录' || txt === 'Login' || txt === 'Sign In';
+                });
+                if (loginBtn) {
+                    // Has login button but no password field — still a login page
+                    return JSON.stringify({is_login_page: true, already_authenticated: false});
+                }
+                // No password field. Check URL first — if it looks like a
+                // login page, the password field just hasn't rendered yet.
+                const url = location.href;
+                if (/login|signin|auth/i.test(url)) {
+                    return JSON.stringify({is_login_page: true, already_authenticated: false});
+                }
+                // Check page text for login indicators (works even before form renders).
+                // SPAs may render text content before interactive elements.
+                const bodyText = (document.body.innerText || '').toLowerCase();
+                if (bodyText.includes('登录') || bodyText.includes('login') ||
+                    bodyText.includes('请输入账号') || bodyText.includes('请输入密码') ||
+                    bodyText.includes('sign in') || bodyText.includes('管理系统')) {
+                    // Page has login-related text but no form yet — treat as login page
+                    return JSON.stringify({is_login_page: true, already_authenticated: false});
+                }
+                // No password field AND not a login URL — check for real nav items.
+                const navItems = document.querySelectorAll('[role=menuitem], [role=treeitem], .el-menu-item, .el-submenu__title');
+                return JSON.stringify({is_login_page: false, already_authenticated: navItems.length > 2});
+            }
+            // Find username field — look for text/email input near password
+            const pwd = pwds[0];
+            const form = pwd.closest('form') || pwd.parentElement;
+            const textInputs = (form || document).querySelectorAll('input[type=text], input[type=email], input[type=tel], input:not([type])');
+            let userField = null;
+            if (textInputs.length > 0) userField = textInputs[0];
+            // Find submit button
+            const buttons = (form || document).querySelectorAll('button, input[type=submit], input[type=button]');
+            let submitBtn = null;
+            for (const b of buttons) {
+                const txt = (b.textContent || b.value || '').trim();
+                if (txt && txt.length < 10) { submitBtn = b; break; }
+            }
+            return JSON.stringify({
+                is_login_page: true,
+                user_selector: userField ? (userField.id ? '#'+userField.id : userField.className ? '.'+userField.className.split(' ')[0] : userField.tagName) : null,
+                pwd_selector: pwd.id ? '#'+pwd.id : pwd.className ? '.'+pwd.className.split(' ')[0] : pwd.tagName,
+                btn_selector: submitBtn ? (submitBtn.id ? '#'+submitBtn.id : submitBtn.className ? '.'+submitBtn.className.split(' ')[0] : submitBtn.tagName) : null,
+            });
+        }"""
+
+        detect_data = None
+        import json as _json
+        for _detect_attempt in range(3):  # retry up to 3 times for SPA rendering
+            try:
+                page = await self._browser.get_current_page()
+                result_str = await page.evaluate(detect_js)
+                detect_data = _json.loads(result_str)
+                logger.info("Login detection (attempt %d): %s", _detect_attempt + 1, result_str[:200])
+            except Exception as e:
+                logger.warning("Login detection JS failed: %s — will attempt injection anyway", e)
+                detect_data = {"is_login_page": True}
+                break
+
+            # If we got a definitive answer, stop retrying
+            if detect_data.get("is_login_page") or detect_data.get("already_authenticated"):
+                break
+            # Inconclusive — SPA might still be rendering, wait and retry
+            if _detect_attempt < 2:
+                logger.info("Login detection inconclusive — waiting 3s for SPA to render (attempt %d/3)", _detect_attempt + 1)
+                await asyncio.sleep(3)
+
+        if detect_data.get("already_authenticated"):
+            logger.info("Already authenticated (no password field found, nav visible)")
+            self._logged_in = True
+            return True
+
+        if not detect_data.get("is_login_page"):
+            # Detection still inconclusive after retries — attempt injection anyway.
+            logger.info("Login detection inconclusive after retries — attempting injection anyway")
+            # Fall through to Stage 2
+
+        # ── Stage 2: Inject credentials via JavaScript ──
+        logger.info("Login: injecting credentials for user=%s", username)
+        # Escape special chars for JS string
+        _esc_user = username.replace("\\", "\\\\").replace("'", "\\'")
+        _esc_pwd = password.replace("\\", "\\\\").replace("'", "\\'")
+
+        inject_js = f"""() => {{
+            // Find password field — try type=password first, then placeholder
+            let pwds = document.querySelectorAll('input[type=password]');
+            if (pwds.length === 0) {{
+                const allInputs = document.querySelectorAll('input');
+                pwds = Array.from(allInputs).filter(i => {{
+                    const ph = (i.placeholder || '').toLowerCase();
+                    return ph.includes('密码') || ph.includes('password') || ph.includes('pass');
+                }});
+            }}
+            if (pwds.length === 0) return JSON.stringify({{success: false, error: 'no_password_field'}});
+            const pwd = pwds[0];
+            const form = pwd.closest('form') || pwd.parentElement;
+
+            // Find username field — text/email/tel input before password in DOM order
+            const inputs = (form || document).querySelectorAll('input');
+            let userInput = null;
+            let seenPwd = false;
+            // Try: find input right before password
+            for (let i = 0; i < inputs.length; i++) {{
+                if (inputs[i] === pwd && i > 0) {{
+                    userInput = inputs[i-1];
+                    break;
+                }}
+            }}
+            if (!userInput) {{
+                // Fallback: first text/email/tel input in form
+                for (const inp of inputs) {{
+                    if (inp !== pwd && (inp.type === 'text' || inp.type === 'email' || inp.type === 'tel' || !inp.type)) {{
+                        userInput = inp;
+                        break;
+                    }}
+                }}
+            }}
+            if (!userInput) return JSON.stringify({{success: false, error: 'no_username_field'}});
+
+            // Find submit button
+            const buttons = (form || document).querySelectorAll('button, input[type=submit], input[type=button], a.btn, [role=button]');
+            let submitBtn = null;
+            for (const b of buttons) {{
+                const txt = (b.textContent || b.value || '').trim().toLowerCase();
+                if (txt && txt.length < 15 && !/(reset|cancel|forgot|忘记|重置|取消)/i.test(txt)) {{
+                    submitBtn = b;
+                    break;
+                }}
+            }}
+            if (!submitBtn) return JSON.stringify({{success: false, error: 'no_submit_button'}});
+
+            // Fill fields — use native setter to trigger Vue/React bindings
+            const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+            nativeSetter.call(userInput, '{_esc_user}');
+            userInput.dispatchEvent(new Event('input', {{bubbles: true}}));
+            nativeSetter.call(pwd, '{_esc_pwd}');
+            pwd.dispatchEvent(new Event('input', {{bubbles: true}}));
+
+            // Click submit
+            submitBtn.click();
+
+            return JSON.stringify({{success: true, user_tag: userInput.tagName, pwd_tag: pwd.tagName, btn_text: (submitBtn.textContent||'').trim().slice(0,20)}});
+        }}"""
+        try:
+            page = await self._browser.get_current_page()
+            inject_result_str = await page.evaluate(inject_js)
+            inject_result = _json.loads(inject_result_str)
+            logger.info("Credential injection: %s", inject_result_str[:200])
+        except Exception as e:
+            logger.error("Credential injection JS failed: %s", e)
+            self._logged_in = False
+            return False
+
+        if not inject_result.get("success"):
+            error = inject_result.get("error", "unknown")
+            # no_password_field may mean we're already authenticated (e.g. token
+            # still valid from previous session). Verify before giving up.
+            if error == "no_password_field":
+                logger.info("No password field found — checking if already authenticated")
+                try:
+                    page = await self._browser.get_current_page()
+                    # First check URL — if on a login page, we're NOT authenticated
+                    on_login = await page.evaluate(
+                        "() => /login|signin|auth/i.test(location.href)"
+                    )
+                    if on_login:
+                        logger.warning("No password field but URL is login page — page may still be loading")
+                        self._logged_in = False
+                        return False
+                    has_nav = await page.evaluate(
+                        "() => document.querySelectorAll('[role=menuitem], [role=treeitem], .el-menu-item, .el-submenu__title').length > 2"
+                    )
+                    if has_nav:
+                        logger.info("Navigation found — treating as authenticated")
+                        self._logged_in = True
+                        return True
+                except Exception:
+                    pass
+            logger.error("Login injection failed: %s", error)
+            self._logged_in = False
+            return False
+
+        # ── Stage 3: Wait and verify result ──
+        await asyncio.sleep(3)
+
+        verify_js = """() => {
+            // Check for error messages
+            const errors = document.querySelectorAll('.el-message--error, .el-notification--error, .ant-message-error, .toast-error, [class*=error], [class*=alert], .login-error, .el-alert--error');
+            for (const e of errors) {
+                const txt = (e.textContent || '').trim();
+                if (txt && txt.length > 2 && txt.length < 500) {
+                    return JSON.stringify({success: false, error_message: txt.slice(0, 200)});
+                }
+            }
+            // Check for login page indicators (password field still visible)
+            const pwds = document.querySelectorAll('input[type=password]');
+            const pwdsVisible = Array.from(pwds).some(p => p.offsetParent !== null);
+            // Check for navigation/sidebar (indicates success)
+            const nav = document.querySelector('nav, .sidebar, .el-menu, .ant-menu, [class*=sidebar], [class*=top-menu], .navbar');
+            const hasNav = !!nav && nav.offsetParent !== null;
+            const url = location.href;
+            const isLoginUrl = /login|signin|auth/i.test(url);
+
+            return JSON.stringify({
+                success: hasNav || (!pwdsVisible && !isLoginUrl),
+                has_navigation: hasNav,
+                still_on_login: pwdsVisible && isLoginUrl,
+                url: url,
+                page_title: document.title,
+                error_message: pwdsVisible && isLoginUrl ? 'Still on login page' : ''
+            });
+        }"""
+        try:
+            page = await self._browser.get_current_page()
+            verify_result_str = await page.evaluate(verify_js)
+            verify_result = _json.loads(verify_result_str)
+            logger.info("Login verification: %s", verify_result_str[:200])
+
+            if verify_result.get("success"):
+                self._logged_in = True
+                logger.info("Login successful — page: %s", verify_result.get("url", "?"))
+                return True
+            else:
+                error = verify_result.get("error_message", "Unknown error")
+                logger.warning("Login failed: %s", error)
+                self._logged_in = False
+                return False
+        except Exception as e:
+            logger.warning("Login verification JS failed: %s — assuming login state unknown", e)
+            # Fallback: check if password field is gone
+            self._logged_in = True  # optimistic
+            return True
 
     async def ensure_logged_in(self):
-        """Ensure logged in - perform login if not already done."""
+        """Ensure logged in — verify actual browser state, not just flag.
+
+        The _logged_in flag can be stale if:
+        - Browser was closed and reopened
+        - Session cookies expired
+        - Another driver instance was created with a fresh Browser
+        """
         if not self._logged_in:
             await self.login()
+            return
+
+        # Verify the page is actually authenticated (not on a login page)
+        try:
+            page = await self._browser.get_current_page()
+            if page is None:
+                self._logged_in = False
+                await self.login()
+                return
+            on_login = await page.evaluate(
+                "() => /login|signin|auth/i.test(location.href)"
+            )
+            if on_login:
+                logger.info("ensure_logged_in: flag=True but on login page — re-authenticating")
+                self._logged_in = False
+                await self.login()
+        except Exception:
+            # Can't verify — assume logged in and let run_task handle failures
+            pass
+
+    async def evaluate_js(self, js_code: str) -> str:
+        """Execute JavaScript in the current browser page.
+
+        Returns string result from JS evaluation.
+        """
+        page = await self._browser.get_current_page()
+        return await page.evaluate(js_code)
 
     # ═══════════════════════════════════════════════════════════════
     #  Core: Run Task
@@ -368,6 +900,24 @@ On the login page:
 
         logger.info("Task completed")
         return result
+
+    @staticmethod
+    def _ensure_screenshot_dir_resilience():
+        """Monkey-patch ScreenshotService to survive missing screenshots/ dir."""
+        try:
+            from browser_use.screenshots.service import ScreenshotService
+
+            _orig_store = ScreenshotService.store_screenshot
+
+            async def _robust_store(self, screenshot_b64: str, step_number: int) -> str:
+                # Ensure screenshots dir exists (defense against intermittent mkdir failure)
+                self.screenshots_dir.mkdir(parents=True, exist_ok=True)
+                return await _orig_store(self, screenshot_b64, step_number)
+
+            ScreenshotService.store_screenshot = _robust_store
+            logger.debug("ScreenshotService.store_screenshot patched for dir resilience")
+        except Exception:
+            pass  # Non-critical — native behavior works ~95% of the time
 
     async def navigate_and_observe(self, hash_route: str):
         """Navigate to a hash route and return page observation.

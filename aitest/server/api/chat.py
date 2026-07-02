@@ -42,10 +42,15 @@ _DEFAULT_PROVIDER = _resolve_default_provider()
 
 # ── Session persistence (lazy init) ──────────────────────────────────────
 _db_initialized = False
+_db_lock = asyncio.Lock()
 
 async def _ensure_db():
     global _db_initialized
-    if not _db_initialized:
+    if _db_initialized:
+        return
+    async with _db_lock:
+        if _db_initialized:
+            return
         from aitest.server.session_store import init_db
         await init_db()
         _db_initialized = True
@@ -170,6 +175,11 @@ class ChatSession:
 # ★ v2.9: OwnedDict replaces bare dict — values auto-registered in LifecycleRegistry,
 # auto-disposed on pop/delete, OwnershipChecker-verifiable. No external strong refs leak.
 from aitest.platform.ownership import OwnedDict
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 sessions: OwnedDict[str, ChatSession] = OwnedDict(
     "chat-sessions", owner="chat:module", ttl_s=1800, max_size=500,
 )
@@ -366,7 +376,7 @@ async def stream_response(session_id: str, message_id: str, request: Request):
                         m["content"] = full_text
             except Exception as e:
                 import traceback
-                print(f"[Chat ERROR] {traceback.format_exc()}", flush=True)
+                logger.error(f"[Chat ERROR] {traceback.format_exc()}", flush=True)
                 yield {"event": "error", "data": json.dumps(
                     {"message": f"聊天出错: {str(e)[:200]}"}, ensure_ascii=False)}
 
@@ -579,7 +589,7 @@ async def stream_response(session_id: str, message_id: str, request: Request):
         # 更新消息记录
         for m in s.messages:
             if m.get("message_id") == f"resp-{message_id}":
-                m["content"] = accumulated_text or (event.summary if 'event' in dir() else "") or ""
+                m["content"] = accumulated_text or getattr(event, 'summary', '') or ""
 
         # 持久化会话到 SQLite（best-effort, tracked for cleanup）
         try:
@@ -597,7 +607,7 @@ async def stream_response(session_id: str, message_id: str, request: Request):
                 yield event_data
         except Exception as e:
             tb = _traceback.format_exc()
-            print(f"[Chat SSE ERROR] {tb}", flush=True)
+            logger.error(f"[Chat SSE ERROR] {tb}", flush=True)
             yield {"event": "error", "data": json.dumps(
                 {"message": f"内部错误: {str(e)[:200]}"}, ensure_ascii=False)}
         finally:

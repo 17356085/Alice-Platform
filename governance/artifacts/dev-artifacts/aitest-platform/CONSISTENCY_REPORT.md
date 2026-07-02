@@ -1,0 +1,1 @@
+看起来之前的脚本执行失败了，错误是 `string indices must be integers, not 'str'`。我需要先查看项目结构，然后重新编写正确的检查脚本。让我先探索一下项目结构。

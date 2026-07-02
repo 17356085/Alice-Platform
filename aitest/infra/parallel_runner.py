@@ -19,6 +19,11 @@ from pathlib import Path
 from typing import Optional
 from aitest.platform.paths import get_workstudy
 
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 _WORKSTUDY = get_workstudy()
 
 
@@ -33,7 +38,10 @@ class RunResult:
     finished_at: str = ""
 
 
-def run_module_sop(module: str, mode: str = "full", provider: str = "claude") -> RunResult:
+def run_module_sop(module: str, mode: str = "full", provider: str = None) -> RunResult:
+    if provider is None:
+        from aitest.config import config
+        provider = config.resolve_llm_provider()
     """单模块 SOP 执行（工作线程）。"""
     started = datetime.now().isoformat()
     start = time.time()
@@ -88,8 +96,11 @@ def run_parallel(
     modules: list[str],
     max_workers: int = 4,
     mode: str = "full",
-    provider: str = "claude",
+    provider: str = None,
 ) -> list[RunResult]:
+    if provider is None:
+        from aitest.config import config
+        provider = config.resolve_llm_provider()
     """
     并行运行多个模块的 SOP。
 
@@ -99,9 +110,9 @@ def run_parallel(
         mode: SOP 模式
         provider: LLM Provider
     """
-    print(f"\n{'='*60}")
-    print(f"  TLO Parallel Runner — {len(modules)} modules, {max_workers} workers")
-    print(f"{'='*60}\n")
+    logger.info(f"\n{'='*60}")
+    logger.info(f"  TLO Parallel Runner — {len(modules)} modules, {max_workers} workers")
+    logger.info(f"{'='*60}\n")
 
     results = []
     total_start = time.time()
@@ -117,22 +128,22 @@ def run_parallel(
                 result = future.result()
                 results.append(result)
                 icon = "✅" if result.success else "❌"
-                print(f"  {icon} {mod:20s} {result.duration_s:6.1f}s")
+                logger.info(f"  {icon} {mod:20s} {result.duration_s:6.1f}s")
             except Exception as e:
                 results.append(RunResult(module=mod, success=False, duration_s=0, error=str(e)))
-                print(f"  ❌ {mod:20s} ERROR: {e}")
+                logger.error(f"  ❌ {mod:20s} ERROR: {e}")
 
     total_s = round(time.time() - total_start, 1)
     passed = sum(1 for r in results if r.success)
     failed = len(results) - passed
     total_serial_s = sum(r.duration_s for r in results)
 
-    print(f"\n{'='*60}")
-    print(f"  Summary: {passed} passed / {failed} failed / {len(results)} total")
-    print(f"  Wall clock: {total_s:.1f}s  |  Serial: {total_serial_s:.1f}s")
+    logger.info(f"\n{'='*60}")
+    logger.error(f"  Summary: {passed} passed / {failed} failed / {len(results)} total")
+    logger.info(f"  Wall clock: {total_s:.1f}s  |  Serial: {total_serial_s:.1f}s")
     if total_s > 0:
-        print(f"  Speedup: {total_serial_s/total_s:.1f}x  (ideal: {max_workers}x)")
-    print(f"{'='*60}\n")
+        logger.info(f"  Speedup: {total_serial_s/total_s:.1f}x  (ideal: {max_workers}x)")
+    logger.info(f"{'='*60}\n")
 
     return results
 
@@ -141,8 +152,11 @@ def run_perf_benchmark(
     module: str,
     iterations: int = 5,
     mode: str = "smoke",
-    provider: str = "claude",
+    provider: str = None,
 ) -> dict:
+    if provider is None:
+        from aitest.config import config
+        provider = config.resolve_llm_provider()
     """
     性能测试: 对单个模块重复执行 N 次，收集性能指标。
 
@@ -150,16 +164,16 @@ def run_perf_benchmark(
         {module, iterations, success_rate, avg_duration_s, p50_s, p95_s, p99_s,
          avg_tokens, avg_cost, failures: [...]}
     """
-    print(f"\n{'='*60}")
-    print(f"  TLO Perf Benchmark — {module} × {iterations}")
-    print(f"{'='*60}\n")
+    logger.info(f"\n{'='*60}")
+    logger.info(f"  TLO Perf Benchmark — {module} × {iterations}")
+    logger.info(f"{'='*60}\n")
 
     results = []
     for i in range(iterations):
-        print(f"  [{i+1}/{iterations}] Running {module}...")
+        logger.info(f"  [{i+1}/{iterations}] Running {module}...")
         result = run_module_sop(module, mode=mode, provider=provider)
         results.append(result)
-        print(f"    {'✅' if result.success else '❌'} {result.duration_s:.1f}s")
+        logger.error(f"    {'✅' if result.success else '❌'} {result.duration_s:.1f}s")
 
     durations = [r.duration_s for r in results if r.success]
     durations.sort()
@@ -209,7 +223,7 @@ if __name__ == "__main__":
         elif args.modules:
             modules = [m.strip() for m in args.modules.split(",")]
         else:
-            print("Error: --modules or --all required")
+            logger.error("Error: --modules or --all required")
             sys.exit(1)
 
         results = run_parallel(modules, max_workers=args.max_workers,
@@ -222,14 +236,14 @@ if __name__ == "__main__":
     elif args.command == "perf":
         result = run_perf_benchmark(args.module, iterations=args.iterations,
                                      mode=args.mode, provider=args.provider)
-        print(f"\n📊 Perf Summary:")
+        logger.info(f"\n📊 Perf Summary:")
         for k, v in result.items():
             if k != "failures":
-                print(f"  {k}: {v}")
+                logger.info(f"  {k}: {v}")
         if result["failures"]:
-            print(f"  failures ({len(result['failures'])}):")
+            logger.error(f"  failures ({len(result['failures'])}):")
             for f in result["failures"][:3]:
-                print(f"    - {f[:120]}")
+                logger.info(f"    - {f[:120]}")
 
         if args.output:
             Path(args.output).write_text(json.dumps(result, indent=2, ensure_ascii=False))

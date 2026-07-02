@@ -228,8 +228,31 @@ class BrowserMCPServer:
 async def main():
     """MCP stdio server — JSON-RPC over stdin/stdout."""
     import sys
+    import atexit
 
     server = BrowserMCPServer()
+
+    def _cleanup():
+        """Best-effort browser cleanup on process exit."""
+        try:
+            import asyncio as _asyncio
+            loop = _asyncio.get_event_loop()
+            if loop.is_running():
+                loop.create_task(server.browser_close())
+            else:
+                _asyncio.run(server.browser_close())
+        except Exception:
+            pass
+
+    atexit.register(_cleanup)
+
+    # Also handle SIGTERM/SIGINT for graceful shutdown
+    import signal
+    def _signal_handler(signum, frame):
+        _cleanup()
+        sys.exit(0)
+    signal.signal(signal.SIGTERM, _signal_handler)
+    signal.signal(signal.SIGINT, _signal_handler)
 
     # Write capabilities (non-standard, for discovery)
     tools = server.list_tools()

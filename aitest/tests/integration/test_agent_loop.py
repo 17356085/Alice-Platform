@@ -142,3 +142,60 @@ class TestAgentLoopStateTransitions:
             tier = defn.get("model_tier", "")
             assert tier in ("max", "balanced", "econ"), \
                 f"{name}: model_tier='{tier}' must be max/balanced/econ"
+
+
+class TestAgentLoopMockLLM:
+    """Test AgentLoop with mock LLM provider — verify Plan→Act flow (P2)."""
+
+    def test_perceive_returns_dict_for_skill(self):
+        """perceive(skill_id) returns structured perception dict."""
+        from aitest.agents.agent_runner import AgentLoop
+
+        agent = AgentLoop(
+            "project-agent",
+            module="test-module",
+            use_reliable_provider=False,
+            use_window_monitor=False,
+            verbose=False,
+        )
+        if agent.skills:
+            ctx = agent.perceive(agent.skills[0])
+            assert isinstance(ctx, dict)
+            assert "skill_id" in ctx
+            assert "existing_files" in ctx
+
+    def test_state_tracks_completed_skills(self):
+        """completed_skills starts empty and can be appended."""
+        from aitest.agents.agent_runner import AgentLoop
+
+        agent = AgentLoop(
+            "project-agent",
+            module="test-module",
+            use_reliable_provider=False,
+            use_window_monitor=False,
+            verbose=False,
+        )
+        assert isinstance(agent.state.completed_skills, list)
+        assert len(agent.state.completed_skills) == 0
+        agent.state.completed_skills.append("test/skill-1")
+        assert "test/skill-1" in agent.state.completed_skills
+
+    def test_agent_state_initial_values(self):
+        """AgentState starts with correct defaults."""
+        from aitest.agents.agent_runner import AgentLoop
+        from aitest.agents.runner_state import AgentState
+
+        agent = AgentLoop(
+            "project-agent",
+            module="test-module",
+            use_reliable_provider=False,
+            use_window_monitor=False,
+            verbose=False,
+        )
+        state = agent.state
+        assert isinstance(state, AgentState)
+        assert state.module == "test-module"
+        assert state.step == 0
+        assert state.completed_skills == []
+        assert state.done is False
+        assert state.success is False

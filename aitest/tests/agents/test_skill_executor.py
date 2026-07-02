@@ -84,7 +84,7 @@ class TestRunSkill:
     def test_successful_skill_execution(self, fake_llm, monkeypatch):
         fake_llm.set_response("Test result: 3 tests passed", token_usage={"input": 100, "output": 50})
 
-        monkeypatch.setattr("aitest.agents.skill_executor.get_provider", lambda p: fake_llm)
+        monkeypatch.setattr("aitest.engine.skill_executor.get_provider", lambda p: fake_llm)
 
         response = run_skill(
             skill_id="execution/data-sanitization",
@@ -96,7 +96,7 @@ class TestRunSkill:
 
     def test_provider_failure_returns_error(self, fake_llm, monkeypatch):
         fake_llm.set_error(ValueError("Provider not configured"))
-        monkeypatch.setattr("aitest.agents.skill_executor.get_provider", lambda p: fake_llm)
+        monkeypatch.setattr("aitest.engine.skill_executor.get_provider", lambda p: fake_llm)
 
         response = run_skill(
             skill_id="execution/data-sanitization",
@@ -108,7 +108,7 @@ class TestRunSkill:
 
     def test_context_vars_passed_to_injector(self, fake_llm, monkeypatch):
         fake_llm.set_response("OK")
-        monkeypatch.setattr("aitest.agents.skill_executor.get_provider", lambda p: fake_llm)
+        monkeypatch.setattr("aitest.engine.skill_executor.get_provider", lambda p: fake_llm)
 
         response = run_skill(
             skill_id="execution/data-sanitization",
@@ -121,7 +121,7 @@ class TestRunSkill:
 
     def test_variant_parameter(self, fake_llm, monkeypatch):
         fake_llm.set_response("variant response")
-        monkeypatch.setattr("aitest.agents.skill_executor.get_provider", lambda p: fake_llm)
+        monkeypatch.setattr("aitest.engine.skill_executor.get_provider", lambda p: fake_llm)
 
         response = run_skill(
             skill_id="execution/data-sanitization",

@@ -1,0 +1,26 @@
+# TLO Project — ZJSN
+project:
+  id: "ZJSN"
+  name: "ZJSN"
+
+application:
+  type: "web"
+  runtime: "browser"
+
+connection:
+  base_url: "https://aiwechatminidemo.cimc-digital.com/"
+  login_required: true
+  login_method: "form"
+
+discovery:
+  strategy: "browser-use"
+
+knowledge:
+  chroma_namespace: "ZJSN"
+
+test_project:
+  code_path: ""
+  type: "pytest-selenium"
+  categories:
+    - smoke
+    - functional

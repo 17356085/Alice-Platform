@@ -14,7 +14,7 @@ A/B Test Runner — P1-3: Prompt 变体对比测试。
         test_input="分析 equipment/alarm-config 页面",
         criteria={"min_length": 200, "contains": ["元素清单"]},
     )
-    print(result.winner, result.score_diff, result.cost_diff)
+    logger.info(result.winner, result.score_diff, result.cost_diff)
 
 CLI:
     aitest ab list [<skill_id>]
@@ -29,6 +29,11 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
 from aitest.platform.paths import get_workstudy
+
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
 WORKSTUDY = get_workstudy()
@@ -207,7 +212,7 @@ class ABTestRunner:
         """
         results = []
         for i, (test_input, criteria) in enumerate(test_cases):
-            print(f"  [{i+1}/{len(test_cases)}] Testing: {test_input[:60]}...")
+            logger.info(f"  [{i+1}/{len(test_cases)}] Testing: {test_input[:60]}...")
             try:
                 result = self.compare(
                     skill_id=skill_id,
@@ -218,7 +223,7 @@ class ABTestRunner:
                 )
                 results.append(result)
             except Exception as e:
-                print(f"    Error: {e}")
+                logger.error(f"    Error: {e}")
         return results
 
     def load_cases_from_yaml(self, yaml_path: str) -> list[tuple]:

@@ -1,0 +1,17 @@
+# Minimal Context — alice-engine default behavior pack
+# 提供最小上下文配置，让 SDK 可以独立运行。
+
+version: "1.0"
+description: "alice-engine minimal context configuration"
+
+# 已知问题（空 — 用户按需添加）
+known_issues: []
+
+# 环境配置（空 — 用户按需添加）
+environments: {}
+
+# 默认测试配置
+defaults:
+  test_framework: "pytest"
+  timeout: 30
+  retry: 1

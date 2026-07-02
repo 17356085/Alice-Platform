@@ -10,7 +10,9 @@ import './styles/themes/all.css'
 
 initMemoryDebug()
 
-console.log('[boot] React createRoot')
+const isDebug = new URLSearchParams(location.search).has('debug')
+if (isDebug) console.log('[boot] React createRoot')
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -20,4 +22,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </HashRouter>
   </React.StrictMode>
 )
-console.log('[boot] mounted OK')
+
+if (isDebug) console.log('[boot] mounted OK')

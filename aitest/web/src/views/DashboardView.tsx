@@ -1,28 +1,26 @@
-/** Dashboard view — shadcn/ui edition. Project list + health + KPIs + quick actions. */
+/** Dashboard — Hero stats + compact health + secondary projects.
+ *  Apple single-focus: Stats dominate, everything else recedes.
+ */
 import { useState, useEffect, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '../stores/project'
 import { useKanbanStore } from '../stores/kanban'
 import { useHealth } from '../hooks/useHealth'
-import { LayoutDashboard, CheckCircle, AlertTriangle, Play, BarChart3, Activity, Search, FileText, Settings2 } from 'lucide-react'
+import { LayoutDashboard, CheckCircle, AlertTriangle, Play, BarChart3, Activity, Clock, Plus, FolderOpen, ArrowRight } from 'lucide-react'
 import ProjectSelector from '../components/ProjectSelector'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import { useSettingsStore } from '../stores/settings'
-
-const dashHint: Record<string, string> = {
-  default:   'Shadow & Memory',
-  aoko:      'Speed & Power',
-  soujuurou: 'Warmth & Trust',
-}
+import { useTimelineStore } from '../stores/timeline'
+import { api } from '../api/client'
 
 export default function DashboardView() {
-  const theme = useSettingsStore(s => s.app.theme)
-  const hint = dashHint[theme] || dashHint.default
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const projects = useProjectStore(s => s.projects)
   const projectLoading = useProjectStore(s => s.loading)
   const hasProjects = useProjectStore(s => s.hasProjects())
@@ -32,213 +30,233 @@ export default function DashboardView() {
   const modules = useKanbanStore(s => s.modules)
   const fetchModules = useKanbanStore(s => s.fetchModules)
   const { health, loading: healthLoading, refresh: refreshHealth } = useHealth()
-  const [productKpi, setProductKpi] = useState<any>(null)
+  const [productKpi, setProductKpi] = useState<{ this_week?: { runs?: number; pass_rate?: number; avg_duration_s?: number }; last_week?: { runs?: number; pass_rate?: number; avg_duration_s?: number } } | null>(null)
+  const [kpiError, setKpiError] = useState(false)
+  const recentEvents = useTimelineStore(s => s.recent)(5)
 
   useEffect(() => {
     fetchProjects()
     fetchModules()
     refreshHealth()
-    fetch('http://localhost:8000/api/kpi/product')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data) setProductKpi(data) })
-      .catch(() => { /* offline */ })
+    api.get('/api/kpi/product')
+      .then(data => { if (data) { setProductKpi(data); setKpiError(false) } })
+      .catch(() => setKpiError(true))
   }, [fetchProjects, fetchModules, refreshHealth])
 
   const stats = useMemo(() => {
     const mods = Object.entries(modules)
-    const completed = mods.filter(([, m]) => (m as any).phases_done >= (m as any).phases_total).length
-    const withIssues = mods.filter(([, m]) => (m as any).failed > 0).length
-    const ready = mods.filter(([, m]) => (m as any).status === 'completed_with_issues' || (m as any).status === 'ready').length
+    const completed = mods.filter(([, m]) => m.phases_done >= m.phases_total).length
+    const withIssues = mods.filter(([, m]) => m.failed > 0).length
+    const ready = mods.filter(([, m]) => m.status === 'completed_with_issues' || m.status === 'ready').length
     return { total: mods.length, completed, withIssues, ready }
   }, [modules])
 
   return (
     <div className="p-6 md:p-8 max-w-[1200px]">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2.5">
-          <LayoutDashboard size={24} />
+      {/* ── Top bar: title + health + project selector ── */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
           <h1 className="text-[22px] font-bold m-0">面板</h1>
-          <span className="text-[10px] text-muted-foreground/50 tracking-wider uppercase">{hint}</span>
+          {/* Compact health inline */}
+          {health && (
+            <div className="flex items-center gap-3 ml-4 pl-4 border-l border-border">
+              <HealthDot status={health.status} />
+              <span className="text-xs text-muted-foreground">
+                {health.status === 'healthy' ? '系统正常' : '系统降级'}
+              </span>
+              {health.components?.llm && (
+                <span className="text-[11px] text-muted-foreground/60">
+                  {health.components.llm.resolved_provider || '?'}
+                  {(health.components.llm.circuit_breakers?.open ?? 0) > 0 && (
+                    <span className="text-destructive ml-1">{health.components.llm.circuit_breakers.open} 熔断</span>
+                  )}
+                </span>
+              )}
+            </div>
+          )}
+          {healthLoading && <span className="text-xs text-muted-foreground ml-4">检查中...</span>}
+          {!health && !healthLoading && (
+            <span className="text-xs text-muted-foreground ml-4">
+              后端未连接 — <code className="bg-secondary px-1 py-0.5 rounded text-[11px]">aitest server start</code>
+            </span>
+          )}
         </div>
-        <ProjectSelector />
-      </div>
-
-      {/* Stats grid */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        <StatCard icon={BarChart3} value={stats.total} label="总模块" />
-        <StatCard icon={CheckCircle} value={stats.completed} label="已完成" color="text-success" />
-        <StatCard icon={AlertTriangle} value={stats.withIssues} label="待修复" color="text-warning" />
-        <StatCard icon={Play} value={stats.ready} label="就绪" color="text-info" />
-      </div>
-
-      {/* Platform Health */}
-      <section className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold flex items-center gap-1.5 m-0">
-            <Activity size={16} /> 平台状态
-          </h2>
-          <Button variant="outline" size="sm" onClick={refreshHealth} disabled={healthLoading}>
-            刷新
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={refreshHealth} disabled={healthLoading}
+            className="text-xs text-muted-foreground">
+            <Activity size={14} className="mr-1" /> 刷新
           </Button>
+          <ProjectSelector />
         </div>
+      </div>
 
-        {healthLoading && !health && <p className="text-muted-foreground py-3">加载中...</p>}
-        {health && (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
-            <HealthCard dotColor={health.status === 'healthy' ? 'bg-success' : 'bg-warning'}
-              label="整体状态" value={health.status === 'healthy' ? '正常' : '降级'} />
-            {health.components.llm && (
-              <HealthCard dotColor="bg-success" label="LLM"
-                value={health.components.llm.resolved_provider || '?'}
-                warn={health.components.llm.circuit_breakers?.open > 0
-                  ? `${health.components.llm.circuit_breakers.open} 熔断` : undefined} />
-            )}
-            {health.components.worker_pool && (
-              <HealthCard dotColor={health.components.worker_pool.status === 'healthy' ? 'bg-success' : 'bg-warning'}
-                label="Worker Pool"
-                value={`活跃 ${health.components.worker_pool.active}/${health.components.worker_pool.max_workers}`} />
-            )}
-            {health.components.tenants && (
-              <HealthCard dotColor="bg-success" label="项目数"
-                value={String(health.components.tenants.count)} />
-            )}
+      {/* ═══ HERO: Stats — single focal point ═══ */}
+      <section className="mb-10">
+        <div className="grid grid-cols-4 gap-6">
+          <HeroStat value={stats.total} label="总模块" color="text-foreground"
+            onClick={() => hasProjects && activeId && navigate(`/projects/${activeId}/kanban`)} />
+          <HeroStat value={stats.completed} label="已完成" color="text-success"
+            onClick={() => hasProjects && activeId && navigate(`/projects/${activeId}/reports`)} />
+          <HeroStat value={stats.ready} label="就绪" color="text-info"
+            onClick={() => hasProjects && activeId && navigate(`/projects/${activeId}/execution`)} />
+          <HeroStat value={stats.withIssues} label="待修复" color="text-warning"
+            onClick={() => hasProjects && activeId && navigate(`/projects/${activeId}/gaps`)} />
+        </div>
+        {/* Overall progress bar */}
+        {stats.total > 0 && (
+          <div className="mt-4 flex items-center gap-3">
+            <Progress value={stats.total ? Math.round(stats.completed / Math.max(stats.total, 1) * 100) : 0}
+              className="h-1.5 flex-1" />
+            <span className="text-[11px] text-muted-foreground tabular-nums">
+              {stats.completed}/{stats.total} 模块完成
+            </span>
           </div>
-        )}
-        {!healthLoading && !health && (
-          <p className="text-muted-foreground text-[13px] py-3">
-            后端未连接 — 启动 <code className="bg-secondary px-1.5 py-0.5 rounded">aitest server start</code>
-          </p>
         )}
       </section>
 
-      {/* Product KPIs */}
-      {productKpi && (
-        <section className="mb-8">
-          <h2 className="text-base font-semibold mb-4">本周产品指标</h2>
-          <div className="grid grid-cols-4 gap-3">
-            <KpiCard value={productKpi.this_week.runs} label="运行次数"
-              delta={productKpi.vs_last_week.runs_delta >= 0 ? `+${productKpi.vs_last_week.runs_delta}` : String(productKpi.vs_last_week.runs_delta)}
-              deltaUp={productKpi.vs_last_week.runs_delta >= 0} />
-            <KpiCard value={`${Math.round(productKpi.this_week.success_rate * 100)}%`} label="成功率"
-              delta={`${productKpi.vs_last_week.success_rate_delta >= 0 ? '+' : ''}${Math.round(productKpi.vs_last_week.success_rate_delta * 100)}%`}
-              deltaUp={productKpi.vs_last_week.trend === 'up'} />
-            <KpiCard value={`$${productKpi.this_week.total_cost.toFixed(2)}`} label="本周成本"
-              delta={productKpi.vs_last_week.cost_delta <= 0 ? '↓' : '↑'}
-              deltaUp={productKpi.vs_last_week.cost_delta <= 0} />
-            <KpiCard value={productKpi.this_week.agents_used} label="活跃 Agent" />
+      {/* ═══ Secondary: Projects + Activity side by side ═══ */}
+      <div className="grid grid-cols-[2fr_1fr] gap-8">
+        {/* Project list — secondary, compact */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">项目</h2>
+            <Link to="/onboarding">
+              <Button variant="ghost" size="sm" className="text-xs gap-1 text-muted-foreground">
+                <Plus size={13} /> 新建
+              </Button>
+            </Link>
           </div>
+
+          {projectLoading && <p className="text-xs text-muted-foreground py-8 text-center">加载中...</p>}
+
+          {!projectLoading && !hasProjects && (
+            <Card className="text-center py-12">
+              <CardContent>
+                <FolderOpen size={40} className="mx-auto mb-3 opacity-15" />
+                <p className="text-sm text-muted-foreground mb-4">暂无项目。导入被测系统开始。</p>
+                <Link to="/onboarding">
+                  <Button variant="gradient">创建第一个项目</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+
+          {!projectLoading && hasProjects && (
+            <div className="space-y-1">
+              {projects.slice(0, 5).map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => { setActive(p.id); navigate(`/projects/${p.id}/kanban`) }}
+                  className={cn(
+                    'w-full flex items-center gap-4 px-3 py-2.5 rounded-lg text-left transition-colors hover:bg-accent/50',
+                    p.id === activeId && 'bg-accent/70'
+                  )}
+                >
+                  <span className="font-medium text-sm flex-1 truncate">{p.name || p.id}</span>
+                  <span className="text-[11px] text-muted-foreground tabular-nums">
+                    {p.modules?.length || 0} 模块
+                  </span>
+                  {p.status && (
+                    <Badge variant={p.status === 'completed' ? 'success' : 'secondary'} className="text-[10px]">
+                      {p.status}
+                    </Badge>
+                  )}
+                  <ArrowRight size={14} className="text-muted-foreground/30" />
+                </button>
+              ))}
+              {projects.length > 5 && (
+                <p className="text-[11px] text-muted-foreground text-center pt-2">
+                  +{projects.length - 5} 个项目 — 选择活跃项目查看
+                </p>
+              )}
+            </div>
+          )}
         </section>
-      )}
 
-      {/* Project list */}
-      <section className="mb-8">
-        <h2 className="text-base font-semibold mb-4">项目列表</h2>
-        {projectLoading && <p className="text-muted-foreground py-3">加载中...</p>}
-        {!projectLoading && !hasProjects && (
-          <Card className="text-center py-10 text-muted-foreground">
-            <CardContent className="pt-6">
-              <p className="mb-4">暂无项目。创建一个新项目开始。</p>
-              <Link to="/onboarding">
-                <Button variant="gradient">+ 新建项目</Button>
-              </Link>
-            </CardContent>
-          </Card>
-        )}
-        {!projectLoading && hasProjects && (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
-            {projects.map(p => (
-              <Card
-                key={p.id}
-                className={cn(
-                  'p-4 cursor-pointer border-2 transition-all hover:shadow-md',
-                  p.id === activeId && 'border-primary shadow-[var(--primary-glow)]'
-                )}
-                onClick={() => setActive(p.id)}
+        {/* Activity feed — compact sidebar */}
+        <section>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">最近活动</h2>
+          {recentEvents.length === 0 ? (
+            <p className="text-xs text-muted-foreground py-8 text-center">暂无活动</p>
+          ) : (
+            <div className="space-y-2">
+              {recentEvents.map(event => (
+                <div key={event.id}
+                  className="flex items-start gap-2 text-xs cursor-pointer hover:bg-accent/40 rounded-md px-2 py-1.5 -mx-2 transition-colors"
+                  onClick={() => activeId && navigate(`/projects/${activeId}/timeline`)}
+                >
+                  <span className="text-[11px] font-mono text-muted-foreground mt-px tabular-nums shrink-0 w-10">
+                    {new Date(event.ts).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  <span className="shrink-0">{event.icon}</span>
+                  <span className="truncate text-muted-foreground">{event.message}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* KPI summary — if available */}
+          {productKpi && (
+            <div className="mt-4 pt-4 border-t border-border">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="text-center p-2 rounded-lg bg-muted/30">
+                  <div className="text-lg font-bold tabular-nums">{Math.round(productKpi.this_week.success_rate * 100)}%</div>
+                  <div className="text-[10px] text-muted-foreground">成功率</div>
+                </div>
+                <div className="text-center p-2 rounded-lg bg-muted/30">
+                  <div className="text-lg font-bold tabular-nums">${productKpi.this_week.total_cost.toFixed(0)}</div>
+                  <div className="text-[10px] text-muted-foreground">本周成本</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {kpiError && (
+            <div className="mt-4 text-center">
+              <button onClick={() => {
+                setKpiError(false)
+                api.get('/api/kpi/product')
+                  .then(data => { if (data) { setProductKpi(data); setKpiError(false) } })
+                  .catch(() => setKpiError(true))
+              }}
+                className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold">{p.name || p.id}</span>
-                  {p.status && <Badge variant={p.status === 'completed' ? 'success' : p.status === 'issues' ? 'warning' : 'secondary'} className="text-[10px]">{p.status}</Badge>}
-                </div>
-                <div className="flex gap-4 text-xs text-muted-foreground mb-3">
-                  <span>模块: {p.modules?.length || 0}</span>
-                  {p.updated_at && <span>更新: {p.updated_at.slice(0, 10)}</span>}
-                </div>
-                <div className="text-right">
-                  <Link to="/workspace/kanban" className="text-[13px] text-primary no-underline hover:underline"
-                    onClick={e => { e.stopPropagation(); setActive(p.id) }}>
-                    进入工作区 →
-                  </Link>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Quick actions */}
-      <section>
-        <h2 className="text-base font-semibold mb-4">快速操作</h2>
-        <div className="grid grid-cols-4 gap-3">
-          <QuickAction to="/onboarding" icon={<Search size={24} />} text="发现新项目" />
-          <QuickAction to="/workspace/kanban" icon={<Play size={24} />} text="运行 SOP" />
-          <QuickAction to="/workspace/reports" icon={<FileText size={24} />} text="查看报告" />
-          <QuickAction to="/settings" icon={<Settings2 size={24} />} text="平台设置" />
-        </div>
-      </section>
+                KPI 加载失败 — 点击重试
+              </button>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   )
 }
 
-// ── Sub-components ──
-
-function StatCard({ icon: Icon, value, label, color }: {
-  icon: any; value: number; label: string; color?: string
+// ── Hero stat block ──
+function HeroStat({ value, label, color, onClick }: {
+  value: number; label: string; color: string; onClick?: () => void
 }) {
   return (
-    <Card className="p-5 text-center">
-      <Icon size={20} className={cn('mx-auto mb-2 opacity-70', color)} />
-      <div className="text-[28px] font-bold">{value}</div>
-      <div className="text-xs text-muted-foreground mt-1">{label}</div>
-    </Card>
-  )
-}
-
-function HealthCard({ dotColor, label, value, warn }: {
-  dotColor: string; label: string; value: string; warn?: string
-}) {
-  return (
-    <div className="flex items-center gap-2 p-3 bg-card border border-border rounded-xl">
-      <span className={cn('w-2 h-2 rounded-full shrink-0', dotColor)} />
-      <span className="text-xs text-muted-foreground min-w-[60px]">{label}</span>
-      <span className="text-[13px] font-semibold">{value}</span>
-      {warn && <span className="text-[11px] text-destructive bg-destructive-light px-1.5 py-0.5 rounded ml-auto">{warn}</span>}
-    </div>
-  )
-}
-
-function KpiCard({ value, label, delta, deltaUp }: {
-  value: string | number; label: string; delta?: string; deltaUp?: boolean
-}) {
-  return (
-    <Card className="p-4 text-center">
-      <div className="text-[26px] font-bold">{value}</div>
-      <div className="text-[11px] text-muted-foreground mt-1">{label}</div>
-      {delta && (
-        <div className={cn('text-xs font-semibold mt-1', deltaUp ? 'text-success' : 'text-destructive')}>
-          {delta}
-        </div>
+    <div
+      onClick={onClick}
+      className={cn(
+        'text-center py-8 px-4 rounded-2xl transition-colors',
+        onClick && 'cursor-pointer hover:bg-accent/30',
+        'bg-card/40 border border-border/50'
       )}
-    </Card>
+    >
+      <div className={cn('text-[42px] font-bold leading-none tabular-nums', color)}>
+        {value}
+      </div>
+      <div className="text-[13px] text-muted-foreground mt-2 font-medium">{label}</div>
+    </div>
   )
 }
 
-function QuickAction({ to, icon, text }: { to: string; icon: React.ReactNode; text: string }) {
+function HealthDot({ status }: { status: string }) {
   return (
-    <Link to={to}
-      className="flex flex-col items-center gap-2 p-5 bg-card border border-border rounded-xl no-underline text-foreground transition-colors hover:bg-secondary">
-      <span className="text-2xl">{icon}</span>
-      <span className="text-[13px] font-medium">{text}</span>
-    </Link>
+    <span className={cn(
+      'w-2 h-2 rounded-full shrink-0',
+      status === 'healthy' ? 'bg-success' : 'bg-warning'
+    )} />
   )
 }

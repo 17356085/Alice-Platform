@@ -1,38 +1,93 @@
 {
   "module": "aitest-platform",
-  "module_display_name": "AITest 平台自身",
-  "workstream": "dev",
   "status": "in_progress",
-  "engine": "langgraph-dev",
-  "phase_set": "DEV_CANONICAL_PHASES",
-  "description": "AITest 测试工作台的开发治理追踪。Dev SOP 首个注册 module。",
-  "completed_phases": [],
-  "failed_phases": [],
-  "current_phase": null,
-  "components": [
-    "server",
-    "web",
-    "graphs_dev",
-    "platform",
-    "llm",
-    "infra",
-    "mcp",
-    "governance"
+  "completed_phases": [
+    "Plan",
+    "Requirements",
+    "Architecture",
+    "Component Design",
+    "Frontend Impl",
+    "Code Review",
+    "Dev Test",
+    "Debug & Fix",
+    "Build"
   ],
-  "artifact_count": 0,
-  "run_id": null,
-  "last_run_id": null,
-  "created_at": "2026-06-24T00:00:00+08:00",
-  "updated_at": "2026-06-24T00:00:00+08:00",
-  "governance_docs": {
-    "sop_dev": "governance/sop_dev/",
-    "agent_definitions": "governance/agents/agent-definitions-dev.yaml",
-    "skill_registry": "governance/skills-dev/skill-registry-dev.yaml"
+  "failed_phases": [
+    "Backend Impl"
+  ],
+  "current_phase": "Build",
+  "updated_at": "2026-06-27T23:00:59",
+  "results": {
+    "Plan": {
+      "agent": "pm-agent",
+      "success": true,
+      "skills_done": 4,
+      "skills_total": 4,
+      "artifacts_saved": 4
+    },
+    "Requirements": {
+      "agent": "req-agent",
+      "success": true,
+      "skills_done": 5,
+      "skills_total": 5,
+      "artifacts_saved": 5
+    },
+    "Architecture": {
+      "agent": "arch-agent",
+      "success": true,
+      "skills_done": 4,
+      "skills_total": 4,
+      "artifacts_saved": 4
+    },
+    "Component Design": {
+      "agent": "design-agent",
+      "success": true,
+      "skills_done": 4,
+      "skills_total": 4,
+      "artifacts_saved": 4
+    },
+    "Frontend Impl": {
+      "agent": "frontend-agent",
+      "success": true,
+      "skills_done": 5,
+      "skills_total": 5,
+      "artifacts_saved": 5
+    },
+    "Backend Impl": {
+      "agent": "backend-agent",
+      "success": false,
+      "skills_done": 2,
+      "skills_total": 6,
+      "artifacts_saved": 12
+    },
+    "Code Review": {
+      "agent": "review-agent",
+      "success": true,
+      "skills_done": 5,
+      "skills_total": 5,
+      "artifacts_saved": 5
+    },
+    "Dev Test": {
+      "agent": "dev-test-agent",
+      "success": true,
+      "skills_done": 3,
+      "skills_total": 3,
+      "artifacts_saved": 3
+    },
+    "Debug & Fix": {
+      "agent": "debug-agent",
+      "success": true,
+      "skills_done": 5,
+      "skills_total": 5,
+      "artifacts_saved": 5
+    },
+    "Build": {
+      "agent": "build-agent",
+      "success": true,
+      "skills_done": 4,
+      "skills_total": 4,
+      "artifacts_saved": 4
+    }
   },
-  "next_steps": [
-    "运行首个 Dev SOP: aitest graph-dev run --module=aitest-platform --mode=full",
-    "完成 Phase 1 (Plan) 后将 completed_phases 更新为 [\"Plan\"]",
-    "逐步推进至 Phase 10 (Build) 完成全流程验证"
-  ],
-  "notes": "aitest-platform 作为 Dev SOP 首个 module，用于验证开发流水线自身。与测试 SOP (web-automation) 并行运行，共享 aitest/agent_runner.py 执行引擎。"
+  "artifact_dir": "governance\\artifacts\\dev-artifacts\\aitest-platform"
 }

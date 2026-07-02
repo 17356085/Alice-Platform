@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alice-governance"
+version = "1.0.0"
+description = "Alice Engine — Governance Pack (完整行为定义层)"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["alice_governance*"]
+
+[tool.setuptools.package-data]
+alice_governance = [
+    "skills/**/*.yaml",
+    "skills/**/*.md",
+    "agents/**/*.yaml",
+    "agents/**/*.md",
+    "context/**/*.yaml",
+    "context/**/*.md",
+]

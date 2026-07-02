@@ -1,0 +1,47 @@
+# PROPS_INTERFACE.yaml — 生成受阻
+
+## 状态：⚠️ 无法完成
+
+### 原因
+
+两个前置工具调用均返回 `No available provider`：
+
+| 工具 | 状态 |
+|------|------|
+| `rag__business_rules` | ❌ No available provider |
+| `rag__search` | ❌ No available provider |
+
+### 影响
+
+`COMPONENT_SPEC.md` 是当前 Skill (`component-design/props-interface`) 的**必需输入**，但上述工具未能获取到其内容。没有组件规格文档，无法提取 Props/Events 类型定义。
+
+### 建议
+
+请通过以下任一方式提供 `COMPONENT_SPEC.md` 内容后重试：
+
+1. **手动粘贴** — 将 COMPONENT_SPEC.md 内容直接贴入对话
+2. **文件路径** — 提供文件的绝对路径，可通过 `execute__python` 读取
+3. **检查 RAG 服务** — 确认 `rag` provider 是否已配置并可用
+
+### 输出模板（供参考）
+
+一旦获得规格文档，产出格式如下：
+
+```yaml
+components:
+  <ComponentName>:
+    props:
+      - name: <propName>
+        type: <TypeScriptType>
+        required: true|false
+        default: <defaultValue | null>
+        description: <从规格提取的描述>
+    events:
+      - name: <eventName>
+        payload: <payloadType>
+        description: <事件描述>
+```
+
+---
+
+**下一步**：请提供 `COMPONENT_SPEC.md` 内容，我将立即生成 `PROPS_INTERFACE.yaml`。

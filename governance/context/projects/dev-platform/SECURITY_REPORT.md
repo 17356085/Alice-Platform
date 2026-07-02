@@ -1,0 +1,1 @@
+我已理解 AITest Platform 的术语体系与治理结构。请告诉我具体的代码审计任务——需要扫描哪个模块的代码（equipment / personnel / warehouse / tank 等），或者直接粘贴需要审计的代码片段。

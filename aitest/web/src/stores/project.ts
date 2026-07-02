@@ -63,28 +63,46 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   async fetchProjects(projectId?: string) {
     set({ loading: true, error: '' })
     try {
-      const pid = projectId || get().activeId
+      const pid = projectId || ''
       const qs = pid ? `?project=${encodeURIComponent(pid)}` : ''
-      const data = await api.get<{ modules: Record<string, any>; projects?: ProjectInfo[] }>(ENDPOINTS.SOP_STATUS + qs)
-      if (data.projects) {
-        set({ projects: data.projects, loading: false })
+      const data = await api.get<{
+        modules: Record<string, any>
+        projects?: Array<{ id: string; name: string; base_url: string; framework: string; test_path: string; module_count: number }>
+      }>(ENDPOINTS.SOP_STATUS + qs)
+
+      // Use projects field if available (v3: sop-status now returns registered projects)
+      if (data.projects && data.projects.length > 0) {
+        const projectList: ProjectInfo[] = data.projects.map(p => ({
+          id: p.id,
+          name: p.name || p.id,
+          path: p.base_url || p.test_path || '',
+          description: p.framework || '',
+          modules: [],
+          status: p.module_count > 0 ? 'discovered' : 'new',
+        }))
+        set({ projects: projectList, loading: false })
       } else {
+        // Fallback: derive from module keys (legacy behavior)
         const arr = get().projects.slice()
         const existing = new Set(arr.map(p => p.id))
-        for (const [modId, info] of Object.entries(data.modules || {})) {
-          if (!existing.has(modId)) {
+        for (const [key, info] of Object.entries(data.modules || {})) {
+          const m = info as Record<string, unknown>
+          const projId = (m.project_id as string) || key
+          if (!existing.has(projId)) {
             arr.push({
-              id: modId, name: (info as any).name || modId, path: '',
-              modules: (info as any).pages_list || [],
-              status: (info as any).status,
-              updated_at: (info as any).updated,
+              id: projId,
+              name: (m.name as string) || projId,
+              path: '',
+              modules: (m.pages_list as string[]) || [],
+              status: m.status as ProjectInfo['status'],
+              updated_at: m.updated as string,
             })
           }
         }
         set({ projects: arr, loading: false })
       }
-    } catch (e: any) {
-      set({ error: e.message, loading: false })
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : String(e), loading: false })
     }
   },
 

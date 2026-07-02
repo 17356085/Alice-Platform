@@ -36,69 +36,113 @@ SOP_PHASES = [
 
 @kpi_router.get("/sop-status")
 async def sop_status_all(project: str = ""):
-    from aitest.platform.context import get_active_project_id
+    from aitest.platform.context import get_active_project_id, list_projects, _load_project_yaml
     from aitest.platform.paths import get_test_project_root
 
-    project_id = project.strip() or get_active_project_id()
+    project_id = project.strip() or ""
     base = get_workstudy()
-    search_dirs: list[Path] = []
 
-    root = get_test_project_root(project_id)
-    if root:
-        tlo_runtime = root / ".tlo" / "runtime" / "sop-status"
-        if tlo_runtime.exists():
-            search_dirs.append(tlo_runtime)
+    # ── Resolve which projects to scan ──
+    if project_id:
+        target_projects = [project_id]
+    else:
+        # No specific project → scan all registered projects
+        registered = list_projects()
+        if registered:
+            target_projects = registered
+        else:
+            # Fallback: use active project
+            target_projects = [get_active_project_id()]
 
-    per_project = base / "governance" / "artifacts" / "sop-status" / project_id
-    per_project.mkdir(parents=True, exist_ok=True)
-    search_dirs.append(per_project)
+    # ── Collect SOP_STATUS for all target projects ──
+    all_modules: dict[str, dict] = OrderedDict()
+    project_list: list[dict] = []
 
-    legacy_flat = base / "governance" / "artifacts" / "sop-status"
-    if legacy_flat.exists():
-        search_dirs.append(legacy_flat)
+    for pid in target_projects:
+        # Load project.yaml for metadata
+        yaml_data = _load_project_yaml(pid)
+        proj_info = {
+            "id": pid,
+            "name": yaml_data.get("project", {}).get("name", pid) if yaml_data else pid,
+            "base_url": "",
+            "framework": "",
+            "test_path": "",
+        }
+        if yaml_data:
+            proj_info["base_url"] = (yaml_data.get("connection", {}) or {}).get("base_url", "")
+            proj_info["test_path"] = (yaml_data.get("test_project", {}) or {}).get("code_path", "")
 
-    modules = OrderedDict()
-    seen: set[str] = set()
-    for sop_dir in search_dirs:
-        for f in sorted(sop_dir.glob("SOP_STATUS_*.json")):
-            mod = f.stem.replace("SOP_STATUS_", "")
-            if mod in seen:
-                continue
-            seen.add(mod)
-            try:
-                data = json.loads(f.read_text(encoding="utf-8"))
-            except Exception:
-                modules[mod] = {"status": "error", "stage": "init", "phase_status": {},
-                                "phases_done": 0, "phases_total": len(SOP_PHASES),
-                                "pages": 0, "pages_list": [], "artifacts": 0, "failed": 0,
-                                "run_id": "", "updated": "", "note": ""}
-                continue
-            completed = data.get("completed_phases", [])
-            pages = data.get("pages_processed", [])
-            phase_status = {p: (p in completed) for p in SOP_PHASES}
-            phases_done = len(completed)
-            if phases_done >= len(SOP_PHASES):
-                stage = "complete"
-            else:
-                status = data.get("status", "?")
-                if status in ("completed", "completed_with_issues"):
-                    stage = "analysis" if status == "completed_with_issues" else "complete"
-                elif status == "ready":
-                    stage = "automation"
-                elif status == "in_progress":
-                    stage = "execution"
+        search_dirs: list[Path] = []
+
+        root = get_test_project_root(pid)
+        if root:
+            tlo_runtime = root / ".tlo" / "runtime" / "sop-status"
+            if tlo_runtime.exists():
+                search_dirs.append(tlo_runtime)
+
+        per_project = base / "governance" / "artifacts" / "sop-status" / pid
+        if per_project.exists():
+            search_dirs.append(per_project)
+
+        # Also check legacy flat dir (only for specific pid to avoid cross-contamination)
+        if project_id:
+            legacy_flat = base / "governance" / "artifacts" / "sop-status"
+            if legacy_flat.exists():
+                search_dirs.append(legacy_flat)
+
+        seen: set[str] = set()
+        project_module_count = 0
+        for sop_dir in search_dirs:
+            for f in sorted(sop_dir.glob("SOP_STATUS_*.json")):
+                mod = f.stem.replace("SOP_STATUS_", "")
+                # For all-projects scan, prefix with project_id to avoid collisions
+                key = f"{pid}/{mod}" if not project_id else mod
+                if key in seen:
+                    continue
+                seen.add(key)
+                try:
+                    data = json.loads(f.read_text(encoding="utf-8"))
+                except Exception:
+                    data = {}
+                completed = data.get("completed_phases", [])
+                pages = data.get("pages_processed", [])
+                phase_status = {p: (p in completed) for p in SOP_PHASES}
+                phases_done = len(completed)
+                if phases_done >= len(SOP_PHASES):
+                    stage = "complete"
                 else:
-                    stage = "init"
-            modules[mod] = {
-                "status": data.get("status", "?"), "stage": stage,
-                "phase_status": phase_status, "phases_done": phases_done,
-                "phases_total": len(SOP_PHASES), "pages": len(pages),
-                "pages_list": pages, "artifacts": data.get("artifact_count", 0),
-                "failed": len(data.get("failed_phases", [])),
-                "run_id": data.get("run_id", ""), "updated": data.get("updated_at", ""),
-                "note": (data.get("note", "") or "")[:80],
-            }
-    return {"modules": modules, "total": len(modules), "sop_phases": SOP_PHASES}
+                    status = data.get("status", "?")
+                    if status in ("completed", "completed_with_issues"):
+                        stage = "analysis" if status == "completed_with_issues" else "complete"
+                    elif status == "ready":
+                        stage = "automation"
+                    elif status == "in_progress":
+                        stage = "execution"
+                    elif status == "discovered":
+                        stage = "init"
+                    else:
+                        stage = "init"
+                all_modules[key] = {
+                    "status": data.get("status", "discovered"), "stage": stage,
+                    "phase_status": phase_status, "phases_done": phases_done,
+                    "phases_total": len(SOP_PHASES), "pages": len(pages),
+                    "pages_list": pages, "artifacts": data.get("artifact_count", 0),
+                    "failed": len(data.get("failed_phases", [])),
+                    "run_id": data.get("run_id", ""), "updated": data.get("updated_at", ""),
+                    "note": (data.get("note", "") or "")[:80],
+                    "project_id": pid,  # so frontend knows which project this module belongs to
+                }
+                project_module_count += 1
+
+        proj_info["module_count"] = project_module_count
+        project_list.append(proj_info)
+
+    return {
+        "modules": all_modules, "total": len(all_modules),
+        "sop_phases": SOP_PHASES,
+        "projects": project_list,
+        "project_count": len(project_list),
+    }
 
 
 # ── KPI ───────────────────────────────────────────────────────────────
@@ -426,3 +470,186 @@ async def artifact_lineage(project_id: str, module: str = "", page: str = ""):
         return get_lineage(project_id, module or "equipment", page or "")
     except Exception as e:
         return {"error": str(e)[:300]}
+
+
+# ── Artifact Content / Preview / Download ─────────────────────────────
+
+@kpi_router.get("/artifacts/{project_id}/content")
+async def artifact_content(
+    project_id: str, module: str = "", page: str = "", name: str = ""
+):
+    """Read artifact file content. Returns text for .md/.py/.json, base64 for images."""
+    import base64
+    from aitest.platform.paths import get_project_dir
+
+    if not name:
+        return {"error": "name parameter required"}
+
+    project_dir = get_project_dir(project_id)
+    content = _read_artifact_file(project_dir, module, page, name)
+    if content is None:
+        return {"error": f"Artifact '{name}' not found"}
+
+    # Determine MIME type
+    ext = Path(name).suffix.lower()
+    mime_map = {
+        ".md": "text/markdown", ".py": "text/x-python", ".json": "application/json",
+        ".txt": "text/plain", ".html": "text/html", ".css": "text/css",
+        ".js": "text/javascript", ".yaml": "text/yaml", ".yml": "text/yaml",
+        ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+        ".gif": "image/gif", ".svg": "image/svg+xml", ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    }
+    mime = mime_map.get(ext, "text/plain")
+
+    # Binary → base64 for images
+    if mime.startswith("image/"):
+        try:
+            encoded = base64.b64encode(content).decode("utf-8") if isinstance(content, bytes) else base64.b64encode(content.encode("latin1")).decode("utf-8")
+        except Exception:
+            encoded = ""
+        return {
+            "name": name, "module": module, "page": page,
+            "mime_type": mime, "encoding": "base64",
+            "content": f"data:{mime};base64,{encoded}",
+            "size": len(content) if isinstance(content, bytes) else len(content.encode("utf-8")),
+        }
+
+    # Text content
+    text = content.decode("utf-8") if isinstance(content, bytes) else content
+    return {
+        "name": name, "module": module, "page": page,
+        "mime_type": mime, "encoding": "utf-8",
+        "content": text,
+        "size": len(text.encode("utf-8")),
+    }
+
+
+@kpi_router.get("/artifacts/{project_id}/download")
+async def artifact_download(
+    project_id: str, module: str = "", page: str = "", name: str = ""
+):
+    """Download artifact file as attachment."""
+    from fastapi.responses import Response
+    from aitest.platform.paths import get_project_dir
+
+    if not name:
+        return {"error": "name parameter required"}
+
+    project_dir = get_project_dir(project_id)
+    content = _read_artifact_file(project_dir, module, page, name)
+    if content is None:
+        return {"error": f"Artifact '{name}' not found"}
+
+    ext = Path(name).suffix.lower()
+    mime_map = {
+        ".md": "text/markdown", ".py": "text/x-python", ".json": "application/json",
+        ".txt": "text/plain", ".html": "text/html", ".png": "image/png",
+        ".jpg": "image/jpeg", ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    }
+    media_type = mime_map.get(ext, "application/octet-stream")
+
+    body = content if isinstance(content, bytes) else content.encode("utf-8")
+    return Response(
+        content=body, media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{name}"'},
+    )
+
+
+@kpi_router.get("/artifacts/{project_id}/all")
+async def artifacts_all(project_id: str):
+    """Comprehensive artifact listing — merges file artifacts + Run artifacts."""
+    from aitest.platform.run_store import get_run_store
+    from aitest.platform.run_event import EventType
+
+    items = []
+    seen: set[str] = set()
+
+    # ── File artifacts ──
+    try:
+        from aitest.platform.paths import get_project_dir
+        project_dir = get_project_dir(project_id)
+        modules_dir = project_dir / "modules"
+        if modules_dir.exists():
+            for mod_dir in sorted(modules_dir.iterdir()):
+                if not mod_dir.is_dir():
+                    continue
+                mod_name = mod_dir.name
+                for doc in ["MODULE_CONTEXT.md", "REQUIREMENT_ANALYSIS.md", "PROJECT_CONTEXT.md"]:
+                    path = mod_dir / doc
+                    key = f"file:{mod_name}/{doc}"
+                    if key not in seen:
+                        seen.add(key)
+                        items.append({
+                            "id": key, "type": "file", "name": doc,
+                            "path": f"{mod_name}/{doc}", "module": mod_name,
+                            "page": "", "exists": path.exists(),
+                            "size": path.stat().st_size if path.exists() else 0,
+                            "mime_type": "text/markdown",
+                        })
+                pages_dir = mod_dir / "pages"
+                if pages_dir.exists():
+                    for page_dir in sorted(pages_dir.iterdir()):
+                        if not page_dir.is_dir():
+                            continue
+                        pname = page_dir.name
+                        for doc in ["PAGE_CONTEXT.md", "RISK_MODEL.md", "TEST_CASES.md",
+                                     "TECH_ANALYSIS.md", "AUTO_STRATEGY.md"]:
+                            path = page_dir / doc
+                            key = f"file:{mod_name}/pages/{pname}/{doc}"
+                            if key not in seen:
+                                seen.add(key)
+                                items.append({
+                                    "id": key, "type": "file", "name": doc,
+                                    "path": f"{mod_name}/pages/{pname}/{doc}",
+                                    "module": mod_name, "page": pname,
+                                    "exists": path.exists(),
+                                    "size": path.stat().st_size if path.exists() else 0,
+                                    "mime_type": "text/markdown",
+                                })
+    except Exception as e:
+        pass
+
+    # ── Run artifacts (from RunEvents) ──
+    try:
+        rs = get_run_store()
+        runs = rs.list_runs(workspace_id=project_id, limit=50)
+        for run in runs:
+            events = rs.list_events(run_id=run.run_id, limit=500)
+            for e in events:
+                if e.event_type == EventType.ARTIFACT_CREATED:
+                    d = e.data if isinstance(e.data, dict) else {}
+                    path = d.get("path", "")
+                    key = f"run:{run.run_id}:{path}"
+                    if key not in seen:
+                        seen.add(key)
+                        items.append({
+                            "id": key, "type": "run_artifact",
+                            "name": Path(path).name if path else "unknown",
+                            "path": path, "module": run.module,
+                            "page": "", "run_id": run.run_id,
+                            "timestamp": e.timestamp,
+                            "artifact_type": d.get("type", "unknown"),
+                            "mime_type": d.get("mime_type", ""),
+                            "size": d.get("size", 0),
+                            "exists": True,
+                        })
+    except Exception:
+        pass
+
+    return {"project": project_id, "artifacts": items, "total": len(items)}
+
+
+def _read_artifact_file(project_dir: Path, module: str, page: str, name: str):
+    """Read artifact file content. Returns str or bytes, or None if not found."""
+    if page:
+        path = project_dir / "modules" / module / "pages" / page / name
+    else:
+        path = project_dir / "modules" / module / name
+
+    if path.exists():
+        try:
+            # Try text first
+            return path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            return path.read_bytes()
+    return None

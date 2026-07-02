@@ -65,14 +65,14 @@ export default function TrendChart({ points, metric, width = 600, height = 160 }
         {result.yTicks.map(t => (
           <line key={`g${t.value}`}
             x1={PAD.left} x2={width - PAD.right} y1={t.y} y2={t.y}
-            stroke="#e5e7eb" strokeWidth={0.5} strokeDasharray="3 3"
+            stroke="hsl(var(--border))" strokeWidth={0.5} strokeDasharray="3 3"
           />
         ))}
         {/* Y labels */}
         {result.yTicks.map(t => (
           <text key={`yl${t.value}`}
             x={PAD.left - 6} y={t.y + 4}
-            textAnchor="end" fontSize={10} fill="#9ca3af"
+            textAnchor="end" fontSize={10} fill="hsl(var(--muted-foreground))"
           >{t.label}</text>
         ))}
 
@@ -82,32 +82,32 @@ export default function TrendChart({ points, metric, width = 600, height = 160 }
         )}
         <defs>
           <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+            <stop offset="0%" stopColor="hsl(var(--info))" />
+            <stop offset="100%" stopColor="hsl(var(--info))" stopOpacity={0} />
           </linearGradient>
         </defs>
 
         {/* Line */}
         {result.values.length > 1 && (
-          <path d={result.pathD} fill="none" stroke="#3b82f6" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+          <path d={result.pathD} fill="none" stroke="hsl(var(--info))" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
         )}
 
         {/* Dots */}
         {result.values.map((v, i) => (
           <circle key={`d${i}`}
             cx={result.x(i)} cy={result.y(v)} r={3}
-            fill="white" stroke="#3b82f6" strokeWidth={1.5}
+            fill="white" stroke="hsl(var(--info))" strokeWidth={1.5}
           />
         ))}
 
         {/* X labels */}
         {points.length > 0 && (
-          <text x={result.x(0)} y={height - 4} textAnchor="start" fontSize={9} fill="#9ca3af">
+          <text x={result.x(0)} y={height - 4} textAnchor="start" fontSize={9} fill="hsl(var(--muted-foreground))">
             {points[0].ts?.slice(5, 16) || ''}
           </text>
         )}
         {points.length > 1 && (
-          <text x={result.x(points.length - 1)} y={height - 4} textAnchor="end" fontSize={9} fill="#9ca3af">
+          <text x={result.x(points.length - 1)} y={height - 4} textAnchor="end" fontSize={9} fill="hsl(var(--muted-foreground))">
             {points[points.length - 1].ts?.slice(5, 16) || ''}
           </text>
         )}

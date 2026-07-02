@@ -49,7 +49,7 @@ export default function KanbanBoard({ columns, running, onCardMove, onCardClick,
     setDragOverCol('')
     if (dragMod && dragFrom !== stage) {
       onCardMove(dragMod, dragFrom, stage)
-      ;(window as any).__tlo_toast?.add(`${dragMod}: ${dragFrom} → ${stage}`, 'success')
+      window.__tlo_toast?.add(`${dragMod}: ${dragFrom} → ${stage}`, 'success')
     }
     setDragMod('')
     setDragFrom('')

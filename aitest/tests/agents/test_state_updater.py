@@ -204,7 +204,7 @@ class TestEmitMilestone:
     def test_emits_for_milestone_pass(self, monkeypatch):
         """Milestone skill pass should trigger AgentCompleted event."""
         mock_emit = MagicMock()
-        monkeypatch.setattr("aitest.agents.state_updater.emit", mock_emit)
+        monkeypatch.setattr("aitest.engine.state_machine.emit", mock_emit)
         obs = _make_obs("automation/page-object-generator", "pass")
         _emit_milestone("automation/page-object-generator", obs, "test-agent", "equipment")
         mock_emit.assert_called_once()

@@ -21,6 +21,7 @@ Worktree Manager — Git Worktree 隔离管理器。
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import shutil
 import subprocess
@@ -31,6 +32,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 from aitest.platform.paths import get_workstudy
+
+_log = logging.getLogger(__name__)
 
 
 _WORKSTUDY = get_workstudy()
@@ -159,7 +162,7 @@ class WorktreeManager:
                     stale.append(wt_dir)
         for d in stale:
             shutil.rmtree(d, ignore_errors=True)
-            print(f"[WorktreeManager] Cleaned stale: {d.name}")
+            _log.info(f"Cleaned stale: {d.name}")
         return len(stale)
 
     # ── Internal ──
@@ -185,9 +188,7 @@ class WorktreeManager:
         # 获取原分支名
         base_branch = self._current_branch()
 
-        print(f"[WorktreeManager] Created: {name}")
-        print(f"  Path:   {wt_path}")
-        print(f"  Branch: {branch} (from {base_branch})")
+        _log.info(f"Created: {name} | Path: {wt_path} | Branch: {branch} (from {base_branch})")
 
         return WorktreeContext(
             name=name,
@@ -211,13 +212,13 @@ class WorktreeManager:
                     capture_output=True, text=True
                 )
                 if result.returncode != 0:
-                    print(f"[WorktreeManager] Merge warning ({cmd}): {result.stderr.strip()}")
+                    _log.warning(f"Merge warning ({cmd}): {result.stderr.strip()}")
                     ctx.merged = False
                     return
             ctx.merged = True
-            print(f"[WorktreeManager] Merged: {ctx.branch} → {ctx.base_branch}")
+            _log.info(f"Merged: {ctx.branch} → {ctx.base_branch}")
         except Exception as e:
-            print(f"[WorktreeManager] Merge failed: {e}")
+            _log.error(f"Merge failed: {e}")
             ctx.merged = False
 
     def _remove_worktree(self, ctx: WorktreeContext, force: bool = False):
@@ -238,9 +239,9 @@ class WorktreeManager:
                 )
 
             status = "Removed" if ctx.success else "Force-removed"
-            print(f"[WorktreeManager] {status}: {ctx.name}")
+            _log.info(f"{status}: {ctx.name}")
         except Exception as e:
-            print(f"[WorktreeManager] Remove error: {e}")
+            _log.error(f"Remove error: {e}")
 
     def _current_branch(self) -> str:
         result = subprocess.run(

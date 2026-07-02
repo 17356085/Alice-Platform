@@ -55,7 +55,7 @@ class FileIndexer:
     Usage:
         indexer = FileIndexer()
         index = indexer.scan("/path/to/project", framework_info)
-        print(f"Found {index.view_count} views, {len(index.router_files)} router files")
+        logger.info(f"Found {index.view_count} views, {len(index.router_files)} router files")
     """
 
     # Common source directories (tried in order)

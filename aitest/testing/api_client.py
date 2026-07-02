@@ -60,7 +60,7 @@ class APIClient:
         client = APIClient(base_url="https://api.example.com", timeout=10)
         resp = client.get("/users", params={"id": 1})
         assert resp.is_ok()
-        print(resp.json())
+        logger.info(resp.json())
     """
 
     def __init__(

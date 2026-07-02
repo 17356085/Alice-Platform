@@ -31,6 +31,8 @@ function quietWsProxyLogger() {
 
 export default defineConfig({
   plugins: [react()],
+  // Tauri v2 requires relative paths (./assets) — absolute paths break custom protocol
+  base: '',
   customLogger: quietWsProxyLogger(),
   build: {
     // P0-1: true (default) → each lazy chunk gets its own CSS
@@ -75,10 +77,11 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 15173,
     proxy: {
-      '/api': 'http://localhost:8000',
+      '/api': { target: 'http://localhost:8000', ws: true },
       '/ws': {
-        target: 'ws://localhost:8000',
+        target: 'http://localhost:8000',
         ws: true,
+        changeOrigin: true,
       },
     },
   },

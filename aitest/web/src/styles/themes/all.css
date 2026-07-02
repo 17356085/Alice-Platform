@@ -160,6 +160,76 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   Interaction polish — glass + micro-interactions per character
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Alice: glass on panels, soft hover lift ── */
+[data-theme="default"] [data-slot="sheet-content"],
+[data-theme="default"] [data-radix-popper-content-wrapper] [role="dialog"] {
+  background: hsl(var(--card));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+/* Nav item glass hover */
+[data-theme="default"] button:hover {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+/* Card hover glow */
+[data-theme="default"] .hover\:shadow-md:hover {
+  box-shadow: var(--shadow-md), var(--primary-glow);
+  transform: translateY(-1px);
+}
+/* Alice card hover */
+[data-theme="default"] [class*="rounded"]:hover {
+  transition: all var(--transition-slow);
+}
+
+/* ── Aoko: sharp lift, fast snap, no glass ── */
+[data-theme="aoko"] .glass-card {
+  background: hsl(var(--card));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: var(--shadow-xs);
+}
+[data-theme="aoko"] [data-slot="sheet-content"],
+[data-theme="aoko"] [data-radix-popper-content-wrapper] [role="dialog"] {
+  background: hsl(var(--card));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid hsl(var(--border));
+}
+[data-theme="aoko"] [class*="rounded"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: all var(--transition-fast);
+}
+
+/* ── Soujuurou: gentle warmth, matte hover, no glass ── */
+[data-theme="soujuurou"] .glass-card {
+  background: hsl(var(--card));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+[data-theme="soujuurou"] [data-slot="sheet-content"],
+[data-theme="soujuurou"] [data-radix-popper-content-wrapper] [role="dialog"] {
+  background: hsl(var(--card));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+[data-theme="soujuurou"] [class*="rounded"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all var(--transition-base);
+}
+/* Warm hover tint */
+[data-theme="soujuurou"] button:hover,
+[data-theme="soujuurou"] [role="button"]:hover {
+  background-color: hsl(var(--accent));
+}
+
+/* ═══════════════════════════════════════════════════════════════
    B · Animation speeds — character tempo
    ═══════════════════════════════════════════════════════════════ */
 /* Alice: slow, elegant — 洋館の時計 */

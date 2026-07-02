@@ -16,10 +16,10 @@ const NODE_W = 140, NODE_H = 36, GAP_X = 180, GAP_Y = 52, PAD = 30
 
 function nodeColor(status: string): { fill: string; stroke: string; text: string } {
   switch (status) {
-    case 'completed': return { fill: '#dcfce7', stroke: '#22c55e', text: '#166534' }
-    case 'running':   return { fill: '#dbeafe', stroke: '#3b82f6', text: '#1e40af' }
-    case 'failed':    return { fill: '#fef2f2', stroke: '#ef4444', text: '#991b1b' }
-    default:          return { fill: '#f9fafb', stroke: '#d1d5db', text: '#6b7280' }
+    case 'completed': return { fill: 'hsl(var(--success-light))', stroke: 'hsl(var(--success))', text: 'hsl(var(--success))' }
+    case 'running':   return { fill: 'hsl(var(--info-light))', stroke: 'hsl(var(--info))', text: 'hsl(var(--info))' }
+    case 'failed':    return { fill: 'hsl(var(--destructive-light))', stroke: 'hsl(var(--destructive))', text: 'hsl(var(--destructive))' }
+    default:          return { fill: 'hsl(var(--card))', stroke: 'hsl(var(--border))', text: 'hsl(var(--muted-foreground))' }
   }
 }
 
@@ -38,8 +38,8 @@ export default function LiveAgentGraph({ phases, currentPhase }: LiveAgentGraphP
     const agents = phases
     const left = agents.slice(0, 4)
     const right = agents.slice(4, 8)
-    left.forEach((a, i) => nodes.push({ id: a.id, label: a.label, phase: a.phase, status: a.status as any, x: -GAP_X / 2, y: GAP_Y * (i + 1) }))
-    right.forEach((a, i) => nodes.push({ id: a.id, label: a.label, phase: a.phase, status: a.status as any, x: GAP_X / 2, y: GAP_Y * (i + 1) }))
+    left.forEach((a, i) => nodes.push({ id: a.id, label: a.label, phase: a.phase, status: a.status as GraphNode['status'], x: -GAP_X / 2, y: GAP_Y * (i + 1) }))
+    right.forEach((a, i) => nodes.push({ id: a.id, label: a.label, phase: a.phase, status: a.status as GraphNode['status'], x: GAP_X / 2, y: GAP_Y * (i + 1) }))
     nodes.push({ id: 'exit', label: '退出', phase: 9, status: 'pending', x: 0, y: GAP_Y * 5 })
 
     const edges: { from: string; to: string }[] = []
@@ -78,7 +78,7 @@ export default function LiveAgentGraph({ phases, currentPhase }: LiveAgentGraphP
         {edges.map((edge, i) => {
           const f = nodeMap.get(edge.from), t = nodeMap.get(edge.to)
           if (!f || !t) return null
-          return <path key={`e${i}`} d={edgePath(f, t)} fill="none" stroke="#d1d5db" strokeWidth={1.5} strokeDasharray="4 3" />
+          return <path key={`e${i}`} d={edgePath(f, t)} fill="none" stroke="hsl(var(--border))" strokeWidth={1.5} strokeDasharray="4 3" />
         })}
         {nodes.map(node => {
           const c = nodeColor(node.status)
@@ -96,7 +96,7 @@ export default function LiveAgentGraph({ phases, currentPhase }: LiveAgentGraphP
               </text>
               {node.status === 'completed' && (
                 <>
-                  <circle cx={node.x + NODE_W / 2 - 12} cy={node.y - NODE_H / 2 + 12} r={7} fill="#22c55e" />
+                  <circle cx={node.x + NODE_W / 2 - 12} cy={node.y - NODE_H / 2 + 12} r={7} fill="hsl(var(--success))" />
                   <text x={node.x + NODE_W / 2 - 12} y={node.y - NODE_H / 2 + 15} textAnchor="middle" fill="white" fontSize={9} fontWeight="bold">✓</text>
                 </>
               )}

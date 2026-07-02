@@ -52,7 +52,7 @@ class ExecutionRequest:
     module: str = ""
     pages: list[str] = field(default_factory=list)
     mode: str = "full"                 # full|status|from_automation
-    provider: str = "claude"           # LLM provider
+    provider: str = None               # LLM provider (auto-resolved)
 
     # ── Lifecycle ───────────────────────────────────────────────────────
     priority: int = 0                  # 0=normal, 1=high, 2=critical

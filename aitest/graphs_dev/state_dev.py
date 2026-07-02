@@ -129,9 +129,12 @@ def create_initial_state_dev(
     module: str,
     pages: List[str] = None,
     mode: DevSOPMode = "full",
-    provider: str = "claude",
+    provider: str = None,
     run_id: str = "",
 ) -> dict:
+    if provider is None:
+        from aitest.config import config
+        provider = config.resolve_llm_provider()
     import time
     if not run_id:
         run_id = f"dev-sop-{module}-{int(time.time())}"

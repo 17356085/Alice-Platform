@@ -24,6 +24,7 @@ import os
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
+import threading
 
 # P2-3: governance/validators/ is the canonical location for SOP governance validation.
 # These validators operate on governance documents (YAML/MD), not runtime state.
@@ -37,6 +38,7 @@ from governance.validators.sop_validator import (
 # ── 路径配置 ──────────────────────────────────────────────────────────
 from aitest.platform.paths import get_workstudy, get_test_project_root, get_context_modules, get_governance_dir
 from aitest.infra.logging import get_logger
+from aitest.audit_engine.event_bus import emit
 _log = get_logger(__name__)
 WORKSTUDY = get_workstudy()
 GOVERNANCE = get_governance_dir()
@@ -306,18 +308,15 @@ def recommend_next_agent(module_name: str) -> dict:
     }
 
 
-def auto_advance(module_name: str, auto_trigger: bool = False) -> dict:
-    """自动推进模块到下一 Agent。
+_auto_advance_locks: dict[str, threading.Lock] = {}
 
-    返回: {"action": "trigger"|"blocked"|"complete", "agent": str, ...}
-    """
+def _auto_advance_impl(module_name: str, auto_trigger: bool) -> dict:
+    """Core logic — separated for lock management."""
     status = check_preconditions(module_name)
     recommendation = recommend_next_agent(module_name)
 
     if all(a["already_done"] for a in status["agents"]):
-        # B-4: Emit CycleEnd event when all phases complete
         try:
-            from aitest.audit_engine.event_bus import emit
             emit("CycleEnd", module=module_name, stats="all_phases_complete")
         except Exception as e:
             from aitest.infra.error_logger import log_error
@@ -332,7 +331,6 @@ def auto_advance(module_name: str, auto_trigger: bool = False) -> dict:
 
     if not recommendation.get("blockers"):
         agent = recommendation["agent"]
-        # 检查是否可自动触发
         trigger = next((t for t in AGENT_TRIGGERS if t.agent == agent), None)
 
         if auto_trigger and trigger and trigger.can_skip:
@@ -357,6 +355,22 @@ def auto_advance(module_name: str, auto_trigger: bool = False) -> dict:
         "blockers": recommendation.get("blockers", []),
         "validators": status.get("validators", {}),
     }
+
+
+def auto_advance(module_name: str, auto_trigger: bool = False) -> dict:
+    """自动推进模块到下一 Agent。
+
+    返回: {"action": "trigger"|"blocked"|"complete", "agent": str, ...}
+    Thread-safe: per-module lock prevents duplicate concurrent advancement.
+    """
+    lock = _auto_advance_locks.setdefault(module_name, threading.Lock())
+    if not lock.acquire(blocking=False):
+        return {"action": "blocked", "module": module_name,
+                "message": "auto_advance already in progress for this module"}
+    try:
+        return _auto_advance_impl(module_name, auto_trigger)
+    finally:
+        lock.release()
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -388,15 +402,15 @@ if __name__ == "__main__":
 
     if cmd == "check":
         result = check_preconditions(module)
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        logger.info(json.dumps(result, ensure_ascii=False, indent=2))
 
     elif cmd == "next":
         result = recommend_next_agent(module)
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        logger.info(json.dumps(result, ensure_ascii=False, indent=2))
 
     elif cmd == "auto":
         result = auto_advance(module, auto_trigger=auto)
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        logger.info(json.dumps(result, ensure_ascii=False, indent=2))
 
     else:
         _log.info(f"Unknown command: {cmd}")

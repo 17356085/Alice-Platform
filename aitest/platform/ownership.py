@@ -373,6 +373,7 @@ def _safe_event_name(event_type: Any) -> str:
 _SAFE_REFERRER_TYPES = frozenset({
     "_Entry", "_ObjectRef", "_AsyncObjectRef", "OwnedDict",
     "LifecycleRegistry", "dict",
+    "Handle", "TimerHandle",  # asyncio event loop callbacks
 })
 
 # Known-safe referrer modules (prefix match)
@@ -381,6 +382,7 @@ _SAFE_REFERRER_MODULES = (
     "aitest.platform.ownership",
     "_ctypes", "ctypes",
     "gc", "sys", "threading",
+    "asyncio",  # event loop internals (Handle, closures from create_task)
 )
 
 
@@ -413,6 +415,28 @@ def _is_safe_referrer(ref: Any) -> bool:
             return True
 
     return False
+
+
+# Known-safe source file paths (substring match).
+# Closures defined in these files are internal asyncio/cpython mechanics,
+# not leaks — even if they hold references to lifecycle objects.
+_SAFE_LOCATION_SUBSTRINGS = (
+    "asyncio" + "\\",
+    "asyncio" + "/",
+    "asyncio" + ".py",
+    "lib\\threading",
+    "lib/threading",
+    "lib\\multiprocessing",
+    "lib/multiprocessing",
+)
+
+
+def _is_safe_location(location: str) -> bool:
+    """Check if a referrer's source file is a known-safe internal location."""
+    if not location:
+        return False
+    loc_lower = location.lower()
+    return any(sub in loc_lower for sub in _SAFE_LOCATION_SUBSTRINGS)
 
 
 def _find_file_location(ref: Any) -> str:
@@ -513,16 +537,21 @@ class OwnershipChecker:
                 if rid == id(target) or rid == id(entry) or rid == id(registry):
                     continue
 
-                # Check if safe
+                # Check if safe (by type or module)
                 if _is_safe_referrer(ref):
                     continue
 
                 rtype = type(ref).__qualname__
                 rmodule = type(ref).__module__ or ""
+
+                # Check if defined in a safe internal file (e.g. asyncio closures
+                # captured by event loop handles). The type module might not match
+                # (closures are generic `function` type), so check the source file.
+                location = _find_file_location(ref)
+                if _is_safe_location(location):
+                    continue
                 rrepr = repr(ref)[:200]
                 rsize = sys.getsizeof(ref) if hasattr(ref, "__sizeof__") else 0
-
-                location = _find_file_location(ref)
 
                 # Classify violation severity
                 severity = "warning"

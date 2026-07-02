@@ -128,7 +128,13 @@ async def set_quota(org_id: str, ws_id: str, req: SetQuotaRequest):
 @workspace_router.post("/{ws_id}/context")
 async def get_context(org_id: str, ws_id: str, request: Request):
     """Resolve identity → ExecutionContext for Runtime consumption."""
-    user_id = request.headers.get("X-User-Id", "anonymous")
+    user_id = getattr(request.state, "user_id", None)
+    if not user_id:
+        from aitest.config import config
+        if not config.get_env("AITEST_API_KEY", ""):
+            user_id = "anonymous"
+        else:
+            raise HTTPException(401, "Authentication required")
     try:
         ctx = _get_ws_manager().make_context(org_id, ws_id, user_id)
         return {"context": ctx.to_dict()}

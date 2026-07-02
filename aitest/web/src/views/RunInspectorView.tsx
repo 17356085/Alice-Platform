@@ -263,8 +263,8 @@ export default function RunInspectorView() {
             <EmptyState icon={Box} message="No artifacts in this run" />
           ) : (
             <div className="grid gap-3">
-              {artifacts.map((a, i) => (
-                <Card key={i} className="hover:bg-accent/5 transition-colors">
+              {artifacts.map((a) => (
+                <Card key={a.path || a.name} className="hover:bg-accent/5 transition-colors">
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <ArtifactIcon type={a.type} />
@@ -296,8 +296,8 @@ export default function RunInspectorView() {
             <EmptyState icon={MessageSquare} message="No agent LLM calls recorded" />
           ) : (
             <div className="space-y-3">
-              {agent_calls.map((call, i) => (
-                <Card key={i} className="hover:bg-accent/5 transition-colors">
+              {agent_calls.map((call) => (
+                <Card key={call.event_id || call.timestamp} className="hover:bg-accent/5 transition-colors">
                   <CardHeader className="py-3 px-4 cursor-pointer"
                     onClick={() => setExpandedCall(expandedCall === call.event_id ? null : call.event_id)}>
                     <div className="flex items-center justify-between">
@@ -335,8 +335,8 @@ export default function RunInspectorView() {
                       {call.tool_calls?.length > 0 && (
                         <div>
                           <div className="text-xs font-semibold text-muted-foreground mb-1">Tool Calls</div>
-                          {call.tool_calls.map((tc: any, j: number) => (
-                            <div key={j} className="bg-muted p-2 rounded-md mb-2 text-xs font-mono">
+                          {call.tool_calls.map((tc: Record<string, unknown>, j: number) => (
+                            <div key={tc.name ? `${tc.name}-${j}` : j} className="bg-muted p-2 rounded-md mb-2 text-xs font-mono">
                               <span className="font-semibold text-primary">{String(tc.name ?? '')}</span>
                               {tc.args && <pre className="mt-1 text-[11px] opacity-70">{JSON.stringify(tc.args, null, 2)}</pre>}
                               {tc.result !== undefined && (

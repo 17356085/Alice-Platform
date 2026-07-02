@@ -3,8 +3,9 @@
  *  ref() → useState.
  */
 import { useState, useEffect, useCallback } from 'react'
+import { api } from '../api/client'
 
-interface HealthComponent { status: string; [key: string]: any }
+interface HealthComponent { status: string; [key: string]: unknown }
 interface HealthData { status: string; components: Record<string, HealthComponent> }
 
 export function useHealth() {
@@ -16,17 +17,10 @@ export function useHealth() {
     setLoading(true)
     setError('')
     try {
-      const resp = await fetch('/api/../health')
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
-      setHealth(await resp.json())
-    } catch (e: any) {
-      try {
-        const resp = await fetch('http://localhost:8000/health')
-        if (resp.ok) setHealth(await resp.json())
-        else setError(e.message)
-      } catch {
-        setError(e.message)
-      }
+      const data = await api.get<HealthData>('/health')
+      setHealth(data)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e))
     } finally {
       setLoading(false)
     }

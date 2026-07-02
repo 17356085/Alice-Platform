@@ -35,7 +35,7 @@ def _mock_run_skill_pass(monkeypatch):
         model="fake",
         finish_reason="stop",
     )
-    monkeypatch.setattr("aitest.agents.agent_runner.run_skill",
+    monkeypatch.setattr("aitest.engine.executor.run_skill",
                         lambda *a, **kw: response)
     return response
 
@@ -48,7 +48,7 @@ def _mock_run_skill_fail(monkeypatch):
         model="fake",
         finish_reason="error",
     )
-    monkeypatch.setattr("aitest.agents.agent_runner.run_skill",
+    monkeypatch.setattr("aitest.engine.executor.run_skill",
                         lambda *a, **kw: response)
     return response
 
@@ -84,7 +84,7 @@ class TestAbortSignal:
                 model="fake", finish_reason="stop",
             )
 
-        monkeypatch.setattr("aitest.agents.agent_runner.run_skill", mock_skill)
+        monkeypatch.setattr("aitest.engine.executor.run_skill", mock_skill)
         state = agent.run()
 
         assert state.done is True
@@ -230,7 +230,7 @@ class TestFullRun:
             return LLMResponse(content="Fail", token_usage={"input": 10, "output": 5},
                                model="fake", finish_reason="error")
 
-        monkeypatch.setattr("aitest.agents.agent_runner.run_skill", mock_skill)
+        monkeypatch.setattr("aitest.engine.executor.run_skill", mock_skill)
         agent = _make_agent(monkeypatch, max_steps=5)
 
         state = agent.run()

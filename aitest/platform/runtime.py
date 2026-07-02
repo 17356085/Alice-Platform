@@ -131,7 +131,7 @@ class BrowserRuntime(Runtime):
         self,
         base_url: str = "",
         headless: bool = True,
-        use_vision: bool = True,
+        use_vision: bool = False,
         max_steps: int = 15,
         provider: str = None,
         model: str = None,
@@ -164,6 +164,7 @@ class BrowserRuntime(Runtime):
                     provider=self._provider,
                     model=self._model,
                     use_vision=self._use_vision,
+                    base_url=self._base_url,
                 )
 
     async def navigate(self, target: str) -> None:
@@ -221,6 +222,11 @@ class BrowserRuntime(Runtime):
         username = credentials.get("username", "")
         password = credentials.get("password", "")
         return await self._driver.login(username=username, password=password)
+
+    async def evaluate_js(self, js_code: str) -> str:
+        """Execute JavaScript in the browser page. Returns string result."""
+        self._ensure_driver()
+        return await self._driver.evaluate_js(js_code)
 
     async def close(self) -> None:
         if self._driver:

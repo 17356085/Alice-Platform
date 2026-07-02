@@ -22,7 +22,7 @@ let manualClose = false  // MEM-AUDIT: prevent reconnect after explicit disconne
 // Subscribers for React reactivity
 const listeners = new Set<() => void>()
 let connected = false
-let lastEvent: any = null
+let lastEvent: unknown = null
 
 function notify() {
   listeners.forEach(fn => fn())
@@ -118,7 +118,7 @@ function sendCardMove(mod: string, from: string, to: string) {
 // CRITICAL: getSnapshot must return referentially stable value.
 // Returning a new object every call causes infinite re-render loop.
 
-let cachedSnapshot: { connected: boolean; lastEvent: any } = { connected: false, lastEvent: null }
+let cachedSnapshot: { connected: boolean; lastEvent: unknown } = { connected: false, lastEvent: null }
 
 function subscribe(cb: () => void) {
   listeners.add(cb)
@@ -143,4 +143,12 @@ export function useKanbanWS() {
     disconnect,
     sendCardMove,
   }
+}
+
+// HMR safety: close WebSocket on hot reload to prevent stale connections
+// @ts-ignore — import.meta.hot provided by Vite at build time
+if (import.meta?.hot) {
+  import.meta.hot.dispose(() => {
+    disconnect()
+  })
 }

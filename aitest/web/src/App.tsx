@@ -8,6 +8,7 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import { useTranslation } from 'react-i18next'
 import { LayoutDashboard } from 'lucide-react'
 import SidebarNav from './components/SidebarNav'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import KanbanHeader from './components/KanbanHeader'
 import ProjectSelector from './components/ProjectSelector'
 import { Toaster } from './lib/toast'
@@ -144,7 +145,8 @@ export default function App() {
         />
 
         <main className={`flex-1 overflow-y-auto page-transition ${fade ? 'show' : ''}`}>
-          <Suspense fallback={<Loading />}>
+          <ErrorBoundary>
+            <Suspense fallback={<Loading />}>
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardView />} />
@@ -174,6 +176,7 @@ export default function App() {
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Suspense>
+          </ErrorBoundary>
         </main>
       </div>
 

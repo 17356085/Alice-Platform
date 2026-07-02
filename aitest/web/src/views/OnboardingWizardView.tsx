@@ -1,7 +1,7 @@
 /** Onboarding Wizard — multi-step project discovery. shadcn/ui edition. */
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useOnboardingStore, selectIsComplete, selectIsMenuReady, selectIsFailed } from '@/stores/onboarding'
+import { useOnboardingStore, selectIsComplete, selectIsMenuReady, selectIsFailed, getStoredSession } from '@/stores/onboarding'
 import { useOnboardingWS } from '@/hooks/useOnboardingWS'
 import StepChooseSource from '@/components/onboarding/StepChooseSource'
 import StepUrlInput from '@/components/onboarding/StepUrlInput'
@@ -27,15 +27,34 @@ export default function OnboardingWizardView() {
   const isComplete = useOnboardingStore(selectIsComplete)
   const isMenuReady = useOnboardingStore(selectIsMenuReady)
   const isFailed = useOnboardingStore(selectIsFailed)
+  const isCancelled = useOnboardingStore(s => s.step === 'cancelled')
   const progress = useOnboardingStore(s => s.progress)
   const errors = useOnboardingStore(s => s.errors)
   const sourceType = useOnboardingStore(s => s.sourceType)
   const projectId = useOnboardingStore(s => s.projectId)
+  const checkpoint = useOnboardingStore(s => s.checkpoint)
+  const baseUrl = useOnboardingStore(s => s.baseUrl)
+  const start = useOnboardingStore(s => s.start)
   const cancel = useOnboardingStore(s => s.cancel)
   const reset = useOnboardingStore(s => s.reset)
+  const restore = useOnboardingStore(s => s.restore)
+  const pollStatus = useOnboardingStore(s => s.pollStatus)
   const { disconnect, wsError } = useOnboardingWS()
 
   const [sourceChosen, setSourceChosen] = useState(false)
+  const [restored, setRestored] = useState(false)
+
+  // Restore session on mount (page refresh recovery)
+  useEffect(() => {
+    const saved = getStoredSession()
+    if (saved && saved.sessionId && !restored) {
+      restore(saved)
+      setSourceChosen(true)
+      setRestored(true)
+      // Resume polling immediately
+      pollStatus()
+    }
+  }, [restore, pollStatus, restored])
 
   const currentStepIndex = useMemo(() => {
     if (isComplete) return 3
@@ -60,8 +79,16 @@ export default function OnboardingWizardView() {
     setSourceChosen(true)
   }
 
+  function handleBack() {
+    // Only back from URL input to source selection (before scanning starts)
+    if (currentStepIndex === 1 && !isRunning && sourceType === 'url') {
+      setSourceChosen(false)
+      store.setState({ baseUrl: '' })
+    }
+  }
+
   function openProject() {
-    navigate({ pathname: '/kanban', search: `?project=${projectId}` })
+    navigate(`/projects/${projectId}/kanban`)
   }
 
   useEffect(() => {
@@ -116,11 +143,15 @@ export default function OnboardingWizardView() {
       )}
 
       <main className="min-h-[300px]">
+        {!isCancelled && (
+          <>
         {currentStepIndex === 0 && !sourceChosen && <StepChooseSource onChoose={onSourceChoose} />}
         {currentStepIndex === 1 && !isRunning && sourceType === 'url' && <StepUrlInput />}
         {currentStepIndex === 1 && isRunning && <StepScanning />}
         {currentStepIndex === 2 && <StepConfirmMenu />}
         {currentStepIndex === 3 && <StepResults />}
+          </>
+        )}
         {isFailed && (
           <div className="text-center py-12">
             <AlertTriangle size={48} className="text-destructive mb-4 mx-auto" />
@@ -135,15 +166,45 @@ export default function OnboardingWizardView() {
             </div>
           </div>
         )}
+        {isCancelled && (
+          <div className="text-center py-12">
+            <FolderOpen size={48} className="text-warning mb-4 mx-auto" />
+            <h3 className="text-warning mb-2">Onboarding cancelled</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              {checkpoint
+                ? `Partial results saved — ${checkpoint.pages?.length || 0} pages discovered. You can resume from where you left off.`
+                : 'No partial results to recover.'}
+            </p>
+            <div className="flex gap-3 justify-center mt-4">
+              {checkpoint && (
+                <Button variant="gradient" onClick={() => {
+                  start(baseUrl, projectId, '', '', '', true)
+                  setSourceChosen(true)
+                }}>
+                  恢复上次进度 <ArrowRight size={16} />
+                </Button>
+              )}
+              <Button variant="secondary" onClick={() => reset()}>重新开始</Button>
+            </div>
+          </div>
+        )}
       </main>
 
-      <footer className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
+      <footer className="flex justify-between gap-3 mt-6 pt-4 border-t border-border">
+        <div>
+          {/* Back button: only from URL input → source selection */}
+          {currentStepIndex === 1 && !isRunning && sourceType === 'url' && (
+            <Button variant="outline" onClick={handleBack}>← 上一步</Button>
+          )}
+        </div>
+        <div className="flex gap-3">
         {(isRunning || isMenuReady) && <Button variant="outline" onClick={() => cancel()}>Cancel</Button>}
         {isComplete && (
           <Button variant="gradient" onClick={openProject}>
             Open Project <ArrowRight size={16} />
           </Button>
         )}
+        </div>
       </footer>
     </div>
   )
