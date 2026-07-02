@@ -154,11 +154,11 @@ class GovernanceRouter:
             self._governance_loader = SkillLoader(governance_path=gov_path)
             logger.info("Router: alice-governance loaded from %s", gov_path)
 
-        # 层 2: alice-governance-suite (dev skills + validators)
-        suite_path = self._try_import("alice_governance_suite", "get_skills_dev_path")
-        if suite_path:
-            self._suite_loader = SkillLoader(governance_path=suite_path.parent)
-            logger.info("Router: alice-governance-suite loaded from %s", suite_path)
+        # 层 2: alice-governance (dev skills + validators)
+        dev_path = self._try_import("alice_governance", "get_skills_dev_path")
+        if dev_path:
+            self._suite_loader = SkillLoader(governance_path=dev_path.parent)
+            logger.info("Router: alice-governance dev skills loaded from %s", dev_path)
 
         # 层 3: governance_default (SDK fallback)
         from alice_engine.behavior import get_default_pack_path
