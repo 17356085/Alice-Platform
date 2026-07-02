@@ -1,293 +1,109 @@
 """
-Audit Log — operational audit trail. v2.3
-
-Append-only subscriber of all RunEvents + Platform events.
-Persists to SQLite. Queryable by org, workspace, event_type, time range.
-
-Pure consumer. No new abstractions. No modification to ExecutionService.
-
-Usage:
-    from aitest.platform.audit_log import AuditLogger, get_audit_logger
-
-    logger = get_audit_logger()
-    logger.start()   # subscribes to EventBus, persists all events
-
-    # Query
-    entries = logger.query(org_id="my-org", event_type="run.completed", limit=50)
+Audit Log — operational audit trail. v3.0
+PostgreSQL persistence via docker exec psql.
 """
 
 import json
-import sqlite3
 import threading
-from pathlib import Path
-from datetime import datetime, timezone
-
+from datetime import datetime, timezone, timedelta
+from collections import deque
 from .event_bus import get_bus
 from .run_event import RunEvent
-from aitest.platform.paths import get_workstudy
+from aitest.infra.database import pg_exec, pg_query
 
+def _escape(val):
+    if val is None: return "NULL"
+    return "'" + str(val).replace("'", "''") + "'"
 
-def _audit_db_path() -> Path:
-    base = get_workstudy()
-    return base / "governance" / ".data" / "audit.db"
-
+def _escape_json(val):
+    if val is None: return "'{}'"
+    return "'" + json.dumps(val, ensure_ascii=False).replace("'", "''") + "'"
 
 class AuditLogger:
-    """Append-only audit log. Subscribes to EventBus, persists every event."""
-
-    def __init__(self, db_path: Path | None = None):
-        self._path = db_path or _audit_db_path()
-        self._path.parent.mkdir(parents=True, exist_ok=True)
-        self._lock = threading.Lock()
+    def __init__(self):
         self._active = False
-        self._init_db()
-
-    def _init_db(self):
-        with self._lock:
-            conn = sqlite3.connect(str(self._path))
-            conn.execute("PRAGMA journal_mode=WAL")
-            conn.executescript("""
-                CREATE TABLE IF NOT EXISTS audit_entries (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    event_id TEXT NOT NULL,
-                    event_type TEXT NOT NULL,
-                    run_id TEXT NOT NULL DEFAULT '',
-                    request_id TEXT NOT NULL DEFAULT '',
-                    org_id TEXT NOT NULL DEFAULT '',
-                    workspace_id TEXT NOT NULL DEFAULT '',
-                    user_id TEXT NOT NULL DEFAULT '',
-                    timestamp TEXT NOT NULL DEFAULT '',
-                    data_json TEXT NOT NULL DEFAULT '{}',
-                    created_at TEXT NOT NULL DEFAULT ''
-                );
-
-                CREATE INDEX IF NOT EXISTS idx_audit_type ON audit_entries(event_type);
-                CREATE INDEX IF NOT EXISTS idx_audit_org ON audit_entries(org_id);
-                CREATE INDEX IF NOT EXISTS idx_audit_workspace ON audit_entries(workspace_id);
-                CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit_entries(timestamp);
-                CREATE INDEX IF NOT EXISTS idx_audit_run ON audit_entries(run_id);
-            """)
-            conn.commit()
-            conn.close()
-
-    # ── Lifecycle ─────────────────────────────────────────────────────
+        self._queue: deque = deque()
+        self._flush_thread: threading.Thread | None = None
+        self._flush_running = False
 
     def start(self):
-        """Subscribe to EventBus. Idempotent."""
-        if self._active:
-            return
+        if self._active: return
         bus = get_bus()
         bus.subscribe("*", self._on_event)
         self._active = True
+        self._flush_running = True
+        self._flush_thread = threading.Thread(target=self._flush_loop, daemon=True)
+        self._flush_thread.start()
 
     def stop(self):
-        """Unsubscribe from EventBus."""
-        if not self._active:
-            return
+        if not self._active: return
         bus = get_bus()
         bus.unsubscribe("*", self._on_event)
         self._active = False
+        self._flush_running = False
+        self._flush_now()
 
     @property
     def is_active(self) -> bool:
         return self._active
 
-    # ── Event handler ─────────────────────────────────────────────────
-
     def _on_event(self, event: RunEvent):
-        """Persist event to audit log. Non-blocking, best-effort."""
         try:
-            org_id = event.data.get("org_id", "")
-            workspace_id = event.data.get("workspace_id", "")
-            user_id = event.data.get("triggered_by", "")
+            self._queue.append({"event_id": event.event_id, "event_type": event.event_type, "run_id": event.run_id, "request_id": event.request_id, "org_id": event.data.get("org_id", ""), "workspace_id": event.data.get("workspace_id", ""), "user_id": event.data.get("triggered_by", ""), "timestamp": event.timestamp, "data_json": json.dumps(event.data, ensure_ascii=False)})
+        except Exception: pass
 
-            with self._lock:
-                conn = sqlite3.connect(str(self._path))
-                conn.execute("""
-                    INSERT INTO audit_entries
-                    (event_id, event_type, run_id, request_id,
-                     org_id, workspace_id, user_id,
-                     timestamp, data_json, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    event.event_id, event.event_type,
-                    event.run_id, event.request_id,
-                    org_id, workspace_id, user_id,
-                    event.timestamp,
-                    json.dumps(event.data, ensure_ascii=False),
-                    datetime.now(timezone.utc).isoformat(),
-                ))
-                conn.commit()
-                conn.close()
-        except Exception:
-            pass  # Best-effort. Don't break event pipeline.
+    def _flush_loop(self):
+        import time
+        while self._flush_running:
+            try: self._flush_now()
+            except Exception: pass
+            time.sleep(2)
 
-    # ── Query ─────────────────────────────────────────────────────────
+    def _flush_now(self):
+        if not self._queue: return
+        batch = []
+        while self._queue: batch.append(self._queue.popleft())
+        if not batch: return
+        values = []
+        for e in batch:
+            values.append(f"({_escape(e['event_id'])}, {_escape(e['event_type'])}, {_escape(e['run_id'])}, {_escape(e['request_id'])}, {_escape(e['org_id'])}, {_escape(e['workspace_id'])}, {_escape(e['user_id'])}, {_escape(e['timestamp'])}, {_escape_json(json.loads(e['data_json']))})")
+        pg_exec(f"INSERT INTO audit_entries (event_id, event_type, run_id, request_id, org_id, workspace_id, user_id, timestamp, data_json) VALUES {', '.join(values)}")
 
-    def query(
-        self,
-        *,
-        org_id: str = "",
-        workspace_id: str = "",
-        event_type: str = "",
-        run_id: str = "",
-        limit: int = 50,
-        offset: int = 0,
-        since: str = "",
-        until: str = "",
-    ) -> list[dict]:
-        """Query audit entries. Filterable by org, workspace, event_type, time range."""
-        conn = sqlite3.connect(str(self._path))
-        where = []
-        params = []
+    def query(self, *, org_id: str = "", workspace_id: str = "", event_type: str = "", run_id: str = "", limit: int = 50, offset: int = 0, since: str = "", until: str = "") -> list[dict]:
+        where = ["1=1"]
+        if org_id: where.append(f"org_id={_escape(org_id)}")
+        if workspace_id: where.append(f"workspace_id={_escape(workspace_id)}")
+        if event_type: where.append(f"event_type={_escape(event_type)}")
+        if run_id: where.append(f"run_id={_escape(run_id)}")
+        if since: where.append(f"timestamp >= {_escape(since)}")
+        if until: where.append(f"timestamp <= {_escape(until)}")
+        return pg_query(f"SELECT * FROM audit_entries WHERE {' AND '.join(where)} ORDER BY id DESC LIMIT {min(limit, 500)} OFFSET {offset}")
 
-        if org_id:
-            where.append("org_id = ?")
-            params.append(org_id)
-        if workspace_id:
-            where.append("workspace_id = ?")
-            params.append(workspace_id)
-        if event_type:
-            where.append("event_type = ?")
-            params.append(event_type)
-        if run_id:
-            where.append("run_id = ?")
-            params.append(run_id)
-        if since:
-            where.append("timestamp >= ?")
-            params.append(since)
-        if until:
-            where.append("timestamp <= ?")
-            params.append(until)
-
-        sql = "SELECT * FROM audit_entries"
-        if where:
-            sql += " WHERE " + " AND ".join(where)
-        sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
-        params.extend([min(limit, 500), offset])
-
-        rows = conn.execute(sql, params).fetchall()
-        conn.close()
-
-        cols = ["id", "event_id", "event_type", "run_id", "request_id",
-                "org_id", "workspace_id", "user_id", "timestamp", "data_json", "created_at"]
-        return [
-            {**dict(zip(cols, r)), "data": json.loads(r[9])}
-            for r in rows
-        ]
-
-    def count(
-        self,
-        *,
-        org_id: str = "",
-        workspace_id: str = "",
-        event_type: str = "",
-    ) -> int:
-        """Count audit entries matching filters."""
-        conn = sqlite3.connect(str(self._path))
-        where = []
-        params = []
-        if org_id:
-            where.append("org_id = ?")
-            params.append(org_id)
-        if workspace_id:
-            where.append("workspace_id = ?")
-            params.append(workspace_id)
-        if event_type:
-            where.append("event_type = ?")
-            params.append(event_type)
-
-        sql = "SELECT COUNT(*) FROM audit_entries"
-        if where:
-            sql += " WHERE " + " AND ".join(where)
-
-        row = conn.execute(sql, params).fetchone()
-        conn.close()
-        return row[0] if row else 0
+    def count(self, *, org_id: str = "", workspace_id: str = "", event_type: str = "") -> int:
+        where = ["1=1"]
+        if org_id: where.append(f"org_id={_escape(org_id)}")
+        if workspace_id: where.append(f"workspace_id={_escape(workspace_id)}")
+        if event_type: where.append(f"event_type={_escape(event_type)}")
+        rows = pg_query(f"SELECT COUNT(*) as cnt FROM audit_entries WHERE {' AND '.join(where)}")
+        return rows[0]["cnt"] if rows else 0
 
     def stats(self, org_id: str = "") -> dict:
-        """Quick stats: event counts by type, recent activity."""
-        conn = sqlite3.connect(str(self._path))
-        where = "WHERE org_id = ?" if org_id else ""
-        params = [org_id] if org_id else []
-
-        # Event type breakdown
-        rows = conn.execute(
-            f"SELECT event_type, COUNT(*) as cnt FROM audit_entries {where} "
-            f"GROUP BY event_type ORDER BY cnt DESC LIMIT 20",
-            params,
-        ).fetchall()
-
-        # Recent 5
-        recent = conn.execute(
-            f"SELECT event_type, run_id, timestamp FROM audit_entries {where} "
-            f"ORDER BY created_at DESC LIMIT 5",
-            params,
-        ).fetchall()
-
-        total = conn.execute(
-            f"SELECT COUNT(*) FROM audit_entries {where}", params
-        ).fetchone()
-
-        conn.close()
-        return {
-            "total_entries": total[0] if total else 0,
-            "by_type": [{"type": r[0], "count": r[1]} for r in rows],
-            "recent": [
-                {"event_type": r[0], "run_id": r[1], "timestamp": r[2]}
-                for r in recent
-            ],
-        }
-
-    # ── Retention ──────────────────────────────────────────────────────
+        where = f"WHERE org_id={_escape(org_id)}" if org_id else ""
+        by_type = pg_query(f"SELECT event_type, COUNT(*) as cnt FROM audit_entries {where} GROUP BY event_type ORDER BY cnt DESC LIMIT 20")
+        total_rows = pg_query(f"SELECT COUNT(*) as cnt FROM audit_entries {where}")
+        recent = pg_query(f"SELECT event_type, run_id, timestamp FROM audit_entries {where} ORDER BY id DESC LIMIT 5")
+        return {"total_entries": total_rows[0]["cnt"] if total_rows else 0, "by_type": [{"type": r["event_type"], "count": r["cnt"]} for r in by_type], "recent": recent}
 
     def cleanup_old_entries(self, max_age_days: int = 30) -> int:
-        """Delete audit entries older than max_age_days. Returns count deleted.
-
-        Default: 30 days retention. Called by lifecycle sweep every ~6 minutes.
-        """
-        import time
-        try:
-            cutoff = datetime.now(timezone.utc).replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
-            from datetime import timedelta
-            cutoff = (datetime.now(timezone.utc) - timedelta(days=max_age_days)).isoformat()
-
-            with self._lock:
-                conn = sqlite3.connect(str(self._path))
-                cursor = conn.execute(
-                    "DELETE FROM audit_entries WHERE created_at < ?", (cutoff,)
-                )
-                deleted = cursor.rowcount
-                conn.commit()
-
-                # VACUUM if we deleted significant amount
-                if deleted > 1000:
-                    size_before = self._path.stat().st_size
-                    conn.execute("VACUUM")
-                    size_after = self._path.stat().st_size
-                    import logging
-                    logging.getLogger(__name__).info(
-                        "AuditLog cleanup: %d entries deleted, DB %.0fKB → %.0fKB",
-                        deleted, size_before / 1024, size_after / 1024,
-                    )
-
-                conn.close()
-            return deleted
-        except Exception:
-            return 0
-
-
-# ── Singleton ────────────────────────────────────────────────────────────
+        rows = pg_query(f"SELECT COUNT(*) as cnt FROM audit_entries WHERE timestamp < NOW() - INTERVAL '{max_age_days} days'")
+        count = rows[0]["cnt"] if rows else 0
+        if count: pg_exec(f"DELETE FROM audit_entries WHERE timestamp < NOW() - INTERVAL '{max_age_days} days'")
+        return count
 
 _logger: AuditLogger | None = None
 _logger_lock = threading.Lock()
-
-
 def get_audit_logger() -> AuditLogger:
     global _logger
     with _logger_lock:
-        if _logger is None:
-            _logger = AuditLogger()
+        if _logger is None: _logger = AuditLogger()
         return _logger

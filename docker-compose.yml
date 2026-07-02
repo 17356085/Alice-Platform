@@ -51,6 +51,25 @@ services:
       - ANONYMIZED_TELEMETRY=FALSE
     restart: unless-stopped
 
+  postgres:
+    image: postgres:16
+    container_name: aitest-pg
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      POSTGRES_DB: aitest
+      POSTGRES_USER: aitest
+      POSTGRES_PASSWORD: aitest
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aitest"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
 volumes:
   aitest_data:
   chroma_data:
+  pg_data:

@@ -1,8 +1,7 @@
-"""
-RunStore — simple SQLite persistence for Run and RunEvent records. v2.2
+"""RunStore — PostgreSQL persistence for Run and RunEvent records. v3.0
 
-Design: plain functions, no Repository Pattern. sqlite3 (sync) is fine —
-ExecutionService calls are synchronous. Extract interface later if DB changes.
+Uses docker exec psql as transport (Windows workaround).
+Method signatures unchanged — callers unaffected.
 
 Usage:
     from aitest.platform.run_store import RunStore
@@ -12,415 +11,135 @@ Usage:
 """
 
 import json
-import sqlite3
-import threading
-from pathlib import Path
+import logging
 from datetime import datetime, timezone
+from typing import Optional
 
 from .run import Run
 from .run_event import RunEvent
 from .execution_request import ExecutionRequest
-from aitest.platform.paths import get_workstudy
+from aitest.infra.database import pg_exec, pg_query
+
+logger = logging.getLogger("run_store")
 
 
-# ── DB path ──────────────────────────────────────────────────────────────
-
-def _default_db_path() -> Path:
-    """Same directory as session_store DB."""
-    base = get_workstudy()
-    return base / "governance" / ".data" / "runs.db"
+def _escape(val) -> str:
+    if val is None:
+        return "NULL"
+    return "'" + str(val).replace("'", "''") + "'"
 
 
-# ── Store ────────────────────────────────────────────────────────────────
+def _escape_json(val) -> str:
+    if val is None:
+        return "'{}'"
+    return "'" + json.dumps(val, ensure_ascii=False).replace("'", "''") + "'"
+
+
+def _row_to_run(r: dict) -> Run:
+    return Run(
+        run_id=r["run_id"], request_id=r["request_id"],
+        workspace_id=r["workspace_id"], org_id=r.get("org_id", ""),
+        triggered_by=r.get("triggered_by", ""), capability=r.get("capability", "browser"),
+        agent=r.get("agent", ""), module=r.get("module", ""),
+        pages=r.get("pages", []), mode=r.get("mode", "full"),
+        status=r.get("status", "running"),
+        created_at=r.get("created_at", ""), completed_at=r.get("completed_at", "") or "",
+        total_tokens=r.get("total_tokens", 0), total_cost=r.get("total_cost", 0.0),
+        agent_runs=r.get("agent_runs", 0), artifacts=r.get("artifacts", []),
+        error_message=r.get("error_message", ""),
+    )
+
+
+def _row_to_event(r: dict) -> RunEvent:
+    return RunEvent(
+        event_id=r["event_id"], event_type=r["event_type"],
+        run_id=r.get("run_id", ""), request_id=r.get("request_id", ""),
+        timestamp=r.get("timestamp", ""), data=r.get("data", {}),
+    )
+
+
+def _row_to_request(r: dict) -> ExecutionRequest:
+    return ExecutionRequest(
+        request_id=r["request_id"], workspace_id=r["workspace_id"],
+        org_id=r.get("org_id", ""), triggered_by=r.get("triggered_by", ""),
+        trigger_type=r.get("trigger_type", "manual"), module=r.get("module", ""),
+        pages=r.get("pages", []), mode=r.get("mode", "full"),
+        provider=r.get("provider", "claude"), priority=r.get("priority", 0),
+        status=r.get("status", "created"), run_ids=r.get("run_ids", []),
+        created_at=r.get("created_at", ""), started_at=r.get("started_at"),
+        completed_at=r.get("completed_at"),
+        retry_count=r.get("retry_count", 0), max_retries=r.get("max_retries", 0),
+    )
+
 
 class RunStore:
-    """Simple SQLite store for Run + RunEvent records."""
-
-    def __init__(self, db_path: Path | None = None):
-        self._path = db_path or _default_db_path()
-        self._path.parent.mkdir(parents=True, exist_ok=True)
-        self._lock = threading.Lock()
-        self._init_db()
-
-    def _init_db(self):
-        with self._lock:
-            conn = sqlite3.connect(str(self._path))
-            conn.execute("PRAGMA journal_mode=WAL")
-            conn.executescript("""
-                CREATE TABLE IF NOT EXISTS runs (
-                    run_id TEXT PRIMARY KEY,
-                    request_id TEXT NOT NULL,
-                    workspace_id TEXT NOT NULL,
-                    org_id TEXT NOT NULL DEFAULT '',
-                    triggered_by TEXT NOT NULL DEFAULT '',
-                    capability TEXT NOT NULL DEFAULT 'browser',
-                    agent TEXT NOT NULL DEFAULT '',
-                    module TEXT NOT NULL DEFAULT '',
-                    pages TEXT NOT NULL DEFAULT '[]',
-                    mode TEXT NOT NULL DEFAULT 'full',
-                    status TEXT NOT NULL DEFAULT 'running',
-                    created_at TEXT NOT NULL DEFAULT '',
-                    completed_at TEXT NOT NULL DEFAULT '',
-                    total_tokens INTEGER NOT NULL DEFAULT 0,
-                    total_cost REAL NOT NULL DEFAULT 0.0,
-                    agent_runs INTEGER NOT NULL DEFAULT 0,
-                    artifacts TEXT NOT NULL DEFAULT '[]',
-                    error_message TEXT NOT NULL DEFAULT ''
-                );
-
-                CREATE TABLE IF NOT EXISTS run_events (
-                    event_id TEXT PRIMARY KEY,
-                    event_type TEXT NOT NULL,
-                    run_id TEXT NOT NULL DEFAULT '',
-                    request_id TEXT NOT NULL DEFAULT '',
-                    timestamp TEXT NOT NULL DEFAULT '',
-                    data TEXT NOT NULL DEFAULT '{}'
-                );
-
-                CREATE INDEX IF NOT EXISTS idx_runs_workspace ON runs(workspace_id);
-                CREATE INDEX IF NOT EXISTS idx_runs_org ON runs(org_id);
-                CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);
-                CREATE INDEX IF NOT EXISTS idx_events_run ON run_events(run_id);
-                CREATE INDEX IF NOT EXISTS idx_events_type ON run_events(event_type);
-
-                CREATE TABLE IF NOT EXISTS execution_requests (
-                    request_id TEXT PRIMARY KEY,
-                    workspace_id TEXT NOT NULL,
-                    org_id TEXT NOT NULL DEFAULT '',
-                    triggered_by TEXT NOT NULL DEFAULT '',
-                    trigger_type TEXT NOT NULL DEFAULT 'manual',
-                    module TEXT NOT NULL DEFAULT '',
-                    pages TEXT NOT NULL DEFAULT '[]',
-                    mode TEXT NOT NULL DEFAULT 'full',
-                    provider TEXT NOT NULL DEFAULT 'claude',
-                    priority INTEGER NOT NULL DEFAULT 0,
-                    status TEXT NOT NULL DEFAULT 'created',
-                    run_ids TEXT NOT NULL DEFAULT '[]',
-                    created_at TEXT NOT NULL DEFAULT '',
-                    started_at TEXT,
-                    completed_at TEXT,
-                    retry_count INTEGER NOT NULL DEFAULT 0,
-                    max_retries INTEGER NOT NULL DEFAULT 0
-                );
-
-                CREATE INDEX IF NOT EXISTS idx_req_workspace ON execution_requests(workspace_id);
-                CREATE INDEX IF NOT EXISTS idx_req_org ON execution_requests(org_id);
-                CREATE INDEX IF NOT EXISTS idx_req_status ON execution_requests(status);
-            """)
-            conn.commit()
-            conn.close()
-
-    # ── Run CRUD ──────────────────────────────────────────────────────
-
     def save_request(self, request: ExecutionRequest):
-        with self._lock:
-            conn = sqlite3.connect(str(self._path))
-            conn.execute("""
-                INSERT OR REPLACE INTO execution_requests
-                (request_id, workspace_id, org_id, triggered_by, trigger_type,
-                 module, pages, mode, provider, priority,
-                 status, run_ids, created_at, started_at, completed_at,
-                 retry_count, max_retries)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                request.request_id, request.workspace_id, request.org_id,
-                request.triggered_by, request.trigger_type,
-                request.module, json.dumps(request.pages, ensure_ascii=False),
-                request.mode, request.provider, request.priority,
-                request.status, json.dumps(request.run_ids, ensure_ascii=False),
-                request.created_at, request.started_at, request.completed_at,
-                request.retry_count, request.max_retries,
-            ))
-            conn.commit()
-            conn.close()
+        pg_exec(f"""INSERT INTO execution_requests
+            (request_id, workspace_id, org_id, triggered_by, trigger_type, module, pages, mode, provider, priority, status, run_ids, created_at, started_at, completed_at, retry_count, max_retries)
+            VALUES ({_escape(request.request_id)}, {_escape(request.workspace_id)}, {_escape(request.org_id)}, {_escape(request.triggered_by)}, {_escape(request.trigger_type)}, {_escape(request.module)}, {_escape_json(request.pages)}, {_escape(request.mode)}, {_escape(request.provider or 'claude')}, {request.priority}, {_escape(request.status)}, {_escape_json(request.run_ids)}, {_escape(request.created_at)}, {_escape(request.started_at)}, {_escape(request.completed_at)}, {request.retry_count}, {request.max_retries})
+            ON CONFLICT (request_id) DO UPDATE SET status=EXCLUDED.status, run_ids=EXCLUDED.run_ids, started_at=EXCLUDED.started_at, completed_at=EXCLUDED.completed_at""")
 
-    def load_request(self, request_id: str) -> ExecutionRequest | None:
-        conn = sqlite3.connect(str(self._path))
-        row = conn.execute(
-            "SELECT * FROM execution_requests WHERE request_id = ?", (request_id,)
-        ).fetchone()
-        conn.close()
-        if row is None:
-            return None
-        cols = [
-            "request_id", "workspace_id", "org_id", "triggered_by", "trigger_type",
-            "module", "pages", "mode", "provider", "priority",
-            "status", "run_ids", "created_at", "started_at", "completed_at",
-            "retry_count", "max_retries",
-        ]
-        d = dict(zip(cols, row))
-        d["pages"] = json.loads(d.get("pages", "[]"))
-        d["run_ids"] = json.loads(d.get("run_ids", "[]"))
-        return ExecutionRequest(**d)
+    def load_request(self, request_id: str) -> Optional[ExecutionRequest]:
+        rows = pg_query(f"SELECT * FROM execution_requests WHERE request_id={_escape(request_id)}")
+        return _row_to_request(rows[0]) if rows else None
 
     def save_run(self, run: Run):
-        with self._lock:
-            conn = sqlite3.connect(str(self._path))
-            conn.execute("""
-                INSERT OR REPLACE INTO runs
-                (run_id, request_id, workspace_id, org_id, triggered_by,
-                 capability, agent, module, pages, mode,
-                 status, created_at, completed_at,
-                 total_tokens, total_cost, agent_runs, artifacts, error_message)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                run.run_id, run.request_id, run.workspace_id, run.org_id,
-                run.triggered_by,
-                run.capability, run.agent, run.module,
-                json.dumps(run.pages, ensure_ascii=False), run.mode,
-                run.status, run.created_at, run.completed_at,
-                run.total_tokens, run.total_cost, run.agent_runs,
-                json.dumps(run.artifacts, ensure_ascii=False),
-                run.error_message,
-            ))
-            conn.commit()
-            conn.close()
+        pg_exec(f"""INSERT INTO runs
+            (run_id, request_id, workspace_id, org_id, triggered_by, capability, agent, module, pages, mode, status, created_at, completed_at, total_tokens, total_cost, agent_runs, artifacts, error_message)
+            VALUES ({_escape(run.run_id)}, {_escape(run.request_id)}, {_escape(run.workspace_id)}, {_escape(run.org_id)}, {_escape(run.triggered_by)}, {_escape(run.capability)}, {_escape(run.agent)}, {_escape(run.module)}, {_escape_json(run.pages)}, {_escape(run.mode)}, {_escape(run.status)}, {_escape(run.created_at)}, {_escape(run.completed_at)}, {run.total_tokens}, {run.total_cost}, {run.agent_runs}, {_escape_json(run.artifacts)}, {_escape(run.error_message)})
+            ON CONFLICT (run_id) DO UPDATE SET status=EXCLUDED.status, completed_at=EXCLUDED.completed_at, total_tokens=EXCLUDED.total_tokens, total_cost=EXCLUDED.total_cost, agent_runs=EXCLUDED.agent_runs, artifacts=EXCLUDED.artifacts, error_message=EXCLUDED.error_message""")
 
-    def load_run(self, run_id: str) -> Run | None:
-        conn = sqlite3.connect(str(self._path))
-        row = conn.execute(
-            "SELECT * FROM runs WHERE run_id = ?", (run_id,)
-        ).fetchone()
-        conn.close()
-        if row is None:
-            return None
-        return self._row_to_run(row)
+    def load_run(self, run_id: str) -> Optional[Run]:
+        rows = pg_query(f"SELECT * FROM runs WHERE run_id={_escape(run_id)}")
+        return _row_to_run(rows[0]) if rows else None
 
-    def list_runs(
-        self,
-        workspace_id: str = "",
-        org_id: str = "",
-        status: str = "",
-        request_id: str = "",
-        limit: int = 50,
-        offset: int = 0,
-    ) -> list[Run]:
-        conn = sqlite3.connect(str(self._path))
-        where = []
-        params = []
-        if workspace_id:
-            where.append("workspace_id = ?")
-            params.append(workspace_id)
-        if org_id:
-            where.append("org_id = ?")
-            params.append(org_id)
-        if status:
-            where.append("status = ?")
-            params.append(status)
-        if request_id:
-            where.append("request_id = ?")
-            params.append(request_id)
-
-        sql = "SELECT * FROM runs"
-        if where:
-            sql += " WHERE " + " AND ".join(where)
-        sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
-        params.extend([limit, offset])
-
-        rows = conn.execute(sql, params).fetchall()
-        conn.close()
-        return [self._row_to_run(r) for r in rows]
+    def list_runs(self, workspace_id: str = "", org_id: str = "", status: str = "", request_id: str = "", limit: int = 50, offset: int = 0) -> list[Run]:
+        where = ["1=1"]
+        if workspace_id: where.append(f"workspace_id={_escape(workspace_id)}")
+        if org_id: where.append(f"org_id={_escape(org_id)}")
+        if status: where.append(f"status={_escape(status)}")
+        if request_id: where.append(f"request_id={_escape(request_id)}")
+        rows = pg_query(f"SELECT * FROM runs WHERE {' AND '.join(where)} ORDER BY created_at DESC LIMIT {limit} OFFSET {offset}")
+        return [_row_to_run(r) for r in rows]
 
     def count_runs(self, workspace_id: str = "", org_id: str = "") -> int:
-        conn = sqlite3.connect(str(self._path))
-        where = []
-        params = []
-        if workspace_id:
-            where.append("workspace_id = ?")
-            params.append(workspace_id)
-        if org_id:
-            where.append("org_id = ?")
-            params.append(org_id)
-
-        sql = "SELECT COUNT(*) FROM runs"
-        if where:
-            sql += " WHERE " + " AND ".join(where)
-
-        row = conn.execute(sql, params).fetchone()
-        conn.close()
-        return row[0] if row else 0
-
-    # ── Event CRUD ────────────────────────────────────────────────────
+        where = ["1=1"]
+        if workspace_id: where.append(f"workspace_id={_escape(workspace_id)}")
+        if org_id: where.append(f"org_id={_escape(org_id)}")
+        rows = pg_query(f"SELECT COUNT(*) as cnt FROM runs WHERE {' AND '.join(where)}")
+        return rows[0]["cnt"] if rows else 0
 
     def save_event(self, event: RunEvent):
-        with self._lock:
-            conn = sqlite3.connect(str(self._path))
-            conn.execute("""
-                INSERT OR REPLACE INTO run_events
-                (event_id, event_type, run_id, request_id, timestamp, data)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                event.event_id, event.event_type, event.run_id,
-                event.request_id, event.timestamp,
-                json.dumps(event.data, ensure_ascii=False),
-            ))
-            conn.commit()
-            conn.close()
+        pg_exec(f"""INSERT INTO run_events (event_id, event_type, run_id, request_id, timestamp, data, correlation_id)
+            VALUES ({_escape(event.event_id)}, {_escape(event.event_type)}, {_escape(event.run_id)}, {_escape(event.request_id)}, {_escape(event.timestamp)}, {_escape_json(event.data)}, {_escape(event.run_id or '')})
+            ON CONFLICT (event_id) DO NOTHING""")
 
-    def list_events(
-        self,
-        run_id: str = "",
-        event_type: str = "",
-        limit: int = 100,
-    ) -> list[RunEvent]:
-        conn = sqlite3.connect(str(self._path))
-        where = []
-        params = []
-        if run_id:
-            where.append("run_id = ?")
-            params.append(run_id)
-        if event_type:
-            where.append("event_type = ?")
-            params.append(event_type)
-
-        sql = "SELECT * FROM run_events"
-        if where:
-            sql += " WHERE " + " AND ".join(where)
-        sql += " ORDER BY timestamp ASC LIMIT ?"
-        params.append(limit)
-
-        rows = conn.execute(sql, params).fetchall()
-        conn.close()
-        return [self._row_to_event(r) for r in rows]
-
-    # ── Internal ──────────────────────────────────────────────────────
-
-    def _row_to_run(self, row) -> Run:
-        cols = [
-            "run_id", "request_id", "workspace_id", "org_id", "triggered_by",
-            "capability", "agent", "module", "pages", "mode",
-            "status", "created_at", "completed_at",
-            "total_tokens", "total_cost", "agent_runs", "artifacts",
-            "error_message",
-        ]
-        d = dict(zip(cols, row))
-        d["pages"] = json.loads(d.get("pages", "[]"))
-        d["artifacts"] = json.loads(d.get("artifacts", "[]"))
-        return Run(**d)
-
-    def _row_to_event(self, row) -> RunEvent:
-        cols = [
-            "event_id", "event_type", "run_id", "request_id", "timestamp", "data",
-        ]
-        d = dict(zip(cols, row))
-        d["data"] = json.loads(d.get("data", "{}"))
-        return RunEvent(**d)
-
-    # ── Retention ───────────────────────────────────────────────────────────
+    def list_events(self, run_id: str = "", event_type: str = "", limit: int = 100) -> list[RunEvent]:
+        where = ["1=1"]
+        if run_id: where.append(f"run_id={_escape(run_id)}")
+        if event_type: where.append(f"event_type={_escape(event_type)}")
+        rows = pg_query(f"SELECT * FROM run_events WHERE {' AND '.join(where)} ORDER BY timestamp ASC LIMIT {limit}")
+        return [_row_to_event(r) for r in rows]
 
     def cleanup_old_runs(self, max_age_days: int = 30) -> int:
-        """Delete completed/failed/cancelled runs older than max_age_days.
-
-        Also deletes associated run_events and execution_requests.
-        Returns number of runs deleted.
-        """
-        import time
-        cutoff = time.time() - (max_age_days * 86400)
-        cutoff_iso = datetime.fromtimestamp(cutoff, tz=timezone.utc).isoformat()
-        deleted = 0
-
-        try:
-            with self._lock:
-                conn = sqlite3.connect(str(self._default_db_path()))
-                # Find old terminal runs
-                cursor = conn.execute(
-                    """SELECT run_id FROM runs
-                       WHERE status IN ('completed', 'failed', 'cancelled', 'timed_out')
-                         AND completed_at < ?""",
-                    (cutoff_iso,)
-                )
-                old_run_ids = [row[0] for row in cursor.fetchall()]
-
-                for rid in old_run_ids:
-                    conn.execute("DELETE FROM run_events WHERE run_id = ?", (rid,))
-                    conn.execute("DELETE FROM runs WHERE run_id = ?", (rid,))
-                    deleted += 1
-
-                # Clean orphaned execution_requests (no matching run)
-                conn.execute(
-                    """DELETE FROM execution_requests
-                       WHERE request_id NOT IN (
-                           SELECT DISTINCT request_id FROM runs
-                           UNION
-                           SELECT DISTINCT request_id FROM run_events
-                       )
-                         AND created_at < ?""",
-                    (cutoff_iso,)
-                )
-
-                conn.commit()
-                if deleted > 100:
-                    conn.execute("VACUUM")
-                conn.close()
-        except Exception:
-            pass
-
-        return deleted
+        rows = pg_query(f"SELECT run_id FROM runs WHERE status IN ('completed','failed','cancelled','timed_out') AND completed_at < NOW() - INTERVAL '{max_age_days} days'")
+        for r in rows:
+            pg_exec(f"DELETE FROM run_events WHERE run_id={_escape(r['run_id'])}")
+            pg_exec(f"DELETE FROM runs WHERE run_id={_escape(r['run_id'])}")
+        return len(rows)
 
     def recover_crashed_runs(self) -> int:
-        """Mark all 'running' runs as 'failed' (crash recovery on startup).
-
-        Returns number of runs recovered.
-        """
-        recovered = 0
-        try:
-            with self._lock:
-                conn = sqlite3.connect(str(self._default_db_path()))
-                cursor = conn.execute(
-                    "SELECT run_id FROM runs WHERE status = 'running'"
-                )
-                run_ids = [row[0] for row in cursor.fetchall()]
-                for rid in run_ids:
-                    conn.execute(
-                        "UPDATE runs SET status='failed', "
-                        "error_message='Server crash — run interrupted', "
-                        f"completed_at='{datetime.now(timezone.utc).isoformat()}' "
-                        "WHERE run_id=?",
-                        (rid,)
-                    )
-                    recovered += 1
-                conn.commit()
-                conn.close()
-        except Exception:
-            pass
-        return recovered
+        pg_exec("UPDATE runs SET status='failed', error_message='Server crash — run interrupted', completed_at=NOW() WHERE status='running'")
+        rows = pg_query("SELECT COUNT(*) as cnt FROM runs WHERE status='failed' AND error_message='Server crash — run interrupted'")
+        return rows[0]["cnt"] if rows else 0
 
     def get_stats(self) -> dict:
-        """Return storage stats for observability dashboard."""
-        db_path = self._default_db_path()
-        stats = {
-            "db_path": str(db_path),
-            "exists": db_path.exists(),
-            "size_kb": 0,
-            "run_count": 0,
-            "event_count": 0,
-            "request_count": 0,
-        }
-        if not db_path.exists():
-            return stats
+        rows = pg_query("SELECT (SELECT COUNT(*) FROM runs) as run_count, (SELECT COUNT(*) FROM run_events) as event_count, (SELECT COUNT(*) FROM execution_requests) as request_count")
+        return {"backend": "postgresql", **rows[0]} if rows else {"backend": "postgresql"}
 
-        try:
-            stats["size_kb"] = round(db_path.stat().st_size / 1024, 1)
-            conn = sqlite3.connect(str(db_path))
-            for table, key in [("runs", "run_count"), ("run_events", "event_count"),
-                               ("execution_requests", "request_count")]:
-                row = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()
-                stats[key] = row[0] if row else 0
-            conn.close()
-        except Exception:
-            pass
-        return stats
-
-
-# ── Singleton ────────────────────────────────────────────────────────────
 
 _store: RunStore | None = None
-_store_lock = threading.Lock()
-
-
 def get_run_store() -> RunStore:
     global _store
-    with _store_lock:
-        if _store is None:
-            _store = RunStore()
-        return _store
+    if _store is None: _store = RunStore()
+    return _store
