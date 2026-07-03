@@ -6,6 +6,8 @@ v3.2: Synchronous PG writes — eliminates 2s flush window data loss risk.
       Audit entries are written immediately on event, no deque buffering.
 """
 
+__all__ = ["AuditLogger", "get_audit_logger", "set_audit_logger", "reset_audit_logger"]
+
 import json
 import threading
 from datetime import datetime, timezone, timedelta

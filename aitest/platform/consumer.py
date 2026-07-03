@@ -25,6 +25,8 @@ Usage:
             return self._active
 """
 
+__all__ = ["RunEventConsumer"]
+
 from typing import Protocol, runtime_checkable
 
 from .run_event import RunEvent

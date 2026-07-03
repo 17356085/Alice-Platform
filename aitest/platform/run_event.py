@@ -24,6 +24,14 @@ Event types:
   cost.recorded         — Cost snapshot recorded
 """
 
+__all__ = [
+    "RunEvent", "EventType", "EventDataKey", "make_event",
+    "ExecutionRequestedData", "ExecutionStartedData", "RunCompletedData",
+    "RunFailedData", "RunCancelledData", "CostRecordedData",
+    "PhaseStartedData", "PhaseCompletedData", "ArtifactCreatedData",
+    "RunEventData", "EVENT_SCHEMAS",
+]
+
 import os
 import logging
 from dataclasses import dataclass, field
