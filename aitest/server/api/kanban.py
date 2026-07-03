@@ -1,20 +1,19 @@
-"""Kanban WebSocket + SOP execution API.
-Extracted from main.py (P0-2 split, 2026-06-25).
+"""Kanban WebSocket + SOP execution API. v3.1
+
+v3.1: 删除伪执行，kanban 从 run_events 表读取真实 phase 进度。
 
 Routes:
   WS   /ws/kanban           — real-time lifecycle events
-  POST /api/sop/start        — start SOP execution
+  POST /api/sop/start        — start SOP execution (via ExecutionService)
   GET  /api/kanban/status    — WebSocket connection count
+  GET  /api/kanban/phases/:module — query phase progress from run_events
 """
 from __future__ import annotations
 import json as _json
-import threading
 import asyncio
 from datetime import datetime
-from pathlib import Path
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
-from aitest.platform.paths import get_workstudy
 
 kanban_router = APIRouter(tags=["kanban"])
 
@@ -56,14 +55,6 @@ class KanbanWSManager:
                 pass
         self._connections.clear()
 
-    async def broadcast_sop_phase(self, module: str, phase: str, status: str = "running",
-                                   progress: int = 0, message: str = ""):
-        await self.broadcast({
-            "type": "phase_change", "module": module, "phase": phase,
-            "status": status, "progress": progress, "message": message,
-            "timestamp": datetime.now().isoformat(),
-        })
-
 
 _kanban_ws = KanbanWSManager()
 
@@ -72,53 +63,69 @@ def get_kanban_ws() -> KanbanWSManager:
     return _kanban_ws
 
 
-# ── Helpers ───────────────────────────────────────────────────────────
+# ── Phase progress query (from run_events) ────────────────────────────
 
-def _get_sop_status_dir() -> Path:
-    from aitest.platform.context import get_active_project_id
-    base = get_workstudy()
-    d = base / "governance" / "artifacts" / "sop-status" / get_active_project_id()
-    d.mkdir(parents=True, exist_ok=True)
-    return d
+def get_module_phase_progress(module: str) -> dict:
+    """Query phase progress for a module from run_events table.
 
+    Returns: {
+        "module": str,
+        "phases": [{"name": str, "status": str, "started_at": str, "completed_at": str}],
+        "overall_status": str,
+        "progress": int (0-100),
+    }
+    """
+    from aitest.platform.run_store import get_run_store
+    from aitest.platform.run_event import EventType
 
-def _update_module_phase(module: str, phase: str, status: str, progress: int):
-    sop_dir = _get_sop_status_dir()
-    status_file = sop_dir / f"SOP_STATUS_{module}.json"
-    if status_file.exists():
-        try:
-            data = _json.loads(status_file.read_text(encoding="utf-8"))
-            if phase not in data.get("completed_phases", []):
-                data.setdefault("completed_phases", []).append(phase)
-            data["status"] = status
-            data["progress"] = progress
-            data["updated_at"] = datetime.now().isoformat()
-            status_file.write_text(_json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
-        except Exception:
-            pass
+    store = get_run_store()
+    # Find most recent run for this module
+    runs = store.list_runs(limit=10)
+    module_runs = [r for r in runs if r.module == module]
+    if not module_runs:
+        return {"module": module, "phases": [], "overall_status": "not_started", "progress": 0}
 
+    latest_run = module_runs[0]
+    events = store.list_events(run_id=latest_run.run_id, limit=500)
 
-def _update_module_stage(module: str, new_stage: str):
-    sop_dir = _get_sop_status_dir()
-    status_file = sop_dir / f"SOP_STATUS_{module}.json"
-    if not status_file.exists():
-        return
-    try:
-        data = _json.loads(status_file.read_text(encoding="utf-8"))
-        stage_map = {"pending": "pending", "planning": "ready", "executing": "in_progress",
-                     "analyzing": "completed_with_issues", "completed": "completed"}
-        data["status"] = stage_map.get(new_stage, data.get("status", "completed"))
-        data["kanban_stage"] = new_stage
-        data["kanban_updated_at"] = datetime.now().isoformat()
-        status_file.write_text(_json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
-    except Exception:
-        pass
+    # Build phase map from events
+    phase_map: dict[str, dict] = {}
+    for e in events:
+        if e.event_type not in (EventType.PHASE_STARTED, EventType.PHASE_COMPLETED):
+            continue
+        name = e.data.get("phase", "unknown")
+        if name not in phase_map:
+            phase_map[name] = {"name": name, "status": "pending", "started_at": None, "completed_at": None}
+        if e.event_type == EventType.PHASE_STARTED:
+            phase_map[name]["status"] = "running"
+            phase_map[name]["started_at"] = e.timestamp
+        elif e.event_type == EventType.PHASE_COMPLETED:
+            phase_map[name]["status"] = "completed"
+            phase_map[name]["completed_at"] = e.timestamp
+
+    phases = list(phase_map.values())
+    completed = sum(1 for p in phases if p["status"] == "completed")
+    total = len(phases) if phases else 1
+    progress = int(completed / total * 100)
+
+    overall = "completed" if latest_run.is_terminal and latest_run.status == "completed" else \
+              "failed" if latest_run.is_terminal else "running"
+
+    return {
+        "module": module,
+        "run_id": latest_run.run_id,
+        "status": latest_run.status,
+        "phases": phases,
+        "overall_status": overall,
+        "progress": progress,
+    }
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────
 
 @kanban_router.post("/api/sop/start")
 async def sop_start(request: Request):
+    """Start SOP execution via ExecutionService (real execution, not fake)."""
     try:
         body = await request.json()
     except Exception:
@@ -131,37 +138,46 @@ async def sop_start(request: Request):
     if not module:
         return {"error": "module is required"}
 
-    phases = ["Requirement", "Test Strategy", "Test Design", "Automation",
-              "Environment", "Execution", "Bug Analysis", "Report", "Knowledge"]
-    total = len(phases)
-    loop = asyncio.get_event_loop()
+    # v3.1: Use real ExecutionService instead of fake sleep-based execution
+    from aitest.platform.execution_service import ExecutionService
+    from aitest.platform.workspace import ExecutionContext
 
-    def run_sop_background():
-        import time as _time
-        for i, phase in enumerate(phases):
-            progress = int((i + 1) / total * 100)
-            asyncio.run_coroutine_threadsafe(
-                _kanban_ws.broadcast_sop_phase(
-                    module=module, phase=phase, status="running",
-                    progress=progress, message=f"Running {phase}..."),
-                loop,
+    user_id = getattr(request.state, "user_id", None) or request.headers.get("X-User-Id", "anonymous")
+    org_id = getattr(request.state, "org_id", None) or request.headers.get("X-Org-Id", "")
+
+    ctx = ExecutionContext(
+        workspace_id="default",
+        user_id=user_id,
+        scopes=["read", "execute"],
+        org_id=org_id,
+    )
+
+    svc = getattr(request.app.state, "execution_service", None)
+    if svc is None:
+        svc = ExecutionService()
+
+    # Execute in background (non-blocking)
+    async def _run():
+        try:
+            await asyncio.to_thread(
+                svc.execute, ctx=ctx, module=module, pages=pages,
+                agent="automation-agent", mode=mode, provider=provider,
             )
-            _time.sleep(1.5)
-            new_status = "completed" if progress >= 100 else "in_progress"
-            _update_module_phase(module, phase, new_status, progress)
-        asyncio.run_coroutine_threadsafe(
-            _kanban_ws.broadcast_sop_phase(
-                module=module, phase="Knowledge", status="completed",
-                progress=100, message=f"SOP completed for {module}"),
-            loop,
-        )
+        except Exception:
+            pass
 
-    thread = threading.Thread(target=run_sop_background, daemon=True)
-    thread.start()
-    return {"module": module, "status": "started", "total_phases": total, "phases": phases}
+    asyncio.create_task(_run())
+
+    return {"module": module, "status": "started", "message": "SOP execution started via ExecutionService"}
 
 
-# ── Idle timeout (MEM-AUDIT: prevent abandoned connections holding resources) ──
+@kanban_router.get("/api/kanban/phases/{module}")
+async def get_phases(module: str):
+    """Query phase progress for a module from run_events table."""
+    return get_module_phase_progress(module)
+
+
+# ── Idle timeout ──────────────────────────────────────────────────────
 from aitest.platform.config_registry import cfg as _cfg
 _WS_IDLE_TIMEOUT = _cfg.ws_idle_timeout_s
 
@@ -186,7 +202,6 @@ async def kanban_websocket(ws: WebSocket):
                     "from_stage": msg.get("from_stage", ""), "to_stage": msg.get("to_stage", ""),
                     "timestamp": datetime.now().isoformat(),
                 })
-                _update_module_stage(msg.get("module", ""), msg.get("to_stage", ""))
     except (WebSocketDisconnect, asyncio.TimeoutError):
         _kanban_ws.disconnect(ws)
     except Exception:

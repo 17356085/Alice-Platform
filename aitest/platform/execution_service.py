@@ -172,6 +172,17 @@ class ExecutionService:
         try:
             from .engine_factory import get_engine
 
+            # Emit PHASE_STARTED — execution phase begins
+            ev_phase_start = make_event(
+                EventType.PHASE_STARTED,
+                run_id=run.run_id,
+                request_id=request.request_id,
+                phase="execution",
+                module=module,
+            )
+            self._store.save_event(ev_phase_start)
+            self._bus.publish_async(ev_phase_start)
+
             loop = get_engine(
                 agent,
                 module=module,
@@ -198,6 +209,17 @@ class ExecutionService:
             request.complete()
             self._store.save_run(run)         # Persist Run (canonical) first
             self._store.save_request(request)  # Persist completed
+
+            # Emit PHASE_COMPLETED — execution phase finished
+            ev_phase_done = make_event(
+                EventType.PHASE_COMPLETED,
+                run_id=run.run_id,
+                request_id=request.request_id,
+                phase="execution",
+                module=module,
+            )
+            self._store.save_event(ev_phase_done)
+            self._bus.publish_async(ev_phase_done)
 
             ev_completed = make_event(
                 EventType.RUN_COMPLETED,
@@ -233,6 +255,17 @@ class ExecutionService:
             request.fail()
             self._store.save_run(run)         # Persist Run (canonical) first
             self._store.save_request(request)  # Persist failed
+
+            # Emit PHASE_COMPLETED — execution phase finished (with failure)
+            ev_phase_done = make_event(
+                EventType.PHASE_COMPLETED,
+                run_id=run.run_id,
+                request_id=request.request_id,
+                phase="execution",
+                module=module,
+            )
+            self._store.save_event(ev_phase_done)
+            self._bus.publish_async(ev_phase_done)
 
             ev_failed = make_event(
                 EventType.RUN_FAILED,
