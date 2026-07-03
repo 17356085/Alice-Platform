@@ -134,7 +134,10 @@ AgentEventType = Literal[
 
 @dataclass
 class AgentEvent:
-    """run_interactive() 产生的单个事件。interaction_required 事件暂停执行，等待外部输入。"""
+    """run_interactive() 产生的单个事件。interaction_required 事件暂停执行，等待外部输入。
+
+    v3.1: 明确字段定义，ui_projection.py 通过这些字段访问事件数据。
+    """
     type: AgentEventType
     skill_id: str = ""
     content: str = ""
@@ -149,3 +152,25 @@ class AgentEvent:
     progress: dict = field(default_factory=dict)
     token_usage: dict = field(default_factory=dict)
     error: str = ""
+
+
+# v3.1: AgentEvent Protocol — 定义 ui_projection.py 等消费者期望的字段
+# 这是 AgentEvent 的"接口契约"，任何产生 AgentEvent 的代码必须满足
+from typing import Protocol, runtime_checkable
+
+@runtime_checkable
+class AgentEventProtocol(Protocol):
+    """AgentEvent 的 Protocol 定义。ui_projection.py 等消费者依赖这些字段。"""
+
+    type: AgentEventType
+    skill_id: str
+    content: str
+    status: str
+    summary: str
+    progress: dict
+    token_usage: dict
+    error: str
+    interaction_id: str
+    interaction_type: str
+    interaction_prompt: str
+    interaction_options: list

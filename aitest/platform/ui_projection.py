@@ -59,6 +59,10 @@ def _sse(event_type: str, data: dict[str, Any]) -> dict:
 def map_agent_event(agent_event) -> Optional[dict]:
     """Map an AgentEvent to a UI SSE event dict.
 
+    v3.1: agent_event 遵循 AgentEventProtocol（定义在 alice_engine.core.task）。
+    字段: type, skill_id, content, status, summary, progress, token_usage, error,
+          interaction_id, interaction_type, interaction_prompt, interaction_options
+
     Returns None for events that should be silently consumed (e.g. observe).
     """
     t = agent_event.type
