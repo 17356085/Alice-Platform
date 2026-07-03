@@ -94,6 +94,7 @@ class AgentTerminalWSManager:
         queue = self._queue
 
         def _on_event(event):
+            # v3.1: payload 格式与 ws-events.ts TerminalObservationEvent 一致
             payload = {
                 "type": str(event.type.value) if hasattr(event.type, 'value') else str(event.type),
                 "agent": getattr(event, 'agent_name', ''),

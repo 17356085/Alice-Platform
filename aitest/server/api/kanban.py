@@ -194,12 +194,15 @@ async def kanban_websocket(ws: WebSocket):
             data = await asyncio.wait_for(ws.receive_text(), timeout=_WS_IDLE_TIMEOUT)
             msg = _json.loads(data)
             action = msg.get("action", "")
-            if action == "ping":
-                await ws.send_text(_json.dumps({"type": "pong"}))
-            elif action == "card_move":
+            # v3.1: action types from ws-events.ts WS_ACTIONS
+            if action == "ping":  # WS_ACTIONS.PING
+                await ws.send_text(_json.dumps({"type": "pong"}))  # WS_EVENTS.PONG
+            elif action == "card_move":  # WS_ACTIONS.CARD_MOVE
                 await _kanban_ws.broadcast({
-                    "type": "card_moved", "module": msg.get("module", ""),
-                    "from_stage": msg.get("from_stage", ""), "to_stage": msg.get("to_stage", ""),
+                    "type": "card_moved",  # WS_EVENTS.CARD_MOVED
+                    "module": msg.get("module", ""),
+                    "from_stage": msg.get("from_stage", ""),
+                    "to_stage": msg.get("to_stage", ""),
                     "timestamp": datetime.now().isoformat(),
                 })
     except (WebSocketDisconnect, asyncio.TimeoutError):
