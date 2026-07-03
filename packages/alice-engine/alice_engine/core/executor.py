@@ -501,7 +501,7 @@ class AgentLoop:
                     f"{len(builder_ctx.patterns)} patterns, "
                     f"memory={'yes' if builder_ctx.memory_hints else 'no'}"
                 )
-            except Exception:
+            except Exception as e:
                 self._log(f"[warn] context discovery skipped: {e}")
 
         if extra:
