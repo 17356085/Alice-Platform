@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 from ..consumer import RunEventConsumer
 from ..run_event import RunEvent, EventType, RunCompletedData, RunFailedData, EventDataKey as K
 from ..event_bus import get_bus
-from ..ttl_set import TTLSet
+from ..event_replay import mark_event_seen, is_event_seen
 
 
 class MetricsConsumer:
@@ -37,7 +37,7 @@ class MetricsConsumer:
     def __init__(self, bus=None):
         self._lock = threading.Lock()
         self._active = False
-        self._seen = TTLSet(max_size=10_000, max_age_s=86_400)  # Idempotency: 10k entries, 24h TTL
+        self._consumer_name = "metrics-consumer"
         self._bus = bus  # injected EventBus (None = lazy singleton)
 
         # Counters
@@ -82,24 +82,27 @@ class MetricsConsumer:
     # ── Handlers ──────────────────────────────────────────────────────
 
     def _on_run_completed(self, event: RunEvent):
-        if not self._seen.add(event.event_id):
-            return  # already processed (TTLSet atomic check-and-add)
+        if is_event_seen(event.event_id, self._consumer_name):
+            return  # already processed (PG dedup)
+        mark_event_seen(event.event_id, self._consumer_name)
         with self._lock:
             self._total_runs += 1
             self._completed_runs += 1
             self._accumulate(event)
 
     def _on_run_failed(self, event: RunEvent):
-        if not self._seen.add(event.event_id):
+        if is_event_seen(event.event_id, self._consumer_name):
             return
+        mark_event_seen(event.event_id, self._consumer_name)
         with self._lock:
             self._total_runs += 1
             self._failed_runs += 1
             self._accumulate(event)
 
     def _on_run_cancelled(self, event: RunEvent):
-        if not self._seen.add(event.event_id):
+        if is_event_seen(event.event_id, self._consumer_name):
             return
+        mark_event_seen(event.event_id, self._consumer_name)
         with self._lock:
             self._total_runs += 1
             self._cancelled_runs += 1

@@ -31,6 +31,7 @@ Usage:
     bus.publish(event)
 """
 
+import json
 import threading
 import weakref
 from concurrent.futures import ThreadPoolExecutor, Future
@@ -180,6 +181,25 @@ class EventBus:
             self._cleanup_dead(self._wildcards)
         return handlers
 
+    def _log_event(self, event: RunEvent) -> None:
+        """Persist event to event_log table for replay capability. Best-effort."""
+        try:
+            from .run_event import _is_dev_mode
+            # Only log in production or if explicitly enabled
+            # In dev mode, skip logging to avoid test noise
+            if _is_dev_mode():
+                return
+            from aitest.infra.sql import safe_exec
+            safe_exec(
+                "INSERT OR IGNORE INTO event_log "
+                "(event_id, event_type, run_id, request_id, data_json, published_at) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                [event.event_id, event.event_type, event.run_id, event.request_id,
+                 json.dumps(event.data, ensure_ascii=False), event.timestamp],
+            )
+        except Exception:
+            pass  # Best-effort: don't break event processing if logging fails
+
     @staticmethod
     def _run_handler(handler: Subscriber, event: RunEvent) -> bool:
         """Run a single handler. Returns True on success."""
@@ -198,9 +218,12 @@ class EventBus:
         """Emit event synchronously. Auto-cleans dead weakrefs.
         Handlers execute in priority order (lower number first).
 
+        v3.2: Logs event to event_log table for replay capability.
+
         Returns:
             (success_count, failure_count) — failures are logged, not raised.
         """
+        self._log_event(event)
         handlers = self._resolve_handlers(event.event_type)
         ok = 0
         fail = 0
@@ -222,6 +245,9 @@ class EventBus:
         Returns:
             (sync_success, async_futures) — sync count + list of Futures for async handlers.
         """
+        # v3.2: Log event before dispatch
+        self._log_event(event)
+
         # Backpressure: wait if too many pending futures
         with self._futures_lock:
             # Clean completed futures

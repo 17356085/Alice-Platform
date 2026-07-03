@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 from ..consumer import RunEventConsumer
 from ..run_event import RunEvent, EventType, make_event, RunCompletedData, CostRecordedData, EventDataKey as K
 from ..event_bus import get_bus
-from ..ttl_set import TTLSet
+from ..event_replay import mark_event_seen, is_event_seen
 from ..config_registry import cfg
 
 
@@ -49,7 +49,7 @@ class BillingHookConsumer:
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._active = False
-        self._seen = TTLSet(max_size=10_000, max_age_s=86_400)  # Idempotency: 10k entries, 24h TTL
+        self._consumer_name = "billing-hook"
         self._bus = bus  # injected EventBus (None = lazy singleton)
 
     def start(self):
@@ -76,8 +76,8 @@ class BillingHookConsumer:
 
     def _on_run_completed(self, event: RunEvent):
         """Emit billing.usage_recorded with run summary."""
-        if not self._seen.add(event.event_id):
-            return  # already processed (TTLSet atomic check-and-add)
+        if is_event_seen(event.event_id, self._consumer_name):
+            return  # already processed (PG dedup)
         billing_event = {
             "version": 1,
             "event": "billing.usage_recorded",
@@ -94,14 +94,12 @@ class BillingHookConsumer:
             },
         }
         self._persist(billing_event)
-        # NOTE: billing events are NOT re-published to the main EventBus
-        # to prevent webhook amplification. Future billing consumers should
-        # read from billing.jsonl directly.
+        mark_event_seen(event.event_id, self._consumer_name)
 
     def _on_cost_recorded(self, event: RunEvent):
         """Emit billing.cost_recorded."""
-        if not self._seen.add(event.event_id):
-            return  # already processed (TTLSet atomic check-and-add)
+        if is_event_seen(event.event_id, self._consumer_name):
+            return  # already processed (PG dedup)
         billing_event = {
             "version": 1,
             "event": "billing.cost_recorded",
@@ -117,6 +115,7 @@ class BillingHookConsumer:
             },
         }
         self._persist(billing_event)
+        mark_event_seen(event.event_id, self._consumer_name)
 
     def _persist(self, record: dict):
         """Append billing record to JSONL. Simple, auditable, replayable."""
