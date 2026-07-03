@@ -1,6 +1,6 @@
 # Alice Engine
 
-AI 测试自动化 SDK — 从 `pip install alice-engine` 开始。
+AI 测试自动化 Runtime SDK — 从 `pip install alice-engine` 开始。
 
 ## 安装
 
@@ -42,90 +42,50 @@ print(result.elapsed_seconds)   # 45.2
 print(result.completed_phases)  # ["observe", "plan", ...]
 ```
 
-## 异步用法
+## 核心模块
+
+### AgentLoop — 执行引擎
 
 ```python
-import asyncio
-from alice_engine import Engine, Project
+from alice_engine.core.executor import AgentLoop
 
-async def main():
-    project = Project("./my-project")
-    engine = Engine(project=project, llm_provider="mock")
-    result = await engine.run_async("equipment", pages=["alarm-config"])
-    print(result.status)
+agent = AgentLoop("automation-agent", module="equipment", page="alarm-config")
+state = agent.run()
 
-asyncio.run(main())
+print(state.success)            # True
+print(state.completed_skills)   # ["page-analyze", "test-generate", ...]
 ```
 
-## 五层架构
-
-```
-Runtime    — Engine 主动依赖 (Retry, Checkpoint, Security, Knowledge, Memory)
-Workflow   — Engine 组织流程 (SOPGraph, Planner, AgentLoop)
-Adapter    — Engine 通过接口调用 (LLMProvider, ToolProvider)
-Extension  — 被动监听 (Audit, Complexity)
-Platform   — 业务特有 (Web, Auth, Report)
-```
-
-## 核心概念
-
-### Project — 项目配置
+### SOPGraph — 工作流编排
 
 ```python
-from alice_engine import Project
+from alice_engine.workflow.sop_graph import build_sop_graph, build_compiled_graph
 
-project = Project("./my-project")
-print(project.name)      # "my-project"
-print(project.modules)   # ["equipment", "tank", "personnel"]
-print(project.config.url) # "https://example.com"
+graph = build_sop_graph()
+compiled = graph.compile(checkpointer=checkpointer)
+result = compiled.invoke(initial_state, {"configurable": {"thread_id": "my-run"}})
 ```
 
-### Engine — 执行引擎
+SOP 图模块拆分:
 
-```python
-from alice_engine import Engine
-
-engine = Engine(project=project, llm_provider="mock")
-result = engine.run("equipment", pages=["alarm-config"])
+```text
+sop_graph.py       图构建 (build_sop_graph, build_compiled_graph)
+sop_nodes.py       节点函数 (entry, preflight, exit, page_advance)
+sop_hitl.py        HITL 审批 + 质量门禁
+sop_routing.py     路由逻辑 + 常量
+sop_preflight.py   Preflight 缓存
 ```
 
-### RunResult — 执行结果
+### LLM Providers
 
 ```python
-result = engine.run("equipment")
+from alice_engine.providers import get_provider, list_providers
 
-result.status           # "completed" | "completed_with_issues" | "failed"
-result.success          # True | False
-result.run_id           # "engine-abc123"
-result.elapsed_seconds  # 45.2
-result.completed_phases # ["observe", "plan", ...]
-result.failed_phases    # []
-result.pages            # ["alarm-config"]
-result.agent_outputs    # {...}
-```
+print(list_providers())  # ['mock', 'claude', 'openai', 'deepseek', 'ollama']
 
-## Runtime Capabilities
-
-### KnowledgeStore — 知识检索
-
-```python
-from alice_engine.runtime import InMemoryKnowledgeStore
-
-knowledge = InMemoryKnowledgeStore()
-engine = Engine(project=project, knowledge=knowledge)
-```
-
-### MemoryStore — 执行记忆
-
-```python
-from alice_engine.runtime import InMemoryMemoryStore
-
-memory = InMemoryMemoryStore()
-engine = Engine(project=project, memory=memory)
-
-# 查看历史
-history = memory.get_history("equipment")
-last = memory.get_last("equipment")
+mock = get_provider("mock")
+claude = get_provider("claude", api_key="sk-...")
+openai = get_provider("openai", model="gpt-4o-mini")
 ```
 
 ### ReliableProvider — 可靠调用
@@ -138,18 +98,44 @@ provider = get_provider("claude")
 reliable = ReliableProvider(primary=provider, max_retries=3)
 ```
 
-## LLM Providers
+## 五层架构
 
-```python
-from alice_engine.providers import get_provider, list_providers
+```text
+Runtime    — Engine 主动依赖 (Retry, Checkpoint, Security, Knowledge, Memory)
+Workflow   — Engine 组织流程 (SOPGraph, Planner, AgentLoop)
+Adapter    — Engine 通过接口调用 (LLMProvider, ToolProvider)
+Extension  — 被动监听 (Audit, Complexity)
+Platform   — 业务特有 (Web, Auth, Report)
+```
 
-# 可用 Provider
-print(list_providers())  # ['mock', 'claude', 'openai', 'deepseek', 'ollama']
+## 目录结构
 
-# 获取 Provider
-mock = get_provider("mock")
-claude = get_provider("claude", api_key="sk-...")
-openai = get_provider("openai", model="gpt-4o-mini")
+```text
+alice_engine/
+├── core/
+│   ├── executor.py          AgentLoop 执行引擎
+│   ├── planner.py           任务规划
+│   ├── task.py              任务状态定义
+│   └── skill_loader.py      Skill 加载器
+├── workflow/
+│   ├── sop_graph.py         SOP 图构建
+│   ├── sop_nodes.py         节点函数
+│   ├── sop_hitl.py          HITL 审批
+│   ├── sop_routing.py       路由逻辑
+│   ├── sop_preflight.py     Preflight 缓存
+│   ├── state.py             状态定义
+│   └── nodes.py             节点工厂
+├── providers/
+│   ├── claude.py            Claude Provider
+│   ├── openai.py            OpenAI Provider
+│   ├── deepseek.py          DeepSeek Provider
+│   └── mock.py              Mock Provider (测试用)
+├── runtime/
+│   ├── retry.py             重试 + 降级
+│   ├── context_window.py    上下文窗口监控
+│   ├── checkpoint.py        LangGraph 检查点
+│   └── security.py          安全层
+└── events.py                事件总线
 ```
 
 ## Extensions

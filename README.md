@@ -6,7 +6,7 @@
 > 平台与项目解耦（ADR-001: `.tlo/`），支持多项目注册与切换。
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue)](pyproject.toml)
-[![Version](https://img.shields.io/badge/version-1.6.0-green)](pyproject.toml)
+[![Version](https://img.shields.io/badge/version-2.0-green)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-orange)](LICENSE)
 
 ## 是什么
@@ -25,7 +25,7 @@ AITest 不是代码生成器。它是 **Agent Native** 平台：Agent 自主完�
 
 ## 核心能力
 
-```
+```text
 aitest/
 ├── server/                    FastAPI 服务 (12+ 端点: agents, chat, sessions, workflows, execution)
 ├── agent_runner.py            AgentLoop 执行引擎 — LLM ↔ Tool 循环编排
@@ -38,8 +38,12 @@ aitest/
 │   ├── capability_router/     Agent 按名称调用能力，不关心底层实现
 │   ├── complexity/            18 因子评分 → SIMPLE/STANDARD/COMPLEX 路由
 │   ├── testing_memory.py      8 种测试记忆类型 (ChromaDB 持久化)
-│   └── observation_bus.py     事件总线 + Memory 自动同步
+│   ├── observation_bus.py     事件总线 + Memory 自动同步
+│   ├── preflight.py           执行前依赖检查
+│   ├── query_layer.py         统一数据查询 API
+│   └── replay.py              执行录制回放
 ├── infra/
+│   ├── database.py            统一数据库层 (PostgreSQL/SQLite 自动切换)
 │   ├── security.py            三层安全: Denylist + Validator + PromptInjectionGuard
 │   └── secure_subprocess.py   subprocess 安全 wrapper
 └── web/                       TLO — 测试生命周期编排器 (Vue 3 + Electron)
@@ -62,6 +66,37 @@ aitest project set --id=<项目ID>
 aitest graph run --module=<模块> --pages=<页面>
 ```
 
+## 数据库
+
+支持两种后端，自动检测：
+
+```bash
+# 单用户模式 (SQLite, 零依赖)
+AITEST_DB_BACKEND=sqlite aitest server start
+
+# 多用户模式 (PostgreSQL, 需要 Docker)
+docker compose up -d postgres
+AITEST_DB_BACKEND=postgres aitest server start
+```
+
+| 后端 | 场景 | 数据位置 |
+| ---- | ---- | -------- |
+| PostgreSQL | 多用户、团队协作 | Docker volume `alice_pg_data` |
+| SQLite | 单用户、本地开发 | `governance/.data/aitest.db` |
+
+## SDK 包
+
+```text
+packages/
+  alice-engine/      Runtime SDK (执行器、工作流、Provider)
+  alice-governance/  Governance SDK (Skill、Validator、知识库)
+```
+
+```bash
+pip install -e packages/alice-engine
+pip install -e packages/alice-governance
+```
+
 ## 架构
 
 v1.0 设计文档 → [`docs/architecture/`](docs/architecture/)
@@ -79,7 +114,7 @@ v1.0 设计文档 → [`docs/architecture/`](docs/architecture/)
 
 ## 治理层
 
-```
+```text
 governance/
 ├── agents/              Agent 定义 YAML (测试 8 + 开发 9)
 ├── skills/              测试 Skill 提示 (24)
@@ -92,12 +127,14 @@ governance/
 
 ## 目录
 
-```
+```text
 Alice/
 ├── aitest/              平台核心 (FastAPI + AgentLoop + LLM + Platform)
+├── packages/
+│   ├── alice-engine/    Runtime SDK
+│   └── alice-governance/ Governance SDK
 ├── governance/          治理层 (Agent/Skill/Workflow/Template/KPI)
 ├── docs/                架构设计 + ADR
-├── project-study/       架构逆向分析
 └── ZJSN_Test-master526/ 测试项目示例 (Python + Selenium + pytest)
 ```
 
@@ -107,4 +144,4 @@ Alice/
 
 ## 技术栈
 
-Python 3.10+ / FastAPI / LangGraph / ChromaDB / Vue 3 + Vite + Electron
+Python 3.10+ / FastAPI / LangGraph / PostgreSQL / ChromaDB / Vue 3 + Vite + Electron
