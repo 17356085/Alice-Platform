@@ -151,6 +151,45 @@ python ZJSN_Test-master526/tools/check_sop_gate.py --module <m> --agent <a> --js
 - **LLM Provider**: `.env` 中 `BU_LLM_PROVIDER=mimo`（默认）, 可选 claude/gemini
 - **文档**: `tech-research/` 下有调研、计划、评审、验证全套
 
+## 数据库配置
+
+| 模式 | 环境变量 | 说明 |
+| ---- | -------- | ---- |
+| **自动检测** | `AITEST_DB_BACKEND=auto` (默认) | Docker PG 可用时用 PG，否则 SQLite |
+| **PostgreSQL** | `AITEST_DB_BACKEND=postgres` | 多用户模式，需要 Docker |
+| **SQLite** | `AITEST_DB_BACKEND=sqlite` | 单用户本地模式，零依赖 |
+
+```bash
+# 单用户模式
+AITEST_DB_BACKEND=sqlite aitest server start
+
+# 多用户模式（需要 docker compose up -d postgres）
+AITEST_DB_BACKEND=postgres aitest server start
+```
+
+数据目录:
+
+- PostgreSQL: Docker volume `alice_pg_data`
+- SQLite: `governance/.data/aitest.db`
+
+## Packages 结构
+
+```text
+packages/
+  alice-engine/      ← Runtime SDK (执行器、工作流、Provider)
+  alice-governance/  ← Governance SDK (Skill、Validator、知识库)
+```
+
+依赖方向: `alice-engine` → `alice-governance`（单向）
+
+## 近期架构变更 (2026-07-02)
+
+- PostgreSQL 迁移: 11 张表，统一数据层
+- Preflight: 执行前依赖检查 (`aitest/platform/preflight.py`)
+- Query Layer: 统一数据查询 API (`aitest/platform/query_layer.py`)
+- Replay: 执行录制回放 (`aitest/platform/replay.py`)
+- 代码拆分: sop_graph.py, state.py, rag_engine.py, evaluator.py, sop.py
+
 ## 环境
 
 - 测试地址: `https://aiwechatminidemo.cimc-digital.com/`
