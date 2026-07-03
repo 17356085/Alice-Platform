@@ -523,7 +523,11 @@ class AgentLoop:
 
         # ── 无-PRD 模式: 注入代码内容到 user prompt ──
         # requirement + test-design + automation 都需要真实代码上下文
-        _CODE_SKILL_CATEGORIES = ("requirement", "test-design", "automation")
+        # v3.1: 从 FALLBACK_AGENT_SKILL_MAP 动态获取，而非硬编码
+        _CODE_SKILL_CATEGORIES = tuple(
+            k.replace("-agent", "") for k in FALLBACK_AGENT_SKILL_MAP.keys()
+            if k.endswith("-agent") and k not in ("project-agent", "knowledge-agent", "report-agent", "bug-analysis-agent", "execution-agent")
+        )
         if any(c in skill_id for c in _CODE_SKILL_CATEGORIES) and self.module and self.page:
             page_name = self._slug_to_page_name(self.page)
             page_underscore = self._page_slug_to_underscore(self.page)
@@ -1116,20 +1120,9 @@ class AgentLoop:
         # v3.1: artifact_lineage 未在 alice_engine 中实现，跳过
         pass
 
-        # Operational metrics (timeout-safe)
-        try:
-            import threading
-            metrics_done = threading.Event()
-
-            def _record_metrics():
-                # v3.1: operational_metrics 未在 alice_engine 中实现，跳过
-                metrics_done.set()
-
-            t = threading.Thread(target=_record_metrics, daemon=True)
-            t.start()
-            t.join(timeout=5)
-        except Exception:
-            pass
+        # Operational metrics
+        # v3.1: operational_metrics 未在 alice_engine 中实现，跳过 daemon thread
+        pass
 
     # ══════════════════════════════════════════════════════════════════════════
     #  SECTION 7: MAIN LOOP — 单次会话主循环

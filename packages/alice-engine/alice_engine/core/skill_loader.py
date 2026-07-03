@@ -110,10 +110,11 @@ class SkillLoader:
             return skill_dev_path.read_text(encoding="utf-8")
 
         # 格式2: 在 registry 中查找
+        # v3.1: 精确匹配优先，不再用最后一段模糊匹配（避免 "code-review/review" 匹配 "debug/review"）
         registry = self._load_registry()
         for s in registry.get("skills", []):
             s_id = s.get("id", "")
-            if s_id == skill_id or s_id.split("/")[-1] == skill_id.split("/")[-1]:
+            if s_id == skill_id:
                 skill_path = self.governance / s.get("file", "")
                 if skill_path.exists():
                     return skill_path.read_text(encoding="utf-8")
@@ -174,7 +175,7 @@ class SkillLoader:
         """获取 Skill 的注册表元数据。"""
         registry = self._load_registry()
         for s in registry.get("skills", []):
-            if s.get("id") == skill_id or s.get("id") == skill_id.split("/")[-1]:
+            if s.get("id") == skill_id:
                 return {
                     "id": s.get("id", ""),
                     "category": s.get("category", ""),
@@ -194,7 +195,7 @@ class SkillLoader:
         registry = self._load_registry()
         for s in registry.get("skills", []):
             s_id = s.get("id", "")
-            if s_id == clean_id or s_id.split("/")[-1] == clean_id.split("/")[-1]:
+            if s_id == clean_id:
                 versions = s.get("versions", [])
                 current = s.get("current_version", "?")
                 for v in versions:
@@ -284,7 +285,7 @@ class SkillLoader:
         registry = self._load_registry()
         for s in registry.get("skills", []):
             s_id = s.get("id", "")
-            if s_id == skill_id or s_id.split("/")[-1] == skill_id.split("/")[-1]:
+            if s_id == skill_id:
                 return s.get("contract")
         return None
 
@@ -388,7 +389,7 @@ class SkillLoader:
         registry = self._load_registry()
         for s in registry.get("skills", []):
             s_id = s.get("id", "")
-            if s_id == skill_id or s_id.split("/")[-1] == skill_id.split("/")[-1]:
+            if s_id == skill_id:
                 for v in s.get("versions", []):
                     if v.get("version") == version:
                         vf = self.governance / v.get("file", "")
