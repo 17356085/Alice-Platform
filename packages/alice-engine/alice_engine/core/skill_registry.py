@@ -261,6 +261,8 @@ for full_id in SKILL_REQUIREMENTS:
 #  Provider 能力定义
 # ══════════════════════════════════════════════════════════════════════════
 
+# v3.1: 单一数据源 — PROVIDER_DEFAULTS 定义 provider 级别能力，
+# PROVIDER_CAPABILITIES 定义具体模型能力。两者通过 get_provider_capability() 统一查询。
 PROVIDER_CAPABILITIES = {
     "claude-sonnet-4-6":    {"tier": "high",    "tools": True,  "max_tokens": 200000},
     "claude-sonnet-4":      {"tier": "high",    "tools": True,  "max_tokens": 200000},
@@ -275,12 +277,31 @@ PROVIDER_CAPABILITIES = {
     "qwen3-8b":             {"tier": "low",     "tools": False, "max_tokens": 32768},
     "llama3-70b":           {"tier": "medium",  "tools": False, "max_tokens": 8192},
     "llama3-8b":            {"tier": "low",     "tools": False, "max_tokens": 8192},
-    "deepseek-v4-flash":    {"tier": "econ",   "tools": False, "max_tokens": 131072},
+    "deepseek-v4-flash":    {"tier": "econ",    "tools": False, "max_tokens": 131072},
 }
 
 
 # Tier 排序（用于比较）
 TIER_ORDER = {"mechanical": 0, "low": 1, "medium": 2, "high": 3}
+
+
+def get_provider_capability(model_or_provider: str) -> dict:
+    """获取模型/provider 的能力。单一查询入口。
+
+    查找顺序:
+    1. PROVIDER_CAPABILITIES[model_or_provider]（精确模型匹配）
+    2. PROVIDER_DEFAULTS[model_or_provider]（provider 级别匹配）
+    3. 默认 medium
+    """
+    if model_or_provider in PROVIDER_CAPABILITIES:
+        return PROVIDER_CAPABILITIES[model_or_provider]
+    if model_or_provider in PROVIDER_DEFAULTS:
+        return PROVIDER_DEFAULTS[model_or_provider]
+    # 尝试从 provider 名推断
+    for provider_name, defaults in PROVIDER_DEFAULTS.items():
+        if model_or_provider.startswith(provider_name):
+            return defaults
+    return {"tier": "medium", "tools": False, "max_tokens": 32768}
 
 
 # ══════════════════════════════════════════════════════════════════════════

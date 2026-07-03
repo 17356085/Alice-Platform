@@ -6,16 +6,13 @@ from __future__ import annotations
 
 async def get_health_response() -> dict:
     """Aggregate health status across all platform components."""
-    from aitest.infra.queue_factory import get_queue
-    from aitest.infra.error_logger import get_summary as error_summary
-
     components: dict = {}
     overall = "healthy"
     pending_tasks = 0  # P4: aggregate pending tasks from task_queue + worker_pool
 
     # Task Queue (P4: pending_tasks + dual backend detection)
     try:
-        from aitest.infra.queue_factory import get_backend
+        from aitest.infra.queue_factory import get_backend, get_queue
         backend = get_backend()
         queue = get_queue()
 
@@ -68,6 +65,7 @@ async def get_health_response() -> dict:
 
     # Error Log
     try:
+        from aitest.infra.error_logger import get_summary as error_summary
         summary = error_summary(days=1)
         components["error_log"] = {"status": "ok", "recent_24h": summary["total"],
                                    "by_severity": summary.get("by_severity", {})}
