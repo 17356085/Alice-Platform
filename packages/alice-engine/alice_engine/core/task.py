@@ -22,7 +22,19 @@ class ArtifactRule:
 
 
 # 默认产物规则 — 平台层可覆盖
+# v3.1: 添加验证和 setter，防止未填充时静默跳过检查
 _ALL_ARTIFACT_RULES: dict[str, list[ArtifactRule]] = {}
+_ARTIFACT_RULES_POPULATED = False
+
+def set_artifact_rules(rules: dict[str, list[ArtifactRule]]) -> None:
+    """设置产物规则。平台层调用此函数填充规则。"""
+    global _ALL_ARTIFACT_RULES, _ARTIFACT_RULES_POPULATED
+    _ALL_ARTIFACT_RULES = rules
+    _ARTIFACT_RULES_POPULATED = True
+
+def is_artifact_rules_populated() -> bool:
+    """检查产物规则是否已填充。"""
+    return _ARTIFACT_RULES_POPULATED
 
 # 默认红线检查
 CODE_REDLINE_CHECKS: list[tuple[str, str, bool]] = [

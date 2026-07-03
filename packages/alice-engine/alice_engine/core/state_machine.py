@@ -125,21 +125,17 @@ class TaskStateContext:
 # ══════════════════════════════════════════════════════════════════════════
 
 # 里程碑 Skills — 这些 Skill 通过时会发射事件
-MILESTONE_SKILLS = [
-    "project/project-context-manager",
-    "requirements/module-modeling",
-    "requirements/requirement-analysis",
-    "test-design/page-analysis",
-    "test-design/risk-modeling",
-    "test-design/testcase-design",
-    "automation/tech-analysis",
-    "automation/auto-strategy",
-    "automation/page-object-generator",
-    "automation/test-script-generator",
-    "automation/code-consistency-checker",
-    "execution/allure-report-analyzer",
-    "diagnosis/bug-analysis",
-]
+# v3.1: 从 FALLBACK_AGENT_SKILL_MAP 动态生成，消除重复维护
+from alice_engine.core.agent_definitions import FALLBACK_AGENT_SKILL_MAP
+
+def _build_milestone_skills() -> list[str]:
+    """从 FALLBACK_AGENT_SKILL_MAP 构建里程碑 Skill 列表。"""
+    milestones = []
+    for skills in FALLBACK_AGENT_SKILL_MAP.values():
+        milestones.extend(skills)
+    return milestones
+
+MILESTONE_SKILLS = _build_milestone_skills()
 
 
 def update_agent_state(state, skill_id: str, observation,

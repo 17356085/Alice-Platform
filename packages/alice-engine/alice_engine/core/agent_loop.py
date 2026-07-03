@@ -22,6 +22,7 @@ from dataclasses import dataclass, field
 from typing import Any, Generator, Protocol, runtime_checkable
 
 from alice_engine.core.task import AgentState, AgentEvent, Observation
+from alice_engine.core.skill_executor import SkillResult  # v3.1: 单一定义，消除重复
 
 
 @dataclass
@@ -80,18 +81,6 @@ class AgentLoopProtocol(Protocol):
     def abort(self) -> None:
         """中止执行。"""
         ...
-
-
-@dataclass
-class SkillResult:
-    """单个 Skill 的执行结果。"""
-
-    skill_id: str = ""
-    status: str = "pending"  # pass | fail | partial | skipped
-    observation: Observation | None = None
-    raw_output: str = ""
-    token_usage: dict = field(default_factory=dict)
-    elapsed_seconds: float = 0.0
 
 
 @runtime_checkable

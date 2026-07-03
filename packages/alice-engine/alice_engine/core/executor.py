@@ -25,8 +25,11 @@ import io
 import threading
 
 # Fix Windows GBK encoding for emoji output
-if hasattr(sys.stdout, 'buffer'):
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+# v3.1: 只在显式调用时执行，不在模块导入时全局替换 stdout
+def fix_stdout_encoding():
+    """修复 Windows GBK 编码问题。仅在需要时调用。"""
+    if hasattr(sys.stdout, 'buffer') and not isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 from alice_engine.providers.base import LLMResponse, LLMProvider; from alice_engine.providers import get_provider
 from alice_engine.runtime.core.retry import ReliableProvider, get_reliable_provider, UsageTracker  # ★ v1.0
@@ -336,13 +339,8 @@ class AgentLoop:
     @staticmethod
     def _resolve_model_for_provider(provider: str) -> str:
         """根据 provider 名称推断默认模型名（用于 ContextWindowMonitor 查窗口限制）。"""
-        defaults = {
-            "claude": "claude-sonnet-4-6",
-            "openai": "gpt-4o-mini",
-            "deepseek": "deepseek-chat",
-            "ollama": "qwen3-14b",
-        }
-        return defaults.get(provider, "claude-sonnet-4-6")
+        from alice_engine.core.skill_registry import get_default_model
+        return get_default_model(provider)
 
     # [LAYER:Adapter/LLM] Capability Router 初始化
     def _get_capability_router(self):

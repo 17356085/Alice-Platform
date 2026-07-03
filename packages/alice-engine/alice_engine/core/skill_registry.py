@@ -421,12 +421,9 @@ def get_skill_stats() -> dict:
 
 
 def _guess_provider_tier(provider_name: str) -> str:
-    """根据 Provider 名称猜测能力级别。"""
-    if provider_name in ("claude", "openai", "deepseek"):
-        return "high"
-    elif provider_name == "ollama":
-        return "low"
-    return "medium"
+    """根据 Provider 名称猜测能力级别。v3.1: 使用 PROVIDER_DEFAULTS 单一数据源。"""
+    defaults = PROVIDER_DEFAULTS.get(provider_name, {})
+    return defaults.get("tier", "medium")
 
 
 # Provider 默认能力（当未指定具体模型时使用）
@@ -437,3 +434,18 @@ PROVIDER_DEFAULTS = {
     "ollama": {"tier": "low", "tools": False, "max_tokens": 32768},
     "mock": {"tier": "high", "tools": True, "max_tokens": 100000},
 }
+
+# v3.1: Provider → 默认模型名映射（单一数据源）
+# 之前在 executor.py 和 _guess_provider_tier 中各维护一份
+PROVIDER_DEFAULT_MODEL = {
+    "claude": "claude-sonnet-4-6",
+    "openai": "gpt-4o-mini",
+    "deepseek": "deepseek-chat",
+    "ollama": "qwen3-14b",
+    "mock": "mock-model",
+}
+
+
+def get_default_model(provider: str) -> str:
+    """获取 provider 的默认模型名。单一数据源。"""
+    return PROVIDER_DEFAULT_MODEL.get(provider, "claude-sonnet-4-6")
