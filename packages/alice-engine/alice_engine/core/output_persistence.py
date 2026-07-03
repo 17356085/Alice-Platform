@@ -51,12 +51,16 @@ def save_skill_output(
 
     try:
         # 确定保存目录
+        # v3.1: 使用 GOVERNANCE 路径而非 CWD，避免 worktree 操作时路径错误
         if context_modules:
             parent_dir = Path(context_modules) / module
         elif governance_path:
             parent_dir = Path(governance_path) / "context" / "modules" / module
         else:
-            parent_dir = Path(".") / module
+            # 使用 WORKSTUDY 环境变量或默认路径
+            import os
+            workstudy = os.environ.get("AITEST_WORKSTUDY", ".")
+            parent_dir = Path(workstudy) / "governance" / "context" / "modules" / module
 
         parent_dir.mkdir(parents=True, exist_ok=True)
 

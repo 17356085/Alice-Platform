@@ -765,41 +765,13 @@ class AgentLoop:
                     break
 
             # Priority 2: Static fallback for skills without artifact rules
+            # v3.1: 从 skill_id 自动生成文件名，消除硬编码映射
             if filepath is None:
-                artifact_map = {
-                    "plan/create-project-plan": "PROJECT_PLAN.md",
-                    "plan/progress-tracker": "PROGRESS_REPORT.md",
-                    "plan/risk-analyzer": "RISK_ANALYSIS.md",
-                    "plan/sprint-planner": "SPRINT_PLAN.md",
-                    "requirements-dev/feature-spec": "FEATURE_SPEC.md",
-                    "requirements-dev/user-story-writer": "USER_STORIES.md",
-                    "requirements-dev/acceptance-criteria": "ACCEPTANCE_CRITERIA.md",
-                    "requirements-dev/data-model-spec": "DATA_MODEL.md",
-                    "architecture/project-scanner": "PROJECT_STRUCTURE.md",
-                    "architecture/tech-stack-decider": "TECH_STACK.md",
-                    "architecture/component-tree-designer": "COMPONENT_TREE.md",
-                    "architecture/api-contract-designer": "API_CONTRACTS.md",
-                    "component-design/component-spec": "COMPONENT_SPEC.md",
-                    "component-design/props-interface": "PROPS_INTERFACE.yaml",
-                    "component-design/data-flow": "DATA_FLOW.md",
-                    "component-design/layout-mockup": "LAYOUT_MOCKUP.md",
-                    "code-review/source-code-reviewer": "CODE_REVIEW.md",
-                    "code-review/performance-analyzer": "PERFORMANCE_REPORT.md",
-                    "code-review/security-scanner": "SECURITY_REPORT.md",
-                    "code-review/consistency-enforcer": "CONSISTENCY_REPORT.md",
-                    "test-dev/coverage-checker": "COVERAGE_REPORT.md",
-                    "debug/error-locator": "ERROR_DIAGNOSIS.md",
-                    "debug/stack-trace-analyzer": "STACK_ANALYSIS.md",
-                    "debug/fix-suggester": "FIX_PROPOSAL.md",
-                    "debug/regression-verifier": "REGRESSION_REPORT.md",
-                    "build/type-checker": "TYPE_CHECK.md",
-                    "build/lint-executor": "LINT_REPORT.md",
-                    "build/test-runner": "TEST_RESULTS.md",
-                    "build/package-bundler": "BUILD_REPORT.md",
-                }
-                filename = artifact_map.get(skill_id)
-                if not filename:
-                    filename = skill_id.replace("/", "_").replace("-", "_") + ".md"
+                # 通用命名规则: skill_id 最后一段 → 大写下划线 + .md
+                # "plan/create-project-plan" → "CREATE_PROJECT_PLAN.md"
+                # "automation/page-object-generator" → "PAGE_OBJECT_GENERATOR.md"
+                skill_name = skill_id.split("/")[-1] if "/" in skill_id else skill_id
+                filename = skill_name.upper().replace("-", "_") + ".md"
                 if self.agent_name in DEV_AGENT_SKILL_MAP:
                     parent_dir = GOVERNANCE / "context" / "projects" / "dev-platform"
                 else:
