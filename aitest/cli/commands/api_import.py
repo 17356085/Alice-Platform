@@ -1,3 +1,11 @@
+"""API Import — import API documentation from various sources.
+
+拆分为:
+  - api_import.py: 入口 + 导入函数 (本文件)
+  - api_parsers.py: 解析函数
+  - api_converters.py: 转换函数
+"""
+
 """
 API 文档导入 — 支持多种 API 文档格式。
 
@@ -42,6 +50,7 @@ API_SOURCES = {
 
 # ── 主入口 ──────────────────────────────────────────────────────
 
+
 def ask_api_doc() -> Optional[dict]:
     """询问 API 文档。
 
@@ -65,6 +74,7 @@ def ask_api_doc() -> Optional[dict]:
 
     handler = API_SOURCES[choice]["handler"]
     return _handle_source(handler)
+
 
 
 def import_api_doc(api_config: dict, tlo_dir: Path) -> dict:
@@ -103,6 +113,7 @@ def import_api_doc(api_config: dict, tlo_dir: Path) -> dict:
         return None
 
     return handler(api_config, api_dir)
+
 
 
 def _handle_source(handler: str) -> dict:
@@ -145,6 +156,7 @@ def _handle_source(handler: str) -> dict:
 
 
 # ── 导入处理器 ──────────────────────────────────────────────────
+
 
 def _import_swagger_url(config: dict, api_dir: Path) -> dict:
     """从 Swagger UI URL 导入。"""
@@ -582,316 +594,6 @@ def _import_file(config: dict, api_dir: Path) -> dict:
 
 
 # ── 解析工具 ──────────────────────────────────────────────────
-
-def _parse_openapi_summary(data: dict) -> dict:
-    """解析 OpenAPI 摘要。"""
-    endpoints = []
-    groups = {}
-
-    # OpenAPI 3.x
-    if "openapi" in data:
-        paths = data.get("paths", {})
-        for path, methods in paths.items():
-            for method, details in methods.items():
-                if method in ("get", "post", "put", "delete", "patch"):
-                    endpoint = {
-                        "method": method.upper(),
-                        "path": path,
-                        "summary": details.get("summary", ""),
-                        "tags": details.get("tags", []),
-                    }
-                    endpoints.append(endpoint)
-
-                    # 按 tag 分组
-                    for tag in details.get("tags", ["default"]):
-                        if tag not in groups:
-                            groups[tag] = []
-                        groups[tag].append(endpoint)
-
-    # Swagger 2.x
-    elif "swagger" in data:
-        paths = data.get("paths", {})
-        for path, methods in paths.items():
-            for method, details in methods.items():
-                if method in ("get", "post", "put", "delete", "patch"):
-                    endpoint = {
-                        "method": method.upper(),
-                        "path": path,
-                        "summary": details.get("summary", ""),
-                        "tags": details.get("tags", []),
-                    }
-                    endpoints.append(endpoint)
-
-                    for tag in details.get("tags", ["default"]):
-                        if tag not in groups:
-                            groups[tag] = []
-                        groups[tag].append(endpoint)
-
-    return {
-        "total_endpoints": len(endpoints),
-        "endpoints": endpoints,
-        "groups": {tag: len(eps) for tag, eps in groups.items()},
-    }
-
-
-def _parse_graphql_schema(content: str) -> dict:
-    """解析 GraphQL Schema。"""
-    import re
-
-    queries = re.findall(r'type\s+Query\s*\{([^}]+)\}', content, re.DOTALL)
-    mutations = re.findall(r'type\s+Mutation\s*\{([^}]+)\}', content, re.DOTALL)
-
-    endpoints = []
-
-    for query_block in queries:
-        for line in query_block.strip().split("\n"):
-            line = line.strip()
-            if line and not line.startswith("#"):
-                name = line.split("(")[0].split(":")[0].strip()
-                if name:
-                    endpoints.append({
-                        "method": "QUERY",
-                        "path": name,
-                        "summary": "",
-                    })
-
-    for mutation_block in mutations:
-        for line in mutation_block.strip().split("\n"):
-            line = line.strip()
-            if line and not line.startswith("#"):
-                name = line.split("(")[0].split(":")[0].strip()
-                if name:
-                    endpoints.append({
-                        "method": "MUTATION",
-                        "path": name,
-                        "summary": "",
-                    })
-
-    return {
-        "total_endpoints": len(endpoints),
-        "endpoints": endpoints,
-        "groups": {"Query": len([e for e in endpoints if e["method"] == "QUERY"]),
-                   "Mutation": len([e for e in endpoints if e["method"] == "MUTATION"])},
-    }
-
-
-def _convert_postman_to_openapi(data: dict) -> dict:
-    """转换 Postman Collection 为 OpenAPI 格式。"""
-    openapi = {
-        "openapi": "3.0.0",
-        "info": {
-            "title": data.get("info", {}).get("name", "API"),
-            "version": "1.0.0",
-        },
-        "paths": {},
-    }
-
-    def process_items(items):
-        for item in items:
-            if "item" in item:
-                # 子文件夹
-                process_items(item["item"])
-            elif "request" in item:
-                request = item["request"]
-                method = request.get("method", "GET").lower()
-                url = request.get("url", {})
-
-                if isinstance(url, str):
-                    path = url
-                else:
-                    path_parts = url.get("path", [])
-                    path = "/" + "/".join(path_parts)
-
-                if path not in openapi["paths"]:
-                    openapi["paths"][path] = {}
-
-                openapi["paths"][path][method] = {
-                    "summary": item.get("name", ""),
-                    "tags": [item.get("name", "").split("/")[0] if "/" in item.get("name", "") else "default"],
-                }
-
-    items = data.get("item", [])
-    process_items(items)
-
-    return openapi
-
-
-def _convert_rap_to_openapi(data: dict) -> dict:
-    """转换 RAP / YAPI 格式为 OpenAPI。"""
-    openapi = {
-        "openapi": "3.0.0",
-        "info": {
-            "title": data.get("data", {}).get("name", "API"),
-            "version": "1.0.0",
-        },
-        "paths": {},
-    }
-
-    interfaces = data.get("data", {}).get("interfaces", [])
-    for iface in interfaces:
-        path = iface.get("url", "")
-        method = iface.get("method", "GET").lower()
-
-        if path not in openapi["paths"]:
-            openapi["paths"][path] = {}
-
-        openapi["paths"][path][method] = {
-            "summary": iface.get("name", ""),
-            "tags": [iface.get("module", {}).get("name", "default")],
-        }
-
-    return openapi
-
-
-def _build_openapi_from_apis(apis: list) -> dict:
-    """从 API 列表构建 OpenAPI 格式。"""
-    openapi = {
-        "openapi": "3.0.0",
-        "info": {
-            "title": "API",
-            "version": "1.0.0",
-        },
-        "paths": {},
-    }
-
-    for api in apis:
-        path = api.get("path", "")
-        method = api.get("method", "GET").lower()
-
-        if path not in openapi["paths"]:
-            openapi["paths"][path] = {}
-
-        openapi["paths"][path][method] = {
-            "summary": api.get("summary", ""),
-            "tags": api.get("tags", ["default"]),
-        }
-
-    return openapi
-
-
-def _parse_curl_commands(commands: str) -> list:
-    """解析 cURL 命令。"""
-    import re
-
-    apis = []
-    lines = commands.strip().split("\n")
-
-    current_curl = ""
-    for line in lines:
-        line = line.strip()
-        if line.startswith("curl"):
-            if current_curl:
-                api = _parse_single_curl(current_curl)
-                if api:
-                    apis.append(api)
-            current_curl = line
-        elif current_curl:
-            current_curl += " " + line
-
-    if current_curl:
-        api = _parse_single_curl(current_curl)
-        if api:
-            apis.append(api)
-
-    return apis
-
-
-def _parse_single_curl(curl_cmd: str) -> Optional[dict]:
-    """解析单个 cURL 命令。"""
-    import re
-
-    # 提取 URL
-    url_match = re.search(r"'([^']+)'", curl_cmd)
-    if not url_match:
-        url_match = re.search(r'"([^"]+)"', curl_cmd)
-    if not url_match:
-        url_match = re.search(r'curl\s+(\S+)', curl_cmd)
-
-    if not url_match:
-        return None
-
-    url = url_match.group(1)
-
-    # 提取方法
-    method = "GET"
-    method_match = re.search(r'-X\s+(\w+)', curl_cmd)
-    if method_match:
-        method = method_match.group(1).upper()
-    elif "data" in curl_cmd or "-d" in curl_cmd:
-        method = "POST"
-
-    # 提取路径
-    from urllib.parse import urlparse
-    parsed = urlparse(url)
-    path = parsed.path
-
-    return {
-        "method": method,
-        "path": path,
-        "summary": "",
-    }
-
-
-def _scan_python_routes(content: str, file_path: str) -> list:
-    """扫描 Python 文件中的 FastAPI / Flask 路由。"""
-    import re
-
-    apis = []
-
-    # FastAPI / Flask 路由装饰器
-    patterns = [
-        r'@\w+\.(get|post|put|delete|patch)\s*\(\s*["\']([^"\']+)["\']',
-        r'@\w+\.route\s*\(\s*["\']([^"\']+)["\'].*methods\s*=\s*\[["\'](\w+)["\']',
-    ]
-
-    for pattern in patterns:
-        matches = re.findall(pattern, content)
-        for match in matches:
-            if len(match) == 2:
-                method, path = match
-                apis.append({
-                    "method": method.upper(),
-                    "path": path,
-                    "summary": "",
-                    "source": file_path,
-                })
-
-    return apis
-
-
-def _scan_java_routes(content: str, file_path: str) -> list:
-    """扫描 Java 文件中的 Spring Boot 注解。"""
-    import re
-
-    apis = []
-
-    # Spring Boot 注解
-    patterns = [
-        r'@(GetMapping|PostMapping|PutMapping|DeleteMapping|PatchMapping)\s*\(\s*["\']([^"\']+)["\']',
-        r'@RequestMapping\s*\(\s*value\s*=\s*["\']([^"\']+)["\'].*method\s*=\s*RequestMethod\.(\w+)',
-    ]
-
-    for pattern in patterns:
-        matches = re.findall(pattern, content)
-        for match in matches:
-            if len(match) == 2:
-                annotation, path = match
-                method = annotation.replace("Mapping", "").upper()
-                apis.append({
-                    "method": method,
-                    "path": path,
-                    "summary": "",
-                    "source": file_path,
-                })
-
-    return apis
-
-
-def _parse_doc_with_llm(content: str, file_type: str) -> Optional[dict]:
-    """使用 LLM 解析文档。"""
-    # TODO: 实现 LLM 解析
-    console.print("[yellow]⚠️  LLM 解析尚未实现[/yellow]")
-    return None
 
 
 def _save_summary(summary: dict, api_dir: Path):
