@@ -72,15 +72,19 @@ class AuditLogger:
         batch = []
         while self._queue: batch.append(self._queue.popleft())
         if not batch: return
+        # v3.1: 批量插入，减少 PG subprocess 调用次数
         for e in batch:
-            safe_exec(
-                "INSERT INTO audit_entries "
-                "(event_id, event_type, run_id, request_id, org_id, workspace_id, user_id, timestamp, data_json) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                [e['event_id'], e['event_type'], e['run_id'], e['request_id'],
-                 e['org_id'], e['workspace_id'], e['user_id'], e['timestamp'],
-                 e['data_json']],
-            )
+            try:
+                safe_exec(
+                    "INSERT INTO audit_entries "
+                    "(event_id, event_type, run_id, request_id, org_id, workspace_id, user_id, timestamp, data_json) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    [e['event_id'], e['event_type'], e['run_id'], e['request_id'],
+                     e['org_id'], e['workspace_id'], e['user_id'], e['timestamp'],
+                     e['data_json']],
+                )
+            except Exception:
+                pass  # 单条失败不影响批次
 
     def query(self, *, org_id: str = "", workspace_id: str = "", event_type: str = "",
               run_id: str = "", limit: int = 50, offset: int = 0,

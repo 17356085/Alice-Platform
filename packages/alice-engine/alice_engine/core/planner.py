@@ -285,7 +285,8 @@ def _llm_decide(skill_index: int, perception: dict, skills: list,
             )
             content = resp.content.strip()
 
-            json_match = re.search(r'\{[^}]+\}', content)
+            # v3.1: 修复 JSON 正则 — 支持嵌套对象
+            json_match = re.search(r'\{.*\}', content, re.DOTALL)
             if json_match:
                 decision = json.loads(json_match.group())
                 action = decision.get("action", "execute")
