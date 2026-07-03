@@ -16,17 +16,26 @@ from .run_event import EventType, EventDataKey as K
 from aitest.infra.logging import get_logger
 _log = get_logger(__name__)
 
+# v3.2: Module-level store resolution — no lazy singleton in functions
+_store = None
+
+def _get_store():
+    global _store
+    if _store is None:
+        _store = get_run_store()
+    return _store
+
 
 def build_timeline(run_id: str, store=None) -> list[dict]:
     """Build a time-ordered timeline for a Run from its events.
 
     Args:
         run_id: The run to build a timeline for.
-        store: RunStore instance. If None, uses get_run_store() singleton.
+        store: RunStore instance. If None, uses module-level store.
 
     Returns list of {ts, type, message, detail} entries.
     """
-    store = store or get_run_store()
+    store = store or _get_store()
     run = store.load_run(run_id)
     if run is None:
         return []
@@ -166,9 +175,9 @@ def timeline_summary(run_id: str, store=None) -> dict:
 
     Args:
         run_id: The run to summarize.
-        store: RunStore instance. If None, uses get_run_store() singleton.
+        store: RunStore instance. If None, uses module-level store.
     """
-    store = store or get_run_store()
+    store = store or _get_store()
     run = store.load_run(run_id)
     if run is None:
         return {}

@@ -51,7 +51,11 @@ class ReportConsumer:
         self._active = False
         self._reports: dict[str, dict] = {}   # run_id → report dict
         self._pending: set[str] = set()       # run_ids being generated
-        self._store = store  # injected RunStore (None = lazy singleton)
+        # v3.2: Always resolve store — no lazy singleton in methods
+        if store is None:
+            from ..run_store import get_run_store
+            store = get_run_store()
+        self._store = store
         self._bus = bus       # injected EventBus (None = lazy singleton)
 
     # ── Lifecycle ───────────────────────────────────────────────────────
@@ -109,15 +113,13 @@ class ReportConsumer:
 
     def _build_report(self, run_id: str, status: str, event: RunEvent) -> dict | None:
         """Aggregate data and optionally call LLM for summary."""
-        from ..run_store import get_run_store
         from ..timeline import build_timeline
 
-        store = self._store or get_run_store()
-        run = store.load_run(run_id)
+        run = self._store.load_run(run_id)
         if run is None:
             return None
 
-        events = store.list_events(run_id, limit=500)
+        events = self._store.list_events(run_id, limit=500)
         timeline = build_timeline(run_id)
 
         # ── Compute stats ──
