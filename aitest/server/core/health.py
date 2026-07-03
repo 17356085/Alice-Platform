@@ -4,8 +4,12 @@ Extracted from main.py (P0-2 split, 2026-06-25).
 from __future__ import annotations
 
 
-async def get_health_response() -> dict:
-    """Aggregate health status across all platform components."""
+async def get_health_response(app_state=None) -> dict:
+    """Aggregate health status across all platform components.
+
+    Args:
+        app_state: Optional FastAPI app.state for DI. Falls back to singletons.
+    """
     components: dict = {}
     overall = "healthy"
     pending_tasks = 0  # P4: aggregate pending tasks from task_queue + worker_pool
@@ -174,7 +178,7 @@ async def get_health_response() -> dict:
     except Exception as e:
         components["worker_pool"] = {"status": "error", "error": str(e)[:100]}
 
-    # Platform Consumers
+    # Platform Consumers — v3.2: DI via app_state, fallback to singletons
     try:
         from aitest.platform.audit_log import get_audit_logger
         from aitest.platform.hooks.metrics_consumer import get_metrics_consumer
@@ -184,17 +188,22 @@ async def get_health_response() -> dict:
         from aitest.platform.run_store import get_run_store
         from aitest.server.api.terminal import get_agent_terminal_ws
 
-        bus = get_bus()
-        store = get_run_store()
+        # DI: prefer app_state instances
+        bus = getattr(app_state, 'event_bus', None) or get_bus()
+        store = getattr(app_state, 'run_store', None) or get_run_store()
+        audit = getattr(app_state, 'audit_logger', None) or get_audit_logger()
+        metrics = getattr(app_state, 'metrics_consumer', None) or get_metrics_consumer()
+        quota = getattr(app_state, 'quota_usage', None) or get_quota_usage()
+        billing = getattr(app_state, 'billing_hook', None) or get_billing_hook()
         tws = get_agent_terminal_ws()
         components["platform"] = {
             "status": "ok", "event_bus_subscribers": bus.subscriber_count,
             "runs_in_store": store.count_runs(),
             "consumers": {
-                "audit_logger": get_audit_logger().is_active,
-                "metrics_consumer": get_metrics_consumer().is_active,
-                "quota_usage": get_quota_usage().is_active,
-                "billing_hook": get_billing_hook().is_active,
+                "audit_logger": audit.is_active,
+                "metrics_consumer": metrics.is_active,
+                "quota_usage": quota.is_active,
+                "billing_hook": billing.is_active,
             },
             "agent_terminal": tws.stats,
         }

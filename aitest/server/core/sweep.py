@@ -6,8 +6,14 @@ import asyncio
 import time
 
 
-async def lifecycle_sweep_loop(log, lifecycle_registry, memory_guard, ownership_checker, task_guard):
-    """Unified sweep: lifecycle TTL + session stores + ownership scan + memory guard."""
+async def lifecycle_sweep_loop(log, lifecycle_registry, memory_guard, ownership_checker, task_guard,
+                               audit_logger=None, run_store=None):
+    """Unified sweep: lifecycle TTL + session stores + ownership scan + memory guard.
+
+    Args:
+        audit_logger: AuditLogger instance. If None, uses get_audit_logger() singleton.
+        run_store: RunStore instance. If None, uses get_run_store() singleton.
+    """
     await asyncio.sleep(30)  # Let server stabilize before first sweep
     while True:
         await asyncio.sleep(60)
@@ -85,8 +91,10 @@ async def lifecycle_sweep_loop(log, lifecycle_registry, memory_guard, ownership_
         # 8. Audit log retention (every 6th cycle = ~6min)
         try:
             if ownership_checker.scan_count % 6 == 0:
-                from aitest.platform.audit_log import get_audit_logger
-                alog = get_audit_logger()
+                if audit_logger is None:
+                    from aitest.platform.audit_log import get_audit_logger
+                    audit_logger = get_audit_logger()
+                alog = audit_logger
                 removed = alog.cleanup_old_entries()
                 if removed:
                     actions.append(f"audit_cleanup:{removed}")
@@ -96,8 +104,10 @@ async def lifecycle_sweep_loop(log, lifecycle_registry, memory_guard, ownership_
         # 9. RunStore retention (every 6th cycle = ~6min)
         try:
             if ownership_checker.scan_count % 6 == 0:
-                from aitest.platform.run_store import get_run_store
-                rs = get_run_store()
+                if run_store is None:
+                    from aitest.platform.run_store import get_run_store
+                    run_store = get_run_store()
+                rs = run_store
                 removed = rs.cleanup_old_runs()
                 if removed:
                     actions.append(f"runstore_cleanup:{removed}")

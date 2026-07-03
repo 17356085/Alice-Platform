@@ -10,7 +10,9 @@ async def activate_subscribers(log) -> dict:
 
     # Resolve shared dependencies for injection
     from aitest.platform.run_store import get_run_store
+    from aitest.platform.event_bus import get_bus
     store = get_run_store()
+    bus = get_bus()
 
     # P1-ACTIVATION: KnowledgeAgentSubscriber
     try:
@@ -26,7 +28,7 @@ async def activate_subscribers(log) -> dict:
     # v2.3: AuditLogger
     try:
         from aitest.platform.audit_log import get_audit_logger
-        obj = get_audit_logger()
+        obj = get_audit_logger(bus=bus)
         obj.start()
         activated["audit-logger"] = obj
         log.info("audit_logger_started")
@@ -36,7 +38,7 @@ async def activate_subscribers(log) -> dict:
     # v2.4: WebhookDispatcher
     try:
         from aitest.platform.hooks.webhook import get_webhook_dispatcher
-        obj = get_webhook_dispatcher()
+        obj = get_webhook_dispatcher(bus=bus)
         obj.start()
         activated["webhook-dispatcher"] = obj
         log.info("webhook_dispatcher_started")
@@ -46,7 +48,7 @@ async def activate_subscribers(log) -> dict:
     # v2.4: MetricsConsumer
     try:
         from aitest.platform.hooks.metrics_consumer import get_metrics_consumer
-        obj = get_metrics_consumer()
+        obj = get_metrics_consumer(bus=bus)
         obj.start()
         activated["metrics-consumer"] = obj
         log.info("metrics_consumer_started")
@@ -56,7 +58,7 @@ async def activate_subscribers(log) -> dict:
     # v2.5: BillingHook
     try:
         from aitest.platform.hooks.billing_hook import get_billing_hook
-        obj = get_billing_hook()
+        obj = get_billing_hook(bus=bus)
         obj.start()
         activated["billing-hook"] = obj
         log.info("billing_hook_started")
@@ -66,7 +68,7 @@ async def activate_subscribers(log) -> dict:
     # v2.5: QuotaUsage — v3.1: pure event-driven, no store dependency
     try:
         from aitest.platform.hooks.quota_usage import get_quota_usage
-        obj = get_quota_usage()
+        obj = get_quota_usage(bus=bus)
         obj.start()
         activated["quota-usage"] = obj
         log.info("quota_usage_started")
@@ -76,7 +78,7 @@ async def activate_subscribers(log) -> dict:
     # v3: ReportConsumer — AI execution summary
     try:
         from aitest.platform.hooks.report_consumer import get_report_consumer
-        obj = get_report_consumer(store=store)
+        obj = get_report_consumer(store=store, bus=bus)
         obj.start()
         activated["report-consumer"] = obj
         log.info("report_consumer_started")

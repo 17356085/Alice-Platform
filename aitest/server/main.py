@@ -330,9 +330,9 @@ async def metrics():
 
 
 @app.get("/health")
-async def health():
+async def health(request: Request):
     from aitest.server.core.health import get_health_response
-    return await get_health_response()
+    return await get_health_response(app_state=request.app.state)
 
 
 # ══════════════════════════════════════════════════════════════════════════
