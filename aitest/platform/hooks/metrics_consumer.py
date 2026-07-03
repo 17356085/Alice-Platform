@@ -1,10 +1,10 @@
 """
-MetricsConsumer — platform aggregate statistics. v2.4
+MetricsConsumer — platform aggregate statistics. v3.1
 
 Subscribes to run.completed and run.failed events.
-Maintains in-memory counters. Periodically flushes to JSONL for trending.
+Maintains in-memory counters + persists to PG metrics_daily table.
 
-Pure consumer. No effect on execution. No new abstractions.
+v3.1: Dual persistence — in-memory for real-time snapshot, PG for historical trends.
 
 Usage:
     from aitest.platform.hooks.metrics_consumer import MetricsConsumer
@@ -12,6 +12,7 @@ Usage:
     mc = MetricsConsumer()
     mc.start()   # subscribes to EventBus
     snap = mc.snapshot()   # current stats
+    trends = mc.query_trends(days=7)  # historical from PG
 """
 
 from __future__ import annotations
@@ -117,6 +118,10 @@ class MetricsConsumer:
         cost = event.data.get(K.TOTAL_COST, 0.0)
         module = event.data.get(K.MODULE, "unknown")
         agent = event.data.get(K.AGENT, "unknown")
+        org_id = event.data.get(K.ORG_ID, "")
+        workspace_id = event.data.get(K.WORKSPACE_ID, "")
+        is_completed = event.event_type == EventType.RUN_COMPLETED
+        is_failed = event.event_type == EventType.RUN_FAILED
 
         self._total_tokens += tokens
         self._total_cost += cost
@@ -129,9 +134,12 @@ class MetricsConsumer:
                 oldest = min(self._by_module.keys(),
                              key=lambda k: self._by_module[k].get("_last_ts", 0))
                 del self._by_module[oldest]
-            self._by_module[module] = {"runs": 0, "completed": 0, "tokens": 0, "cost": 0.0}
+            self._by_module[module] = {"runs": 0, "completed": 0, "failed": 0, "tokens": 0, "cost": 0.0}
         self._by_module[module]["runs"] += 1
-        self._by_module[module]["completed"] += 1
+        if is_completed:
+            self._by_module[module]["completed"] += 1
+        if is_failed:
+            self._by_module[module]["failed"] += 1
         self._by_module[module]["tokens"] += tokens
         self._by_module[module]["cost"] += cost
         self._by_module[module]["_last_ts"] = now
@@ -142,12 +150,19 @@ class MetricsConsumer:
                 oldest = min(self._by_agent.keys(),
                              key=lambda k: self._by_agent[k].get("_last_ts", 0))
                 del self._by_agent[oldest]
-            self._by_agent[agent] = {"runs": 0, "completed": 0, "tokens": 0, "cost": 0.0}
+            self._by_agent[agent] = {"runs": 0, "completed": 0, "failed": 0, "tokens": 0, "cost": 0.0}
         self._by_agent[agent]["runs"] += 1
-        self._by_agent[agent]["completed"] += 1
+        if is_completed:
+            self._by_agent[agent]["completed"] += 1
+        if is_failed:
+            self._by_agent[agent]["failed"] += 1
         self._by_agent[agent]["tokens"] += tokens
         self._by_agent[agent]["cost"] += cost
         self._by_agent[agent]["_last_ts"] = now
+
+        # v3.1: Persist to PG for historical trends
+        self._persist_to_pg(module, agent, org_id, workspace_id,
+                            is_completed, is_failed, tokens, cost)
 
     # ── Snapshot ──────────────────────────────────────────────────────
 
@@ -185,6 +200,75 @@ class MetricsConsumer:
         file = self._dir / "metrics.jsonl"
         with open(file, "a", encoding="utf-8") as f:
             f.write(json.dumps(snap, ensure_ascii=False, default=str) + "\n")
+
+    # ── v3.1: PG persistence for historical trends ─────────────────
+
+    def _persist_to_pg(self, module: str, agent: str, org_id: str,
+                       workspace_id: str, is_completed: bool, is_failed: bool,
+                       tokens: int, cost: float):
+        """Upsert daily metrics to PG metrics_daily table."""
+        try:
+            from aitest.infra.sql import safe_exec, safe_query
+            today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            now = datetime.now(timezone.utc).isoformat()
+
+            # Try update first
+            safe_exec(
+                "UPDATE metrics_daily SET "
+                "run_count = run_count + 1, "
+                "completed_count = completed_count + ?, "
+                "failed_count = failed_count + ?, "
+                "total_tokens = total_tokens + ?, "
+                "total_cost = total_cost + ? "
+                "WHERE date = ? AND module = ? AND agent = ? AND org_id = ? AND workspace_id = ?",
+                [1 if is_completed else 0, 1 if is_failed else 0,
+                 tokens, cost, today, module, agent, org_id, workspace_id],
+            )
+
+            # If no rows updated, insert
+            rows = safe_query(
+                "SELECT COUNT(*) as cnt FROM metrics_daily "
+                "WHERE date = ? AND module = ? AND agent = ? AND org_id = ? AND workspace_id = ?",
+                [today, module, agent, org_id, workspace_id],
+            )
+            if rows and rows[0]["cnt"] == 0:
+                safe_exec(
+                    "INSERT INTO metrics_daily "
+                    "(date, module, agent, org_id, workspace_id, run_count, completed_count, "
+                    "failed_count, total_tokens, total_cost, created_at) "
+                    "VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)",
+                    [today, module, agent, org_id, workspace_id,
+                     1 if is_completed else 0, 1 if is_failed else 0,
+                     tokens, cost, now],
+                )
+        except Exception:
+            pass  # Best-effort: don't break event processing if PG fails
+
+    def query_trends(self, days: int = 7, module: str = "") -> list[dict]:
+        """Query historical metrics from PG.
+
+        Args:
+            days: Number of days to look back
+            module: Filter by module (optional)
+
+        Returns:
+            List of daily metrics records
+        """
+        from aitest.infra.sql import safe_query
+        from datetime import timedelta
+
+        since = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+        if module:
+            return safe_query(
+                "SELECT * FROM metrics_daily WHERE date >= ? AND module = ? "
+                "ORDER BY date DESC, module, agent",
+                [since, module],
+            )
+        return safe_query(
+            "SELECT * FROM metrics_daily WHERE date >= ? "
+            "ORDER BY date DESC, module, agent",
+            [since],
+        )
 
 
 # ── Singleton ────────────────────────────────────────────────────────────

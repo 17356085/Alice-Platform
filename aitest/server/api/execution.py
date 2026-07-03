@@ -706,3 +706,12 @@ async def all_usage(request: Request):
     from aitest.platform.hooks.quota_usage import get_quota_usage
     qu = _get_from_state(request, "quota_usage", get_quota_usage)
     return {"usage": qu.snapshot()}
+
+
+@execution_router.get("/metrics/trends")
+async def metrics_trends(request: Request, days: int = 7, module: str = ""):
+    """Historical metrics trends from PG metrics_daily table."""
+    from aitest.platform.hooks.metrics_consumer import get_metrics_consumer
+    mc = _get_from_state(request, "metrics_consumer", get_metrics_consumer)
+    trends = mc.query_trends(days=min(days, 90), module=module)
+    return {"trends": trends, "days": days, "module": module or "all"}
