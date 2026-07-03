@@ -1,13 +1,14 @@
 """
-Audit Log — operational audit trail. v3.1
+Audit Log — operational audit trail. v3.2
 
 v3.1: Uses parameterized queries via aitest.infra.sql (no more f-string SQL).
+v3.2: Synchronous PG writes — eliminates 2s flush window data loss risk.
+      Audit entries are written immediately on event, no deque buffering.
 """
 
 import json
 import threading
 from datetime import datetime, timezone, timedelta
-from collections import deque
 from .event_bus import get_bus
 from .run_event import RunEvent, EventDataKey as K
 from aitest.infra.sql import safe_exec, safe_query
@@ -15,15 +16,15 @@ from aitest.infra.sql import safe_exec, safe_query
 class AuditLogger:
     """Operational audit trail. Subscribes to all RunEvents at priority 0 (CRITICAL).
 
+    v3.2: Synchronous writes — each event writes to PG immediately.
+    No deque, no flush thread, no data loss on crash.
+
     Args:
         bus: EventBus instance. If None, uses get_bus() singleton.
     """
 
     def __init__(self, bus=None):
         self._active = False
-        self._queue: deque = deque()
-        self._flush_thread: threading.Thread | None = None
-        self._flush_running = False
         self._bus = bus  # injected EventBus (None = lazy singleton)
 
     def start(self):
@@ -31,60 +32,31 @@ class AuditLogger:
         bus = self._bus or get_bus()
         bus.subscribe("*", self._on_event, priority=0)  # CRITICAL: audit before any side-effect
         self._active = True
-        self._flush_running = True
-        self._flush_thread = threading.Thread(target=self._flush_loop, daemon=True)
-        self._flush_thread.start()
 
     def stop(self):
         if not self._active: return
         bus = self._bus or get_bus()
         bus.unsubscribe("*", self._on_event)
         self._active = False
-        self._flush_running = False
-        self._flush_now()
 
     @property
     def is_active(self) -> bool:
         return self._active
 
     def _on_event(self, event: RunEvent):
+        """Write audit entry synchronously to PG. No buffering, no data loss."""
         try:
-            self._queue.append({
-                "event_id": event.event_id, "event_type": event.event_type,
-                "run_id": event.run_id, "request_id": event.request_id,
-                "org_id": event.data.get(K.ORG_ID, ""),
-                "workspace_id": event.data.get(K.WORKSPACE_ID, ""),
-                "user_id": event.data.get(K.TRIGGERED_BY, ""),
-                "timestamp": event.timestamp,
-                "data_json": json.dumps(event.data, ensure_ascii=False),
-            })
-        except Exception: pass
-
-    def _flush_loop(self):
-        import time
-        while self._flush_running:
-            try: self._flush_now()
-            except Exception: pass
-            time.sleep(2)
-
-    def _flush_now(self):
-        if not self._queue: return
-        batch = []
-        while self._queue: batch.append(self._queue.popleft())
-        if not batch: return
-        # v3.1: 批量插入，减少 PG subprocess 调用次数
-        for e in batch:
-            try:
-                safe_exec(
-                    "INSERT INTO audit_entries "
-                    "(event_id, event_type, run_id, request_id, org_id, workspace_id, user_id, timestamp, data_json) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    [e['event_id'], e['event_type'], e['run_id'], e['request_id'],
-                     e['org_id'], e['workspace_id'], e['user_id'], e['timestamp'],
-                     e['data_json']],
-                )
-            except Exception:
-                pass  # 单条失败不影响批次
+            safe_exec(
+                "INSERT INTO audit_entries "
+                "(event_id, event_type, run_id, request_id, org_id, workspace_id, user_id, timestamp, data_json) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [event.event_id, event.event_type, event.run_id, event.request_id,
+                 event.data.get(K.ORG_ID, ""), event.data.get(K.WORKSPACE_ID, ""),
+                 event.data.get(K.TRIGGERED_BY, ""), event.timestamp,
+                 json.dumps(event.data, ensure_ascii=False)],
+            )
+        except Exception:
+            pass  # Audit failure must not break execution
 
     def query(self, *, org_id: str = "", workspace_id: str = "", event_type: str = "",
               run_id: str = "", limit: int = 50, offset: int = 0,
