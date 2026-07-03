@@ -1,13 +1,14 @@
 """
-QuotaUsageConsumer — track resource usage per workspace. v2.4
+QuotaUsageConsumer — track resource usage per workspace. v3.1
 
 Statistics only. No enforcement. Does NOT reject execution.
-Quota enforcement comes later (v2.5+) — this builds the data it needs.
+
+v3.1: Pure event-driven — no RunStore cross-check. All data from events.
 
 Tracks per workspace:
-  - run_count (today, this month)
-  - token_usage (today, this month)
-  - storage_bytes (current)
+  - run_count
+  - token_usage
+  - cost_total
   - last_updated
 
 Usage:
@@ -27,7 +28,6 @@ from datetime import datetime, timezone, date
 from ..consumer import RunEventConsumer
 from ..run_event import RunEvent, EventType, RunCompletedData, RunFailedData, EventDataKey as K
 from ..event_bus import get_bus, PRIORITY_MEDIUM_HIGH
-from ..run_store import get_run_store
 from ..ttl_set import TTLSet
 from ..config_registry import cfg
 
@@ -37,14 +37,13 @@ def _usage_dir() -> Path:
 
 
 class QuotaUsageConsumer:
-    """Tracks resource usage. Stats only. No enforcement.
+    """Tracks resource usage. Stats only. No enforcement. Pure event-driven.
 
     Args:
-        store: RunStore instance. If None, uses get_run_store() singleton.
         bus: EventBus instance. If None, uses get_bus() singleton.
     """
 
-    def __init__(self, store=None, bus=None):
+    def __init__(self, bus=None):
         self._dir = _usage_dir()
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
@@ -52,7 +51,6 @@ class QuotaUsageConsumer:
         self._seen = TTLSet(max_size=10_000, max_age_s=86_400)  # Idempotency: 10k entries, 24h TTL
         self._usage: dict[str, dict] = {}  # workspace_id → counters
         self._MAX_USAGE_ENTRIES = 500  # RC2 fix: cap per-workspace entries
-        self._store = store  # injected RunStore (None = lazy singleton)
         self._bus = bus       # injected EventBus (None = lazy singleton)
 
     def start(self):
@@ -116,21 +114,11 @@ class QuotaUsageConsumer:
     # ── Query ─────────────────────────────────────────────────────────
 
     def get_usage(self, workspace_id: str) -> dict:
-        """Current usage for a workspace. Also counts from RunStore for accuracy."""
+        """Current usage for a workspace. Pure event-driven, no DB query."""
         with self._lock:
             usage = dict(self._usage.get(workspace_id, {}))
             if not usage:
                 usage = self._empty_usage(workspace_id, "")
-
-        # Cross-check with RunStore for total counts (more durable)
-        try:
-            store = self._store or get_run_store()
-            count = store.count_runs(workspace_id=workspace_id)
-            if count > usage.get("run_count", 0):
-                usage["run_count_from_store"] = count
-        except Exception:
-            pass
-
         return usage
 
     def list_all(self) -> list[dict]:
@@ -148,15 +136,14 @@ _quota: QuotaUsageConsumer | None = None
 _quota_lock = threading.Lock()
 
 
-def get_quota_usage(store=None, bus=None) -> QuotaUsageConsumer:
+def get_quota_usage(bus=None) -> QuotaUsageConsumer:
     """Get the global QuotaUsageConsumer singleton. Creates one on first call.
 
     Args:
-        store: RunStore instance to inject. Only used on first creation.
         bus: EventBus instance to inject. Only used on first creation.
     """
     global _quota
     with _quota_lock:
         if _quota is None:
-            _quota = QuotaUsageConsumer(store=store, bus=bus)
+            _quota = QuotaUsageConsumer(bus=bus)
         return _quota

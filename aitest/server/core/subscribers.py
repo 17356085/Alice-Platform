@@ -63,10 +63,10 @@ async def activate_subscribers(log) -> dict:
     except Exception as e:
         log.error("billing_hook_failed", error=str(e))
 
-    # v2.5: QuotaUsage
+    # v2.5: QuotaUsage — v3.1: pure event-driven, no store dependency
     try:
         from aitest.platform.hooks.quota_usage import get_quota_usage
-        obj = get_quota_usage(store=store)
+        obj = get_quota_usage()
         obj.start()
         activated["quota-usage"] = obj
         log.info("quota_usage_started")
