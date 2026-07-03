@@ -226,6 +226,25 @@ async def create_session():
     return {"session_id": sid, "created_at": sessions[sid].created_at}
 
 
+@chat_router.get("/sessions")
+async def list_sessions_endpoint(limit: int = 20):
+    """列出聊天会话（用于前端同步）。v3.1: 支持前端缓存层同步。"""
+    from aitest.server.session_store import list_sessions as _list_sessions
+    try:
+        result = _list_sessions(limit=min(limit, 50))
+        return {"sessions": result}
+    except Exception:
+        # Fallback: 返回内存中的 sessions
+        items = []
+        for sid, s in list(sessions.items())[:limit]:
+            title = "Chat"
+            if s.messages:
+                first_content = s.messages[0].get("content", "")
+                title = first_content[:40] if first_content else "Chat"
+            items.append({"id": sid, "title": title, "messages": s.messages, "created_at": s.created_at})
+        return {"sessions": items}
+
+
 @chat_router.get("/sessions/{session_id}/history")
 async def get_history(session_id: str):
     """获取会话消息历史。"""

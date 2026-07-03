@@ -70,6 +70,7 @@ function makeSession(name?: string): ChatSession {
 }
 
 function loadSessions(): ChatSession[] {
+  // v3.1: localStorage 作为缓存，快速初始渲染
   try {
     const raw = localStorage.getItem(ChatMemory.STORAGE_KEY)
     if (!raw) return []
@@ -82,6 +83,7 @@ function loadSessions(): ChatSession[] {
 }
 
 function persist(sessions: ChatSession[]) {
+  // v3.1: 写入 localStorage 缓存
   try {
     localStorage.setItem(ChatMemory.STORAGE_KEY, JSON.stringify(sessions))
   } catch (e) {
@@ -98,6 +100,25 @@ function persist(sessions: ChatSession[]) {
       }))
       try { localStorage.setItem(ChatMemory.STORAGE_KEY, JSON.stringify(slimmed)) } catch { /* lost */ }
     }
+  }
+}
+
+// v3.1: 从后端同步 sessions（source of truth）
+async function syncFromServer(): Promise<ChatSession[]> {
+  try {
+    const result = await api.get<{ sessions: Array<{ id: string; title: string; messages: unknown[]; created_at: string; updated_at: string }> }>(
+      ENDPOINTS.CHAT_SESSIONS + '?limit=20'
+    )
+    if (!result.sessions?.length) return []
+    return result.sessions.map(s => ({
+      id: s.id,
+      name: s.title || 'Chat',
+      messages: Array.isArray(s.messages) ? s.messages as ChatMessage[] : [],
+      createdAt: s.created_at,
+      serverId: s.id,
+    }))
+  } catch {
+    return [] // 服务端不可用时 fallback 到 localStorage
   }
 }
 
@@ -313,6 +334,15 @@ export const useChatStore = create<ChatState>((set, get) => {
       }
     },
   }
+
+  // v3.1: 初始化后从后端同步（source of truth）
+  // localStorage 作为缓存用于快速渲染，后端数据覆盖本地
+  syncFromServer().then(serverSessions => {
+    if (serverSessions.length > 0) {
+      set({ sessions: serverSessions })
+      persist(serverSessions)
+    }
+  }).catch(() => { /* 服务端不可用，保持 localStorage 缓存 */ })
 
   return {
     sessions: loadSessions(),
