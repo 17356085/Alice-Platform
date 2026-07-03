@@ -25,7 +25,7 @@ from typing import Optional
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 import uvicorn
-from aitest.platform.paths import get_workstudy
+from aitest.infra.paths import get_workstudy
 
 WORKSTUDY = get_workstudy()
 sys.path.insert(0, str(WORKSTUDY))

@@ -53,7 +53,7 @@ class WorkerPool:
 
     _MAX_FUTURES = 10_000  # Safety cap: evict oldest if exceeded
 
-    def __init__(self, max_workers: int = 4, default_timeout: float = 1800):
+    def __init__(self, max_workers: int = 4, default_timeout: float = 1800, tenant_manager=None):
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
         self._max_workers = max_workers
         self._default_timeout = default_timeout  # P4: 30min default
@@ -64,6 +64,7 @@ class WorkerPool:
         self._task_started: dict[str, float] = {}  # P4: task_id → start_time
         self._task_timeouts: dict[str, float] = {}  # P4: task_id → timeout_s
         self._submit_counter: int = 0  # monotonic, for unique task IDs
+        self._tenant_manager = tenant_manager  # v3.2: injected, not imported
 
     def submit(
         self,
@@ -89,13 +90,13 @@ class WorkerPool:
         Raises:
             TenantCapacityError: If tenant exceeds concurrent limit
         """
-        # Check tenant capacity
-        try:
-            from aitest.platform.tenant import get_tenant
-            tenant = get_tenant(tenant_id)
-            tenant.check_capacity("agent_execution")
-        except ImportError:
-            pass  # tenant module not available
+        # Check tenant capacity — v3.2: use injected manager
+        if self._tenant_manager:
+            try:
+                tenant = self._tenant_manager.get(tenant_id)
+                tenant.check_capacity("agent_execution")
+            except Exception:
+                pass
 
         with self._lock:
             self._tenant_active[tenant_id] = self._tenant_active.get(tenant_id, 0) + 1
@@ -133,13 +134,13 @@ class WorkerPool:
                     self._stats.active_tasks -= 1
                     self._tenant_active[tenant_id] = max(0, self._tenant_active.get(tenant_id, 1) - 1)
 
-                # Release tenant capacity
-                try:
-                    from aitest.platform.tenant import get_tenant
-                    tenant = get_tenant(tenant_id)
-                    tenant.release("agent_execution")
-                except ImportError:
-                    pass
+                # Release tenant capacity — v3.2: use injected manager
+                if self._tenant_manager:
+                    try:
+                        tenant = self._tenant_manager.get(tenant_id)
+                        tenant.release("agent_execution")
+                    except Exception:
+                        pass
 
                 # Record metrics
                 try:

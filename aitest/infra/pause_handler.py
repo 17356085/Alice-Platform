@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 # ── Constants ──────────────────────────────────────────────────────────────
 
-from aitest.platform.config_registry import cfg as _cfg
+from aitest.infra.config_registry import cfg as _cfg
 
 DEFAULT_BASE_DIR = _cfg.pause_base_dir
 

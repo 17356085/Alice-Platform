@@ -28,7 +28,7 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
-from aitest.platform.paths import get_workstudy
+from aitest.infra.paths import get_workstudy
 
 # ── Paths ──────────────────────────────────────────────────────────────
 _WORKSTUDY = get_workstudy()

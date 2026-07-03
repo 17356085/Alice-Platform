@@ -41,7 +41,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional
 import functools
-from aitest.platform.paths import get_workstudy
+from aitest.infra.paths import get_workstudy
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
 WORKSTUDY = get_workstudy()

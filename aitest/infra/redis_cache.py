@@ -42,7 +42,7 @@ class RedisCache:
         self._saved_tokens = 0
         if _REDIS_AVAILABLE:
             try:
-                from aitest.platform.config_registry import cfg
+                from aitest.infra.config_registry import cfg
                 self._redis = _redis.Redis(
                     host=cfg.redis_host, port=cfg.redis_port,
                     socket_connect_timeout=cfg.redis_connect_timeout,

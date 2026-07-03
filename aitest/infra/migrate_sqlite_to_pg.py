@@ -19,7 +19,7 @@ import shutil
 from pathlib import Path
 from datetime import datetime, timezone
 
-from aitest.platform.paths import get_workstudy
+from aitest.infra.paths import get_workstudy
 
 WORKSTUDY = get_workstudy()
 DATA_DIR = WORKSTUDY / "governance" / ".data"

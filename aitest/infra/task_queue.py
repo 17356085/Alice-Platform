@@ -11,7 +11,7 @@ import threading
 from typing import Optional
 from aitest.infra.sql import safe_exec, safe_query
 from aitest.infra.logging import get_logger
-from aitest.platform.config_registry import cfg
+from aitest.infra.config_registry import cfg
 
 logger = get_logger("task_queue")
 DEFAULT_MAX_RETRIES = 3

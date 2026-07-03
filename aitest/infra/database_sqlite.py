@@ -22,7 +22,7 @@ _lock = threading.Lock()
 def _get_db_path() -> Path:
     global _DB_PATH
     if _DB_PATH is None:
-        from aitest.platform.paths import get_workstudy
+        from aitest.infra.paths import get_workstudy
         _DB_PATH = get_workstudy() / "governance" / ".data" / "aitest.db"
         _DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     return _DB_PATH

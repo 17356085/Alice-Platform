@@ -101,12 +101,13 @@ class CacheStore:
 class CacheLayer:
     """Unified cache manager with per-type stores."""
 
-    def __init__(self):
+    def __init__(self, metrics_collector=None):
         self._stores: dict[str, CacheStore] = {
             "rag": CacheStore(max_size=100, ttl_seconds=600),      # 10 min TTL
             "llm": CacheStore(max_size=50, ttl_seconds=300),       # 5 min TTL
             "artifact": CacheStore(max_size=200, ttl_seconds=1200), # 20 min TTL
         }
+        self._metrics = metrics_collector  # v3.2: injected, not imported
         self._lock = threading.Lock()
 
     def get(self, cache_type: str, key: str) -> Optional[Any]:
@@ -122,14 +123,13 @@ class CacheLayer:
             return
         store.set(key, value, tokens_saved, time_saved_ms)
 
-        # Sync to operational metrics
-        try:
-            from aitest.platform.operational_metrics import get_collector
-            mc = get_collector()
-            mc.record_memory(cache_type, hit=True)
-            mc.record_capability(f"cache:{cache_type}", tokens_saved, time_saved_ms, True)
-        except Exception:
-            pass
+        # Sync to operational metrics — v3.2: use injected collector
+        if self._metrics:
+            try:
+                self._metrics.record_memory(cache_type, hit=True)
+                self._metrics.record_capability(f"cache:{cache_type}", tokens_saved, time_saved_ms, True)
+            except Exception:
+                pass
 
     def stats(self) -> dict:
         return {

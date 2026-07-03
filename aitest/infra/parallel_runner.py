@@ -17,11 +17,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
-from aitest.platform.paths import get_workstudy
+from aitest.infra.paths import get_workstudy
 
 
 import logging
-from aitest.platform.config_registry import cfg as _cfg
+from aitest.infra.config_registry import cfg as _cfg
 
 logger = logging.getLogger(__name__)
 
