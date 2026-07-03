@@ -1,8 +1,10 @@
 """
-WebhookDispatcher + WebhookRegistry. v2.4
+WebhookDispatcher + WebhookRegistry. v3.1
+
+v3.1: WebhookRegistry uses PG instead of JSON file. Multi-process safe.
 
 Consumer: subscribes to RunEvent types, POSTs to registered endpoints.
-Registry: CRUD for webhook registrations. Persisted to JSON.
+Registry: CRUD for webhook registrations. Persisted to PG.
 
 Pure consumer. No effect on execution. No new abstractions.
 
@@ -33,10 +35,10 @@ from typing import Optional
 from ..consumer import RunEventConsumer
 from ..run_event import RunEvent, EventType
 from ..event_bus import get_bus
-from aitest.platform.paths import get_workstudy
+from ..config_registry import cfg
 
 
-# ── Registry Data ────────────────────────────────────────────────────────
+# ── Registry Data ──────────────────────────────────────────────────────
 
 @dataclass
 class WebhookRegistration:
@@ -57,40 +59,13 @@ class WebhookRegistration:
             self.created_at = datetime.now(timezone.utc).isoformat()
 
 
-# ── Registry ─────────────────────────────────────────────────────────────
-
-def _registry_path() -> Path:
-    base = get_workstudy()
-    return base / "governance" / ".data" / "webhooks.json"
-
+# ── Registry (v3.1: PG-backed) ────────────────────────────────────────
 
 class WebhookRegistry:
-    """CRUD for webhook registrations. JSON-file backed."""
+    """CRUD for webhook registrations. PG-backed. Multi-process safe."""
 
     def __init__(self):
-        self._path = _registry_path()
-        self._path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
-        self._registrations: dict[str, WebhookRegistration] = {}
-        self._load()
-
-    def _load(self):
-        if self._path.exists():
-            try:
-                data = json.loads(self._path.read_text(encoding="utf-8"))
-                self._registrations = {
-                    k: WebhookRegistration(**v) for k, v in data.items()
-                }
-            except Exception:
-                pass
-
-    def _save(self):
-        data = {k: v.__dict__ for k, v in self._registrations.items()}
-        with self._lock:
-            self._path.write_text(
-                json.dumps(data, ensure_ascii=False, indent=2, default=str),
-                encoding="utf-8",
-            )
 
     def register(
         self,
@@ -101,54 +76,105 @@ class WebhookRegistry:
         secret: str = "",
     ) -> WebhookRegistration:
         import uuid
+        from aitest.infra.sql import safe_exec
+
         wid = str(uuid.uuid4())[:12]
+        now = datetime.now(timezone.utc).isoformat()
         reg = WebhookRegistration(
-            id=wid,
-            workspace_id=workspace_id,
-            url=url,
-            events=events,
-            secret=secret,
+            id=wid, workspace_id=workspace_id, url=url,
+            events=events, secret=secret, created_at=now,
         )
-        with self._lock:
-            self._registrations[wid] = reg
-        self._save()
+        safe_exec(
+            "INSERT INTO webhook_registrations "
+            "(id, workspace_id, url, events, secret, enabled, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
+            [wid, workspace_id, url, json.dumps(events, ensure_ascii=False),
+             secret, now, now],
+        )
         return reg
 
     def get(self, webhook_id: str) -> Optional[WebhookRegistration]:
-        with self._lock:
-            return self._registrations.get(webhook_id)
+        from aitest.infra.sql import safe_query
+        rows = safe_query(
+            "SELECT * FROM webhook_registrations WHERE id=?", [webhook_id],
+        )
+        return self._row_to_reg(rows[0]) if rows else None
 
     def list(self, workspace_id: str = "") -> list[WebhookRegistration]:
-        with self._lock:
-            if workspace_id:
-                return [r for r in self._registrations.values()
-                        if r.workspace_id == workspace_id]
-            return list(self._registrations.values())
+        from aitest.infra.sql import safe_query
+        if workspace_id:
+            rows = safe_query(
+                "SELECT * FROM webhook_registrations WHERE workspace_id=? ORDER BY created_at DESC",
+                [workspace_id],
+            )
+        else:
+            rows = safe_query(
+                "SELECT * FROM webhook_registrations ORDER BY created_at DESC",
+            )
+        return [self._row_to_reg(r) for r in rows]
 
     def delete(self, webhook_id: str) -> bool:
-        with self._lock:
-            if webhook_id in self._registrations:
-                del self._registrations[webhook_id]
-                self._save()
-                return True
-        return False
+        from aitest.infra.sql import safe_exec, safe_query
+        rows = safe_query("SELECT id FROM webhook_registrations WHERE id=?", [webhook_id])
+        if not rows:
+            return False
+        safe_exec("DELETE FROM webhook_registrations WHERE id=?", [webhook_id])
+        return True
 
     def find_by_event(self, event_type: str) -> list[WebhookRegistration]:
         """Find all enabled webhooks subscribed to a given event type."""
-        with self._lock:
-            return [
-                r for r in self._registrations.values()
-                if r.enabled and event_type in r.events
-            ]
+        from aitest.infra.sql import safe_query
+        rows = safe_query(
+            "SELECT * FROM webhook_registrations WHERE enabled=1",
+        )
+        result = []
+        for r in rows:
+            events = json.loads(r.get("events", "[]"))
+            if event_type in events:
+                result.append(self._row_to_reg(r))
+        return result
+
+    def update_delivery_stats(self, webhook_id: str, success: bool):
+        """Update delivery count and last delivery time."""
+        from aitest.infra.sql import safe_exec
+        now = datetime.now(timezone.utc).isoformat()
+        if success:
+            safe_exec(
+                "UPDATE webhook_registrations SET delivery_count=delivery_count+1, "
+                "last_delivery_at=?, updated_at=? WHERE id=?",
+                [now, now, webhook_id],
+            )
+        else:
+            safe_exec(
+                "UPDATE webhook_registrations SET failure_count=failure_count+1, "
+                "last_delivery_at=?, updated_at=? WHERE id=?",
+                [now, now, webhook_id],
+            )
+
+    @staticmethod
+    def _row_to_reg(r: dict) -> WebhookRegistration:
+        return WebhookRegistration(
+            id=r["id"],
+            workspace_id=r["workspace_id"],
+            url=r["url"],
+            events=json.loads(r.get("events", "[]")),
+            secret=r.get("secret", ""),
+            enabled=bool(r.get("enabled", 1)),
+            created_at=r.get("created_at", ""),
+            updated_at=r.get("updated_at", ""),
+            last_delivery_at=r.get("last_delivery_at", ""),
+            delivery_count=r.get("delivery_count", 0),
+            failure_count=r.get("failure_count", 0),
+        )
 
 
-# ── Dispatcher ───────────────────────────────────────────────────────────
+# ── Dispatcher ─────────────────────────────────────────────────────────
 
 class WebhookDispatcher:
     """Subscribes to EventBus, delivers matching events to registered webhooks.
 
     Delivery is best-effort, synchronous, with HMAC-SHA256 signature.
-    Future: background thread pool for async delivery.
+    v3.1: async via ThreadPoolExecutor (priority=30 >= ASYNC_THRESHOLD).
 
     Args:
         registry: WebhookRegistry instance. If None, creates a default one.
@@ -223,13 +249,11 @@ class WebhookDispatcher:
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
+            with urllib.request.urlopen(req, timeout=cfg.webhook_timeout_s) as resp:
                 # 2xx = success
-                target.delivery_count += 1
-                target.last_delivery_at = datetime.now(timezone.utc).isoformat()
+                self._registry.update_delivery_stats(target.id, success=True)
         except Exception:
-            target.failure_count += 1
-            # Best-effort. Future: retry with backoff.
+            self._registry.update_delivery_stats(target.id, success=False)
 
     @staticmethod
     def _sign(body: bytes, secret: str) -> str:
@@ -239,7 +263,7 @@ class WebhookDispatcher:
         return f"sha256={mac.hexdigest()}"
 
 
-# ── Singletons ───────────────────────────────────────────────────────────
+# ── Singletons ─────────────────────────────────────────────────────────
 
 _registry: WebhookRegistry | None = None
 _registry_lock = threading.Lock()
