@@ -118,7 +118,11 @@ class AgentTerminalWSManager:
                 if qs > self._queue_peak:
                     self._queue_peak = qs
 
-            loop.call_soon_threadsafe(_enqueue)
+            try:
+                loop.call_soon_threadsafe(_enqueue)
+            except RuntimeError:
+                # Event loop closed — server shutting down
+                pass
 
         self._on_event_callback = _on_event
         self._subscribed_types = []

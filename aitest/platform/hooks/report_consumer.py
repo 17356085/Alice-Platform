@@ -22,48 +22,53 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 from ..consumer import RunEventConsumer
-from ..run_event import RunEvent, EventType
+from ..run_event import RunEvent, EventType, RunCompletedData, RunFailedData, EventDataKey as K
 from ..event_bus import get_bus
-from aitest.platform.paths import get_workstudy
+from ..config_registry import cfg
 from aitest.infra.logging import get_logger
 
 _log = get_logger(__name__)
 
 
 def _report_dir() -> Path:
-    base = get_workstudy()
-    return base / "governance" / ".data" / "reports"
+    return cfg.reports_dir
 
 
 class ReportConsumer:
     """Auto-generate AI execution summary on run completion.
 
     Listens to run.completed / run.failed → aggregates data → calls LLM → saves report.
+
+    Args:
+        store: RunStore instance. If None, uses get_run_store() singleton.
+        bus: EventBus instance. If None, uses get_bus() singleton.
     """
 
-    def __init__(self):
+    def __init__(self, store=None, bus=None):
         self._dir = _report_dir()
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._active = False
         self._reports: dict[str, dict] = {}   # run_id → report dict
         self._pending: set[str] = set()       # run_ids being generated
+        self._store = store  # injected RunStore (None = lazy singleton)
+        self._bus = bus       # injected EventBus (None = lazy singleton)
 
     # ── Lifecycle ───────────────────────────────────────────────────────
 
     def start(self):
         if self._active:
             return
-        bus = get_bus()
-        bus.subscribe(EventType.RUN_COMPLETED, self._on_run_completed)
-        bus.subscribe(EventType.RUN_FAILED, self._on_run_failed)
+        bus = self._bus or get_bus()
+        bus.subscribe(EventType.RUN_COMPLETED, self._on_run_completed, priority=20)  # NORMAL: aggregation
+        bus.subscribe(EventType.RUN_FAILED, self._on_run_failed, priority=20)
         self._active = True
         _log.info("ReportConsumer started")
 
     def stop(self):
         if not self._active:
             return
-        bus = get_bus()
+        bus = self._bus or get_bus()
         bus.unsubscribe(EventType.RUN_COMPLETED, self._on_run_completed)
         bus.unsubscribe(EventType.RUN_FAILED, self._on_run_failed)
         self._active = False
@@ -107,7 +112,7 @@ class ReportConsumer:
         from ..run_store import get_run_store
         from ..timeline import build_timeline
 
-        store = get_run_store()
+        store = self._store or get_run_store()
         run = store.load_run(run_id)
         if run is None:
             return None
@@ -280,9 +285,15 @@ _report_consumer: ReportConsumer | None = None
 _report_lock = threading.Lock()
 
 
-def get_report_consumer() -> ReportConsumer:
+def get_report_consumer(store=None, bus=None) -> ReportConsumer:
+    """Get the global ReportConsumer singleton. Creates one on first call.
+
+    Args:
+        store: RunStore instance to inject. Only used on first creation.
+        bus: EventBus instance to inject. Only used on first creation.
+    """
     global _report_consumer
     with _report_lock:
         if _report_consumer is None:
-            _report_consumer = ReportConsumer()
+            _report_consumer = ReportConsumer(store=store, bus=bus)
         return _report_consumer

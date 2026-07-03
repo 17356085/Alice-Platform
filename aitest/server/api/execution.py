@@ -7,11 +7,21 @@ Endpoints:
   GET    /api/runs                           — List Runs (filterable by workspace_id, org_id, status)
   POST   /api/executions/:request_id/cancel  — Cancel pending execution
 """
+import asyncio
+
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
 
 execution_router = APIRouter(prefix="/api", tags=["Execution v2.2"])
+
+
+def _get_from_state(request: Request, attr: str, factory):
+    """DI helper: get shared instance from app.state, fallback to factory."""
+    obj = getattr(request.app.state, attr, None)
+    if obj is None:
+        obj = factory()
+    return obj
 
 
 class StartExecutionRequest(BaseModel):
@@ -31,7 +41,6 @@ async def start_execution(ws_id: str, req: StartExecutionRequest, request: Reque
 
     Returns ExecutionResult with request_id, run_id, status, summary.
     """
-    from aitest.platform.execution_service import ExecutionService
     from aitest.platform.workspace import ExecutionContext
 
     # Resolve identity from auth middleware or header fallback
@@ -46,8 +55,13 @@ async def start_execution(ws_id: str, req: StartExecutionRequest, request: Reque
     )
 
     try:
-        svc = ExecutionService()
-        result = svc.execute(
+        # v3.0: Use shared ExecutionService from app.state (DI)
+        svc = getattr(request.app.state, "execution_service", None)
+        if svc is None:
+            from aitest.platform.execution_service import ExecutionService
+            svc = ExecutionService()
+        result = await asyncio.to_thread(
+            svc.execute,
             ctx=ctx,
             module=req.module,
             pages=req.pages,
@@ -78,11 +92,10 @@ async def start_execution(ws_id: str, req: StartExecutionRequest, request: Reque
 # ── GET /api/executions/:request_id ─────────────────────────────────
 
 @execution_router.get("/executions/{request_id}")
-async def get_execution(request_id: str):
+async def get_execution(request_id: str, request: Request):
     """Get ExecutionRequest status with all related Runs."""
     from aitest.platform.run_store import get_run_store
-
-    store = get_run_store()
+    store = _get_from_state(request, "run_store", get_run_store)
 
     # v2.4.1: load ExecutionRequest directly (was O(n) scan)
     req = store.load_request(request_id)
@@ -115,11 +128,10 @@ async def get_execution(request_id: str):
 # ── GET /api/runs/:run_id ───────────────────────────────────────────
 
 @execution_router.get("/runs/{run_id}")
-async def get_run(run_id: str):
+async def get_run(run_id: str, request: Request):
     """Get Run details with events."""
     from aitest.platform.run_store import get_run_store
-
-    store = get_run_store()
+    store = _get_from_state(request, "run_store", get_run_store)
     run = store.load_run(run_id)
 
     if run is None:
@@ -137,6 +149,7 @@ async def get_run(run_id: str):
 
 @execution_router.get("/runs")
 async def list_runs(
+    request: Request,
     workspace_id: str = "",
     org_id: str = "",
     status: str = "",
@@ -145,8 +158,7 @@ async def list_runs(
 ):
     """List Runs. Filterable by workspace_id, org_id, status."""
     from aitest.platform.run_store import get_run_store
-
-    store = get_run_store()
+    store = _get_from_state(request, "run_store", get_run_store)
     runs = store.list_runs(
         workspace_id=workspace_id,
         org_id=org_id,
@@ -167,12 +179,11 @@ async def list_runs(
 # ── POST /api/executions/:request_id/cancel ─────────────────────────
 
 @execution_router.post("/executions/{request_id}/cancel")
-async def cancel_execution(request_id: str):
+async def cancel_execution(request_id: str, request: Request):
     """Cancel a pending/queued execution."""
     from aitest.platform.execution_service import ExecutionService
-
-    svc = ExecutionService()
-    cancelled = svc.cancel(request_id)
+    svc = _get_from_state(request, "execution_service", ExecutionService)
+    cancelled = await asyncio.to_thread(svc.cancel, request_id)
 
     if not cancelled:
         raise HTTPException(404, f"Execution '{request_id}' not found or already terminal")
@@ -183,12 +194,11 @@ async def cancel_execution(request_id: str):
 # ── POST /api/executions/:run_id/timeout ─────────────────────────────
 
 @execution_router.post("/runs/{run_id}/timeout")
-async def timeout_run(run_id: str):
+async def timeout_run(run_id: str, request: Request):
     """Force-timeout a running execution. Sets abort + marks DB."""
     from aitest.platform.execution_service import ExecutionService
-
-    svc = ExecutionService()
-    ok = svc.timeout_run(run_id)
+    svc = _get_from_state(request, "execution_service", ExecutionService)
+    ok = await asyncio.to_thread(svc.timeout_run, run_id)
 
     if not ok:
         raise HTTPException(404, f"Run '{run_id}' not found or already terminal")
@@ -199,14 +209,13 @@ async def timeout_run(run_id: str):
 # ── POST /api/executions/:request_id/resume ──────────────────────────
 
 @execution_router.post("/executions/{request_id}/resume")
-async def resume_execution(request_id: str):
+async def resume_execution(request_id: str, request: Request):
     """Resume a paused or interrupted execution from its last checkpoint."""
-    from aitest.platform.execution_service import ExecutionService
     from aitest.platform.run_store import get_run_store
 
     try:
         # Resolve request_id → run_id (indexed query, no O(n) scan)
-        rs = get_run_store()
+        rs = _get_from_state(request, "run_store", get_run_store)
         runs = rs.list_runs(request_id=request_id, limit=1)
         run = runs[0] if runs else None
 
@@ -215,8 +224,8 @@ async def resume_execution(request_id: str):
         if run.is_frozen:
             raise HTTPException(status_code=409, detail=f"Execution '{request_id}' already terminal ({run.status})")
 
-        svc = ExecutionService()
-        result = svc.resume(run.run_id)
+        svc = _get_from_state(request, "execution_service", ExecutionService)
+        result = await asyncio.to_thread(svc.resume, run.run_id)
         if result is None:
             raise HTTPException(status_code=400, detail=f"Cannot resume execution '{request_id}'")
 
@@ -237,14 +246,10 @@ async def resume_execution(request_id: str):
 # ── GET /api/runs/:run_id/debug ──────────────────────────────────────
 
 @execution_router.get("/runs/{run_id}/debug")
-async def get_run_debug(run_id: str):
-    """Debug panel for a Run — LLM calls, tool calls, skill invocations.
-
-    Returns structured debug data for the Run Inspector frontend.
-    """
+async def get_run_debug(run_id: str, request: Request):
+    """Debug panel for a Run — LLM calls, tool calls, skill invocations."""
     from aitest.platform.run_store import get_run_store
-
-    rs = get_run_store()
+    rs = _get_from_state(request, "run_store", get_run_store)
     run = rs.load_run(run_id)
     if run is None:
         raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
@@ -300,17 +305,13 @@ async def get_run_debug(run_id: str):
 # ── GET /api/runs/:run_id/inspector ──────────────────────────────────
 
 @execution_router.get("/runs/{run_id}/inspector")
-async def get_run_inspector(run_id: str):
-    """Run Inspector — comprehensive execution detail for full-page view.
-
-    Aggregates Run + RunEvents + Timeline + Artifacts + Phase breakdown.
-    Pure consumer of Frozen Core (Run + RunEvent). No mutation.
-    """
+async def get_run_inspector(run_id: str, request: Request):
+    """Run Inspector — comprehensive execution detail for full-page view."""
     from aitest.platform.run_store import get_run_store
     from aitest.platform.timeline import build_timeline, timeline_summary
-    from aitest.platform.run_event import EventType
+    from aitest.platform.run_event import EventType, EventDataKey as K
 
-    rs = get_run_store()
+    rs = _get_from_state(request, "run_store", get_run_store)
     run = rs.load_run(run_id)
     if run is None:
         raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
@@ -362,7 +363,7 @@ async def get_run_inspector(run_id: str):
     # Group phase events by phase name
     phase_map: dict[str, dict] = {}
     for e in phase_events:
-        name = e.data.get("phase", "unknown") if isinstance(e.data, dict) else "unknown"
+        name = e.data.get(K.PHASE, "unknown") if isinstance(e.data, dict) else "unknown"
         if name not in phase_map:
             phase_map[name] = {"name": name, "started_at": None, "completed_at": None, "status": "unknown"}
         if e.event_type == EventType.PHASE_STARTED:
@@ -446,14 +447,14 @@ async def get_run_inspector(run_id: str):
 
 def _build_execution_tree(events: list, phases: list[dict]) -> list[dict]:
     """Build nested execution tree: Phase → Step → Action."""
-    from aitest.platform.run_event import EventType
+    from aitest.platform.run_event import EventType, EventDataKey as K
 
     tree = []
     current_phase: dict | None = None
 
     for e in events:
         if e.event_type == EventType.PHASE_STARTED:
-            name = e.data.get("phase", "unknown") if isinstance(e.data, dict) else "unknown"
+            name = e.data.get(K.PHASE, "unknown") if isinstance(e.data, dict) else "unknown"
             current_phase = {
                 "type": "phase",
                 "name": name,
@@ -489,7 +490,7 @@ def _build_execution_tree(events: list, phases: list[dict]) -> list[dict]:
 # ── GET /api/runs/:run_id/timeline ─────────────────────────────────
 
 @execution_router.get("/runs/{run_id}/timeline")
-async def get_timeline(run_id: str):
+async def get_timeline(run_id: str, request: Request):
     """Time-ordered timeline of all events for a Run."""
     from aitest.platform.timeline import build_timeline
 
@@ -508,6 +509,7 @@ async def get_timeline(run_id: str):
 
 @execution_router.get("/history")
 async def execution_history(
+    request: Request,
     workspace_id: str = "",
     org_id: str = "",
     status: str = "",
@@ -520,7 +522,7 @@ async def execution_history(
     from aitest.platform.run_store import get_run_store
     from aitest.platform.timeline import timeline_summary
 
-    store = get_run_store()
+    store = _get_from_state(request, "run_store", get_run_store)
     runs = store.list_runs(
         workspace_id=workspace_id,
         org_id=org_id,
@@ -550,6 +552,7 @@ async def execution_history(
 
 @execution_router.get("/audit")
 async def query_audit(
+    request: Request,
     org_id: str = "",
     workspace_id: str = "",
     event_type: str = "",
@@ -561,8 +564,7 @@ async def query_audit(
 ):
     """Query operational audit log. Append-only, filterable."""
     from aitest.platform.audit_log import get_audit_logger
-
-    logger = get_audit_logger()
+    logger = _get_from_state(request, "audit_logger", get_audit_logger)
     entries = logger.query(
         org_id=org_id,
         workspace_id=workspace_id,
@@ -590,22 +592,20 @@ async def query_audit(
 # ── GET /api/audit/stats ────────────────────────────────────────────
 
 @execution_router.get("/audit/stats")
-async def audit_stats(org_id: str = ""):
+async def audit_stats(request: Request, org_id: str = ""):
     """Audit log statistics: event type breakdown, recent activity."""
     from aitest.platform.audit_log import get_audit_logger
-
-    logger = get_audit_logger()
+    logger = _get_from_state(request, "audit_logger", get_audit_logger)
     return logger.stats(org_id=org_id)
 
 
 # ── GET /api/runs/:run_id/report ──────────────────────────────────────
 
 @execution_router.get("/runs/{run_id}/report")
-async def get_run_report(run_id: str):
+async def get_run_report(run_id: str, request: Request):
     """AI-generated execution summary for a Run. Returns None if not yet generated."""
     from aitest.platform.hooks.report_consumer import get_report_consumer
-
-    rc = get_report_consumer()
+    rc = _get_from_state(request, "report_consumer", get_report_consumer)
     report = rc.get_report(run_id)
     if report is None:
         return {"run_id": run_id, "report": None, "message": "Report not yet generated. Reports are auto-generated on run completion."}
@@ -615,11 +615,10 @@ async def get_run_report(run_id: str):
 # ── GET /api/reports ───────────────────────────────────────────────────
 
 @execution_router.get("/reports")
-async def list_reports(limit: int = 50):
+async def list_reports(request: Request, limit: int = 50):
     """List all generated AI reports."""
     from aitest.platform.hooks.report_consumer import get_report_consumer
-
-    rc = get_report_consumer()
+    rc = _get_from_state(request, "report_consumer", get_report_consumer)
     reports = rc.list_reports(limit=min(limit, 100))
     return {"reports": reports, "total": len(reports)}
 
@@ -637,11 +636,10 @@ class RegisterWebhookRequest(BaseModel):
 
 
 @execution_router.post("/workspaces/{ws_id}/webhooks")
-async def register_webhook(ws_id: str, req: RegisterWebhookRequest):
+async def register_webhook(ws_id: str, req: RegisterWebhookRequest, request: Request):
     """Register a webhook endpoint for a workspace."""
     from aitest.platform.hooks.webhook import get_webhook_registry
-
-    registry = get_webhook_registry()
+    registry = _get_from_state(request, "webhook_registry", get_webhook_registry)
     wh = registry.register(
         workspace_id=ws_id,
         url=req.url,
@@ -652,21 +650,19 @@ async def register_webhook(ws_id: str, req: RegisterWebhookRequest):
 
 
 @execution_router.get("/workspaces/{ws_id}/webhooks")
-async def list_webhooks(ws_id: str):
+async def list_webhooks(ws_id: str, request: Request):
     """List webhooks for a workspace."""
     from aitest.platform.hooks.webhook import get_webhook_registry
-
-    registry = get_webhook_registry()
+    registry = _get_from_state(request, "webhook_registry", get_webhook_registry)
     hooks = registry.list(workspace_id=ws_id)
     return {"webhooks": [h.__dict__ for h in hooks]}
 
 
 @execution_router.delete("/workspaces/{ws_id}/webhooks/{webhook_id}")
-async def delete_webhook(ws_id: str, webhook_id: str):
+async def delete_webhook(ws_id: str, webhook_id: str, request: Request):
     """Delete a webhook registration."""
     from aitest.platform.hooks.webhook import get_webhook_registry
-
-    registry = get_webhook_registry()
+    registry = _get_from_state(request, "webhook_registry", get_webhook_registry)
     deleted = registry.delete(webhook_id)
     if not deleted:
         raise HTTPException(404, f"Webhook '{webhook_id}' not found")
@@ -676,22 +672,20 @@ async def delete_webhook(ws_id: str, webhook_id: str):
 # ── Metrics ──────────────────────────────────────────────────────────
 
 @execution_router.get("/metrics/snapshot")
-async def metrics_snapshot():
+async def metrics_snapshot(request: Request):
     """Current platform metrics: runs, cost, by module, by agent."""
     from aitest.platform.hooks.metrics_consumer import get_metrics_consumer
-
-    mc = get_metrics_consumer()
+    mc = _get_from_state(request, "metrics_consumer", get_metrics_consumer)
     return mc.snapshot()
 
 
 # ── Billing ──────────────────────────────────────────────────────────
 
 @execution_router.get("/billing/records")
-async def billing_records(org_id: str = "", limit: int = 50):
+async def billing_records(request: Request, org_id: str = "", limit: int = 50):
     """Billing hook records. No balance — hook only."""
     from aitest.platform.hooks.billing_hook import get_billing_hook
-
-    hook = get_billing_hook()
+    hook = _get_from_state(request, "billing_hook", get_billing_hook)
     records = hook.query(org_id=org_id, limit=limit)
     return {"records": records, "total": len(records)}
 
@@ -699,18 +693,16 @@ async def billing_records(org_id: str = "", limit: int = 50):
 # ── Quota Usage ──────────────────────────────────────────────────────
 
 @execution_router.get("/workspaces/{ws_id}/usage")
-async def workspace_usage(ws_id: str):
+async def workspace_usage(ws_id: str, request: Request):
     """Resource usage for a workspace. Stats only, no enforcement."""
     from aitest.platform.hooks.quota_usage import get_quota_usage
-
-    qu = get_quota_usage()
+    qu = _get_from_state(request, "quota_usage", get_quota_usage)
     return qu.get_usage(ws_id)
 
 
 @execution_router.get("/usage")
-async def all_usage():
+async def all_usage(request: Request):
     """Resource usage for all workspaces."""
     from aitest.platform.hooks.quota_usage import get_quota_usage
-
-    qu = get_quota_usage()
+    qu = _get_from_state(request, "quota_usage", get_quota_usage)
     return {"usage": qu.snapshot()}

@@ -8,6 +8,10 @@ async def activate_subscribers(log) -> dict:
     """Activate all platform subscribers. Returns dict of active objects for lifecycle registration."""
     activated: dict[str, object] = {}
 
+    # Resolve shared dependencies for injection
+    from aitest.platform.run_store import get_run_store
+    store = get_run_store()
+
     # P1-ACTIVATION: KnowledgeAgentSubscriber
     try:
         from aitest.audit_engine.event_bus import KnowledgeAgentSubscriber
@@ -62,7 +66,7 @@ async def activate_subscribers(log) -> dict:
     # v2.5: QuotaUsage
     try:
         from aitest.platform.hooks.quota_usage import get_quota_usage
-        obj = get_quota_usage()
+        obj = get_quota_usage(store=store)
         obj.start()
         activated["quota-usage"] = obj
         log.info("quota_usage_started")
@@ -72,12 +76,32 @@ async def activate_subscribers(log) -> dict:
     # v3: ReportConsumer — AI execution summary
     try:
         from aitest.platform.hooks.report_consumer import get_report_consumer
-        obj = get_report_consumer()
+        obj = get_report_consumer(store=store)
         obj.start()
         activated["report-consumer"] = obj
         log.info("report_consumer_started")
     except Exception as e:
         log.error("report_consumer_failed", error=str(e))
+
+    # v3.1: GovernanceBridge — forward governance events to platform EventBus
+    try:
+        from aitest.platform.governance_bridge import get_governance_bridge
+        obj = get_governance_bridge()
+        obj.start()
+        activated["governance-bridge"] = obj
+        log.info("governance_bridge_started")
+    except Exception as e:
+        log.error("governance_bridge_failed", error=str(e))
+
+    # v3.0: PlatformBridge — forward ObservationBus events to platform EventBus
+    try:
+        from aitest.platform.observation_bus import get_platform_bridge
+        obj = get_platform_bridge()
+        obj.start()
+        activated["platform-bridge"] = obj
+        log.info("platform_bridge_started")
+    except Exception as e:
+        log.error("platform_bridge_failed", error=str(e))
 
     return activated
 

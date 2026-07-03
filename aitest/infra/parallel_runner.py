@@ -21,6 +21,7 @@ from aitest.platform.paths import get_workstudy
 
 
 import logging
+from aitest.platform.config_registry import cfg as _cfg
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,7 @@ def run_module_sop(module: str, mode: str = "full", provider: str = None) -> Run
         proc = subprocess.run(
             cmd, cwd=str(_WORKSTUDY),
             capture_output=True, text=True,
-            timeout=1800,
+            timeout=_cfg.parallel_run_timeout_s,
             env={**os.environ, "AITEST_PARALLEL": "1", "AITEST_MODULE": module},
         )
         return RunResult(

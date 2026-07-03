@@ -36,24 +36,34 @@ def _get_conn() -> sqlite3.Connection:
     return conn
 
 
-def pg_exec(sql: str, **kwargs) -> str:
-    """Execute SQL statement. Returns row count info."""
+def pg_exec(sql: str, params: list | None = None, **kwargs) -> str:
+    """Execute SQL statement. Returns row count info.
+
+    Args:
+        sql: SQL statement. May contain ? placeholders for parameterized queries.
+        params: Optional parameter values for ? placeholders.
+    """
     with _lock:
         conn = _get_conn()
         try:
-            cursor = conn.execute(sql)
+            cursor = conn.execute(sql, params or [])
             conn.commit()
             return f"{cursor.rowcount} rows affected"
         finally:
             conn.close()
 
 
-def pg_query(sql: str, **kwargs) -> list[dict]:
-    """Execute SQL query and return results as list of dicts."""
+def pg_query(sql: str, params: list | None = None, **kwargs) -> list[dict]:
+    """Execute SQL query and return results as list of dicts.
+
+    Args:
+        sql: SQL query. May contain ? placeholders for parameterized queries.
+        params: Optional parameter values for ? placeholders.
+    """
     with _lock:
         conn = _get_conn()
         try:
-            cursor = conn.execute(sql)
+            cursor = conn.execute(sql, params or [])
             rows = cursor.fetchall()
             return [dict(row) for row in rows]
         finally:

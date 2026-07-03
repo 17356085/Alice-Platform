@@ -6,11 +6,17 @@
 """
 
 import logging
+import re
 from pathlib import Path
 
 import chromadb
+from chromadb.config import Settings
 
 logger = logging.getLogger(__name__)
+
+# ChromaDB 持久化目录
+from aitest.platform.paths import get_workstudy
+CHROMA_DIR = get_workstudy() / "governance" / ".chroma"
 
 
 def chunk_markdown_by_headings(text: str, base_meta: dict, min_chunk_size: int = 100) -> list[dict]:

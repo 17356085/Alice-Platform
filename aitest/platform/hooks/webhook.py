@@ -149,18 +149,23 @@ class WebhookDispatcher:
 
     Delivery is best-effort, synchronous, with HMAC-SHA256 signature.
     Future: background thread pool for async delivery.
+
+    Args:
+        registry: WebhookRegistry instance. If None, creates a default one.
+        bus: EventBus instance. If None, uses get_bus() singleton.
     """
 
-    def __init__(self, registry: WebhookRegistry | None = None):
+    def __init__(self, registry: WebhookRegistry | None = None, bus=None):
         self._registry = registry or WebhookRegistry()
         self._active = False
         self._lock = threading.Lock()
+        self._bus = bus  # injected EventBus (None = lazy singleton)
 
     def start(self):
         """Subscribe to all webhook-relevant event types."""
         if self._active:
             return
-        bus = get_bus()
+        bus = self._bus or get_bus()
         types = [
             EventType.EXECUTION_REQUESTED,
             EventType.EXECUTION_QUEUED,
@@ -174,13 +179,13 @@ class WebhookDispatcher:
             EventType.COST_RECORDED,
         ]
         for t in types:
-            bus.subscribe(t, self._on_event)
+            bus.subscribe(t, self._on_event, priority=30)  # LOW: external delivery, slow HTTP
         self._active = True
 
     def stop(self):
         if not self._active:
             return
-        bus = get_bus()
+        bus = self._bus or get_bus()
         types = [
             EventType.EXECUTION_REQUESTED, EventType.EXECUTION_QUEUED,
             EventType.EXECUTION_STARTED, EventType.PHASE_STARTED,
@@ -252,9 +257,10 @@ _dispatcher: WebhookDispatcher | None = None
 _dispatcher_lock = threading.Lock()
 
 
-def get_webhook_dispatcher() -> WebhookDispatcher:
+def get_webhook_dispatcher(bus=None) -> WebhookDispatcher:
+    """Get the global WebhookDispatcher singleton. Creates one on first call."""
     global _dispatcher
     with _dispatcher_lock:
         if _dispatcher is None:
-            _dispatcher = WebhookDispatcher()
+            _dispatcher = WebhookDispatcher(bus=bus)
         return _dispatcher

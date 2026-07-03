@@ -402,15 +402,15 @@ if __name__ == "__main__":
 
     if cmd == "check":
         result = check_preconditions(module)
-        logger.info(json.dumps(result, ensure_ascii=False, indent=2))
+        _log.info(json.dumps(result, ensure_ascii=False, indent=2))
 
     elif cmd == "next":
         result = recommend_next_agent(module)
-        logger.info(json.dumps(result, ensure_ascii=False, indent=2))
+        _log.info(json.dumps(result, ensure_ascii=False, indent=2))
 
     elif cmd == "auto":
         result = auto_advance(module, auto_trigger=auto)
-        logger.info(json.dumps(result, ensure_ascii=False, indent=2))
+        _log.info(json.dumps(result, ensure_ascii=False, indent=2))
 
     else:
         _log.info(f"Unknown command: {cmd}")

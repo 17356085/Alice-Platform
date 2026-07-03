@@ -1,6 +1,7 @@
 """
-Audit Log — operational audit trail. v3.0
-PostgreSQL persistence via docker exec psql.
+Audit Log — operational audit trail. v3.1
+
+v3.1: Uses parameterized queries via aitest.infra.sql (no more f-string SQL).
 """
 
 import json
@@ -8,28 +9,27 @@ import threading
 from datetime import datetime, timezone, timedelta
 from collections import deque
 from .event_bus import get_bus
-from .run_event import RunEvent
-from aitest.infra.database import pg_exec, pg_query
-
-def _escape(val):
-    if val is None: return "NULL"
-    return "'" + str(val).replace("'", "''") + "'"
-
-def _escape_json(val):
-    if val is None: return "'{}'"
-    return "'" + json.dumps(val, ensure_ascii=False).replace("'", "''") + "'"
+from .run_event import RunEvent, EventDataKey as K
+from aitest.infra.sql import safe_exec, safe_query
 
 class AuditLogger:
-    def __init__(self):
+    """Operational audit trail. Subscribes to all RunEvents at priority 0 (CRITICAL).
+
+    Args:
+        bus: EventBus instance. If None, uses get_bus() singleton.
+    """
+
+    def __init__(self, bus=None):
         self._active = False
         self._queue: deque = deque()
         self._flush_thread: threading.Thread | None = None
         self._flush_running = False
+        self._bus = bus  # injected EventBus (None = lazy singleton)
 
     def start(self):
         if self._active: return
-        bus = get_bus()
-        bus.subscribe("*", self._on_event)
+        bus = self._bus or get_bus()
+        bus.subscribe("*", self._on_event, priority=0)  # CRITICAL: audit before any side-effect
         self._active = True
         self._flush_running = True
         self._flush_thread = threading.Thread(target=self._flush_loop, daemon=True)
@@ -37,7 +37,7 @@ class AuditLogger:
 
     def stop(self):
         if not self._active: return
-        bus = get_bus()
+        bus = self._bus or get_bus()
         bus.unsubscribe("*", self._on_event)
         self._active = False
         self._flush_running = False
@@ -49,7 +49,15 @@ class AuditLogger:
 
     def _on_event(self, event: RunEvent):
         try:
-            self._queue.append({"event_id": event.event_id, "event_type": event.event_type, "run_id": event.run_id, "request_id": event.request_id, "org_id": event.data.get("org_id", ""), "workspace_id": event.data.get("workspace_id", ""), "user_id": event.data.get("triggered_by", ""), "timestamp": event.timestamp, "data_json": json.dumps(event.data, ensure_ascii=False)})
+            self._queue.append({
+                "event_id": event.event_id, "event_type": event.event_type,
+                "run_id": event.run_id, "request_id": event.request_id,
+                "org_id": event.data.get(K.ORG_ID, ""),
+                "workspace_id": event.data.get(K.WORKSPACE_ID, ""),
+                "user_id": event.data.get(K.TRIGGERED_BY, ""),
+                "timestamp": event.timestamp,
+                "data_json": json.dumps(event.data, ensure_ascii=False),
+            })
         except Exception: pass
 
     def _flush_loop(self):
@@ -64,46 +72,110 @@ class AuditLogger:
         batch = []
         while self._queue: batch.append(self._queue.popleft())
         if not batch: return
-        values = []
         for e in batch:
-            values.append(f"({_escape(e['event_id'])}, {_escape(e['event_type'])}, {_escape(e['run_id'])}, {_escape(e['request_id'])}, {_escape(e['org_id'])}, {_escape(e['workspace_id'])}, {_escape(e['user_id'])}, {_escape(e['timestamp'])}, {_escape_json(json.loads(e['data_json']))})")
-        pg_exec(f"INSERT INTO audit_entries (event_id, event_type, run_id, request_id, org_id, workspace_id, user_id, timestamp, data_json) VALUES {', '.join(values)}")
+            safe_exec(
+                "INSERT INTO audit_entries "
+                "(event_id, event_type, run_id, request_id, org_id, workspace_id, user_id, timestamp, data_json) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [e['event_id'], e['event_type'], e['run_id'], e['request_id'],
+                 e['org_id'], e['workspace_id'], e['user_id'], e['timestamp'],
+                 e['data_json']],
+            )
 
-    def query(self, *, org_id: str = "", workspace_id: str = "", event_type: str = "", run_id: str = "", limit: int = 50, offset: int = 0, since: str = "", until: str = "") -> list[dict]:
-        where = ["1=1"]
-        if org_id: where.append(f"org_id={_escape(org_id)}")
-        if workspace_id: where.append(f"workspace_id={_escape(workspace_id)}")
-        if event_type: where.append(f"event_type={_escape(event_type)}")
-        if run_id: where.append(f"run_id={_escape(run_id)}")
-        if since: where.append(f"timestamp >= {_escape(since)}")
-        if until: where.append(f"timestamp <= {_escape(until)}")
-        return pg_query(f"SELECT * FROM audit_entries WHERE {' AND '.join(where)} ORDER BY id DESC LIMIT {min(limit, 500)} OFFSET {offset}")
+    def query(self, *, org_id: str = "", workspace_id: str = "", event_type: str = "",
+              run_id: str = "", limit: int = 50, offset: int = 0,
+              since: str = "", until: str = "") -> list[dict]:
+        sql = "SELECT * FROM audit_entries WHERE 1=1"
+        params: list = []
+        if org_id:
+            sql += " AND org_id=?"
+            params.append(org_id)
+        if workspace_id:
+            sql += " AND workspace_id=?"
+            params.append(workspace_id)
+        if event_type:
+            sql += " AND event_type=?"
+            params.append(event_type)
+        if run_id:
+            sql += " AND run_id=?"
+            params.append(run_id)
+        if since:
+            sql += " AND timestamp >= ?"
+            params.append(since)
+        if until:
+            sql += " AND timestamp <= ?"
+            params.append(until)
+        sql += " ORDER BY id DESC LIMIT ? OFFSET ?"
+        params.extend([min(limit, 500), offset])
+        return safe_query(sql, params)
 
     def count(self, *, org_id: str = "", workspace_id: str = "", event_type: str = "") -> int:
-        where = ["1=1"]
-        if org_id: where.append(f"org_id={_escape(org_id)}")
-        if workspace_id: where.append(f"workspace_id={_escape(workspace_id)}")
-        if event_type: where.append(f"event_type={_escape(event_type)}")
-        rows = pg_query(f"SELECT COUNT(*) as cnt FROM audit_entries WHERE {' AND '.join(where)}")
+        sql = "SELECT COUNT(*) as cnt FROM audit_entries WHERE 1=1"
+        params: list = []
+        if org_id:
+            sql += " AND org_id=?"
+            params.append(org_id)
+        if workspace_id:
+            sql += " AND workspace_id=?"
+            params.append(workspace_id)
+        if event_type:
+            sql += " AND event_type=?"
+            params.append(event_type)
+        rows = safe_query(sql, params)
         return rows[0]["cnt"] if rows else 0
 
     def stats(self, org_id: str = "") -> dict:
-        where = f"WHERE org_id={_escape(org_id)}" if org_id else ""
-        by_type = pg_query(f"SELECT event_type, COUNT(*) as cnt FROM audit_entries {where} GROUP BY event_type ORDER BY cnt DESC LIMIT 20")
-        total_rows = pg_query(f"SELECT COUNT(*) as cnt FROM audit_entries {where}")
-        recent = pg_query(f"SELECT event_type, run_id, timestamp FROM audit_entries {where} ORDER BY id DESC LIMIT 5")
-        return {"total_entries": total_rows[0]["cnt"] if total_rows else 0, "by_type": [{"type": r["event_type"], "count": r["cnt"]} for r in by_type], "recent": recent}
+        if org_id:
+            by_type = safe_query(
+                "SELECT event_type, COUNT(*) as cnt FROM audit_entries WHERE org_id=? "
+                "GROUP BY event_type ORDER BY cnt DESC LIMIT 20", [org_id])
+            total_rows = safe_query(
+                "SELECT COUNT(*) as cnt FROM audit_entries WHERE org_id=?", [org_id])
+            recent = safe_query(
+                "SELECT event_type, run_id, timestamp FROM audit_entries WHERE org_id=? "
+                "ORDER BY id DESC LIMIT 5", [org_id])
+        else:
+            by_type = safe_query(
+                "SELECT event_type, COUNT(*) as cnt FROM audit_entries "
+                "GROUP BY event_type ORDER BY cnt DESC LIMIT 20")
+            total_rows = safe_query("SELECT COUNT(*) as cnt FROM audit_entries")
+            recent = safe_query(
+                "SELECT event_type, run_id, timestamp FROM audit_entries ORDER BY id DESC LIMIT 5")
+        return {
+            "total_entries": total_rows[0]["cnt"] if total_rows else 0,
+            "by_type": [{"type": r["event_type"], "count": r["cnt"]} for r in by_type],
+            "recent": recent,
+        }
 
     def cleanup_old_entries(self, max_age_days: int = 30) -> int:
-        rows = pg_query(f"SELECT COUNT(*) as cnt FROM audit_entries WHERE timestamp < NOW() - INTERVAL '{max_age_days} days'")
+        rows = safe_query(
+            "SELECT COUNT(*) as cnt FROM audit_entries WHERE timestamp < datetime('now', ?)",
+            [f"-{max_age_days} days"],
+        )
         count = rows[0]["cnt"] if rows else 0
-        if count: pg_exec(f"DELETE FROM audit_entries WHERE timestamp < NOW() - INTERVAL '{max_age_days} days'")
+        if count:
+            safe_exec(
+                "DELETE FROM audit_entries WHERE timestamp < datetime('now', ?)",
+                [f"-{max_age_days} days"],
+            )
         return count
 
 _logger: AuditLogger | None = None
 _logger_lock = threading.Lock()
-def get_audit_logger() -> AuditLogger:
+
+def get_audit_logger(bus=None) -> AuditLogger:
     global _logger
     with _logger_lock:
-        if _logger is None: _logger = AuditLogger()
+        if _logger is None:
+            _logger = AuditLogger(bus=bus)
         return _logger
+
+def set_audit_logger(logger: AuditLogger) -> None:
+    global _logger
+    with _logger_lock:
+        _logger = logger
+
+def reset_audit_logger() -> None:
+    global _logger
+    with _logger_lock:
+        _logger = None

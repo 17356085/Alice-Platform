@@ -478,6 +478,11 @@ class OwnershipChecker:
         self._total_violations_found = 0
         self._known_false_positives: set[int] = set()  # object ids to skip
 
+    @property
+    def scan_count(self) -> int:
+        """Public accessor for scan count. Used by sweep loop."""
+        return self._scan_count
+
     def scan(self, max_objects: int = 50, max_depth: int = 3) -> dict:
         """Scan for ownership violations.
 

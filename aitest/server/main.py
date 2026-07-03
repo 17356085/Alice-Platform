@@ -122,6 +122,28 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         log.warning("crash_recovery_failed", error=str(e))
 
+    # v3.0: Shared ExecutionService instance (DI, not per-request singleton)
+    from aitest.platform.execution_service import ExecutionService
+    app.state.execution_service = ExecutionService()
+    log.info("execution_service_created")
+
+    # v3.1: Store shared instances in app.state for DI
+    from aitest.platform.run_store import get_run_store
+    from aitest.platform.audit_log import get_audit_logger
+    from aitest.platform.hooks.report_consumer import get_report_consumer
+    from aitest.platform.hooks.metrics_consumer import get_metrics_consumer
+    from aitest.platform.hooks.billing_hook import get_billing_hook
+    from aitest.platform.hooks.quota_usage import get_quota_usage
+    from aitest.platform.hooks.webhook import get_webhook_registry
+    app.state.run_store = get_run_store()
+    app.state.audit_logger = get_audit_logger()
+    app.state.report_consumer = get_report_consumer()
+    app.state.metrics_consumer = get_metrics_consumer()
+    app.state.billing_hook = get_billing_hook()
+    app.state.quota_usage = get_quota_usage()
+    app.state.webhook_registry = get_webhook_registry()
+    log.info("di_instances_stored_in_app_state")
+
     log.info("server_started", audit_interval_s=config.audit_interval)
 
     yield  # ── Server running ──

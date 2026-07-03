@@ -162,7 +162,8 @@ async def sop_start(request: Request):
 
 
 # ── Idle timeout (MEM-AUDIT: prevent abandoned connections holding resources) ──
-_WS_IDLE_TIMEOUT = 300  # 5 minutes, matches typical browser tab lifecycle
+from aitest.platform.config_registry import cfg as _cfg
+_WS_IDLE_TIMEOUT = _cfg.ws_idle_timeout_s
 
 
 @kanban_router.websocket("/ws/kanban")

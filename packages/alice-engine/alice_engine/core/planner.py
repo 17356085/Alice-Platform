@@ -40,8 +40,15 @@ class PlannerConfig:
     llm_complete: Callable | None = None  # (system_prompt, user_prompt) -> LLMResponse
 
 
-# HITL 确认缓存
-_confirmed_skills: set = set()
+# HITL 确认缓存 — v3.1: 线程本地，避免并发 AgentLoop 竞态
+import threading
+_confirmed_skills_local = threading.local()
+
+def _get_confirmed_skills() -> set:
+    """获取当前线程的 confirmed_skills 集合。"""
+    if not hasattr(_confirmed_skills_local, "skills"):
+        _confirmed_skills_local.skills = set()
+    return _confirmed_skills_local.skills
 
 
 def plan_next_action(
@@ -193,11 +200,12 @@ def _check_skill_confirmation(skill_id: str, state, governance_path: str | None 
         return None
 
     confirm_key = f"{state.module}:{skill_id}"
-    if confirm_key in _confirmed_skills:
+    confirmed = _get_confirmed_skills()
+    if confirm_key in confirmed:
         return None
 
     if state.memory.get("confirmed_skills", {}).get(skill_id):
-        _confirmed_skills.add(confirm_key)
+        confirmed.add(confirm_key)
         return None
 
     if logger_fn:
@@ -220,12 +228,12 @@ def _check_skill_confirmation(skill_id: str, state, governance_path: str | None 
 def confirm_skill(skill_id: str, module: str = "") -> None:
     """用户确认高风险 skill 可以执行。"""
     key = f"{module}:{skill_id}" if module else skill_id
-    _confirmed_skills.add(key)
+    _get_confirmed_skills().add(key)
 
 
 def reset_confirmations() -> None:
     """重置所有确认状态。"""
-    _confirmed_skills.clear()
+    _get_confirmed_skills().clear()
 
 
 # ═══════════════════════════════════════════════════════════

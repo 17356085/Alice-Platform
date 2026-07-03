@@ -47,7 +47,8 @@ class TestingMemoryStore:
     def _init_client(self):
         try:
             import chromadb
-            persist = self._persist_dir or ".chroma_testing"
+            from aitest.platform.config_registry import cfg
+            persist = self._persist_dir or cfg.chromadb_path
             self._client = chromadb.PersistentClient(path=persist)
             self._ensure_collections()
         except ImportError:

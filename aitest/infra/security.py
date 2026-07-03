@@ -1,4 +1,11 @@
 # Re-export — 原文件已搬到 runtime/security.py
+# Deprecated: 直接从 alice_engine.runtime.security import
+import warnings as _warnings
+_warnings.warn(
+    "aitest.infra.security is deprecated, use aitest.runtime.security or alice_engine.runtime.security directly",
+    DeprecationWarning,
+    stacklevel=2,
+)
 from aitest.runtime.security import (  # noqa: F401
     BashValidator, SecurityHook, SecurityError, PromptInjectionGuard,
     BLOCKED_COMMANDS, CONTEXT_BLOCKED_PATTERNS, VALIDATORS,

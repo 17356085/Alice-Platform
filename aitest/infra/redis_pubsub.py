@@ -39,7 +39,11 @@ def _get_redis() -> Optional[_redis.Redis]:
     if not _REDIS_AVAILABLE:
         return None
     try:
-        r = _redis.Redis(host="localhost", port=6379, socket_connect_timeout=1)
+        from aitest.platform.config_registry import cfg
+        r = _redis.Redis(
+            host=cfg.redis_host, port=cfg.redis_port,
+            socket_connect_timeout=cfg.redis_connect_timeout,
+        )
         r.ping()
         return r
     except Exception:

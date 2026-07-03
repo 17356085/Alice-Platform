@@ -23,26 +23,30 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 from ..consumer import RunEventConsumer
-from ..run_event import RunEvent, EventType
+from ..run_event import RunEvent, EventType, RunCompletedData, RunFailedData, EventDataKey as K
 from ..event_bus import get_bus
 from ..ttl_set import TTLSet
-from aitest.platform.paths import get_workstudy
+from ..config_registry import cfg
 
 
 def _metrics_dir() -> Path:
-    base = get_workstudy()
-    return base / "governance" / ".data" / "metrics"
+    return cfg.metrics_dir
 
 
 class MetricsConsumer:
-    """Aggregate execution metrics from RunEvents."""
+    """Aggregate execution metrics from RunEvents.
 
-    def __init__(self):
+    Args:
+        bus: EventBus instance. If None, uses get_bus() singleton.
+    """
+
+    def __init__(self, bus=None):
         self._dir = _metrics_dir()
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._active = False
         self._seen = TTLSet(max_size=10_000, max_age_s=86_400)  # Idempotency: 10k entries, 24h TTL
+        self._bus = bus  # injected EventBus (None = lazy singleton)
 
         # Counters
         self._total_runs = 0
@@ -64,16 +68,16 @@ class MetricsConsumer:
     def start(self):
         if self._active:
             return
-        bus = get_bus()
-        bus.subscribe(EventType.RUN_COMPLETED, self._on_run_completed)
-        bus.subscribe(EventType.RUN_FAILED, self._on_run_failed)
-        bus.subscribe(EventType.RUN_CANCELLED, self._on_run_cancelled)
+        bus = self._bus or get_bus()
+        bus.subscribe(EventType.RUN_COMPLETED, self._on_run_completed, priority=20)  # NORMAL: aggregation
+        bus.subscribe(EventType.RUN_FAILED, self._on_run_failed, priority=20)
+        bus.subscribe(EventType.RUN_CANCELLED, self._on_run_cancelled, priority=20)
         self._active = True
 
     def stop(self):
         if not self._active:
             return
-        bus = get_bus()
+        bus = self._bus or get_bus()
         bus.unsubscribe(EventType.RUN_COMPLETED, self._on_run_completed)
         bus.unsubscribe(EventType.RUN_FAILED, self._on_run_failed)
         bus.unsubscribe(EventType.RUN_CANCELLED, self._on_run_cancelled)
@@ -109,10 +113,10 @@ class MetricsConsumer:
             self._cancelled_runs += 1
 
     def _accumulate(self, event: RunEvent):
-        tokens = event.data.get("total_tokens", 0)
-        cost = event.data.get("total_cost", 0.0)
-        module = event.data.get("module", "unknown")
-        agent = event.data.get("agent", "unknown")
+        tokens = event.data.get(K.TOTAL_TOKENS, 0)
+        cost = event.data.get(K.TOTAL_COST, 0.0)
+        module = event.data.get(K.MODULE, "unknown")
+        agent = event.data.get(K.AGENT, "unknown")
 
         self._total_tokens += tokens
         self._total_cost += cost
@@ -189,9 +193,10 @@ _metrics: MetricsConsumer | None = None
 _metrics_lock = threading.Lock()
 
 
-def get_metrics_consumer() -> MetricsConsumer:
+def get_metrics_consumer(bus=None) -> MetricsConsumer:
+    """Get the global MetricsConsumer singleton. Creates one on first call."""
     global _metrics
     with _metrics_lock:
         if _metrics is None:
-            _metrics = MetricsConsumer()
+            _metrics = MetricsConsumer(bus=bus)
         return _metrics

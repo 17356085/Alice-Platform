@@ -41,11 +41,13 @@ logger = logging.getLogger(__name__)
 
 # ── Constants ──────────────────────────────────────────────────────────────
 
-DEFAULT_BASE_DIR = Path("governance") / ".data"
+from aitest.platform.config_registry import cfg as _cfg
 
-# Exponential backoff intervals (seconds)
-_BACKOFF_SEQUENCE = (1, 2, 4, 8, 15, 30)
-_BACKOFF_MAX = 30
+DEFAULT_BASE_DIR = _cfg.pause_base_dir
+
+# Exponential backoff intervals (seconds) — v3.1: faster initial detection
+_BACKOFF_SEQUENCE = (0.5, 1, 2, 4, 8, 15)
+_BACKOFF_MAX = 15
 
 # How often to check the abort signal during sleep
 _ABORT_CHECK_INTERVAL = 0.5
@@ -102,17 +104,14 @@ def write_resume_file(
 ) -> Path:
     """Write resume.json sentinel — called by API when user approves.
 
-    Deletes any existing pause.json first (atomic handoff).
+    v3.1: Writes resume.json BEFORE deleting pause.json to fix TOCTOU race.
+    wait_for_resume checks resume.json first, so this order is safe.
     """
     base = Path(base_dir)
     task_dir = _task_dir(task_id, base)
     task_dir.mkdir(parents=True, exist_ok=True)
 
-    # Clear stale pause file (if still present)
-    pause_path = task_dir / "pause.json"
-    if pause_path.exists():
-        pause_path.unlink()
-
+    # Write resume FIRST (fixes TOCTOU: wait_for_resume checks resume first)
     data = {
         "resumed_at": _now_iso(),
         "task_id": task_id,
@@ -120,6 +119,15 @@ def write_resume_file(
     resume_path = task_dir / "resume.json"
     resume_path.write_text(json.dumps(data, indent=2, ensure_ascii=False),
                            encoding="utf-8")
+
+    # Then clean up pause file
+    pause_path = task_dir / "pause.json"
+    if pause_path.exists():
+        try:
+            pause_path.unlink()
+        except OSError:
+            pass
+
     logger.info("Resume file written: %s", resume_path)
     return resume_path
 

@@ -160,14 +160,18 @@ class WorkspaceManager:
 
     # ── ExecutionContext factory ────────────────────────────────────
 
-    def make_context(self, org_id: str, ws_id: str, user_id: str) -> ExecutionContext:
-        """Platform layer: resolve identity → ExecutionContext for Runtime."""
+    def make_context(self, org_id: str, ws_id: str, user_id: str, org_manager=None) -> ExecutionContext:
+        """Platform layer: resolve identity → ExecutionContext for Runtime.
+
+        Args:
+            org_manager: OrganizationManager instance. If None, uses get_org_manager() singleton.
+        """
         ws = self._get_or_raise(org_id, ws_id)
 
         # Get user's role → scopes from Organization
         try:
             from aitest.platform.organization import get_org_manager, ROLE_DEFAULT_SCOPES
-            om = get_org_manager()
+            om = org_manager or get_org_manager()
             role = om.get_role(org_id, user_id)
             scopes = ROLE_DEFAULT_SCOPES.get(role, ["read"])
         except Exception:

@@ -35,13 +35,12 @@ logger = logging.getLogger(__name__)
 
 # ── Constants ──────────────────────────────────────────────────────────────
 
-_COUNTERS_DIR = Path("governance") / ".data" / "dead_ends"
-_COUNTERS_FILE = _COUNTERS_DIR / "counters.json"
+from aitest.platform.config_registry import cfg
 
-# Thresholds
-DEAD_END_CONSECUTIVE_FAILURES = 3   # Failures needed to trigger dead-end
-FAILURE_WINDOW_MINUTES = 30         # Window for failure counting
-DEAD_END_MAX_AGE_MINUTES = 120      # Stale counters cleaned after 2h
+# Thresholds (from config_registry, overridable via env vars)
+DEAD_END_CONSECUTIVE_FAILURES = cfg.dead_end_consecutive_failures
+FAILURE_WINDOW_MINUTES = cfg.dead_end_window_minutes
+DEAD_END_MAX_AGE_MINUTES = cfg.dead_end_max_age_minutes
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -50,10 +49,11 @@ DEAD_END_MAX_AGE_MINUTES = 120      # Stale counters cleaned after 2h
 
 def _load_counters() -> dict:
     """Load failure counters from JSON. Returns {} on missing/corrupt file."""
-    if not _COUNTERS_FILE.exists():
+    counters_file = cfg.counters_path
+    if not counters_file.exists():
         return {}
     try:
-        return json.loads(_COUNTERS_FILE.read_text(encoding="utf-8"))
+        return json.loads(counters_file.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as e:
         logger.warning("Failed to load counters.json: %s", e)
         return {}
@@ -61,14 +61,16 @@ def _load_counters() -> dict:
 
 def _save_counters(counters: dict) -> None:
     """Atomically write counters to JSON (tempfile + os.replace)."""
-    _COUNTERS_DIR.mkdir(parents=True, exist_ok=True)
+    counters_file = cfg.counters_path
+    counters_dir = counters_file.parent
+    counters_dir.mkdir(parents=True, exist_ok=True)
     try:
         fd, tmp_path = tempfile.mkstemp(
-            suffix=".json", prefix="counters_", dir=str(_COUNTERS_DIR),
+            suffix=".json", prefix="counters_", dir=str(counters_dir),
         )
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(counters, f, indent=2, ensure_ascii=False)
-        os.replace(tmp_path, str(_COUNTERS_FILE))
+        os.replace(tmp_path, str(counters_file))
     except OSError as e:
         logger.warning("Failed to save counters.json: %s", e)
 
@@ -262,15 +264,19 @@ def get_dead_ends(module: str) -> list[dict]:
 _registered_handlers = False
 
 
-def _register_with_bus() -> None:
-    """Register MemoryObserver handlers with ObservationBus. Idempotent."""
+def _register_with_bus(bus=None) -> None:
+    """Register MemoryObserver handlers with ObservationBus. Idempotent.
+
+    Args:
+        bus: ObservationBus instance. If None, uses get_bus() singleton.
+    """
     global _registered_handlers
     if _registered_handlers:
         return
     _registered_handlers = True
     try:
         from aitest.platform.observation_bus import get_bus, EventType
-        bus = get_bus()
+        bus = bus or get_bus()
         bus.subscribe(EventType.SKILL_FAILED, on_skill_failed)
         bus.subscribe(EventType.SKILL_COMPLETE, on_skill_complete)
     except Exception:

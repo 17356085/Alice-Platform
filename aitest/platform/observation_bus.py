@@ -137,97 +137,160 @@ class ObservationBus:
 # ══════════════════════════════════════════════════════════════════════════
 
 _bus: ObservationBus = None
+_bus_lock = __import__('threading').Lock()
 
 
 def get_bus() -> ObservationBus:
+    """Get the global ObservationBus singleton. Creates one on first call."""
     global _bus
-    if _bus is None:
-        _bus = ObservationBus()
-    return _bus
+    with _bus_lock:
+        if _bus is None:
+            _bus = ObservationBus()
+        return _bus
+
+
+def set_bus(bus: ObservationBus) -> None:
+    """Inject a custom ObservationBus instance (for testing or plugin replacement)."""
+    global _bus
+    with _bus_lock:
+        _bus = bus
+
+
+def reset_bus() -> None:
+    """Reset to default singleton (next get_bus() creates a fresh instance)."""
+    global _bus
+    with _bus_lock:
+        _bus = None
 
 
 # ══════════════════════════════════════════════════════════════════════════
-#  预置 Consumer: Memory Sync
+#  预置 Consumer: Memory Sync (delegated to memory_consumer.py)
 # ══════════════════════════════════════════════════════════════════════════
-
-_registered = False  # ★ v2.9: dedup guard
 
 def register_memory_consumer(store=None):
     """注册 Memory 消费者：自动将观测事件写入 TestingMemoryStore。
-    Idempotent — subsequent calls are no-ops."""
-    global _registered
-    if _registered:
-        return
-    _registered = True
 
-    from aitest.platform.testing_memory import (
-        LocatorHistoryMemory, KnownBugMemory, HistoricalFailureMemory, MemoryType,
-    )
-    from aitest.platform.testing_memory_store import TestingMemoryStore
-
-    if store is None:
-        try:
-            store = TestingMemoryStore()
-        except Exception:
-            _registered = False
-            return
-
-    bus = get_bus()
-
-    def on_test_failed(event: ObservationEvent):
-        """测试失败 → 记录 HistoricalFailure。"""
-        mem = HistoricalFailureMemory(
-            content=f"Test failed: {event.data.get('test_name', 'unknown')} | "
-                    f"error: {str(event.data.get('error', ''))[:300]}",
-            failure_pattern=event.data.get("failure_pattern", ""),
-            root_cause=event.data.get("root_cause", ""),
-            fix_strategy=event.data.get("fix_strategy", ""),
-            failure_count=1,
-            module=event.module,
-            page=event.page,
-        )
-        store.add(mem)
-
-    def on_tool_call_failed(event: ObservationEvent):
-        """Tool Call 失败 → 记录 KnownBug。"""
-        mem = KnownBugMemory(
-            content=f"Tool failed: {event.data.get('tool_name', 'unknown')} | "
-                    f"error: {str(event.data.get('error', ''))[:300]}",
-            bug_description=str(event.data.get('error', ''))[:500],
-            workaround=event.data.get("workaround", ""),
-            module=event.module,
-            page=event.page,
-        )
-        store.add(mem)
-
-    def on_locator_change(event: ObservationEvent):
-        """定位器变更 → 记录 LocatorHistory。"""
-        mem = LocatorHistoryMemory(
-            element=event.data.get("element", ""),
-            stable_locator=event.data.get("new_locator", ""),
-            failed_locators=[event.data.get("old_locator", "")] if event.data.get("old_locator") else [],
-            module=event.module,
-            page=event.page,
-        )
-        store.add(mem)
-
-    # ★ RC3 fix: Use BoundSubscription so callbacks are lifecycle-tracked.
-    # BoundSubscription registers itself in LifecycleRegistry — when owner
-    # (memory-consumer) is disposed, callbacks auto-unsubscribe.
-    # Falls back to bare subscribe if ownership module unavailable.
-    try:
-        from aitest.platform.ownership import BoundSubscription
-        _mem_consumer_subs = [
-            BoundSubscription(bus, EventType.TEST_FAILED, on_test_failed,
-                             owner_id="memory-consumer"),
-            BoundSubscription(bus, EventType.TOOL_CALL_FAILED, on_tool_call_failed,
-                             owner_id="memory-consumer"),
-        ]
-        for sub in _mem_consumer_subs:
-            sub.activate()  # calls bus.subscribe() internally
-    except Exception:
-        # Fallback: bare subscribe when ownership module unavailable
-        bus.subscribe(EventType.TEST_FAILED, on_test_failed)
-        bus.subscribe(EventType.TOOL_CALL_FAILED, on_tool_call_failed)
+    .. deprecated::
+        Use ``from aitest.platform.memory_consumer import register_memory_consumer``
+        directly. This wrapper exists for backward compatibility.
+    """
+    from aitest.platform.memory_consumer import register_memory_consumer as _register
+    _register(store=store, bus=get_bus())
 
     logger.info("Memory consumer registered on ObservationBus")
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  PlatformBridge — forward ObservationEvents to platform EventBus (v3.0)
+# ══════════════════════════════════════════════════════════════════════════
+
+# Mapping: ObservationBus EventType → platform RunEvent event_type
+_OBSERVATION_TO_PLATFORM: dict[EventType, str] = {
+    EventType.SKILL_START: "observation.skill_start",
+    EventType.SKILL_COMPLETE: "observation.skill_complete",
+    EventType.SKILL_FAILED: "observation.skill_failed",
+    EventType.SKILL_RETRY: "observation.skill_retry",
+    EventType.AGENT_START: "observation.agent_start",
+    EventType.AGENT_COMPLETE: "observation.agent_complete",
+    EventType.TOOL_CALL_START: "observation.tool_call_start",
+    EventType.TOOL_CALL_COMPLETE: "observation.tool_call_complete",
+    EventType.TOOL_CALL_FAILED: "observation.tool_call_failed",
+    EventType.TEST_PASSED: "observation.test_passed",
+    EventType.TEST_FAILED: "observation.test_failed",
+    EventType.EVIDENCE_CAPTURED: "observation.evidence_captured",
+    EventType.MEMORY_ADDED: "observation.memory_added",
+    EventType.MEMORY_VERIFIED: "observation.memory_verified",
+    EventType.MEMORY_DECAYED: "observation.memory_decayed",
+    EventType.SECURITY_BLOCKED: "observation.security_blocked",
+    EventType.PROMPT_INJECTION_DETECTED: "observation.prompt_injection_detected",
+    EventType.CONTEXT_WINDOW_WARN: "observation.context_window_warn",
+    EventType.CONTEXT_WINDOW_CONTINUE: "observation.context_window_continue",
+    EventType.PROVIDER_FALLBACK: "observation.provider_fallback",
+    EventType.PROVIDER_RETRY: "observation.provider_retry",
+}
+
+
+class PlatformBridge:
+    """Forwards ObservationEvents to the platform EventBus as RunEvents.
+
+    This unifies the two event bus systems:
+      - ObservationBus (Agent-level: skill_start, tool_call, test_failed)
+      - EventBus (Platform-level: run.completed, billing, audit)
+
+    After this bridge, platform consumers (AuditLogger, WebhookDispatcher,
+    MetricsConsumer) can observe agent-level events without importing
+    ObservationBus directly.
+
+    Usage:
+        bridge = PlatformBridge()
+        bridge.start()   # subscribes to all ObservationEvent types
+        bridge.stop()    # unsubscribes
+    """
+
+    def __init__(self, obs_bus=None, platform_bus=None):
+        self._active = False
+        self._obs_bus = obs_bus
+        self._platform_bus = platform_bus
+
+    def start(self) -> None:
+        if self._active:
+            return
+        from aitest.platform.observation_bus import get_bus as get_obs_bus
+        from aitest.platform.event_bus import get_bus as get_platform_bus
+
+        obs = self._obs_bus or get_obs_bus()
+        platform = self._platform_bus or get_platform_bus()
+
+        for obs_type, platform_type in _OBSERVATION_TO_PLATFORM.items():
+            obs.subscribe(obs_type, self._make_forwarder(platform, platform_type))
+
+        self._active = True
+        logger.info(f"PlatformBridge started, forwarding {len(_OBSERVATION_TO_PLATFORM)} event types")
+
+    def stop(self) -> None:
+        self._active = False
+        logger.info("PlatformBridge stopped")
+
+    @property
+    def is_active(self) -> bool:
+        return self._active
+
+    @staticmethod
+    def _make_forwarder(platform_bus, event_type: str):
+        """Create a forwarder function for a specific event type."""
+        import uuid as _uuid
+        from aitest.platform.run_event import RunEvent
+
+        def forwarder(obs_event):
+            try:
+                run_event = RunEvent(
+                    event_id=str(_uuid.uuid4()),
+                    event_type=event_type,
+                    run_id=obs_event.data.get("run_id", ""),
+                    request_id="",
+                    data={
+                        **obs_event.data,
+                        "agent_name": obs_event.agent_name,
+                        "module": obs_event.module,
+                        "page": obs_event.page,
+                        "_source": "observation_bus",
+                    },
+                )
+                platform_bus.publish(run_event)
+            except Exception as e:
+                logger.warning(f"PlatformBridge forward failed for {event_type}: {e}")
+
+        return forwarder
+
+
+_bridge: PlatformBridge | None = None
+_bridge_lock = __import__('threading').Lock()
+
+
+def get_platform_bridge() -> PlatformBridge:
+    """Get the global PlatformBridge singleton."""
+    global _bridge
+    with _bridge_lock:
+        if _bridge is None:
+            _bridge = PlatformBridge()
+        return _bridge

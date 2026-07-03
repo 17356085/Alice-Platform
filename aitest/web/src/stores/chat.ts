@@ -8,6 +8,7 @@
  */
 import { create } from 'zustand'
 import { api } from '@/api/client'
+import { SSE_EVENTS } from '@/api/sse-events'
 import { ENDPOINTS } from '@/api/endpoints'
 
 // ── Types ──────────────────────────────────────────────────────
@@ -108,7 +109,10 @@ function persist(sessions: ChatSession[]) {
 type SSECallbacks = {
   onChunk: (text: string) => void
   onToolStart: (name: string) => void
-  onToolEnd: () => void
+  onToolEnd: (data?: Record<string, unknown>) => void
+  onThinkingStart: (data: Record<string, unknown>) => void
+  onObservation: (data: Record<string, unknown>) => void
+  onPhaseChange: (data: Record<string, unknown>) => void
   onDone: (fullText: string) => void
   onError: (msg: string) => void
 }
@@ -135,34 +139,97 @@ function sseStart(sid: string, streamUrl: string, callbacks: SSECallbacks) {
 
   const guard = () => _activeSid === sid
 
+  // Helper: parse SSE event data, call handler
+  const listen = (type: string, handler: (data: Record<string, unknown>) => void) => {
+    es.addEventListener(type, (e: MessageEvent) => {
+      if (!guard()) return
+      try {
+        handler(JSON.parse(e.data))
+      } catch {
+        // ignore parse errors
+      }
+    })
+  }
+
+  // ── UI Projection events (ui.*) ──
+
+  listen(SSE_EVENTS.THINKING_STARTED, (data) => {
+    callbacks.onThinkingStart(data)
+  })
+
+  listen(SSE_EVENTS.THINKING_CHUNK, (data) => {
+    const text = (data.content as string) || ''
+    if (text) {
+      _accumulated.push(text)
+      callbacks.onChunk(text)
+    }
+  })
+
+  listen(SSE_EVENTS.THINKING_ENDED, () => {
+    // Thinking phase complete — no-op for now
+  })
+
+  listen(SSE_EVENTS.SKILL_STARTED, (data) => {
+    callbacks.onToolStart((data.label as string) || (data.skill_id as string) || 'Tool')
+  })
+
+  listen(SSE_EVENTS.SKILL_PROGRESS, (data) => {
+    // Progress update — could surface in UI later
+  })
+
+  listen(SSE_EVENTS.SKILL_ENDED, (data) => {
+    callbacks.onToolEnd(data)
+  })
+
+  listen(SSE_EVENTS.OBSERVATION, (data) => {
+    callbacks.onObservation(data)
+  })
+
+  listen(SSE_EVENTS.PHASE_CHANGED, (data) => {
+    callbacks.onPhaseChange(data)
+  })
+
+  listen(SSE_EVENTS.MESSAGE, (data) => {
+    const text = (data.content as string) || ''
+    if (text) {
+      _accumulated.push(text)
+      callbacks.onChunk(text)
+    }
+  })
+
+  listen(SSE_EVENTS.INTERACTION, (data) => {
+    // HITL interaction — handled by interaction endpoint
+  })
+
+  listen(SSE_EVENTS.DONE, (data) => {
+    callbacks.onDone(_accumulated.join(''))
+    es.close()
+    _es = null; _activeSid = null
+  })
+
+  listen(SSE_EVENTS.ERROR, (data) => {
+    callbacks.onError((data.message as string) || 'Stream error')
+    es.close()
+    _es = null; _activeSid = null
+  })
+
+  // ── Fallback: unnamed events (legacy compatibility) ──
   es.onmessage = (event: MessageEvent) => {
-    if (!guard()) return  // stale session — ignore
+    if (!guard()) return
     try {
       const data = JSON.parse(event.data)
+      // Legacy: check data.type for old-style events
       const t = data.type || ''
-      if (t === 'content_chunk' || t === 'text_delta') {
-        const text = data.content || data.text || ''
-        _accumulated.push(text)
-        callbacks.onChunk(text)
-      } else if (t === 'tool_use_start') {
-        callbacks.onToolStart(data.tool_name || 'Tool')
-      } else if (t === 'tool_use_end') {
-        callbacks.onToolEnd()
-      } else if (t === 'done') {
+      if (t === 'done') {
         callbacks.onDone(_accumulated.join(''))
-        es.close()
-        _es = null; _activeSid = null
+        es.close(); _es = null; _activeSid = null
       } else if (t === 'error') {
         callbacks.onError(data.error_message || 'Stream error')
-        es.close()
-        _es = null; _activeSid = null
-      } else if (typeof event.data === 'string') {
-        _accumulated.push(event.data)
-        callbacks.onChunk(event.data)
+        es.close(); _es = null; _activeSid = null
       }
     } catch {
-      if (!guard()) return
-      if (typeof event.data === 'string') {
+      // Raw text fallback
+      if (typeof event.data === 'string' && event.data.trim()) {
         _accumulated.push(event.data)
         callbacks.onChunk(event.data)
       }
@@ -223,6 +290,15 @@ export const useChatStore = create<ChatState>((set, get) => {
     },
     onToolEnd() {
       set({ currentTool: '' })
+    },
+    onThinkingStart(_data) {
+      // Could show "analyzing..." indicator in UI
+    },
+    onObservation(_data) {
+      // Could show page observation results in sidebar
+    },
+    onPhaseChange(_data) {
+      // Could show SOP phase progress indicator
     },
     onDone(fullText) {
       if (fullText) get().addMessage('assistant', fullText)

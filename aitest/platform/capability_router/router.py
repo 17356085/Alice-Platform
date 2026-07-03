@@ -119,9 +119,10 @@ class CapabilityRouter:
         result = router.execute(tool_call, context)
     """
 
-    def __init__(self, load_plugins: bool = True):
+    def __init__(self, load_plugins: bool = True, plugin_manager=None):
         self._registry: dict[str, list[CapabilityProvider]] = {}
         self._agent_capabilities: dict[str, list[str]] = {}
+        self._plugin_manager = plugin_manager  # injected (None = lazy singleton)
         if load_plugins:
             self._load_plugins()
 
@@ -131,7 +132,7 @@ class CapabilityRouter:
         """Load capability providers from installed plugins."""
         try:
             from aitest.platform.plugin import get_plugin_manager
-            pm = get_plugin_manager()
+            pm = self._plugin_manager or get_plugin_manager()
             pm.load_all()
             providers = pm.get_providers()
             for name, cls in providers.items():

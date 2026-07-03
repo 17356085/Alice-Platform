@@ -33,7 +33,7 @@ from dataclasses import dataclass, field
 from .workspace import ExecutionContext
 from .execution_request import ExecutionRequest, RequestStatus
 from .run import Run
-from .run_event import RunEvent, EventType, make_event
+from .run_event import RunEvent, EventType, make_event, EventDataKey as K
 from .event_bus import get_bus
 from .run_store import get_run_store
 
@@ -57,11 +57,16 @@ class ExecutionResult:
 # ── Service ──────────────────────────────────────────────────────────────
 
 class ExecutionService:
-    """Platform orchestration: API → ExecutionService → Runtime."""
+    """Platform orchestration: API → ExecutionService → Runtime.
 
-    def __init__(self):
-        self._store = get_run_store()
-        self._bus = get_bus()
+    Args:
+        store: RunStore instance. If None, uses get_run_store() singleton.
+        bus: EventBus instance. If None, uses get_bus() singleton.
+    """
+
+    def __init__(self, store=None, bus=None):
+        self._store = store or get_run_store()
+        self._bus = bus or get_bus()
         # ★ v2.6: Track active AgentLoop abort signals for cancel/timeout
         self._active_aborts: dict[str, threading.Event] = {}
         self._aborts_lock = threading.Lock()
@@ -130,7 +135,7 @@ class ExecutionService:
             module=module, pages=pages, agent=agent,
         )
         self._store.save_event(ev_req)   # Persist before publish
-        self._bus.publish(ev_req)
+        self._bus.publish_async(ev_req)
         request.queue()
         self._store.save_request(request)  # Persist at queued
 
@@ -161,18 +166,18 @@ class ExecutionService:
             module=module, agent=agent,
         )
         self._store.save_event(ev_start)
-        self._bus.publish(ev_start)
+        self._bus.publish_async(ev_start)
 
-        # 5. Execute via AgentLoop
+        # 5. Execute via engine factory
         try:
-            from aitest.agents.agent_runner import AgentLoop
+            from .engine_factory import get_engine
 
-            loop = AgentLoop(
-                agent_name=agent,
-                provider=provider,
+            loop = get_engine(
+                agent,
                 module=module,
-                page=pages[0] if pages else "",
                 pages=pages,
+                agent=agent,
+                provider=provider or "",
                 verbose=True,
             )
             # Register abort signal so cancel()/timeout can interrupt
@@ -207,7 +212,7 @@ class ExecutionService:
                 agent_runs=run.agent_runs,
             )
             self._store.save_event(ev_completed)
-            self._bus.publish(ev_completed)
+            self._bus.publish_async(ev_completed)
 
             # Emit cost.recorded
             if run.total_cost > 0:
@@ -215,13 +220,13 @@ class ExecutionService:
                     EventType.COST_RECORDED,
                     run_id=run.run_id,
                     request_id=request.request_id,
-                    cost=run.total_cost,
-                    tokens=run.total_tokens,
+                    total_cost=run.total_cost,
+                    total_tokens=run.total_tokens,
                     org_id=ctx.org_id,
                     workspace_id=ctx.workspace_id,
                 )
                 self._store.save_event(ev_cost)
-                self._bus.publish(ev_cost)
+                self._bus.publish_async(ev_cost)
 
         except Exception as e:
             run.fail(str(e))
@@ -243,7 +248,7 @@ class ExecutionService:
                 error=str(e),
             )
             self._store.save_event(ev_failed)
-            self._bus.publish(ev_failed)
+            self._bus.publish_async(ev_failed)
 
         # 7. Persist (success path already persisted above; this is for any remaining state)
         self._store.save_run(run)
@@ -308,19 +313,19 @@ class ExecutionService:
             data={"resume": True, "original_run_id": run.run_id},
         )
         self._store.save_event(ev_resume)
-        self._bus.publish(ev_resume)
+        self._bus.publish_async(ev_resume)
         self._store.save_request(request)
 
-        # Re-execute via AgentLoop
+        # Re-execute via engine factory
         try:
-            from aitest.agents.agent_runner import AgentLoop
+            from .engine_factory import get_engine
 
-            loop = AgentLoop(
-                agent_name=run.agent,
-                provider=getattr(run, 'provider', None),
+            loop = get_engine(
+                run.agent,
                 module=run.module,
-                page=pages[0] if pages else "",
                 pages=pages,
+                agent=run.agent,
+                provider=getattr(run, 'provider', '') or "",
                 verbose=True,
             )
             state = loop.run()
@@ -343,7 +348,7 @@ class ExecutionService:
                 data={"resumed": True},
             )
             self._store.save_event(ev_completed)
-            self._bus.publish(ev_completed)
+            self._bus.publish_async(ev_completed)
 
         except Exception as e:
             run.fail(str(e))
@@ -360,7 +365,7 @@ class ExecutionService:
                 error=str(e),
             )
             self._store.save_event(ev_failed)
-            self._bus.publish(ev_failed)
+            self._bus.publish_async(ev_failed)
 
         self._store.save_run(run)
         duration_ms = (time.perf_counter() - t0) * 1000
@@ -416,7 +421,7 @@ class ExecutionService:
             agent=run.agent,
         )
         self._store.save_event(ev_cancelled)
-        self._bus.publish(ev_cancelled)
+        self._bus.publish_async(ev_cancelled)
         return True
 
     def timeout_run(self, run_id: str) -> bool:
@@ -448,7 +453,7 @@ class ExecutionService:
             error="timeout",
         )
         self._store.save_event(ev)
-        self._bus.publish(ev)
+        self._bus.publish_async(ev)
         return True
 
     def get_active_run_ids(self) -> list[str]:

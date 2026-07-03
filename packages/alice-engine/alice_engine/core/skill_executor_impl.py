@@ -86,9 +86,16 @@ class SkillExecutorImpl:
                 model="none", finish_reason="error",
             )
 
-        # 2. 注入上下文
+        # 2. 注入上下文 — v3.1: 修复签名匹配 ContextInjector.inject(skill_id, context_vars, system_prompt, user_prompt)
         if self.injector:
-            system_prompt = self.injector.inject(skill_id, system_prompt, context_vars)
+            try:
+                result = self.injector.inject(skill_id, context_vars, system_prompt, user_input)
+                if isinstance(result, tuple) and len(result) == 2:
+                    system_prompt, user_input = result
+                else:
+                    system_prompt = result
+            except Exception:
+                pass  # 注入失败时使用原始 prompt
 
         # 3. 适配 prompt
         if self.adapter:

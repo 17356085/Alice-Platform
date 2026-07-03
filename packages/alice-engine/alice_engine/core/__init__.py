@@ -6,15 +6,20 @@
   - Task: 数据结构 (Observation, AgentState, AgentEvent)
   - StateMachine: Task 状态机
   - SkillLoader: Skill 加载
-  - SkillExecutor: Skill 调用接口
+  - SkillExecutorImpl: Skill 执行实现
   - ToolProvider: 工具调用接口
 """
 
 from alice_engine.core.task import Observation, AgentState, AgentEvent, AgentEventType, ArtifactRule
 from alice_engine.core.state_machine import TaskState, TaskStateContext, update_agent_state
 from alice_engine.core.agent_loop import AgentLoopConfig, AgentLoopProtocol, SkillResult
-from alice_engine.core.skill_executor import SkillExecutorProtocol, register_agent_skills, get_agent_skills
 from alice_engine.core.tool_provider import ToolProvider, ToolDef, ToolResult
+
+# v3.1: skill_executor 模块不存在，改为从 skill_executor_impl 导入
+try:
+    from alice_engine.core.skill_executor_impl import SkillExecutorImpl
+except ImportError:
+    SkillExecutorImpl = None
 
 __all__ = [
     # Task
@@ -32,9 +37,7 @@ __all__ = [
     "AgentLoopProtocol",
     "SkillResult",
     # SkillExecutor
-    "SkillExecutorProtocol",
-    "register_agent_skills",
-    "get_agent_skills",
+    "SkillExecutorImpl",
     # ToolProvider
     "ToolProvider",
     "ToolDef",

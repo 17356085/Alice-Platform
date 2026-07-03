@@ -42,8 +42,11 @@ class RedisCache:
         self._saved_tokens = 0
         if _REDIS_AVAILABLE:
             try:
-                self._redis = _redis.Redis(host="localhost", port=6379,
-                                           socket_connect_timeout=1)
+                from aitest.platform.config_registry import cfg
+                self._redis = _redis.Redis(
+                    host=cfg.redis_host, port=cfg.redis_port,
+                    socket_connect_timeout=cfg.redis_connect_timeout,
+                )
                 self._redis.ping()
                 logger.info("redis_cache_connected", type=cache_type)
             except Exception:

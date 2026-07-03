@@ -25,22 +25,26 @@ from pathlib import Path
 from datetime import datetime, timezone, date
 
 from ..consumer import RunEventConsumer
-from ..run_event import RunEvent, EventType
-from ..event_bus import get_bus
+from ..run_event import RunEvent, EventType, RunCompletedData, RunFailedData, EventDataKey as K
+from ..event_bus import get_bus, PRIORITY_MEDIUM_HIGH
 from ..run_store import get_run_store
 from ..ttl_set import TTLSet
-from aitest.platform.paths import get_workstudy
+from ..config_registry import cfg
 
 
 def _usage_dir() -> Path:
-    base = get_workstudy()
-    return base / "governance" / ".data" / "usage"
+    return cfg.usage_dir
 
 
 class QuotaUsageConsumer:
-    """Tracks resource usage. Stats only. No enforcement."""
+    """Tracks resource usage. Stats only. No enforcement.
 
-    def __init__(self):
+    Args:
+        store: RunStore instance. If None, uses get_run_store() singleton.
+        bus: EventBus instance. If None, uses get_bus() singleton.
+    """
+
+    def __init__(self, store=None, bus=None):
         self._dir = _usage_dir()
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
@@ -48,19 +52,21 @@ class QuotaUsageConsumer:
         self._seen = TTLSet(max_size=10_000, max_age_s=86_400)  # Idempotency: 10k entries, 24h TTL
         self._usage: dict[str, dict] = {}  # workspace_id → counters
         self._MAX_USAGE_ENTRIES = 500  # RC2 fix: cap per-workspace entries
+        self._store = store  # injected RunStore (None = lazy singleton)
+        self._bus = bus       # injected EventBus (None = lazy singleton)
 
     def start(self):
         if self._active:
             return
-        bus = get_bus()
-        bus.subscribe(EventType.RUN_COMPLETED, self._on_run_completed)
-        bus.subscribe(EventType.RUN_FAILED, self._on_run_completed)
+        bus = self._bus or get_bus()
+        bus.subscribe(EventType.RUN_COMPLETED, self._on_run_completed, priority=PRIORITY_MEDIUM_HIGH)  # after billing
+        bus.subscribe(EventType.RUN_FAILED, self._on_run_completed, priority=PRIORITY_MEDIUM_HIGH)
         self._active = True
 
     def stop(self):
         if not self._active:
             return
-        bus = get_bus()
+        bus = self._bus or get_bus()
         bus.unsubscribe(EventType.RUN_COMPLETED, self._on_run_completed)
         bus.unsubscribe(EventType.RUN_FAILED, self._on_run_completed)
         self._active = False
@@ -74,10 +80,10 @@ class QuotaUsageConsumer:
     def _on_run_completed(self, event: RunEvent):
         if not self._seen.add(event.event_id):
             return  # already processed (TTLSet atomic check-and-add)
-        ws_id = event.data.get("workspace_id", "")
-        org_id = event.data.get("org_id", "")
-        tokens = event.data.get("total_tokens", 0)
-        cost = event.data.get("total_cost", 0.0)
+        ws_id = event.data.get(K.WORKSPACE_ID, "")
+        org_id = event.data.get(K.ORG_ID, "")
+        tokens = event.data.get(K.TOTAL_TOKENS, 0)
+        cost = event.data.get(K.TOTAL_COST, 0.0)
 
         with self._lock:
             # RC2 fix: LRU eviction if at capacity
@@ -118,7 +124,7 @@ class QuotaUsageConsumer:
 
         # Cross-check with RunStore for total counts (more durable)
         try:
-            store = get_run_store()
+            store = self._store or get_run_store()
             count = store.count_runs(workspace_id=workspace_id)
             if count > usage.get("run_count", 0):
                 usage["run_count_from_store"] = count
@@ -142,9 +148,15 @@ _quota: QuotaUsageConsumer | None = None
 _quota_lock = threading.Lock()
 
 
-def get_quota_usage() -> QuotaUsageConsumer:
+def get_quota_usage(store=None, bus=None) -> QuotaUsageConsumer:
+    """Get the global QuotaUsageConsumer singleton. Creates one on first call.
+
+    Args:
+        store: RunStore instance to inject. Only used on first creation.
+        bus: EventBus instance to inject. Only used on first creation.
+    """
     global _quota
     with _quota_lock:
         if _quota is None:
-            _quota = QuotaUsageConsumer()
+            _quota = QuotaUsageConsumer(store=store, bus=bus)
         return _quota

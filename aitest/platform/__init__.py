@@ -23,15 +23,21 @@ from .artifacts import ArtifactStore
 
 # ★ v2.2 Platform Runtime Foundation
 from .run import Run
-from .run_event import RunEvent, EventType, make_event
-from .event_bus import EventBus, get_bus
-from .run_store import RunStore, get_run_store
+from .run_event import (
+    RunEvent, EventType, make_event,
+    ExecutionRequestedData, ExecutionStartedData,
+    RunCompletedData, RunFailedData, RunCancelledData, CostRecordedData,
+    PhaseStartedData, PhaseCompletedData, ArtifactCreatedData,
+    RunEventData,
+)
+from .event_bus import EventBus, get_bus, set_bus, reset_bus
+from .run_store import RunStore, get_run_store, set_run_store, reset_run_store
 from .execution_request import ExecutionRequest, RequestStatus
 from .execution_service import ExecutionService, ExecutionResult
 
 # ★ v2.3 Platform Observability
 from .timeline import build_timeline, timeline_summary
-from .audit_log import AuditLogger, get_audit_logger
+from .audit_log import AuditLogger, get_audit_logger, set_audit_logger, reset_audit_logger
 
 # ★ v2.4 Platform Governance
 from .consumer import RunEventConsumer
@@ -39,6 +45,10 @@ from .hooks.webhook import WebhookDispatcher, WebhookRegistry, WebhookRegistrati
 from .hooks.metrics_consumer import MetricsConsumer, get_metrics_consumer
 from .hooks.billing_hook import BillingHookConsumer, get_billing_hook
 from .hooks.quota_usage import QuotaUsageConsumer, get_quota_usage
+
+# ★ v3.0 Decoupling
+from .engine_factory import ExecutionEngine, get_engine, register_engine
+from .observation_bus import PlatformBridge, get_platform_bridge
 
 # ★ v2.0 Platform Foundation
 from .organization import Organization, OrganizationManager, get_org_manager
@@ -67,10 +77,24 @@ __all__ = [
     "RunEvent",
     "EventType",
     "make_event",
+    "RunEventData",
+    "ExecutionRequestedData",
+    "ExecutionStartedData",
+    "RunCompletedData",
+    "RunFailedData",
+    "RunCancelledData",
+    "CostRecordedData",
+    "PhaseStartedData",
+    "PhaseCompletedData",
+    "ArtifactCreatedData",
     "EventBus",
     "get_bus",
+    "set_bus",
+    "reset_bus",
     "RunStore",
     "get_run_store",
+    "set_run_store",
+    "reset_run_store",
     "ExecutionRequest",
     "RequestStatus",
     "ExecutionService",
@@ -80,6 +104,8 @@ __all__ = [
     "timeline_summary",
     "AuditLogger",
     "get_audit_logger",
+    "set_audit_logger",
+    "reset_audit_logger",
     # v2.4
     "RunEventConsumer",
     "WebhookDispatcher",
@@ -93,4 +119,10 @@ __all__ = [
     "get_billing_hook",
     "QuotaUsageConsumer",
     "get_quota_usage",
+    # v3.0
+    "ExecutionEngine",
+    "get_engine",
+    "register_engine",
+    "PlatformBridge",
+    "get_platform_bridge",
 ]

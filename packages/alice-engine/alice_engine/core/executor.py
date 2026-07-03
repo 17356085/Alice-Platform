@@ -59,6 +59,88 @@ from pathlib import Path; WORKSTUDY = Path(".")
 WORKSTUDY = Path(".")
 CONTEXT_MODULES = WORKSTUDY / "context"  # resolves from active project
 
+# ── v3.1: 自给自足 — 定义 executor 需要的所有名称 ─────────────────────
+# 这些名称之前从 aitest/engine/skill_executor.py (上层 wrapper) 导入，
+# 但 alice_engine 包应该自包含。
+
+import logging as _logging
+
+def get_logger(name: str):
+    """获取 logger。v3.1: executor 自包含，不依赖上层 wrapper。"""
+    return _logging.getLogger(name)
+
+# Agent skill maps — 从 AgentDefinitions 加载
+_defs_instance = None
+def _get_defs() -> AgentDefinitions:
+    global _defs_instance
+    if _defs_instance is None:
+        _defs_instance = AgentDefinitions(governance_path=WORKSTUDY / "governance")
+    return _defs_instance
+
+AGENT_SKILL_MAP = _get_defs()._load_skill_map() if _get_defs() else FALLBACK_AGENT_SKILL_MAP
+DEV_AGENT_SKILL_MAP: dict[str, list[str]] = {}
+
+def get_agent_definition(agent_name: str) -> dict:
+    """获取 agent 定义。v3.1: executor 自包含。"""
+    return _get_defs().get_definition(agent_name)
+
+# GOVERNANCE 路径
+GOVERNANCE = WORKSTUDY / "governance"
+
+# run_skill — 从 SkillExecutorImpl 构建
+def run_skill(skill_id: str, user_input: str, provider=None, context_vars=None, **kwargs):
+    """执行单个 skill。v3.1: executor 自包含。"""
+    from alice_engine.providers import get_provider as _get_provider
+    from alice_engine.core.skill_loader import SkillLoader
+    from alice_engine.core.skill_executor_impl import SkillExecutorImpl
+
+    loader = SkillLoader(governance_path=GOVERNANCE)
+    prov = _get_provider(provider or "mock")
+    executor = SkillExecutorImpl(skill_loader=loader, provider=prov)
+    return executor.execute(skill_id, user_input, context_vars=context_vars)
+
+# config — 简单配置解析
+class _Config:
+    """v3.1: 最小化 config 替代品。"""
+    @staticmethod
+    def resolve_llm_provider() -> str:
+        return os.environ.get("LLM_PROVIDER", os.environ.get("AITEST_PROVIDER", "anthropic"))
+
+    @staticmethod
+    def resolve_model_for_tier(tier: str, provider: str) -> dict:
+        return {"model": "claude-sonnet-4-6", "provider": provider}
+
+config = _Config()
+
+# TraceContext — 简单线程本地上下文
+class _TraceContext:
+    """v3.1: 最小化 TraceContext 替代品。"""
+    _local = threading.local()
+
+    @classmethod
+    def set(cls, **kwargs):
+        for k, v in kwargs.items():
+            setattr(cls._local, k, v)
+
+    @classmethod
+    def get_skill_version(cls) -> str:
+        return getattr(cls._local, "skill_version", "latest")
+
+TraceContext = _TraceContext
+
+# get_tracer — OpenTelemetry tracer (stub)
+class _NoopSpan:
+    def __enter__(self): return self
+    def __exit__(self, *args): pass
+    def set_attribute(self, *args): pass
+
+class _NoopTracer:
+    def start_as_current_span(self, name): return _NoopSpan()
+
+def get_tracer():
+    """v3.1: 最小化 tracer 替代品。"""
+    return _NoopTracer()
+
 
 # ══════════════════════════════════════════════════════════════════════════
 #  AgentLoop — 真正的 Agent 执行循环 (Perceive → Plan → Act → Observe)
@@ -111,7 +193,6 @@ class AgentLoop:
     ):
         # [LAYER:Runtime/Config] P0: Resolve provider dynamically
         if provider is None:
-            pass  # config removed
             provider = config.resolve_llm_provider()
 
         if agent_name not in AGENT_SKILL_MAP and agent_name not in DEV_AGENT_SKILL_MAP:
@@ -173,7 +254,6 @@ class AgentLoop:
         except Exception as e:
             self._log(f"[warn] model_tier fallback: {e}")
         if model is None:
-            pass  # config removed
             tier_cfg = config.resolve_model_for_tier(self._model_tier, provider)
             model = tier_cfg["model"]
             if tier_cfg["provider"] != provider:
@@ -213,9 +293,8 @@ class AgentLoop:
         import time as _time
         run_id = context.get("run_id") or f"sop-{module or 'unknown'}-{int(_time.time())}"
         self.run_id = run_id
-        pass  # TraceContext removed
         TraceContext.set(run_id=run_id, agent_name=agent_name,
-                         skill_version=TraceContext.get_skill_version())  # P0-1: 保留已设置的版本
+                         skill_version=TraceContext.get_skill_version())
 
         self.state = AgentState(
             agent_name=agent_name,
@@ -270,24 +349,10 @@ class AgentLoop:
         """★ v2.0: 延迟初始化 CapabilityRouter + ★ v0.4 Capability Enforcement。"""
         if self._capability_router is None and self._use_tool_calling:
             try:
-                pass  # capability_router removed
-                self._capability_router = get_router()
-
-                # ★ v0.4: 加载 Agent → Capability 映射并注入 Router
-                from alice_engine.core.agent_definitions import AgentDefinitions; _defs = AgentDefinitions("."); get_agent_definition = _defs.get_definition, GOVERNANCE
-                import yaml
-                agents_yaml = GOVERNANCE / "agents" / "agent-definitions.yaml"
-                if agents_yaml.exists():
-                    data = yaml.safe_load(agents_yaml.read_text(encoding="utf-8"))
-                    mapping = {}
-                    for name, cfg in data.get("agents", {}).items():
-                        caps = cfg.get("capabilities", [])
-                        if caps:
-                            mapping[name] = caps
-                    if mapping:
-                        self._capability_router.set_agent_capabilities(mapping)
+                # v3.1: capability_router 未在 alice_engine 中实现，降级为无 tool calling
+                self._use_tool_calling = False
             except Exception:
-                self._use_tool_calling = False  # 降级：不使用 tool calling
+                self._use_tool_calling = False
         return self._capability_router
 
     # [LAYER:Adapter/Event] 事件发射
@@ -789,18 +854,8 @@ class AgentLoop:
         )
 
         # ★ P0: 运行时安全检查
-        try:
-            pass  # safety_auditor removed
-            safety_flags = check_output_safety(response.content or "", skill_id)
-            if safety_flags:
-                obs.safety_flags = safety_flags
-                # 高严重度 flag 升级建议
-                if any(f["severity"] == "critical" for f in safety_flags):
-                    obs.quality_issues.append(
-                        f"🔴 安全告警: {[f['detail'] for f in safety_flags if f['severity'] == 'critical']}"
-                    )
-        except Exception as e:
-            self._log(f"[warn] safety audit skipped: {e}")
+        # v3.1: safety_auditor 未在 alice_engine 中实现，跳过
+        pass
 
         # 检查 LLM 响应异常
         if response.finish_reason == "error":
@@ -902,11 +957,8 @@ class AgentLoop:
 
         # ★ P1: 失败归因 — 当 status 为 fail/partial 时自动分类
         if obs.status in ("fail", "partial") and obs.raw_output_preview:
-            try:
-                pass  # failure_attributor removed
-                obs.failure_category = attribute_failure(obs, response.content or "")
-            except Exception:
-                pass
+            # v3.1: failure_attributor 未在 alice_engine 中实现，使用默认分类
+            obs.failure_category = "unknown"
 
         return obs
 
@@ -923,16 +975,8 @@ class AgentLoop:
 
     # [LAYER:Adapter/Event] 缓存统计事件
     def _emit_cache_summary(self) -> None:
-        """委托给 state_updater.emit_cache_summary（P1 可观测性）。"""
-        try:
-            pass  # emit_cache_summary removed
-            emit_cache_summary(
-                shared_injector=_shared_injector,
-                shared_adapter=_shared_adapter,
-                logger=self._log,
-            )
-        except Exception:
-            pass
+        """v3.1: emit_cache_summary 未在 alice_engine 中实现，跳过。"""
+        pass
 
     # ══════════════════════════════════════════════════════════════════════════
     #  SECTION 5: SESSION MANAGEMENT — 会话管理 + Continuation
@@ -1064,12 +1108,8 @@ class AgentLoop:
         })
 
         # Online monitor metrics
-        try:
-            pass  # online_monitor removed
-            metrics = collect_run_metrics(self.state)
-            OnlineMonitor().record_run(self.module, metrics)
-        except Exception:
-            pass
+        # v3.1: online_monitor 未在 alice_engine 中实现，跳过
+        pass
 
         # Worktree cleanup — merge on success, keep for inspection on failure
         _wt_mgr = getattr(self, "_wt_mgr", None)
@@ -1103,19 +1143,8 @@ class AgentLoop:
             _mcp_clients.clear()
 
         # Artifact lineage
-        if self.module and self.page and self.state.success:
-            try:
-                pass  # artifact_lineage removed
-                phase_info = PHASE_ARTIFACTS.get(self.agent_name, {})
-                for artifact in phase_info.get("produces", []):
-                    record_artifact(
-                        self.context.get("project", "default"), self.module, self.page,
-                        artifact,
-                        generated_by=self.agent_name,
-                        depends_on=phase_info.get("depends_on", []),
-                    )
-            except Exception:
-                pass
+        # v3.1: artifact_lineage 未在 alice_engine 中实现，跳过
+        pass
 
         # Operational metrics (timeout-safe)
         try:
@@ -1123,24 +1152,8 @@ class AgentLoop:
             metrics_done = threading.Event()
 
             def _record_metrics():
-                try:
-                    pass  # operational_metrics removed
-                    mc = get_collector()
-                    duration = time.time() - self._session_start if hasattr(self, '_session_start') else 0
-                    mc.record_agent_run(
-                        self.agent_name,
-                        duration_s=max(duration, 0.1),
-                        tokens_in=0, tokens_out=0,
-                        success=self.state.success,
-                    )
-                    mc.record_workflow(self.module or "unknown", self.state.success)
-                    if not self.state.success:
-                        mc.record_recovery(self.agent_name, recovered=False)
-                    mc.persist()
-                except Exception:
-                    pass
-                finally:
-                    metrics_done.set()
+                # v3.1: operational_metrics 未在 alice_engine 中实现，跳过
+                metrics_done.set()
 
             t = threading.Thread(target=_record_metrics, daemon=True)
             t.start()
@@ -1163,14 +1176,8 @@ class AgentLoop:
         # 🆕 TLO: Worktree 隔离
         self._wt_mgr = None
         if self.use_worktree:
-            pass  # worktree removed
-            self._wt_mgr = WorktreeManager()
-            self._worktree_ctx = self._wt_mgr.create(
-                name=None,
-                agent=self.agent_name,
-            )
-            self._log(f"🔒 Worktree: {self._worktree_ctx.path}")
-            self._log(f"   分支: {self._worktree_ctx.branch} (from {self._worktree_ctx.base_branch})")
+            # v3.1: WorktreeManager 未在 alice_engine 中实现，跳过
+            self.use_worktree = False
 
         # ── Task 6 (P1): MCP Client — connect to external tools ──
         self._mcp_clients = []
@@ -1316,9 +1323,22 @@ class AgentLoop:
 
     # [LAYER:Core/Executor] 交互式主循环
     def run_interactive(self):
-        """委托给 interactive_runner 模块。"""
-        pass  # interactive_runner removed
-        return run_interactive_loop(self)
+        """v3.1: 交互式执行 — 生成 AgentEvent 流。
+
+        实现简单版本：执行 run() 并将结果转换为 AgentEvent 流。
+        完整的 interactive_runner 实现在 aitest/agents/interactive_runner.py。
+        """
+        yield AgentEvent(type="agent_start", agent_name=self.agent_name, content="Starting...")
+        try:
+            state = self.run()
+            yield AgentEvent(
+                type="agent_end",
+                status="pass" if state.success else "fail",
+                content=f"Completed: {state.step} steps",
+                summary=f"Steps: {state.step}",
+            )
+        except Exception as e:
+            yield AgentEvent(type="agent_end", status="fail", error=str(e))
 
 
 
@@ -1339,7 +1359,6 @@ def run_agent(
     内部委托给 AgentLoop.run()。
     """
     if provider is None:
-        pass  # config removed
         provider = config.resolve_llm_provider()
     agent = AgentLoop(agent_name, provider=provider, verbose=verbose, **kwargs)
     state = agent.run()

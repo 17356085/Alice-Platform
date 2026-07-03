@@ -12,17 +12,21 @@ Usage:
 """
 
 from .run_store import get_run_store
-from .run_event import EventType
+from .run_event import EventType, EventDataKey as K
 from aitest.infra.logging import get_logger
 _log = get_logger(__name__)
 
 
-def build_timeline(run_id: str) -> list[dict]:
+def build_timeline(run_id: str, store=None) -> list[dict]:
     """Build a time-ordered timeline for a Run from its events.
+
+    Args:
+        run_id: The run to build a timeline for.
+        store: RunStore instance. If None, uses get_run_store() singleton.
 
     Returns list of {ts, type, message, detail} entries.
     """
-    store = get_run_store()
+    store = store or get_run_store()
     run = store.load_run(run_id)
     if run is None:
         return []
@@ -80,7 +84,7 @@ def _event_to_entry(event) -> dict | None:
         return {
             "ts": event.timestamp,
             "type": "execution_requested",
-            "message": f"Execution requested: {data.get('module', '')}",
+            "message": f"Execution requested: {data.get(K.MODULE, '')}",
             "detail": data,
         }
 
@@ -95,7 +99,7 @@ def _event_to_entry(event) -> dict | None:
         return {
             "ts": event.timestamp,
             "type": "execution_started",
-            "message": f"Agent {data.get('agent', '')} started on {data.get('module', '')}",
+            "message": f"Agent {data.get(K.AGENT, '')} started on {data.get(K.MODULE, '')}",
             "detail": data,
         }
 
@@ -103,7 +107,7 @@ def _event_to_entry(event) -> dict | None:
         return {
             "ts": event.timestamp,
             "type": "phase_started",
-            "message": f"Phase started: {data.get('phase', '')}",
+            "message": f"Phase started: {data.get(K.PHASE, '')}",
             "detail": data,
         }
 
@@ -111,7 +115,7 @@ def _event_to_entry(event) -> dict | None:
         return {
             "ts": event.timestamp,
             "type": "phase_completed",
-            "message": f"Phase completed: {data.get('phase', '')}",
+            "message": f"Phase completed: {data.get(K.PHASE, '')}",
             "detail": data,
         }
 
@@ -119,7 +123,7 @@ def _event_to_entry(event) -> dict | None:
         return {
             "ts": event.timestamp,
             "type": "artifact_created",
-            "message": f"Artifact: {data.get('path', '')}",
+            "message": f"Artifact: {data.get(K.ARTIFACT_PATH, '')}",
             "detail": data,
         }
 
@@ -127,7 +131,7 @@ def _event_to_entry(event) -> dict | None:
         return {
             "ts": event.timestamp,
             "type": "run_completed",
-            "message": f"✓ Completed — {data.get('total_tokens', 0)} tokens, ${data.get('total_cost', 0):.4f}",
+            "message": f"✓ Completed — {data.get(K.TOTAL_TOKENS, 0)} tokens, ${data.get(K.TOTAL_COST, 0):.4f}",
             "detail": data,
         }
 
@@ -135,7 +139,7 @@ def _event_to_entry(event) -> dict | None:
         return {
             "ts": event.timestamp,
             "type": "run_failed",
-            "message": f"✗ Failed: {data.get('error', '')[:120]}",
+            "message": f"✗ Failed: {data.get(K.ERROR, '')[:120]}",
             "detail": data,
         }
 
@@ -150,22 +154,27 @@ def _event_to_entry(event) -> dict | None:
         return {
             "ts": event.timestamp,
             "type": "cost_recorded",
-            "message": f"Cost: ${data.get('cost', 0):.4f} ({data.get('tokens', 0)} tokens)",
+            "message": f"Cost: ${data.get(K.TOTAL_COST, 0):.4f} ({data.get(K.TOTAL_TOKENS, 0)} tokens)",
             "detail": data,
         }
 
     return None
 
 
-def timeline_summary(run_id: str) -> dict:
-    """Return a compact summary suitable for list views."""
-    store = get_run_store()
+def timeline_summary(run_id: str, store=None) -> dict:
+    """Return a compact summary suitable for list views.
+
+    Args:
+        run_id: The run to summarize.
+        store: RunStore instance. If None, uses get_run_store() singleton.
+    """
+    store = store or get_run_store()
     run = store.load_run(run_id)
     if run is None:
         return {}
 
     events = store.list_events(run_id=run_id, limit=500)
-    phases = [e.data.get("phase", "") for e in events
+    phases = [e.data.get(K.PHASE, "") for e in events
               if e.event_type in (EventType.PHASE_STARTED, EventType.PHASE_COMPLETED)]
 
     return {

@@ -30,11 +30,21 @@ from typing import Optional
 
 @dataclass
 class TenantLimits:
-    """Per-tenant resource limits."""
+    """Per-tenant resource limits. Defaults from config_registry."""
     max_concurrent_agents: int = 3
     max_token_budget_per_run: int = 100_000
     max_sessions: int = 100
     max_chromadb_docs: int = 10_000
+
+    @classmethod
+    def from_config(cls) -> "TenantLimits":
+        """Create limits from config_registry."""
+        from aitest.platform.config_registry import cfg
+        return cls(
+            max_concurrent_agents=cfg.tenant_max_concurrent_agents,
+            max_token_budget_per_run=cfg.tenant_max_token_budget,
+            max_sessions=cfg.tenant_max_sessions,
+        )
 
 
 @dataclass
@@ -201,9 +211,14 @@ def get_tenant_manager() -> TenantManager:
         return _tenant_manager
 
 
-def get_tenant(tenant_id: str = None) -> Tenant:
-    """Get current tenant. If no tenant_id given, uses active project."""
+def get_tenant(tenant_id: str = None, manager: TenantManager = None) -> Tenant:
+    """Get current tenant. If no tenant_id given, uses active project.
+
+    Args:
+        tenant_id: Tenant ID. If None, uses active project.
+        manager: TenantManager instance. If None, uses get_tenant_manager() singleton.
+    """
     if tenant_id is None:
         from aitest.platform.context import get_active_project_id
         tenant_id = get_active_project_id()
-    return get_tenant_manager().get(tenant_id)
+    return (manager or get_tenant_manager()).get(tenant_id)

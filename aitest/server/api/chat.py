@@ -23,8 +23,10 @@ from dataclasses import dataclass, field
 from fastapi import APIRouter, Request, HTTPException
 from sse_starlette.sse import EventSourceResponse
 
-from aitest.agents.agent_runner import AgentLoop, AgentEvent, list_agents
+from aitest.agents.agent_runner import list_agents
+from alice_engine.core.task import AgentEvent
 from aitest.chat.intent_parser import parse_intent
+from aitest.platform.ui_projection import map_agent_event, UIEventType
 
 chat_router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -90,7 +92,7 @@ async def _persist_session(session_id: str, messages: list, title: str = ""):
 class ChatSession:
     session_id: str
     messages: list[dict] = field(default_factory=list)
-    agent: AgentLoop | None = None
+    agent: object | None = None  # AgentLoop or SOPRunner (resolved via engine_factory)
     agent_thread: threading.Thread | None = None
     agent_queue: asyncio.Queue | None = None  # AgentEvent → SSE 桥接
     agent_task: asyncio.Task | None = None  # P0-3: tracked asyncio Task (replaces raw Thread)
@@ -363,13 +365,13 @@ async def stream_response(session_id: str, message_id: str, request: Request):
                 ):
                     if se.type == "content_chunk":
                         full_text += se.content
-                        yield {"event": "chunk", "data": json.dumps(
+                        yield {"event": UIEventType.THINKING_CHUNK, "data": json.dumps(
                             {"content": se.content}, ensure_ascii=False)}
                     elif se.type == "done":
-                        yield {"event": "done", "data": json.dumps(
+                        yield {"event": UIEventType.DONE, "data": json.dumps(
                             {"success": True, "token_usage": se.token_usage}, ensure_ascii=False)}
                     elif se.type == "error":
-                        yield {"event": "error", "data": json.dumps(
+                        yield {"event": UIEventType.ERROR, "data": json.dumps(
                             {"message": se.error_message}, ensure_ascii=False)}
                 for m in s.messages:
                     if m.get("message_id") == f"resp-{message_id}":
@@ -377,7 +379,7 @@ async def stream_response(session_id: str, message_id: str, request: Request):
             except Exception as e:
                 import traceback
                 logger.error(f"[Chat ERROR] {traceback.format_exc()}", flush=True)
-                yield {"event": "error", "data": json.dumps(
+                yield {"event": UIEventType.ERROR, "data": json.dumps(
                     {"message": f"聊天出错: {str(e)[:200]}"}, ensure_ascii=False)}
 
         return EventSourceResponse(chat_event_generator())
@@ -397,17 +399,20 @@ async def stream_response(session_id: str, message_id: str, request: Request):
         if agent_name not in valid:
             agent_name = "test-design-agent"
 
-        s.agent = AgentLoop(
+        from aitest.platform.engine_factory import get_engine
+        s.agent = get_engine(
             agent_name,
-            provider=_DEFAULT_PROVIDER,
             module=intent.get("module", ""),
             page=intent.get("page", ""),
+            agent=agent_name,
+            provider=_DEFAULT_PROVIDER,
             verbose=False,
         )
     elif intent["type"] == "run_sop":
         # Phase 6: 真正的 SOP 图流式执行
-        from aitest.graphs.sop_runner import SOPRunner
-        s.agent = SOPRunner(
+        from aitest.platform.engine_factory import get_engine
+        s.agent = get_engine(
+            "sop",
             module=intent.get("module", ""),
             pages=[intent.get("page", "")] if intent.get("page") else [],
             provider=_DEFAULT_PROVIDER,
@@ -425,18 +430,18 @@ async def stream_response(session_id: str, message_id: str, request: Request):
                 status_text = json.dumps(result, ensure_ascii=False, indent=2)
             else:
                 status_text = f"可用模块: {', '.join(_get_known_modules())}"
-            yield {"event": "message", "data": json.dumps(
+            yield {"event": UIEventType.MESSAGE, "data": json.dumps(
                 {"role": "assistant", "type": "text", "content": f"## 状态\n\n```json\n{status_text}\n```"},
                 ensure_ascii=False)}
-            yield {"event": "done", "data": json.dumps({"success": True}, ensure_ascii=False)}
+            yield {"event": UIEventType.DONE, "data": json.dumps({"success": True}, ensure_ascii=False)}
         return EventSourceResponse(status_generator())
     else:
         s.agent = None
         async def unknown_generator():
-            yield {"event": "message", "data": json.dumps(
+            yield {"event": UIEventType.MESSAGE, "data": json.dumps(
                 {"role": "assistant", "type": "text", "content": "抱歉，我没有理解你的意图。试试：\n- 给 equipment/alarm-config 写自动化测试\n- 分析 tank/alarm-config 页面\n- 查看状态"},
                 ensure_ascii=False)}
-            yield {"event": "done", "data": json.dumps({"success": True}, ensure_ascii=False)}
+            yield {"event": UIEventType.DONE, "data": json.dumps({"success": True}, ensure_ascii=False)}
         return EventSourceResponse(unknown_generator())
 
     # ── 桥接：后台线程 Agent → asyncio.Queue → SSE ──
@@ -483,7 +488,7 @@ async def stream_response(session_id: str, message_id: str, request: Request):
             _run_agent_producer(), name=f"chat-{session_id[:20]}")
 
         # 先发送一条欢迎消息
-        yield {"event": "message", "data": json.dumps(
+        yield {"event": UIEventType.MESSAGE, "data": json.dumps(
             {"role": "assistant", "type": "text", "content": "正在执行..."},
             ensure_ascii=False)}
 
@@ -494,96 +499,27 @@ async def stream_response(session_id: str, message_id: str, request: Request):
                 # 等待 Agent 事件（30 秒超时防止永久挂起）
                 event: AgentEvent = await asyncio.wait_for(s.agent_queue.get(), timeout=30.0)
             except asyncio.TimeoutError:
-                yield {"event": "error", "data": json.dumps(
+                yield {"event": UIEventType.ERROR, "data": json.dumps(
                     {"message": "执行超时，Agent 可能卡住了"}, ensure_ascii=False)}
                 break
 
-            if event.type in ("skill_start", "plan_result"):
-                yield {"event": "skill_start", "data": json.dumps({
-                    "skill_id": event.skill_id,
-                    "label": event.content or event.skill_id,
-                    "progress": event.progress,
-                }, ensure_ascii=False)}
-
-            elif event.type == "skill_chunk":
-                accumulated_text += event.content
-                yield {"event": "chunk", "data": json.dumps(
-                    {"content": event.content}, ensure_ascii=False)}
-
-            elif event.type == "skill_end":
-                yield {"event": "skill_end", "data": json.dumps({
-                    "skill_id": event.skill_id,
-                    "status": "pass" if not event.error else "fail",
-                    "summary": (event.content or "")[:200],
-                    "token_usage": event.token_usage,
-                }, ensure_ascii=False)}
-
-            elif event.type == "observation":
-                yield {"event": "skill_end", "data": json.dumps({
-                    "skill_id": event.skill_id,
-                    "status": event.status,
-                    "summary": event.summary,
-                }, ensure_ascii=False)}
-
-            elif event.type == "interaction_required":
+            # Track text for final message persistence
+            if event.type in ("skill_chunk", "sop_start", "sop_phase", "sop_complete"):
+                accumulated_text += (event.content or "") + "\n"
+            if event.type == "interaction_required":
                 active_interaction_id = event.interaction_id
-                yield {"event": "interaction", "data": json.dumps({
-                    "interaction_id": event.interaction_id,
-                    "type": event.interaction_type,
-                    "prompt": event.interaction_prompt,
-                    "options": event.interaction_options,
-                    "skill_id": event.skill_id,
-                }, ensure_ascii=False)}
-                # 等待用户响应（由 /interact 端点触发）
-                # 用户响应后 Agent 线程继续，新事件推入队列
-                # 我们继续循环等待下一个事件
 
-            elif event.type == "agent_message":
-                yield {"event": "message", "data": json.dumps(
-                    {"role": "assistant", "type": "text", "content": event.content},
-                    ensure_ascii=False)}
+            # Map AgentEvent → UI SSE event via projection layer
+            sse_event = map_agent_event(event)
+            if sse_event:
+                yield sse_event
+                # Terminal events: end the stream
+                if sse_event["event"] == UIEventType.DONE:
+                    break
 
-            elif event.type == "agent_end":
-                yield {"event": "message", "data": json.dumps(
-                    {"role": "assistant", "type": "text", "content": event.summary or event.content},
-                    ensure_ascii=False)}
-                yield {"event": "done", "data": json.dumps({
-                    "success": event.status == "pass",
-                    "summary": event.summary,
-                    "error": event.error if event.error else "",
-                }, ensure_ascii=False)}
-                break
-
-            # ── SOP 流水线事件 (Phase 6) ──
-            elif event.type == "sop_start":
-                accumulated_text += event.content + "\n"
-                yield {"event": "message", "data": json.dumps(
-                    {"role": "assistant", "type": "text", "content": event.content},
-                    ensure_ascii=False)}
-
-            elif event.type == "sop_phase":
-                accumulated_text += event.content + "\n"
-                yield {"event": "sop_phase", "data": json.dumps({
-                    "content": event.content,
-                    "progress": event.progress,
-                    "status": event.status,
-                    "phase_id": event.skill_id or "",
-                }, ensure_ascii=False)}
-
-            elif event.type == "sop_complete":
-                accumulated_text += event.content + "\n"
-                yield {"event": "message", "data": json.dumps(
-                    {"role": "assistant", "type": "text", "content": event.content or event.summary},
-                    ensure_ascii=False)}
-                yield {"event": "done", "data": json.dumps({
-                    "success": event.status not in ("failed", "completed_with_issues", "fail"),
-                    "summary": event.summary or event.content,
-                    "error": event.error if event.error else "",
-                }, ensure_ascii=False)}
-                break
-
-            elif event.type == "error" or hasattr(event, 'error') and event.error:
-                yield {"event": "error", "data": json.dumps(
+            # Handle error events not caught by map_agent_event
+            elif event.type == "error" or (hasattr(event, 'error') and event.error):
+                yield {"event": UIEventType.ERROR, "data": json.dumps(
                     {"message": getattr(event, 'error', 'Unknown error')}, ensure_ascii=False)}
 
         # 更新消息记录
@@ -608,7 +544,7 @@ async def stream_response(session_id: str, message_id: str, request: Request):
         except Exception as e:
             tb = _traceback.format_exc()
             logger.error(f"[Chat SSE ERROR] {tb}", flush=True)
-            yield {"event": "error", "data": json.dumps(
+            yield {"event": UIEventType.ERROR, "data": json.dumps(
                 {"message": f"内部错误: {str(e)[:200]}"}, ensure_ascii=False)}
         finally:
             # ★ RCA RC1: Signal thread to stop when SSE stream ends

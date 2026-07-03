@@ -21,15 +21,14 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 from ..consumer import RunEventConsumer
-from ..run_event import RunEvent, EventType, make_event
+from ..run_event import RunEvent, EventType, make_event, RunCompletedData, CostRecordedData, EventDataKey as K
 from ..event_bus import get_bus
 from ..ttl_set import TTLSet
-from aitest.platform.paths import get_workstudy
+from ..config_registry import cfg
 
 
 def _billing_dir() -> Path:
-    base = get_workstudy()
-    return base / "governance" / ".data" / "billing"
+    return cfg.billing_dir
 
 
 class BillingHookConsumer:
@@ -40,27 +39,31 @@ class BillingHookConsumer:
       - cost.recorded  → emits billing.cost_recorded
 
     Future billing systems subscribe to billing.* events.
+
+    Args:
+        bus: EventBus instance. If None, uses get_bus() singleton.
     """
 
-    def __init__(self):
+    def __init__(self, bus=None):
         self._dir = _billing_dir()
         self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._active = False
         self._seen = TTLSet(max_size=10_000, max_age_s=86_400)  # Idempotency: 10k entries, 24h TTL
+        self._bus = bus  # injected EventBus (None = lazy singleton)
 
     def start(self):
         if self._active:
             return
-        bus = get_bus()
-        bus.subscribe(EventType.RUN_COMPLETED, self._on_run_completed)
-        bus.subscribe(EventType.COST_RECORDED, self._on_cost_recorded)
+        bus = self._bus or get_bus()
+        bus.subscribe(EventType.RUN_COMPLETED, self._on_run_completed, priority=10)  # HIGH: financial data
+        bus.subscribe(EventType.COST_RECORDED, self._on_cost_recorded, priority=10)
         self._active = True
 
     def stop(self):
         if not self._active:
             return
-        bus = get_bus()
+        bus = self._bus or get_bus()
         bus.unsubscribe(EventType.RUN_COMPLETED, self._on_run_completed)
         bus.unsubscribe(EventType.COST_RECORDED, self._on_cost_recorded)
         self._active = False
@@ -79,25 +82,20 @@ class BillingHookConsumer:
             "event": "billing.usage_recorded",
             "run_id": event.run_id,
             "request_id": event.request_id,
-            "org_id": event.data.get("org_id", ""),
-            "workspace_id": event.data.get("workspace_id", ""),
+            "org_id": event.data.get(K.ORG_ID, ""),
+            "workspace_id": event.data.get(K.WORKSPACE_ID, ""),
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "usage": {
-                "total_tokens": event.data.get("total_tokens", 0),
-                "agent_runs": event.data.get("agent_runs", 0),
-                "module": event.data.get("module", ""),
+                "total_tokens": event.data.get(K.TOTAL_TOKENS, 0),
+                "agent_runs": event.data.get(K.AGENT_RUNS, 0),
+                "module": event.data.get(K.MODULE, ""),
                 "capability": "browser",
             },
         }
         self._persist(billing_event)
-        # Re-emit as billing event for future consumers
-        bus = get_bus()
-        bus.publish(make_event(
-            "billing.usage_recorded",
-            run_id=event.run_id,
-            request_id=event.request_id,
-            **billing_event["usage"],
-        ))
+        # NOTE: billing events are NOT re-published to the main EventBus
+        # to prevent webhook amplification. Future billing consumers should
+        # read from billing.jsonl directly.
 
     def _on_cost_recorded(self, event: RunEvent):
         """Emit billing.cost_recorded."""
@@ -107,13 +105,13 @@ class BillingHookConsumer:
             "event": "billing.cost_recorded",
             "run_id": event.run_id,
             "request_id": event.request_id,
-            "org_id": event.data.get("org_id", ""),
-            "workspace_id": event.data.get("workspace_id", ""),
+            "org_id": event.data.get(K.ORG_ID, ""),
+            "workspace_id": event.data.get(K.WORKSPACE_ID, ""),
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "cost": {
-                "amount": event.data.get("cost", 0.0),
+                "amount": event.data.get(K.TOTAL_COST, 0.0),
                 "currency": "USD",
-                "tokens": event.data.get("tokens", 0),
+                "tokens": event.data.get(K.TOTAL_TOKENS, 0),
             },
         }
         self._persist(billing_event)
@@ -154,9 +152,10 @@ _hook: BillingHookConsumer | None = None
 _hook_lock = threading.Lock()
 
 
-def get_billing_hook() -> BillingHookConsumer:
+def get_billing_hook(bus=None) -> BillingHookConsumer:
+    """Get the global BillingHookConsumer singleton. Creates one on first call."""
     global _hook
     with _hook_lock:
         if _hook is None:
-            _hook = BillingHookConsumer()
+            _hook = BillingHookConsumer(bus=bus)
         return _hook
