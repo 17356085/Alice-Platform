@@ -79,6 +79,7 @@ class BillingHookConsumer:
         if not self._seen.add(event.event_id):
             return  # already processed (TTLSet atomic check-and-add)
         billing_event = {
+            "version": 1,
             "event": "billing.usage_recorded",
             "run_id": event.run_id,
             "request_id": event.request_id,
@@ -102,6 +103,7 @@ class BillingHookConsumer:
         if not self._seen.add(event.event_id):
             return  # already processed (TTLSet atomic check-and-add)
         billing_event = {
+            "version": 1,
             "event": "billing.cost_recorded",
             "run_id": event.run_id,
             "request_id": event.request_id,

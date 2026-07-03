@@ -235,16 +235,18 @@ function sseStart(sid: string, streamUrl: string, callbacks: SSECallbacks) {
   })
 
   // ── Fallback: unnamed events (legacy compatibility) ──
+  // v3.1: deprecation warning — this path should not be hit in normal operation
   es.onmessage = (event: MessageEvent) => {
     if (!guard()) return
     try {
       const data = JSON.parse(event.data)
-      // Legacy: check data.type for old-style events
       const t = data.type || ''
       if (t === 'done') {
+        console.warn('[SSE] Legacy format detected: data.type="done". Use ui.done event instead.')
         callbacks.onDone(_accumulated.join(''))
         es.close(); _es = null; _activeSid = null
       } else if (t === 'error') {
+        console.warn('[SSE] Legacy format detected: data.type="error". Use ui.error event instead.')
         callbacks.onError(data.error_message || 'Stream error')
         es.close(); _es = null; _activeSid = null
       }

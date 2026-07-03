@@ -17,21 +17,14 @@ Usage:
 
 from __future__ import annotations
 
-import json
 import threading
 import time
-from pathlib import Path
 from datetime import datetime, timezone
 
 from ..consumer import RunEventConsumer
 from ..run_event import RunEvent, EventType, RunCompletedData, RunFailedData, EventDataKey as K
 from ..event_bus import get_bus
 from ..ttl_set import TTLSet
-from ..config_registry import cfg
-
-
-def _metrics_dir() -> Path:
-    return cfg.metrics_dir
 
 
 class MetricsConsumer:
@@ -42,8 +35,6 @@ class MetricsConsumer:
     """
 
     def __init__(self, bus=None):
-        self._dir = _metrics_dir()
-        self._dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._active = False
         self._seen = TTLSet(max_size=10_000, max_age_s=86_400)  # Idempotency: 10k entries, 24h TTL
@@ -193,15 +184,9 @@ class MetricsConsumer:
                 "by_agent": self._by_agent,
             }
 
-    def flush(self):
-        """Write current snapshot to JSONL for trending."""
-        snap = self.snapshot()
-        self._dir.mkdir(parents=True, exist_ok=True)
-        file = self._dir / "metrics.jsonl"
-        with open(file, "a", encoding="utf-8") as f:
-            f.write(json.dumps(snap, ensure_ascii=False, default=str) + "\n")
-
     # ── v3.1: PG persistence for historical trends ─────────────────
+    # flush() removed — PG metrics_daily is now the source of truth.
+    # JSONL backup removed to reduce maintenance burden.
 
     def _persist_to_pg(self, module: str, agent: str, org_id: str,
                        workspace_id: str, is_completed: bool, is_failed: bool,

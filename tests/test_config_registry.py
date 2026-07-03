@@ -50,7 +50,7 @@ def test_config_registry_env_override():
 
 MODULES_TO_CHECK = [
     ("aitest/platform/hooks/billing_hook.py", "cfg.billing_dir"),
-    ("aitest/platform/hooks/metrics_consumer.py", "cfg.metrics_dir"),
+    # metrics_consumer.py: flush() removed, no longer needs config_registry
     ("aitest/platform/hooks/quota_usage.py", "cfg.usage_dir"),
     ("aitest/platform/hooks/report_consumer.py", "cfg.reports_dir"),
     ("aitest/platform/memory_observer.py", "cfg.dead_end_consecutive_failures"),

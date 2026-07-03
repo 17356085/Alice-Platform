@@ -231,28 +231,39 @@ class SessionQuery(_BaseQuery):
         return self._add_where("created_at >= ?", ts)
 
 
+def _safe_count(table: str, where: str = "") -> int:
+    """Safely count rows in a table. Returns 0 if table doesn't exist."""
+    try:
+        sql = f"SELECT COUNT(*) as cnt FROM {table}"
+        if where:
+            sql += f" WHERE {where}"
+        rows = safe_query(sql)
+        return rows[0]["cnt"] if rows else 0
+    except Exception:
+        return 0
+
+
 def get_system_stats() -> dict:
-    """Get overall system statistics."""
-    rows = safe_query(
-        "SELECT "
-        "(SELECT COUNT(*) FROM runs) as total_runs, "
-        "(SELECT COUNT(*) FROM runs WHERE status='completed') as completed_runs, "
-        "(SELECT COUNT(*) FROM runs WHERE status='failed') as failed_runs, "
-        "(SELECT COUNT(*) FROM run_events) as total_events, "
-        "(SELECT COUNT(*) FROM bugs) as total_bugs, "
-        "(SELECT COUNT(*) FROM bugs WHERE status='open') as open_bugs, "
-        "(SELECT COUNT(*) FROM tasks) as total_tasks, "
-        "(SELECT COUNT(*) FROM tasks WHERE status='queued') as queued_tasks, "
-        "(SELECT COUNT(*) FROM audit_entries) as total_audit, "
-        "(SELECT COUNT(*) FROM artifact_lineage) as total_lineage, "
-        "(SELECT COUNT(*) FROM chat_sessions) as total_sessions",
-    )
-    if not rows:
-        return {}
-    r = rows[0]
+    """Get overall system statistics. v3.1: each subquery independent."""
+    total_runs = _safe_count("runs")
+    completed_runs = _safe_count("runs", "status='completed'")
+    failed_runs = _safe_count("runs", "status='failed'")
+
+    r = {
+        "total_runs": total_runs,
+        "completed_runs": completed_runs,
+        "failed_runs": failed_runs,
+        "total_events": _safe_count("run_events"),
+        "total_bugs": _safe_count("bugs"),
+        "open_bugs": _safe_count("bugs", "status='open'"),
+        "total_tasks": _safe_count("tasks"),
+        "queued_tasks": _safe_count("tasks", "status='queued'"),
+        "total_audit": _safe_count("audit_entries"),
+        "total_lineage": _safe_count("artifact_lineage"),
+        "total_sessions": _safe_count("chat_sessions"),
+    }
     r["success_rate"] = (
-        round(r["completed_runs"] / r["total_runs"] * 100, 1)
-        if r["total_runs"] > 0 else 0
+        round(completed_runs / total_runs * 100, 1) if total_runs > 0 else 0
     )
     return r
 
