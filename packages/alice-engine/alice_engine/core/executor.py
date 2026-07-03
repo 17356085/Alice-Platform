@@ -58,8 +58,10 @@ from alice_engine.runtime.core.security import PromptInjectionGuard  # ★ v1.0
 from alice_engine.events import EventType, get_bus  # ★ v3.0: SDK 内事件系统
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-from pathlib import Path; WORKSTUDY = Path(".")
-WORKSTUDY = Path(".")
+from pathlib import Path
+import os
+# v3.1: 使用环境变量，避免 CWD 依赖
+WORKSTUDY = Path(os.environ.get("AITEST_WORKSTUDY", "."))
 CONTEXT_MODULES = WORKSTUDY / "context"  # resolves from active project
 
 # ── v3.1: 自给自足 — 定义 executor 需要的所有名称 ─────────────────────
