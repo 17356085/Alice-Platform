@@ -16,8 +16,10 @@ import operator
 #  路径工具 — 通过模块级变量注入，避免平台依赖
 # ══════════════════════════════════════════════════════════════════════════
 
-_PATH_BASE: Path = Path(".")
-_CONTEXT_MODULES: Path = Path(".") / "context"
+import os
+# v3.1: 使用环境变量，避免 CWD 依赖
+_PATH_BASE: Path = Path(os.environ.get("AITEST_WORKSTUDY", "."))
+_CONTEXT_MODULES: Path = _PATH_BASE / "context"
 _TEST_PROJECT_ROOT: Path | None = None
 _BEHAVIOR_PACK = None  # alice_engine.behavior.BehaviorPack
 
