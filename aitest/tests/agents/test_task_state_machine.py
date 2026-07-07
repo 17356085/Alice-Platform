@@ -6,7 +6,7 @@ Pure logic — zero dependencies.
 """
 import pytest
 
-from aitest.agents.task_state_machine import (
+from alice_engine.core.state_machine import (
     TaskState, TaskStateContext, VALID_TRANSITIONS,
 )
 

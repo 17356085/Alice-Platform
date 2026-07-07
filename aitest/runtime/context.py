@@ -24,9 +24,6 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
 
-from aitest.platform.artifacts import ArtifactStore
-from aitest.platform.knowledge import KnowledgeStore
-from aitest.platform.runtime import Runtime, BrowserRuntime
 from aitest.runtime._paths_core import get_workstudy
 
 
@@ -156,8 +153,8 @@ class ProjectContext:
     def __init__(self, project_id: str = None):
         self._project_id = project_id or get_active_project_id()
         self._config: Optional[ProjectConfig] = None
-        self._artifacts: Optional[ArtifactStore] = None
-        self._knowledge: Optional[KnowledgeStore] = None
+        self._artifacts = None  # Optional[ArtifactStore]
+        self._knowledge = None  # Optional[KnowledgeStore]
         self._runtime: Optional[Runtime] = None
         self._closed = False
 
@@ -178,17 +175,21 @@ class ProjectContext:
 
     # ── Sub-stores (lazy) ────────────────────────────────────────────────
 
-    def artifacts(self) -> ArtifactStore:
+    def artifacts(self):
+        """返回 ArtifactStore 实例（惰性创建）。"""
         if self._artifacts is None:
+            from aitest.platform.artifacts import ArtifactStore
             self._artifacts = ArtifactStore(self._project_id)
         return self._artifacts
 
-    def knowledge(self) -> KnowledgeStore:
+    def knowledge(self):
+        """返回 KnowledgeStore 实例（惰性创建）。"""
         if self._knowledge is None:
+            from aitest.platform.knowledge import KnowledgeStore
             self._knowledge = KnowledgeStore(self.config.chroma_namespace)
         return self._knowledge
 
-    def runtime(self, runtime_type: str = None) -> Runtime:
+    def runtime(self, runtime_type: str = None):
         """
         Get or create a runtime for this project.
         Currently only BrowserRuntime is implemented.
@@ -197,9 +198,11 @@ class ProjectContext:
             cfg = self.config
             rt_type = runtime_type or cfg.sut_type or "browser"
             if rt_type in ("web", "browser", "vue-hash-router", "react-spa"):
+                from aitest.platform.runtime import BrowserRuntime
                 self._runtime = BrowserRuntime(base_url=cfg.base_url)
             else:
                 # Future: APIRuntime, MiniAppRuntime, etc.
+                from aitest.platform.runtime import BrowserRuntime
                 self._runtime = BrowserRuntime(base_url=cfg.base_url)
         return self._runtime
 

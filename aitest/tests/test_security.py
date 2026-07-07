@@ -11,7 +11,7 @@ from aitest.infra.security import (
     BLOCKED_COMMANDS, CONTEXT_BLOCKED_PATTERNS,
     validate_rm_command, validate_git_command, validate_python_command,
     validate_pip_command, validate_curl_wget,
-    VALIDATORS, parse_commands, BashValidator, PromptInjectionGuard,
+    VALIDATORS, parse_commands, BashValidator, PromptInjectionGuard, SecurityHook,
 )
 
 
@@ -248,3 +248,22 @@ class TestPromptInjectionGuard:
         assert len(result) > 0
         # Should contain warning markers for injection
         assert "BEGIN USER CONTENT" in result
+
+
+class TestSecurityHook:
+    def test_before_provider_rejects_invalid_provider_name(self, tmp_path):
+        hook = SecurityHook(project_root=tmp_path)
+        ok, reason = hook.before_provider(
+            "bad provider",
+            system_prompt="system",
+            user_prompt="user",
+            tools=[],
+        )
+        assert not ok
+        assert "Invalid provider name" in reason
+
+    def test_before_tool_call_blocks_dangerous_command_argument(self, tmp_path):
+        hook = SecurityHook(project_root=tmp_path)
+        ok, reason = hook.before_tool_call("terminal.run", {"command": "rm -rf /"})
+        assert not ok
+        assert "blocked" in reason.lower()

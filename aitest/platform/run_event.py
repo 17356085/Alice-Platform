@@ -86,6 +86,16 @@ class EventDataKey:
     # Audit / Identity
     TRIGGERED_BY = "triggered_by"
 
+    # Replay / Traceability
+    REPLAY_SESSION_ID = "replay_session_id"
+    REPLAY_STEP_ID = "replay_step_id"
+
+    # Versioning / Governance
+    POLICY_VERSION = "policy_version"
+    GOVERNANCE_VERSION = "governance_version"
+    CONFIG_VERSION = "config_version"
+    GOVERNANCE_PACK_ROOT = "governance_pack_root"
+
 
 # ── Event type constants ─────────────────────────────────────────────────
 
@@ -126,6 +136,11 @@ class ExecutionStartedData(TypedDict, total=False):
     org_id: str
     module: str
     agent: str
+    replay_session_id: str
+    policy_version: str
+    governance_version: str
+    config_version: str
+    governance_pack_root: str
 
 class RunCompletedData(TypedDict, total=False):
     workspace_id: str
@@ -135,6 +150,14 @@ class RunCompletedData(TypedDict, total=False):
     total_tokens: int
     total_cost: float
     agent_runs: int
+    duration_ms: float
+    retry_count: int
+    max_retries: int
+    replay_session_id: str
+    policy_version: str
+    governance_version: str
+    config_version: str
+    governance_pack_root: str
 
 class RunFailedData(TypedDict, total=False):
     workspace_id: str
@@ -144,7 +167,15 @@ class RunFailedData(TypedDict, total=False):
     total_tokens: int
     total_cost: float
     agent_runs: int
+    duration_ms: float
+    retry_count: int
+    max_retries: int
     error: str
+    replay_session_id: str
+    policy_version: str
+    governance_version: str
+    config_version: str
+    governance_pack_root: str
 
 class RunCancelledData(TypedDict, total=False):
     workspace_id: str
@@ -155,14 +186,29 @@ class CostRecordedData(TypedDict, total=False):
     total_tokens: int
     org_id: str
     workspace_id: str
+    replay_session_id: str
+    policy_version: str
+    governance_version: str
+    config_version: str
+    governance_pack_root: str
 
 class PhaseStartedData(TypedDict, total=False):
     phase: str
     module: str
+    replay_session_id: str
+    policy_version: str
+    governance_version: str
+    config_version: str
+    governance_pack_root: str
 
 class PhaseCompletedData(TypedDict, total=False):
     phase: str
     module: str
+    replay_session_id: str
+    policy_version: str
+    governance_version: str
+    config_version: str
+    governance_pack_root: str
 
 class ArtifactCreatedData(TypedDict, total=False):
     artifact_type: str
@@ -202,6 +248,7 @@ EVENT_SCHEMAS: dict[str, dict[str, tuple[type, bool]]] = {
         "org_id": (str, False),
         "module": (str, False),
         "agent": (str, False),
+        "replay_session_id": (str, False),
     },
     EventType.RUN_COMPLETED: {
         "workspace_id": (str, False),
@@ -211,6 +258,10 @@ EVENT_SCHEMAS: dict[str, dict[str, tuple[type, bool]]] = {
         "total_tokens": (int, False),
         "total_cost": (float, False),
         "agent_runs": (int, False),
+        "duration_ms": (float, False),
+        "retry_count": (int, False),
+        "max_retries": (int, False),
+        "replay_session_id": (str, False),
     },
     EventType.RUN_FAILED: {
         "workspace_id": (str, False),
@@ -218,6 +269,10 @@ EVENT_SCHEMAS: dict[str, dict[str, tuple[type, bool]]] = {
         "module": (str, False),
         "agent": (str, False),
         "error": (str, False),
+        "duration_ms": (float, False),
+        "retry_count": (int, False),
+        "max_retries": (int, False),
+        "replay_session_id": (str, False),
     },
     EventType.RUN_CANCELLED: {
         "workspace_id": (str, False),
@@ -228,14 +283,17 @@ EVENT_SCHEMAS: dict[str, dict[str, tuple[type, bool]]] = {
         "total_tokens": (int, False),
         "org_id": (str, False),
         "workspace_id": (str, False),
+        "replay_session_id": (str, False),
     },
     EventType.PHASE_STARTED: {
         "phase": (str, True),
         "module": (str, False),
+        "replay_session_id": (str, False),
     },
     EventType.PHASE_COMPLETED: {
         "phase": (str, True),
         "module": (str, False),
+        "replay_session_id": (str, False),
     },
     EventType.ARTIFACT_CREATED: {
         "artifact_type": (str, False),

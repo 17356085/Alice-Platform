@@ -13,12 +13,20 @@ from langgraph.types import interrupt
 from alice_engine.workflow.state import (
     SOPState, PhaseName, CANONICAL_PHASES, MODE_SKIP_MAP,
     get_module_dir, get_page_dir, get_test_project_root, get_behavior_pack,
+    GateResult, GateLevel,
 )
 from alice_engine.workflow.sop_preflight import _preflight_cache
+from alice_engine.workflow.sop_routing import route_next_phase
 
 logger = logging.getLogger(__name__)
 
 WORKSTUDY = Path(".")
+
+
+def _get_workstudy() -> Path:
+    """获取 workstudy 路径 — 优先使用配置的路径。"""
+    from alice_engine.workflow.state import _PATH_BASE
+    return _PATH_BASE if str(_PATH_BASE) != "." else WORKSTUDY
 
 
 def _get_artifacts_dir() -> Path:
@@ -26,7 +34,7 @@ def _get_artifacts_dir() -> Path:
     pack = get_behavior_pack()
     if pack and pack.artifacts_dir:
         return pack.artifacts_dir
-    return WORKSTUDY / "artifacts"
+    return _get_workstudy() / "artifacts"
 
 
 def entry_node(state: SOPState) -> dict:
@@ -89,7 +97,15 @@ def preflight_node(state: SOPState) -> dict:
     artifact_map: dict = {}
 
     # ── 检查 PROJECT_CONTEXT ──
-    project_context = WORKSTUDY / "PROJECT_CONTEXT.md"
+    workstudy = _get_workstudy()
+    project_context = workstudy / ".tlo" / "context" / "PROJECT_CONTEXT.md"
+
+    # Debug logging
+    import logging
+    _debug_logger = logging.getLogger("preflight_debug")
+    _debug_logger.info(f"workstudy: {workstudy}")
+    _debug_logger.info(f"project_context: {project_context}")
+    _debug_logger.info(f"project_context.exists(): {project_context.exists()}")
     if project_context.exists():
         artifact_map["Project Init"] = [str(project_context)]
 
@@ -393,53 +409,10 @@ def exit_node(state: SOPState) -> dict:
         import logging; _log_error = logging.getLogger(__name__).error
         _log_error("sop_graph.exit", "write_status_json", e, {"module": module, "file": str(status_file)})
 
-    # 发射 CycleEnd 事件
-    try:
-        emit("CycleEnd", module=module, status=final_status, engine="langgraph")
-    except Exception as e:
-        import logging; _log_error = logging.getLogger(__name__).error
-        _log_error("sop_graph.exit", "emit_cycle_end", e, {"module": module, "status": final_status})
-
-    # P0-2: 在 CycleEnd 后自动运行 State Auditor (全量 S/C/Q/T Check)
-    try:
-        pass  # StateAuditor removed
-        auditor = StateAuditor()
-        audit_report = auditor.audit(module, auto_repair=False)
-        if audit_report["drift_count"] > 0:
-            # 发现漂移 → 发射 StateDrift 事件
-            try:
-                emit("StateDrift",
-                       module=module,
-                       run_id=state.get("run_id", ""),
-                       drift_count=audit_report["drift_count"],
-                       error_count=audit_report["error_count"],
-                       warning_count=audit_report["warning_count"],
-                       overall_status=audit_report["overall_status"])
-            except Exception as e:
-                import logging; _log_error = logging.getLogger(__name__).error
-                _log_error("sop_graph.exit", "emit_StateDrift", e, {"module": module})
-    except Exception as e:
-        import logging; _log_error = logging.getLogger(__name__).error
-        _log_error("sop_graph.exit", "state_auditor", e, {"module": module})
-
-    # P1-2: SOP Auditor — 全量 6 维检查 (P0-FIX 2026-06-15: 从 3 维扩展到 6 维)
-    try:
-        pass  # SOPAuditor removed
-        sop_auditor = SOPAuditor()
-        sop_report = sop_auditor.audit(module, days=1)  # 默认全部 6 维: p/s/g/h/b/l
-        if sop_report["total_violations"] > 0:
-            try:
-                emit("SOPViolation",
-                       module=module,
-                       run_id=state.get("run_id", ""),
-                       violation_type="cycle_end_audit",
-                       detail=f"SOP 审计发现 {sop_report['total_violations']} 个违规")
-            except Exception as e2:
-                import logging; _log_error = logging.getLogger(__name__).error
-                _log_error("sop_graph.exit", "emit_SOPViolation", e2, {"module": module})
-    except Exception as e:
-        import logging; _log_error = logging.getLogger(__name__).error
-        _log_error("sop_graph.exit", "sop_auditor", e, {"module": module})
+    # 注意: CycleEnd 事件、StateAuditor、SOPAuditor 已迁移到 platform 层
+    # - CycleEnd: aitest/infra/webhook_server.py, aitest/agents/agent_scheduler.py
+    # - StateDrift: aitest/adapters/audit/state.py
+    # - SOPViolation: aitest/adapters/audit/sop.py
 
     return {
         "status": final_status,
@@ -470,7 +443,7 @@ def _load_p0_modules() -> list:
     if pack and pack.context_dir:
         env_path = pack.context_dir / "environments.yaml"
     else:
-        env_path = WORKSTUDY / "context" / "environments.yaml"
+        env_path = _get_workstudy() / "context" / "environments.yaml"
     if env_path.exists():
         try:
             with open(env_path, "r", encoding="utf-8") as f:
@@ -534,9 +507,8 @@ def data_sanitization_node(state: SOPState) -> dict:
         return updates
 
     try:
-        # ★ v1.0: 使用 secure_run 替代裸 subprocess.run (安全校验)
-        pass  # secure_run removed
-        result = secure_run(
+        import subprocess
+        result = subprocess.run(
             ["python", str(scan_script), "--force"],
             capture_output=True, text=True, timeout=120,
             cwd=str(zjsn_test),
@@ -602,14 +574,17 @@ def data_sanitization_node(state: SOPState) -> dict:
 
 
 def page_advance_node(state: SOPState) -> dict:
-    """Automation 完成后推进页面索引，支持跨页迭代。
+    """推进页面索引，支持跨页迭代。
     若 force_retry_phase 已设置 → 当前页面产物缺失，不推进页码。"""
     if state.get("force_retry_phase"):
         return {}  # 重试中 — 不推进页码
     pages = state.get("pages", [])
     idx = state.get("current_page_index", 0)
     next_idx = min(idx + 1, len(pages))
-    return {"current_page_index": next_idx}
+    return {
+        "current_page_index": next_idx,
+        "test_cases_approved": None,  # 重置审批状态，新页面需要重新审批
+    }
 
 
 

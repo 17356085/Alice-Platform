@@ -1,13 +1,4 @@
-"""Source code extractors — each produces metadata from a specific aspect of source code."""
-
-from .base import BaseExtractor
-from .vue_router import VueRouterExtractor
-from .vue_component import VueComponentExtractor
-from .api_extractor import ApiExtractor
-
-__all__ = [
-    "BaseExtractor",
-    "VueRouterExtractor",
-    "VueComponentExtractor",
-    "ApiExtractor",
-]
+"""Re-export from alice_discovery.source.extractors — 保持向后兼容。"""
+from alice_discovery.source.extractors import (  # noqa: F401
+    BaseExtractor, VueRouterExtractor, VueComponentExtractor, ApiExtractor,
+)

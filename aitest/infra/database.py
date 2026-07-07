@@ -18,7 +18,7 @@ Usage (same interface regardless of backend):
 
 import os
 import logging
-import subprocess
+import socket
 
 logger = logging.getLogger("database")
 
@@ -34,16 +34,11 @@ def _detect_backend() -> str:
     if explicit == "postgres":
         return "postgres"
 
-    # Auto: try PostgreSQL first
+    # Auto: TCP probe to PostgreSQL (replaces docker exec pg_isready)
     try:
-        result = subprocess.run(
-            ["docker", "exec", "aitest-pg", "pg_isready", "-U", "aitest"],
-            capture_output=True,
-            timeout=5,
-        )
-        if result.returncode == 0:
+        with socket.create_connection(("localhost", 5432), timeout=3):
             return "postgres"
-    except Exception:
+    except OSError:
         pass
 
     return "sqlite"
@@ -69,14 +64,14 @@ def _get_module():
         return database_sqlite
 
 
-def pg_exec(sql: str, **kwargs) -> str:
+def pg_exec(sql: str, params: list | None = None, **kwargs) -> str:
     """Execute SQL statement."""
-    return _get_module().pg_exec(sql, **kwargs)
+    return _get_module().pg_exec(sql, params=params, **kwargs)
 
 
-def pg_query(sql: str, **kwargs) -> list[dict]:
+def pg_query(sql: str, params: list | None = None, **kwargs) -> list[dict]:
     """Execute SQL query, return list of dicts."""
-    return _get_module().pg_query(sql, **kwargs)
+    return _get_module().pg_query(sql, params=params, **kwargs)
 
 
 def pg_exec_file(sql_file: str, **kwargs) -> str:

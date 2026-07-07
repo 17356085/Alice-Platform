@@ -780,3 +780,88 @@ def get_task_guard() -> TaskGuard:
         if _guard is None:
             _guard = TaskGuard()
         return _guard
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Access control helpers (Phase 3)
+# ══════════════════════════════════════════════════════════════════════════
+
+def resolve_request_identity(request) -> tuple[str, str, list[str]]:
+    """Resolve user / org / scopes from a FastAPI request-like object."""
+    user_id = getattr(request.state, "user_id", None) or request.headers.get("X-User-Id", "anonymous")
+    org_id = getattr(request.state, "org_id", None) or request.headers.get("X-Org-Id", "")
+    scopes = list(getattr(request.state, "scopes", []) or [])
+    return user_id, org_id, scopes
+
+
+def require_workspace_access(
+    *,
+    org_id: str,
+    workspace_id: str,
+    user_id: str,
+    required_scope: str = "read",
+    request_scopes: list[str] | None = None,
+    ws_manager=None,
+    org_manager=None,
+):
+    """Validate org + workspace ownership boundary for a user."""
+    from aitest.platform.organization import ROLE_DEFAULT_SCOPES, get_org_manager
+    from aitest.platform.workspace import get_ws_manager
+
+    wm = ws_manager or get_ws_manager()
+    om = org_manager or get_org_manager()
+    ws = wm.get(org_id, workspace_id)
+    if ws is None:
+        discovered = wm.get(workspace_id)
+        if discovered is not None and getattr(discovered, "org_id", "") != org_id:
+            raise PermissionError(
+                f"Workspace '{workspace_id}' belongs to org '{getattr(discovered, 'org_id', '')}', "
+                f"not org '{org_id}'"
+            )
+        raise ValueError(f"Workspace '{workspace_id}' not found in org '{org_id}'")
+
+    org_role = ""
+    try:
+        org_role = om.get_role(org_id, user_id)
+    except Exception:
+        org_role = ""
+
+    effective_scopes = list(request_scopes or [])
+    if org_role:
+        effective_scopes = ROLE_DEFAULT_SCOPES.get(org_role, effective_scopes)
+
+    ws_role = ws.members.get(user_id, "")
+    if ws_role:
+        effective_scopes = ROLE_DEFAULT_SCOPES.get(ws_role, effective_scopes)
+    elif ws.members and "admin" not in effective_scopes:
+        raise PermissionError(
+            f"User '{user_id}' is not a member of workspace '{workspace_id}' in org '{org_id}'"
+        )
+
+    if required_scope not in effective_scopes and "admin" not in effective_scopes:
+        raise PermissionError(
+            f"User '{user_id}' lacks scope '{required_scope}' for workspace '{workspace_id}' in org '{org_id}'"
+        )
+
+    return ws
+
+
+def require_run_access(
+    *,
+    run,
+    user_id: str,
+    required_scope: str = "read",
+    request_scopes: list[str] | None = None,
+    ws_manager=None,
+    org_manager=None,
+):
+    """Validate access to an already-loaded Run object."""
+    return require_workspace_access(
+        org_id=getattr(run, "org_id", ""),
+        workspace_id=getattr(run, "workspace_id", ""),
+        user_id=user_id,
+        required_scope=required_scope,
+        request_scopes=request_scopes,
+        ws_manager=ws_manager,
+        org_manager=org_manager,
+    )

@@ -136,7 +136,7 @@ class PipelineConfig:
         The FSM tracks task lifecycle within the pipeline.
         Layer 1 (task_state_machine.py) is pure — zero I/O, testable.
         """
-        from aitest.agents.task_state_machine import TaskState, TaskStateContext
+        from alice_engine.core.state_machine import TaskState, TaskStateContext
         return TaskStateContext(state=TaskState.TEST_PLANNING)
 
     def validate_phase_transition(

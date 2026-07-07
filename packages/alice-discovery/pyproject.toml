@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alice-discovery"
+version = "0.1.0"
+description = "Alice Discovery — 前端项目静态分析 SDK (Vue/React 源码扫描)"
+requires-python = ">=3.11"
+dependencies = []  # 零外部依赖 — 纯 stdlib
+
+[project.optional-dependencies]
+cli = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["alice_discovery*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -25,40 +25,16 @@ import json
 import threading
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, List
 from dataclasses import dataclass, field
 from aitest.platform.paths import get_workstudy
+from alice_engine.contracts import ExecutionContext
 
 
 # ── ExecutionContext ───────────────────────────────────────────────────
-
-@dataclass
-class ExecutionContext:
-    """Minimal context passed from Platform to Runtime.
-
-    Runtime never sees Organization directly. It only receives this context.
-    """
-    workspace_id: str
-    user_id: str = "anonymous"
-    scopes: list[str] = field(default_factory=lambda: ["read", "execute"])
-    org_id: str = ""
-
-    def has_scope(self, scope: str) -> bool:
-        return scope in self.scopes or "admin" in self.scopes
-
-    def require(self, scope: str):
-        if not self.has_scope(scope):
-            raise PermissionError(
-                f"User '{self.user_id}' lacks scope '{scope}' in workspace '{self.workspace_id}'"
-            )
-
-    def to_dict(self) -> dict:
-        return {
-            "workspace_id": self.workspace_id,
-            "user_id": self.user_id,
-            "scopes": self.scopes,
-            "org_id": self.org_id,
-        }
+#
+# Re-export the shared alice_engine contract so Platform / CLI / Chat / SDK
+# normalize into the same input shape without introducing reverse dependencies.
 
 
 # ── Workspace ──────────────────────────────────────────────────────────
@@ -78,6 +54,22 @@ class Workspace:
     created_at: str = ""
     updated_at: str = ""
 
+    def to_dict(self) -> dict:
+        return {
+            "workspace_id": self.id,
+            "id": self.id,
+            "name": self.name,
+            "org_id": self.org_id,
+            "description": self.description,
+            "members": dict(self.members),
+            "quotas": dict(self.quotas),
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
+
+    def __getitem__(self, key: str):
+        return self.to_dict()[key]
+
 
 class WorkspaceManager:
     """Manages workspaces within organizations. Enforces isolation."""
@@ -89,7 +81,17 @@ class WorkspaceManager:
 
     # ── CRUD ─────────────────────────────────────────────────────────
 
-    def create(self, org_id: str, ws_id: str, name: str, description: str = "") -> Workspace:
+    def create(self, *args, **kwargs) -> Workspace:
+        if args and len(args) == 1 and "org_id" in kwargs:
+            ws_id = args[0]
+            org_id = kwargs["org_id"]
+            name = kwargs.get("name", ws_id)
+            description = kwargs.get("description", "")
+        else:
+            org_id = args[0] if len(args) > 0 else kwargs["org_id"]
+            ws_id = args[1] if len(args) > 1 else kwargs["ws_id"]
+            name = kwargs.get("name", ws_id)
+            description = kwargs.get("description", "")
         key = ws_id.lower().replace(" ", "-")
         path = self._path(org_id, key)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -103,14 +105,22 @@ class WorkspaceManager:
         self._save(ws)
         return ws
 
-    def get(self, org_id: str, ws_id: str) -> Optional[Workspace]:
+    def get(self, org_id: str, ws_id: str | None = None) -> Optional[Workspace]:
+        if ws_id is None:
+            ws_id = org_id
+            for path in self._root.glob("*/*.json"):
+                if path.stem == ws_id:
+                    data = json.loads(path.read_text(encoding="utf-8"))
+                    return Workspace(**data)
+            return None
+
         path = self._path(org_id, ws_id)
         if not path.exists():
             return None
         data = json.loads(path.read_text(encoding="utf-8"))
         return Workspace(**data)
 
-    def list(self, org_id: str) -> list[Workspace]:
+    def list(self, org_id: str) -> List[Workspace]:
         org_dir = self._root / org_id
         if not org_dir.exists():
             return []
@@ -122,6 +132,9 @@ class WorkspaceManager:
             except Exception:
                 pass
         return workspaces
+
+    def list_workspaces(self, org_id: str) -> List[Workspace]:
+        return self.list(org_id)
 
     def delete(self, org_id: str, ws_id: str):
         path = self._path(org_id, ws_id)

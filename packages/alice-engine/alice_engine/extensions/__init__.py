@@ -8,6 +8,15 @@ from alice_engine.extensions.complexity import ComplexityExtension
 from alice_engine.extensions.diff import extract_diff
 from alice_engine.extensions.monitor import OnlineMonitor, RunMetrics
 from alice_engine.extensions.cost import CostAuditor
+from alice_engine.extensions.review import (
+    RuleConfig,
+    FileBundler,
+    PositionVerifier,
+    ReviewRule,
+    ReviewBundle,
+    ReviewIssue,
+    ReviewResult,
+)
 
 __all__ = [
     "AuditExtension",
@@ -16,4 +25,11 @@ __all__ = [
     "OnlineMonitor",
     "RunMetrics",
     "CostAuditor",
+    "RuleConfig",
+    "FileBundler",
+    "PositionVerifier",
+    "ReviewRule",
+    "ReviewBundle",
+    "ReviewIssue",
+    "ReviewResult",
 ]

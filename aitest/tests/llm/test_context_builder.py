@@ -7,7 +7,7 @@ Pure filesystem steps — no LLM calls.
 import pytest
 from pathlib import Path
 
-from aitest.llm.context_builder import (
+from alice_engine.core.context_builder import (
     extract_keywords, search_test_files, _score_relevance,
     categorize_files, discover_patterns, build_context,
     DiscoveredFile, SubtaskContext, FIXED_KEYWORDS,

@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useKanbanStore } from '../stores/kanban'
 import { useProjectStore } from '../stores/project'
+import { api } from '@/api/client'
 import LiveAgentGraph from '../components/LiveAgentGraph'
 import TerminalPanel from '../components/TerminalPanel'
 import { Play, Pause, Square, Activity, Eye, RefreshCw, ExternalLink } from 'lucide-react'
@@ -51,19 +52,16 @@ export default function ExecutionView() {
 
   const fetchRuns = useCallback(async () => {
     try {
-      const res = await fetch('/api/runs?limit=10')
-      const data = await res.json()
+      const data = await api.get<{ runs: Array<{ run_id: string; status: string; agent: string; module: string }> }>('/api/runs?limit=10')
       setRuns(data.runs || [])
     } catch {}
   }, [])
 
   const inspectRun = useCallback(async (runId: string) => {
     try {
-      const res = await fetch(`/api/runs/${runId}/debug`)
-      if (res.ok) {
-        setSelectedRun(await res.json())
-        setInspectorOpen(true)
-      }
+      const data = await api.get<RunDetail>(`/api/runs/${runId}/debug`)
+      setSelectedRun(data)
+      setInspectorOpen(true)
     } catch {}
   }, [])
 

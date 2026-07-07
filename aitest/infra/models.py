@@ -66,6 +66,8 @@ class ExecutionRequestModel(Base):
     org_id = Column(String(64), nullable=False, default="", index=True)
     triggered_by = Column(String(128), nullable=False, default="")
     trigger_type = Column(String(32), nullable=False, default="manual")
+    agent = Column(String(64), nullable=False, default="")
+    idempotency_key = Column(String(128), nullable=False, default="", index=True)
     module = Column(String(64), nullable=False, default="")
     pages = Column(JSONB, nullable=False, default=list)
     mode = Column(String(32), nullable=False, default="full")
@@ -76,6 +78,7 @@ class ExecutionRequestModel(Base):
     created_at = Column(DateTime(timezone=True), nullable=False)
     started_at = Column(DateTime(timezone=True), nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
+    next_retry_at = Column(DateTime(timezone=True), nullable=True)
     retry_count = Column(Integer, nullable=False, default=0)
     max_retries = Column(Integer, nullable=False, default=0)
 

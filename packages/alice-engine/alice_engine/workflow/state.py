@@ -351,7 +351,7 @@ def _check_test_design_artifacts(module: str, pages: list[str]) -> list[tuple[bo
 def _check_automation_artifacts(module: str, pages: list[str]) -> list[tuple[bool, str, str]]:
     """Check per-module Automation artifacts: *Page.py + test_*.py exist."""
     results = []
-    zjsn = _get_test_project_root()
+    zjsn = get_test_project_root()
     if zjsn:
         po_dir = zjsn / "page" / f"{module}_page"
         test_dir = zjsn / "script" / module
@@ -519,9 +519,6 @@ def create_initial_state(
     run_id: str = "",
     bug_cycle_max: int = 3,
 ) -> dict:
-    if provider is None:
-        pass  # config removed
-        provider = config.resolve_llm_provider()
     """
     创建 SOPGraph.invoke() 的初始状态字典。
 
@@ -536,6 +533,10 @@ def create_initial_state(
     返回:
         完整的初始状态字典
     """
+    if provider is None:
+        import os
+        provider = os.environ.get("LLM_PROVIDER", os.environ.get("AITEST_PROVIDER", "anthropic"))
+
     import time
 
     if not run_id:

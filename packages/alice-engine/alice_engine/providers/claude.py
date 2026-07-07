@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 class ClaudeProvider(LLMProvider):
     """Anthropic Claude API Provider。"""
 
+    provider_name = "claude"
+    provider_description = "Anthropic Claude API provider"
+    provider_supports_tools = True
+
     def __init__(self, model: str = "claude-sonnet-4-6", api_key: str = ""):
         api_key = api_key or os.environ.get("ANTHROPIC_API_KEY", "")
         if not api_key:
@@ -46,7 +50,7 @@ class ClaudeProvider(LLMProvider):
                 content=response.content[0].text if response.content else "",
                 model=self.model,
                 finish_reason=response.stop_reason or "stop",
-                token_usage={
+                usage={
                     "input": response.usage.input_tokens,
                     "output": response.usage.output_tokens,
                 },

@@ -51,6 +51,7 @@ class BillingHookConsumer:
         self._active = False
         self._consumer_name = "billing-hook"
         self._bus = bus  # injected EventBus (None = lazy singleton)
+        self._seen: set[str] = set()  # backward-compatible in-memory view for tests
 
     def start(self):
         if self._active:
@@ -95,6 +96,7 @@ class BillingHookConsumer:
         }
         self._persist(billing_event)
         mark_event_seen(event.event_id, self._consumer_name)
+        self._seen.add(event.event_id)
 
     def _on_cost_recorded(self, event: RunEvent):
         """Emit billing.cost_recorded."""
@@ -116,6 +118,7 @@ class BillingHookConsumer:
         }
         self._persist(billing_event)
         mark_event_seen(event.event_id, self._consumer_name)
+        self._seen.add(event.event_id)
 
     def _persist(self, record: dict):
         """Append billing record to JSONL. Simple, auditable, replayable."""

@@ -1,0 +1,30 @@
+# 🔍 页面观察任务
+
+**模块**: workflow
+**页面**: sap-push-log
+
+开始观察页面 DOM 结构...
+
+---
+
+## 步骤 1: 导航到目标页面
+
+```bash
+# 访问 workflow 模块的 sap-push-log 页面
+Page Navigate: /workflow/sap-push-log
+```
+
+<command name="go_to_url">
+  <arg name="url">/workflow/sap-push-log</arg>
+</command>
+
+---
+
+等待页面渲染完成，我将逐步分析 DOM 结构：
+
+1. ✅ 页面导航
+2. 🔄 提取页面结构
+3. ⏳ 识别可测元素
+4. ⏳ 生成 PAGE_CONTEXT.md
+
+请确认页面是否已加载完成？或者请提供访问该页面所需的登录凭证和具体 URL 路径。

@@ -6,7 +6,7 @@ ReliableProvider behavior with mocked LLM providers.
 """
 import pytest
 import time
-from aitest.llm.reliable_provider import (
+from alice_engine.runtime.core.retry import (
     ErrorClass, classify_error, compute_backoff, RetryConfig,
     FallbackConfig, DEFAULT_FALLBACK_CHAIN,
     UsageTracker, ReliableProvider, _FatalError,

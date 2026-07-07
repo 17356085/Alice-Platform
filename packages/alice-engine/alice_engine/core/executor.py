@@ -18,6 +18,7 @@ import re
 import sys
 import time
 import queue
+import asyncio
 from pathlib import Path
 from collections.abc import Generator
 from typing import Optional
@@ -42,6 +43,7 @@ from alice_engine.core.skill_registry import (
     get_skill_requirements,
     check_provider_compatibility,
 )
+from alice_engine.behavior import resolve_governance_pack_path
 
 from alice_engine.core.task import (
     Observation, AgentState, AgentEvent, AgentEventType,
@@ -61,8 +63,12 @@ from alice_engine.events import EventType, get_bus  # ★ v3.0: SDK 内事件系
 from pathlib import Path
 import os
 # v3.1: 使用环境变量，避免 CWD 依赖
-WORKSTUDY = Path(os.environ.get("AITEST_WORKSTUDY", "."))
-CONTEXT_MODULES = WORKSTUDY / "context"  # resolves from active project
+# 优先使用 ENGINE_WORKSTUDY (Engine 设置), 然后 AITEST_WORKSTUDY, 最后当前目录
+WORKSTUDY = Path(os.environ.get("ENGINE_WORKSTUDY", os.environ.get("AITEST_WORKSTUDY", ".")))
+
+# 优先使用 .tlo/knowledge/modules/，fallback 到 context/
+_tlo_modules = WORKSTUDY / ".tlo" / "knowledge" / "modules"
+CONTEXT_MODULES = _tlo_modules if _tlo_modules.exists() else WORKSTUDY / "context"
 
 # ── v3.1: 自给自足 — 定义 executor 需要的所有名称 ─────────────────────
 # 这些名称之前从 aitest/engine/skill_executor.py (上层 wrapper) 导入，
@@ -74,12 +80,26 @@ def get_logger(name: str):
     """获取 logger。v3.1: executor 自包含，不依赖上层 wrapper。"""
     return _logging.getLogger(name)
 
+
+def get_project_dir() -> Path:
+    """获取项目目录。"""
+    return WORKSTUDY
+
+
+def get_test_project_root() -> Path:
+    """获取测试项目根目录。"""
+    return WORKSTUDY
+
 # Agent skill maps — 从 AgentDefinitions 加载
 _defs_instance = None
+def _get_governance_root() -> Path:
+    resolved = resolve_governance_pack_path(project_root=WORKSTUDY)
+    return resolved or (WORKSTUDY / "governance")
+
 def _get_defs() -> AgentDefinitions:
     global _defs_instance
     if _defs_instance is None:
-        _defs_instance = AgentDefinitions(governance_path=WORKSTUDY / "governance")
+        _defs_instance = AgentDefinitions(governance_path=_get_governance_root())
     return _defs_instance
 
 AGENT_SKILL_MAP = _get_defs()._load_skill_map() if _get_defs() else FALLBACK_AGENT_SKILL_MAP
@@ -89,9 +109,6 @@ def get_agent_definition(agent_name: str) -> dict:
     """获取 agent 定义。v3.1: executor 自包含。"""
     return _get_defs().get_definition(agent_name)
 
-# GOVERNANCE 路径
-GOVERNANCE = WORKSTUDY / "governance"
-
 # run_skill — 从 SkillExecutorImpl 构建
 def run_skill(skill_id: str, user_input: str, provider=None, context_vars=None, **kwargs):
     """执行单个 skill。v3.1: executor 自包含。"""
@@ -99,10 +116,13 @@ def run_skill(skill_id: str, user_input: str, provider=None, context_vars=None, 
     from alice_engine.core.skill_loader import SkillLoader
     from alice_engine.core.skill_executor_impl import SkillExecutorImpl
 
-    loader = SkillLoader(governance_path=GOVERNANCE)
-    prov = _get_provider(provider or "mock")
+    loader = SkillLoader(governance_path=_get_governance_root())
+    try:
+        prov = _get_provider(provider or "mock")
+    except Exception:
+        prov = _get_provider("mock")
     executor = SkillExecutorImpl(skill_loader=loader, provider=prov)
-    return executor.execute(skill_id, user_input, context_vars=context_vars)
+    return executor.execute(skill_id, user_input, context_vars=context_vars, **kwargs)
 
 # config — 简单配置解析
 class _Config:
@@ -220,12 +240,7 @@ class AgentLoop:
         self.use_worktree = use_worktree
 
         # [LAYER:Runtime/ErrorHandling] ★ v1.0: Structured logging
-        import logging; _logger = logging.getLogger("agent_loop")
-        self._logger = get_logger("agent_loop").bind(
-            agent=agent_name,
-            module=context.get("module", ""),
-            page=context.get("page", ""),
-        )
+        self._logger = get_logger("agent_loop")
         self._worktree_ctx = None
 
         # [LAYER:Core/Task] ★ v2.6: Abort signal
@@ -246,6 +261,7 @@ class AgentLoop:
         self._session_compactor = SessionCompactor()
         self._continuation_count = 0
         self._session_messages: list[dict] = []
+        self._replay_recorder = context.get("replay_recorder")
 
         # [LAYER:Adapter/LLM] ★ v2.0: Capability Router (lazy init)
         self._capability_router = None
@@ -270,9 +286,13 @@ class AgentLoop:
             chain_override = None
             if model and model != self._resolve_model_for_provider(provider):
                 chain_override = [{"provider": provider, "model": model}]
-            self._reliable_provider = get_reliable_provider(
-                primary=provider, fallback_chain=chain_override,
-            )
+            try:
+                self._reliable_provider = get_reliable_provider(
+                    primary=provider, fallback_chain=chain_override,
+                )
+            except Exception as e:
+                self._reliable_provider = get_reliable_provider(primary="mock")
+                self._log(f"[warn] reliable provider disabled: {e}")
 
         # [LAYER:Runtime/ContextWindow] 初始化窗口监控器
         if self._use_window:
@@ -309,11 +329,17 @@ class AgentLoop:
             provider=provider,
             max_steps=context.get("max_steps", len(self.skills) * 2),
         )
+        if self._replay_recorder is not None:
+            self.state.memory["replay_session_id"] = getattr(self._replay_recorder, "session_id", "")
 
     # [LAYER:Core/Executor] HITL 交互
     def send_interaction(self, response: str) -> None:
         """供外部（Chat API）调用，向暂停中的 run_interactive() 发送用户输入。"""
         self._interaction_queue.put(response)
+
+    def cancel(self) -> None:
+        """正式公开的取消接口，替代外层直接访问 _abort。"""
+        self._abort.set()
 
     # ── 属性 ──────────────────────────────────────────────────────
 
@@ -348,12 +374,80 @@ class AgentLoop:
     def _get_capability_router(self):
         """★ v2.0: 延迟初始化 CapabilityRouter + ★ v0.4 Capability Enforcement。"""
         if self._capability_router is None and self._use_tool_calling:
-            try:
-                # v3.1: capability_router 未在 alice_engine 中实现，降级为无 tool calling
-                self._use_tool_calling = False
-            except Exception:
+            from alice_engine.platform_bridge import create_capability_router
+            self._capability_router = create_capability_router()
+            if self._capability_router is None:
                 self._use_tool_calling = False
         return self._capability_router
+
+    def _init_mcp_clients(self) -> None:
+        """Connect MCP clients once per session and cache their tool directory."""
+        from alice_engine.platform_bridge import create_mcp_clients_for_agent
+
+        self._mcp_clients = []
+        self._mcp_tools = {}
+        try:
+            clients, tools = create_mcp_clients_for_agent(self.agent_name)
+            self._mcp_clients = clients or []
+            self._mcp_tools = tools or {}
+        except Exception as e:
+            self._log(f"[warn] MCP init skipped: {e}")
+            self._mcp_clients = []
+            self._mcp_tools = {}
+
+    def _build_runtime_context(self) -> dict:
+        """Assemble memory / knowledge context onto the official execution mainline."""
+        runtime_context = self.state.memory.setdefault("runtime_context", {})
+        if runtime_context:
+            return runtime_context
+
+        module = self.module or ""
+        page = self.page or ""
+        query = " ".join(part for part in [module, page, self.state.goal] if part).strip() or module or page
+        assembled = {
+            "memory_context": {},
+            "knowledge_context": {},
+            "context_sources": [],
+        }
+
+        try:
+            from alice_engine.platform_bridge import create_testing_memory_store
+
+            store = create_testing_memory_store()
+            if store.available():
+                memory_queries = []
+                if query:
+                    memory_queries = [
+                        {"collection": "known_bugs", "query": query},
+                        {"collection": "historical_failures", "query": query},
+                        {"collection": "workflow_recipes", "query": query},
+                    ]
+                if memory_queries:
+                    memory_context = store.search_multi(memory_queries, top_k=3)
+                    if memory_context:
+                        assembled["memory_context"] = memory_context
+                        assembled["context_sources"].append("memory")
+        except Exception as e:
+            self._log(f"[warn] memory context skipped: {e}")
+
+        try:
+            from alice_engine.platform_bridge import get_knowledge_service
+
+            knowledge = get_knowledge_service()
+            if getattr(knowledge, "available", lambda: False)():
+                knowledge_context = knowledge.search(
+                    query=query or module or page or self.state.goal,
+                    collection="all",
+                    top_k=5,
+                )
+                if knowledge_context:
+                    assembled["knowledge_context"] = {"results": knowledge_context}
+                    assembled["context_sources"].append("knowledge")
+        except Exception as e:
+            self._log(f"[warn] knowledge context skipped: {e}")
+
+        runtime_context.update(assembled)
+        return runtime_context
 
     # [LAYER:Adapter/Event] 事件发射
     def _emit_obs(self, event_type: EventType, data: dict = None) -> None:
@@ -371,7 +465,7 @@ class AgentLoop:
     # [LAYER:Runtime/ErrorLogging] 日志
     def _log(self, msg: str) -> None:
         if self.verbose:
-            self._logger.info("agent_log", msg=msg)
+            self._logger.info(msg)
 
     # [LAYER:Runtime/Paths] 路径工具函数
     def _slug_to_page_name(self, slug: str) -> str:
@@ -392,7 +486,7 @@ class AgentLoop:
         resolved = pattern
         # 开发 Agent 使用 dev-platform 上下文路径
         if self.agent_name in DEV_AGENT_SKILL_MAP:
-            module_dir = str(GOVERNANCE / "context" / "projects" / "dev-platform")
+                module_dir = str(_get_governance_root() / "context" / "projects" / "dev-platform")
         else:
             module_dir = str(CONTEXT_MODULES / self.module)
         resolved = resolved.replace("{module_dir}", module_dir)
@@ -434,6 +528,14 @@ class AgentLoop:
             vars_["prev_output"] = str(self.state.memory["prev_output"])[:3000]
         if self.state.memory.get("tech_analysis_summary"):
             vars_["tech_analysis_summary"] = self.state.memory["tech_analysis_summary"]
+
+        runtime_context = self._build_runtime_context()
+        if runtime_context.get("memory_context"):
+            vars_["memory_context"] = runtime_context["memory_context"]
+        if runtime_context.get("knowledge_context"):
+            vars_["knowledge_context"] = runtime_context["knowledge_context"]
+        if runtime_context.get("context_sources"):
+            vars_["context_sources"] = runtime_context["context_sources"]
 
         # ── 无-PRD 模式: 注入文件路径供 context_injector 使用 ──
         if self.module:
@@ -629,8 +731,7 @@ class AgentLoop:
         from alice_engine.core.planner import plan_next_action
         return plan_next_action(
             skill_index, perception, self.skills, self.state,
-            self.deep_review, self._review_triggered, self.MAX_RETRIES,
-            self.provider, logger=self._log)
+            logger_fn=self._log)
 
     # ── 3. Act（执行）────────────────────────────────────────────
 
@@ -680,6 +781,8 @@ class AgentLoop:
                 reliable_provider=self._reliable_provider,
                 capability_router=router,          # ★ v2.0
                 agent_name=self.agent_name,        # ★ v2.0
+                mcp_tools=getattr(self, "_mcp_tools", {}),
+                mcp_clients=getattr(self, "_mcp_clients", []),
             )
         else:
             response = run_skill(
@@ -689,13 +792,16 @@ class AgentLoop:
                 context_vars=context_vars,
                 capability_router=router,          # ★ v2.0
                 agent_name=self.agent_name,        # ★ v2.0
+                mcp_tools=getattr(self, "_mcp_tools", {}),
+                mcp_clients=getattr(self, "_mcp_clients", []),
             )
 
         # ★ v1.0: 更新窗口 token 计数
-        if self._window_monitor and response.token_usage:
+        usage = getattr(response, "usage", {}) or {}
+        if self._window_monitor and usage:
             self._window_monitor.add_usage(
-                response.token_usage.get("input", 0),
-                response.token_usage.get("output", 0),
+                usage.get("input", 0),
+                usage.get("output", 0),
             )
 
         # 记录消息历史 (供 continuation 摘要)
@@ -713,7 +819,7 @@ class AgentLoop:
     def _save_skill_output(self, skill_id: str, content: str) -> str:
         """将 LLM 输出保存到对应的文件路径。委托给 output_persistence 模块。"""
         return save_skill_output(skill_id, content, self.module, self.page,
-                                 self.agent_name, logger=self._log)
+                                 self.agent_name, logger_fn=self._log)
 
     @staticmethod
     def _extract_yaml_block(text: str) -> str:
@@ -762,6 +868,11 @@ class AgentLoop:
             import re
             from alice_engine.core.task import _ALL_ARTIFACT_RULES
 
+            # 获取当前 CONTEXT_MODULES 值（运行时更新）
+            context_modules = Path(os.environ.get("ENGINE_WORKSTUDY", ".")) / ".tlo" / "knowledge" / "modules"
+            if not context_modules.exists():
+                context_modules = Path(os.environ.get("ENGINE_WORKSTUDY", ".")) / "context"
+
             # Priority 1: Use artifact rule glob_pattern for exact path match
             rules = _ALL_ARTIFACT_RULES.get(skill_id, [])
             filepath = None
@@ -771,17 +882,18 @@ class AgentLoop:
                     break
 
             # Priority 2: Static fallback for skills without artifact rules
-            # v3.1: 从 skill_id 自动生成文件名，消除硬编码映射
+            # v3.1: 使用 output_persistence 的映射，消除硬编码
             if filepath is None:
-                # 通用命名规则: skill_id 最后一段 → 大写下划线 + .md
-                # "plan/create-project-plan" → "CREATE_PROJECT_PLAN.md"
-                # "automation/page-object-generator" → "PAGE_OBJECT_GENERATOR.md"
-                skill_name = skill_id.split("/")[-1] if "/" in skill_id else skill_id
-                filename = skill_name.upper().replace("-", "_") + ".md"
-                if self.agent_name in DEV_AGENT_SKILL_MAP:
-                    parent_dir = GOVERNANCE / "context" / "projects" / "dev-platform"
+                from alice_engine.core.output_persistence import _skill_to_filename, _SKILL_TO_PAGE_ARTIFACT
+                filename = _skill_to_filename(skill_id)
+
+                # 如果是页面级产物且有 page 参数，保存到页面目录
+                if skill_id in _SKILL_TO_PAGE_ARTIFACT and self.page:
+                    parent_dir = context_modules / self.module / "pages" / self.page
+                elif self.agent_name in DEV_AGENT_SKILL_MAP:
+                    parent_dir = _get_governance_root() / "context" / "projects" / "dev-platform"
                 else:
-                    parent_dir = CONTEXT_MODULES / self.module
+                    parent_dir = context_modules / self.module
                 parent_dir.mkdir(parents=True, exist_ok=True)
                 filepath = parent_dir / filename
 
@@ -826,7 +938,7 @@ class AgentLoop:
             skill_id=skill_id,
             raw_output_preview=response.content[:500] if response.content else "",
             raw_output_full=response.content or "",  # ★ Full content for artifact persistence
-            token_usage=response.token_usage,
+            token_usage=getattr(response, "usage", {}) or {},
         )
 
         # ★ P0: 运行时安全检查
@@ -1113,7 +1225,9 @@ class AgentLoop:
             for client in _mcp_clients:
                 try:
                     if hasattr(client, "close"):
-                        client.close()
+                        close_result = client.close()
+                        if asyncio.iscoroutine(close_result):
+                            asyncio.run(close_result)
                 except Exception:
                     pass
             _mcp_clients.clear()
@@ -1145,8 +1259,7 @@ class AgentLoop:
             self.use_worktree = False
 
         # ── Task 6 (P1): MCP Client — connect to external tools ──
-        self._mcp_clients = []
-        self._mcp_tools = {}
+        self._init_mcp_clients()
 
         self._log(f"🤖 Agent: {self.agent_name} | Provider: {self.provider}")
         self._log(f"  目标: {self.state.goal}")
@@ -1229,7 +1342,46 @@ class AgentLoop:
                 self._log(f"  ▶️  [{skill_index + 1}/{len(self.skills)}] {skill_id}...")
                 self._emit_obs(EventType.SKILL_START, {"skill_id": skill_id})
 
+            replay_step = None
+            if getattr(self, "_replay_recorder", None):
+                try:
+                    replay_step = self._replay_recorder.begin_step(
+                        "skill",
+                        skill_id,
+                        input_data={
+                            "module": self.module,
+                            "page": self.page,
+                            "agent": self.agent_name,
+                        },
+                        metadata={"skill_index": skill_index},
+                    )
+                except Exception:
+                    replay_step = None
+
             response = self.act(skill_id)
+
+            if replay_step and getattr(self, "_replay_recorder", None):
+                try:
+                    self._replay_recorder.record_llm_call(
+                        replay_step.id,
+                        getattr(response, "model", ""),
+                        self.provider,
+                        [],
+                        response.content or "",
+                        usage=getattr(response, "usage", {}) or {},
+                    )
+                    self._replay_recorder.end_step(
+                        replay_step.id,
+                        output_data={
+                            "finish_reason": response.finish_reason,
+                            "tool_calls": getattr(response, "tool_calls", []) or [],
+                            "tool_results": getattr(response, "tool_results", []) or [],
+                        },
+                        status="error" if response.finish_reason == "error" else "success",
+                        error_message=(response.content[:200] if response.finish_reason == "error" else ""),
+                    )
+                except Exception:
+                    pass
 
             # Persist artifact IMMEDIATELY — before observe() checks file existence
             if response.content and response.finish_reason != "error":
@@ -1238,9 +1390,10 @@ class AgentLoop:
                     self._log(f"  📄 saved: {Path(saved).name}")
 
             if not is_retry and response.finish_reason != "error":
-                elapsed = response.token_usage.get("elapsed_seconds", 0)
-                tokens_in = response.token_usage.get("input", 0)
-                tokens_out = response.token_usage.get("output", 0)
+                usage = getattr(response, "usage", {}) or {}
+                elapsed = usage.get("elapsed_seconds", 0)
+                tokens_in = usage.get("input", 0)
+                tokens_out = usage.get("output", 0)
                 self._log(f"✅ {elapsed:.1f}s | {tokens_in}+{tokens_out} tokens")
                 self._emit_obs(EventType.SKILL_COMPLETE, {
                     "skill_id": skill_id, "elapsed": elapsed,

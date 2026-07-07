@@ -7,6 +7,7 @@ execution + report + knowledge Agent LangGraph SubGraphs。
 
 from pathlib import Path
 from typing import Literal
+import os
 
 from langgraph.graph import StateGraph, END
 
@@ -16,6 +17,25 @@ from alice_engine.workflow.state import get_test_project_root, get_behavior_pack
 from pathlib import Path as _Path
 
 WORKSTUDY = _Path(".")
+
+
+def _default_provider() -> str:
+    return os.environ.get("LLM_PROVIDER", os.environ.get("AITEST_PROVIDER", "claude"))
+
+
+def run_skill(*args, **kwargs):
+    from alice_engine.core.skill_executor import run_skill as _run_skill
+
+    return _run_skill(*args, **kwargs)
+
+
+def process_pending() -> list[dict]:
+    """Optional event-queue drain hook.
+
+    The standalone SDK keeps this as a no-op by default. Platform-side event
+    processing can be layered back in through explicit adapters later.
+    """
+    return []
 
 
 def _get_allure_dir() -> Path:
@@ -49,7 +69,7 @@ def exec_act(state: SOPState) -> dict:
     page = _get_page(state)
     agent = AgentLoop(
         "execution-agent",
-        provider=state.get("provider") or __import__("aitest.config").config.resolve_llm_provider(),
+        provider=state.get("provider") or _default_provider(),
         module=state["module"],
         page=page,
         verbose=False,
@@ -113,11 +133,9 @@ REPORT_SKILLS = ["reporting/report-generator", "reporting/excel-exporter"]
 
 def _single_skill_act(state: dict, skill_id: str) -> dict:
     """单 Skill 执行（无循环，report 和 knowledge 各 1-2 个 skill）。"""
-    from alice_engine.core.skill_executor_impl import SkillExecutorImpl
-
     module = state["module"]
     page = _get_page(state)
-    provider = state.get("provider", "claude")
+    provider = state.get("provider") or _default_provider()
 
     response = run_skill(
         skill_id=skill_id,
@@ -132,7 +150,7 @@ def _single_skill_act(state: dict, skill_id: str) -> dict:
             **state.get("agent_outputs", {}),
             f"skill_{skill_id.replace('/', '_')}": {
                 "content_preview": response.content[:500] if response.content else "",
-                "token_usage": response.token_usage,
+                "token_usage": getattr(response, "usage", getattr(response, "token_usage", {})),
                 "finish_reason": response.finish_reason,
             },
         },
@@ -186,8 +204,14 @@ def knowledge_act(state: SOPState) -> dict:
         processed = process_pending()
         result["agent_outputs"]["events_processed"] = len(processed)
     except Exception as e:
-        import logging; _log_error = logging.getLogger(__name__).error
-        _log_error("execution_graph.knowledge", "event_bus_process", e, {"module": state["module"]})
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "knowledge event processing skipped for module %s: %s",
+            state["module"],
+            e,
+        )
+        result["agent_outputs"]["events_processed"] = 0
 
     # P2-8: RAG 索引增量更新 — 仅变更时重建，避免每次全量重索引
     # RAG 索引同步 — 使用 SDK KnowledgeStore 接口

@@ -1,0 +1,25 @@
+{
+  "module": "workflow",
+  "status": "failed",
+  "completed_phases": [],
+  "failed_phases": [
+    "Project Init"
+  ],
+  "pages_processed": [],
+  "per_page_results": [],
+  "agent_summary": {
+    "preflight_auto_detect": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": ""
+    },
+    "project-agent": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": "exception: 未知 Provider: 'mimo'。可用: ['mock', 'claude', 'anthropic', 'openai', 'deepseek', 'ollama']"
+    }
+  },
+  "run_id": "engine-51d4fd85",
+  "updated_at": "2026-07-05T17:36:37",
+  "engine": "langgraph"
+}

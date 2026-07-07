@@ -1,0 +1,25 @@
+{
+  "module": "equipment",
+  "status": "failed",
+  "completed_phases": [],
+  "failed_phases": [
+    "Project Init"
+  ],
+  "pages_processed": [],
+  "per_page_results": [],
+  "agent_summary": {
+    "preflight_auto_detect": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": ""
+    },
+    "project-agent": {
+      "success": false,
+      "skills_completed": 0,
+      "termination": "exception: save_skill_output() got an unexpected keyword argument 'logger'"
+    }
+  },
+  "run_id": "engine-a2c2a2fe",
+  "updated_at": "2026-07-05T01:50:42",
+  "engine": "langgraph"
+}

@@ -6,7 +6,7 @@ Pure function — no LangGraph execution.
 """
 import pytest
 
-from aitest.graphs.sop_graph import route_next_phase, PHASE_TO_NODE
+from alice_engine.workflow.sop_graph import route_next_phase, PHASE_TO_NODE
 from aitest.graphs.state import CANONICAL_PHASES, create_initial_state
 
 

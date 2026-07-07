@@ -107,6 +107,8 @@ async def migrate_runs(db_path: Path) -> dict:
                 org_id=r.get("org_id", ""),
                 triggered_by=r.get("triggered_by", ""),
                 trigger_type=r.get("trigger_type", "manual"),
+                agent=r.get("agent", ""),
+                idempotency_key=r.get("idempotency_key", ""),
                 module=r.get("module", ""),
                 pages=json.loads(r.get("pages", "[]")),
                 mode=r.get("mode", "full"),
@@ -117,6 +119,7 @@ async def migrate_runs(db_path: Path) -> dict:
                 created_at=_parse_dt(r.get("created_at", "")),
                 started_at=_parse_dt(r["started_at"]) if r.get("started_at") else None,
                 completed_at=_parse_dt(r["completed_at"]) if r.get("completed_at") else None,
+                next_retry_at=_parse_dt(r["next_retry_at"]) if r.get("next_retry_at") else None,
                 retry_count=r.get("retry_count", 0),
                 max_retries=r.get("max_retries", 0),
             )

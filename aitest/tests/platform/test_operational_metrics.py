@@ -172,6 +172,25 @@ class TestRecordCapability:
         assert c["success"] == 1
 
 
+class TestRecordExecution:
+    def test_records_execution_rollup(self):
+        mc = MetricsCollector()
+        mc.record_execution(
+            agent="automation-agent",
+            module="sales",
+            duration_s=12.5,
+            total_tokens=300,
+            total_cost=0.42,
+            success=True,
+            retry_count=1,
+            max_retries=3,
+        )
+        snap = mc.snapshot()
+        assert "automation-agent" in snap["agent_latency_p95"]
+        assert snap["workflow"]["sales"]["success"] == 1
+        assert snap["capability_cost"]["automation-agent"]["calls"] == 1
+
+
 # ══════════════════════════════════════════════════════════════════════════
 #  MetricsCollector — snapshot
 # ══════════════════════════════════════════════════════════════════════════

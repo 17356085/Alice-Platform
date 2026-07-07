@@ -71,6 +71,26 @@ class ToolResult:
     truncated: bool = False
 
 
+@dataclass
+class CapabilityContract:
+    """Capability 插件契约。
+
+    这是路由器对外暴露的发现层，不要求调用 execute。
+    """
+
+    capability: str
+    tool_name: str
+    description: str
+    provider_name: str = ""
+    side_effect: str = "read"
+    estimated_duration: str = "1s"
+    requires_confirmation: bool = False
+    priority: int = 100
+    available: bool = True
+    source: str = "builtin"
+    extra: dict[str, Any] = field(default_factory=dict)
+
+
 # ══════════════════════════════════════════════════════════════════════════
 #  CapabilityProvider — 能力提供者基类
 # ══════════════════════════════════════════════════════════════════════════
@@ -104,6 +124,23 @@ class CapabilityProvider(ABC):
     def truncation_limit(self) -> int:
         return 8000
 
+    def contract(self, *, available: bool = True, source: str = "builtin", **extra: Any) -> CapabilityContract:
+        """Build a discovery contract for the provider."""
+        tool_def = self.get_tool_def()
+        return CapabilityContract(
+            capability=self.capability,
+            tool_name=tool_def.name,
+            description=tool_def.description,
+            provider_name=self.provider_name,
+            side_effect=tool_def.side_effect,
+            estimated_duration=tool_def.estimated_duration,
+            requires_confirmation=tool_def.requires_confirmation,
+            priority=self.priority,
+            available=available,
+            source=source,
+            extra=extra,
+        )
+
 
 # ══════════════════════════════════════════════════════════════════════════
 #  CapabilityRouter
@@ -121,6 +158,7 @@ class CapabilityRouter:
 
     def __init__(self, load_plugins: bool = True, plugin_manager=None):
         self._registry: dict[str, list[CapabilityProvider]] = {}
+        self._contracts: dict[str, list[CapabilityContract]] = {}
         self._agent_capabilities: dict[str, list[str]] = {}
         self._plugin_manager = plugin_manager  # injected (None = lazy singleton)
         if load_plugins:
@@ -152,8 +190,11 @@ class CapabilityRouter:
         cap = provider.capability
         if cap not in self._registry:
             self._registry[cap] = []
+            self._contracts[cap] = []
         self._registry[cap].append(provider)
         self._registry[cap].sort(key=lambda p: p.priority)
+        self._contracts[cap].append(self._build_contract(provider))
+        self._contracts[cap].sort(key=lambda c: c.priority)
 
     def set_agent_capabilities(self, mapping: dict[str, list[str]]) -> None:
         """设置 Agent → Capability 映射（★ v0.4: 从 agent-definitions.yaml 加载）。"""
@@ -179,6 +220,15 @@ class CapabilityRouter:
 
     def list_capabilities(self) -> list[str]:
         return list(self._registry.keys())
+
+    def list_capability_contracts(self) -> list[CapabilityContract]:
+        contracts: list[CapabilityContract] = []
+        for items in self._contracts.values():
+            contracts.extend(items)
+        return contracts
+
+    def get_capability_contracts(self, capability: str) -> list[CapabilityContract]:
+        return list(self._contracts.get(capability, []))
 
     def list_agents(self) -> list[str]:
         return list(self._agent_capabilities.keys())
@@ -213,6 +263,36 @@ class CapabilityRouter:
                     break  # 取最高优先级的一个
 
         return tools
+
+    def capability_contracts_for_agent(self, agent_name: str) -> list[CapabilityContract]:
+        """Return discoverable capability contracts for an agent."""
+        capabilities = self._agent_capabilities.get(agent_name, [])
+        if not capabilities:
+            capabilities = list(self._registry.keys())
+        contracts: list[CapabilityContract] = []
+        for cap in capabilities:
+            contracts.extend(self.get_capability_contracts(cap))
+        return contracts
+
+    def _build_contract(self, provider: CapabilityProvider) -> CapabilityContract:
+        if hasattr(provider, "contract"):
+            try:
+                return provider.contract()
+            except TypeError:
+                pass
+        tool_def = provider.get_tool_def()
+        return CapabilityContract(
+            capability=getattr(provider, "capability", ""),
+            tool_name=tool_def.name,
+            description=tool_def.description,
+            provider_name=getattr(provider, "provider_name", ""),
+            side_effect=getattr(tool_def, "side_effect", "read"),
+            estimated_duration=getattr(tool_def, "estimated_duration", "1s"),
+            requires_confirmation=getattr(tool_def, "requires_confirmation", False),
+            priority=getattr(provider, "priority", 100),
+            available=True,
+            source="legacy",
+        )
 
     # ── 执行 ─────────────────────────────────────────────────────
 

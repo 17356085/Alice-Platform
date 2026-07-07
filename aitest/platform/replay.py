@@ -29,6 +29,19 @@ from aitest.infra.sql import safe_exec, safe_query
 logger = logging.getLogger("replay")
 
 
+def _decode_json_field(value, default):
+    if value is None:
+        return default
+    if isinstance(value, (dict, list)):
+        return value
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except Exception:
+            return default
+    return default
+
+
 class ReplayMode:
     MOCK = "mock"
     LIVE_COMPARE = "compare"
@@ -233,10 +246,12 @@ class ReplayPlayer:
             self._steps.append(ExecutionStep(
                 id=r["id"], session_id=r["session_id"],
                 step_index=r["step_index"], step_type=r["step_type"], name=r["name"],
-                input_data=r.get("input_data", {}), output_data=r.get("output_data", {}),
+                input_data=_decode_json_field(r.get("input_data", {}), {}),
+                output_data=_decode_json_field(r.get("output_data", {}), {}),
                 status=r.get("status", ""), duration_ms=r.get("duration_ms", 0),
                 error_message=r.get("error_message", ""), started_at=r.get("started_at", 0),
-                completed_at=r.get("completed_at", 0), metadata=r.get("metadata", {}),
+                completed_at=r.get("completed_at", 0),
+                metadata=_decode_json_field(r.get("metadata", {}), {}),
             ))
 
         trace_rows = safe_query(
@@ -246,8 +261,10 @@ class ReplayPlayer:
             trace = LLMTrace(
                 id=r["id"], step_id=r["step_id"], session_id=r["session_id"],
                 model=r.get("model", ""), provider=r.get("provider", ""),
-                messages=r.get("messages", []), response=r.get("response", ""),
-                usage=r.get("usage", {}), temperature=r.get("temperature", 0),
+                messages=_decode_json_field(r.get("messages", []), []),
+                response=r.get("response", ""),
+                usage=_decode_json_field(r.get("usage", {}), {}),
+                temperature=r.get("temperature", 0),
                 duration_ms=r.get("duration_ms", 0),
             )
             self._llm_traces[trace.step_id] = trace
@@ -282,3 +299,35 @@ class ReplayPlayer:
                 "new_keys": list(new.keys()),
             }
         return comparison
+
+    def audit_entries(self, audit_logger=None, limit: int = 500) -> list[dict]:
+        from aitest.platform.audit_log import get_audit_logger
+
+        logger = audit_logger or get_audit_logger()
+        return logger.query(
+            run_id=self.session.run_id,
+            replay_session_id=self.session_id,
+            limit=limit,
+        )
+
+
+def list_replay_sessions(run_id: str) -> list[ReplaySession]:
+    rows = safe_query(
+        "SELECT * FROM replay_sessions WHERE run_id=? ORDER BY created_at DESC",
+        [run_id],
+    )
+    sessions = []
+    for r in rows:
+        sessions.append(ReplaySession(
+            id=r["id"],
+            run_id=r["run_id"],
+            module=r["module"],
+            page=r.get("page", ""),
+            agent=r.get("agent", ""),
+            mode=r.get("mode", "mock"),
+            step_count=r.get("step_count", 0),
+            total_duration_ms=r.get("total_duration_ms", 0),
+            status=r.get("status", ""),
+            created_at=r.get("created_at", ""),
+        ))
+    return sessions

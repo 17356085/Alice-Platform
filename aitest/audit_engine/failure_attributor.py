@@ -364,7 +364,7 @@ if __name__ == "__main__":
 
     elif cmd == "classify":
         text = " ".join(sys.argv[2:])
-        from aitest.agents.runner_state import Observation
+        from alice_engine.core.task import Observation
         obs = Observation(skill_id="test", status="fail", summary="",
                          raw_output_preview=text[:200])
         category = attribute_failure(obs, text)

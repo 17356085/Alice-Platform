@@ -19,9 +19,9 @@ from aitest.graphs.state import (
     MODE_SKIP_MAP,
     AgentResult,
 )
-from aitest.graphs.sop_graph import route_next_phase, build_sop_graph, PHASE_TO_NODE
+from alice_engine.workflow.sop_graph import route_next_phase, build_sop_graph, PHASE_TO_NODE
 from aitest.graphs.checkpoint import get_checkpointer
-from aitest.graphs.nodes import make_agent_loop_node
+from alice_engine.workflow.nodes import make_agent_loop_node
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -194,7 +194,7 @@ class TestPreflight:
 
     @pytest.mark.skip(reason="Requires configured test project with code_path — run with project set")
     def test_preflight_discovers_pages(self):
-        from aitest.graphs.sop_graph import preflight_node
+        from alice_engine.workflow.sop_graph import preflight_node
         state = create_initial_state("equipment", [], mode="full")
         result = preflight_node(state)
         assert "pages" in result
@@ -202,7 +202,7 @@ class TestPreflight:
 
     @pytest.mark.skip(reason="Requires configured test project — run with project set")
     def test_preflight_recommends_mode(self):
-        from aitest.graphs.sop_graph import preflight_node
+        from alice_engine.workflow.sop_graph import preflight_node
         state = create_initial_state("equipment", ["alarm-config"], mode="full")
         result = preflight_node(state)
         auto = result["agent_outputs"]["preflight_auto_detect"]
@@ -211,7 +211,7 @@ class TestPreflight:
 
     def test_preflight_never_recommends_status(self):
         """preflight 不应自动推荐 status 模式——只有用户显式指定才用。"""
-        from aitest.graphs.sop_graph import preflight_node
+        from alice_engine.workflow.sop_graph import preflight_node
         state = create_initial_state("equipment", ["alarm-config", "camera", "key-param", "maintenance"], mode="full")
         result = preflight_node(state)
         auto = result["agent_outputs"]["preflight_auto_detect"]

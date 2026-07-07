@@ -9,11 +9,11 @@ import threading
 import pytest
 from unittest.mock import MagicMock, patch
 
-from aitest.agents.agent_runner import (
+from alice_engine.core.executor import (
     AgentLoop, list_agents, list_dev_agents, run_agent,
     AGENT_SKILL_MAP, DEV_AGENT_SKILL_MAP,
 )
-from aitest.agents.runner_state import AgentState
+from alice_engine.core.task import AgentState
 
 
 # ══════════════════════════════════════════════════════════════════════════

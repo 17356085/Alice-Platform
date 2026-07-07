@@ -14,6 +14,8 @@ from pathlib import Path
 from dataclasses import dataclass
 import logging
 
+from alice_engine.behavior import resolve_governance_pack_path
+
 logger = logging.getLogger(__name__)
 
 
@@ -67,6 +69,11 @@ class SkillLoader:
         self.skills_dev_dir = self.governance / "skills-dev"
         self._registry_cache: dict | None = None
 
+        # 默认 governance 目录 (engine 内置)
+        self._default_governance = Path(__file__).parent.parent / "governance_default"
+        self._default_skills_dir = self._default_governance / "skills"
+        self._default_skills_dev_dir = self._default_governance / "skills-dev"
+
     def load(self, skill_id: str, variant: str = None, version: str = None) -> str:
         """加载 Skill Prompt 内容。
 
@@ -108,6 +115,15 @@ class SkillLoader:
         skill_dev_path = self.skills_dev_dir / f"{skill_id}.md"
         if skill_dev_path.exists():
             return skill_dev_path.read_text(encoding="utf-8")
+
+        # 格式1c: 默认 governance 目录 (engine 内置)
+        default_skill_path = self._default_skills_dir / f"{skill_id}.md"
+        if default_skill_path.exists():
+            return default_skill_path.read_text(encoding="utf-8")
+
+        default_skill_dev_path = self._default_skills_dev_dir / f"{skill_id}.md"
+        if default_skill_dev_path.exists():
+            return default_skill_dev_path.read_text(encoding="utf-8")
 
         # 格式2: 在 registry 中查找
         # v3.1: 精确匹配优先，不再用最后一段模糊匹配（避免 "code-review/review" 匹配 "debug/review"）
@@ -439,3 +455,56 @@ class SkillLoader:
         raise ValueError(
             f"Variant '{variant_id}' not found for skill '{skill_id}'."
         )
+
+
+def _default_governance_root() -> Path:
+    root = resolve_governance_pack_path(project_root=Path.cwd())
+    if root is None:
+        root = Path(__file__).resolve().parent.parent / "governance_default"
+    return root
+
+
+@functools.lru_cache(maxsize=1)
+def _default_loader() -> SkillLoader:
+    return SkillLoader(governance_path=_default_governance_root())
+
+
+SKILLS_DIR = _default_governance_root() / "skills"
+SKILLS_DEV_DIR = _default_governance_root() / "skills-dev"
+
+
+def load_skill(skill_id: str, variant: str = None, version: str = None) -> str:
+    return _default_loader().load(skill_id, variant=variant, version=version)
+
+
+def list_skills(category: str = None) -> list[dict]:
+    return _default_loader().list_skills(category=category)
+
+
+def list_categories() -> list[str]:
+    return _default_loader().list_categories()
+
+
+def get_skill_version(skill_id: str) -> SkillVersionInfo | None:
+    return _default_loader().get_skill_version(skill_id)
+
+
+def resolve_skill_version(skill_id: str) -> SkillVersionInfo:
+    info = get_skill_version(skill_id)
+    if info is not None:
+        return info
+    clean_id = skill_id.partition("@")[0]
+    return SkillVersionInfo(
+        skill_id=clean_id,
+        resolved_version="?",
+        current_version="?",
+        file_path="",
+    )
+
+
+def load_variant(skill_id: str, variant_id: str) -> str:
+    return _default_loader()._load_variant(skill_id, variant_id)
+
+
+def list_variants(skill_id: str = None) -> list[PromptVariant]:
+    return _default_loader().list_variants(skill_id=skill_id)

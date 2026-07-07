@@ -5,7 +5,7 @@
 
 用法:
     from alice_engine.core.interfaces import (
-        PathResolver, EventEmitter, Logger, LLMProvider, ContextInjector
+        PathResolver, EventEmitter, Logger, LLMProviderProtocol, ContextInjector
     )
 """
 
@@ -104,6 +104,10 @@ class Logger(Protocol):
                 print(f"[ERROR] {msg}")
     """
 
+    def debug(self, msg: str, **kwargs) -> None:
+        """调试日志。"""
+        ...
+
     def info(self, msg: str, **kwargs) -> None:
         """信息日志。"""
         ...
@@ -128,6 +132,9 @@ class SimpleLogger:
         self.name = name
         self._bindings: dict = {}
 
+    def debug(self, msg: str, **kwargs) -> None:
+        print(f"[{self.name}] DEBUG: {msg}")
+
     def info(self, msg: str, **kwargs) -> None:
         print(f"[{self.name}] INFO: {msg}")
 
@@ -147,15 +154,7 @@ class SimpleLogger:
 #  4. LLMProvider — LLM 调用
 # ═══════════════════════════════════════════════════════════
 
-@dataclass
-class LLMResponse:
-    """LLM 响应。"""
-    content: str = ""
-    tool_calls: list[dict] = field(default_factory=list)
-    token_usage: dict = field(default_factory=dict)
-    model: str = ""
-    finish_reason: str = "stop"
-    latency_ms: int = 0
+from alice_engine.providers.base import LLMResponse  # noqa: F401 — canonical definition
 
 
 @runtime_checkable
@@ -223,8 +222,30 @@ class ContextInjector(Protocol):
 
 
 # ═══════════════════════════════════════════════════════════
-#  便利函数
+#  默认实现（用于测试和独立运行）
 # ═══════════════════════════════════════════════════════════
+
+class SimplePathResolver:
+    """简单路径解析器 — 基于工作目录的默认实现。"""
+
+    def __init__(self, workstudy: Path = None):
+        self._workstudy = workstudy or Path.cwd()
+
+    def get_workstudy(self) -> Path:
+        return self._workstudy
+
+    def get_behavior_path(self) -> Path:
+        return self._workstudy / "governance"
+
+    def get_test_project_root(self) -> Path | None:
+        return None
+
+    def get_context_modules(self) -> Path:
+        return self._workstudy / "governance" / "context" / "modules"
+
+    def get_project_dir(self) -> Path:
+        return self._workstudy / "governance" / "context" / "projects"
+
 
 class NullEventEmitter:
     """空事件发射器 — 不做任何事。"""

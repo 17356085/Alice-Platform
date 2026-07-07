@@ -321,15 +321,8 @@ def _query_memory(
     Task 3b: Delegates to rag_engine.build_planner_memory_context()
     which queries 5 memory types with graceful cold-start degradation.
     """
-    try:
-        pass  # RAG optional
-        return build_planner_memory_context(
-            module=module,
-            task_description=task_description,
-        )
-    except Exception:
-        # Memory DB not initialized / connection failed → silent fallback
-        return ""
+    from alice_engine.platform_bridge import get_planner_memory_context
+    return get_planner_memory_context(module=module, task_description=task_description)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

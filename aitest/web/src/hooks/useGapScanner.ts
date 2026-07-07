@@ -3,6 +3,7 @@
  *  Fetches real /api/sop-status and analyzes gaps per module.
  */
 import { useState, useMemo, useCallback } from 'react'
+import { api } from '@/api/client'
 
 // Toast notification bridge (injected by lib/toast.tsx)
 declare global {
@@ -61,8 +62,7 @@ export function useGapScanner() {
     setProgress('Fetching module status...')
 
     try {
-      const res = await fetch('/api/sop-status')
-      const data = await res.json()
+      const data = await api.get('/api/sop-status')
       const modules = data.modules || {}
       const discovered: TestGap[] = []
       const modKeys = Object.keys(modules)

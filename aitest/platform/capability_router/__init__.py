@@ -9,7 +9,7 @@ Week 2 Day 1-2: Agent 通过 Capability 名称调用能力，不关心底层实�
 """
 from aitest.platform.capability_router.router import (
     CapabilityRouter, CapabilityProvider, CapabilityUnavailableError,
-    ToolDef, ToolCall, ToolResult,
+    CapabilityContract, ToolDef, ToolCall, ToolResult,
 )
 from aitest.platform.capability_router.agent_capabilities import AGENT_CAPABILITIES
 
@@ -48,3 +48,17 @@ def get_router() -> "CapabilityRouter":
     if _router is None:
         _router = create_router()
     return _router
+
+
+__all__ = [
+    "CapabilityRouter",
+    "CapabilityProvider",
+    "CapabilityContract",
+    "CapabilityUnavailableError",
+    "ToolDef",
+    "ToolCall",
+    "ToolResult",
+    "AGENT_CAPABILITIES",
+    "create_router",
+    "get_router",
+]

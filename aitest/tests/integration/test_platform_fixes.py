@@ -22,7 +22,7 @@ class TestParallelSOPFixes:
 
     def test_phase_slug_to_canonical_mapping(self):
         """C6: process_single_page maps phase slugs to canonical PhaseName."""
-        from aitest.graphs.parallel_sop import _PHASE_SLUG_TO_CANONICAL
+        from alice_engine.workflow.parallel import _PHASE_SLUG_TO_CANONICAL
 
         assert _PHASE_SLUG_TO_CANONICAL["project_init"] == "Project Init"
         assert _PHASE_SLUG_TO_CANONICAL["requirement"] == "Requirement"
@@ -34,7 +34,7 @@ class TestParallelSOPFixes:
 
     def test_process_single_page_no_page(self):
         """Returns failed result when no page specified."""
-        from aitest.graphs.parallel_sop import process_single_page
+        from alice_engine.workflow.parallel import process_single_page
 
         state = {"module": "test", "pages": [], "provider": "claude"}
         result = process_single_page(state)
@@ -45,7 +45,7 @@ class TestParallelSOPFixes:
 
     def test_process_single_page_error_propagation(self):
         """H7: Phase failure → break, page status reflects partial/failed."""
-        from aitest.graphs.parallel_sop import process_single_page
+        from alice_engine.workflow.parallel import process_single_page
 
         # Mock _run_agent to fail on first phase
         with patch("aitest.graphs.parallel_sop._run_agent", side_effect=RuntimeError("Boom")):
@@ -63,7 +63,7 @@ class TestParallelSOPFixes:
 
     def test_process_single_page_partial_completion(self):
         """H7: Some phases succeed, then failure → status='partial'."""
-        from aitest.graphs.parallel_sop import process_single_page
+        from alice_engine.workflow.parallel import process_single_page
 
         call_count = [0]
 
@@ -85,7 +85,7 @@ class TestParallelSOPFixes:
 
     def test_merge_pages_does_not_overwrite_status(self):
         """C6: merge_pages writes to agent_outputs, not top-level status."""
-        from aitest.graphs.parallel_sop import merge_pages
+        from alice_engine.workflow.parallel import merge_pages
 
         state = {
             "pages": ["a", "b"],
@@ -110,7 +110,7 @@ class TestParallelSOPFixes:
 
     def test_merge_pages_all_completed(self):
         """All pages succeed → parallel_status = 'completed'."""
-        from aitest.graphs.parallel_sop import merge_pages
+        from alice_engine.workflow.parallel import merge_pages
 
         state = {
             "pages": ["a"],
@@ -128,7 +128,7 @@ class TestParallelSOPFixes:
 
     def test_compile_parallel_sop_graph(self):
         """Parallel SOP graph compiles without errors."""
-        from aitest.graphs.parallel_sop import compile_parallel_sop
+        from alice_engine.workflow.parallel import compile_parallel_sop
         graph = compile_parallel_sop()
         assert graph is not None
 
@@ -142,7 +142,7 @@ class TestAgentRunnerCleanup:
 
     def test_cleanup_attrs_initialized_in_init(self):
         """H3: _mcp_clients, _wt_mgr, _worktree_ctx initialized in __init__."""
-        from aitest.agents.agent_runner import AgentLoop
+        from alice_engine.core.executor import AgentLoop
 
         agent = AgentLoop("project-agent", module="test", page="test")
 
@@ -155,7 +155,7 @@ class TestAgentRunnerCleanup:
 
     def test_finalize_session_safe_without_run(self):
         """H3: _finalize_session doesn't crash when called before _run_single_session."""
-        from aitest.agents.agent_runner import AgentLoop
+        from alice_engine.core.executor import AgentLoop
 
         agent = AgentLoop("project-agent", module="test", page="test")
         # _finalize_session should be safe even if _run_single_session never ran
@@ -164,7 +164,7 @@ class TestAgentRunnerCleanup:
 
     def test_finalize_session_idempotent(self):
         """_finalize_session is idempotent — safe to call multiple times."""
-        from aitest.agents.agent_runner import AgentLoop
+        from alice_engine.core.executor import AgentLoop
 
         agent = AgentLoop("project-agent", module="test", page="test")
         agent._finalize_session()
@@ -181,12 +181,12 @@ class TestQALoopDecision:
 
     def test_qa_loop_decision_node_exists(self):
         """qa_loop_decision_node is importable."""
-        from aitest.graphs.sop_graph import qa_loop_decision_node
+        from alice_engine.workflow.sop_graph import qa_loop_decision_node
         assert callable(qa_loop_decision_node)
 
     def test_qa_loop_escalate_returns_report(self):
         """Escalate → skip auto-fix, route to report."""
-        from aitest.graphs.sop_graph import qa_loop_decision_node
+        from alice_engine.workflow.sop_graph import qa_loop_decision_node
 
         state = {
             "completed_phases": ["Bug Analysis"],
@@ -206,7 +206,7 @@ class TestQALoopDecision:
 
     def test_qa_loop_retry_routes_to_automation(self):
         """Still have retry budget + failures → route to automation."""
-        from aitest.graphs.sop_graph import qa_loop_decision_node
+        from alice_engine.workflow.sop_graph import qa_loop_decision_node
 
         state = {
             "completed_phases": ["Bug Analysis"],
@@ -226,7 +226,7 @@ class TestQALoopDecision:
 
     def test_qa_loop_max_rounds_returns_next_phase(self):
         """Retry budget exhausted → continue to next phase."""
-        from aitest.graphs.sop_graph import qa_loop_decision_node
+        from alice_engine.workflow.sop_graph import qa_loop_decision_node
 
         state = {
             "completed_phases": ["Bug Analysis"],
@@ -246,7 +246,7 @@ class TestQALoopDecision:
 
     def test_route_next_phase_is_pure(self):
         """H5: route_next_phase does not modify state (no side effects)."""
-        from aitest.graphs.sop_graph import route_next_phase
+        from alice_engine.workflow.sop_graph import route_next_phase
         import copy
 
         state = {

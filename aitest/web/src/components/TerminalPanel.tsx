@@ -3,6 +3,7 @@
  *  key: useRef for container, Terminal instance in ref, cleanup on unmount.
  */
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { api } from '@/api/client'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { WebLinksAddon } from '@xterm/addon-web-links'
@@ -37,8 +38,7 @@ export default function TerminalPanel({ wsUrl, autoConnect = true }: TerminalPan
     if (ws) { try { ws.close() } catch {}; wsRef.current = null }
     if (reconnectTimerRef.current) { clearTimeout(reconnectTimerRef.current); reconnectTimerRef.current = null }
 
-    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const socket = new WebSocket(`${protocol}//${location.host}${wsUrl}`)
+    const socket = api.connectWS(wsUrl)
     wsRef.current = socket
     const term = termRef.current!
 

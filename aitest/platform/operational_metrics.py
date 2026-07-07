@@ -136,6 +136,31 @@ class MetricsCollector:
             tc["output"] += tokens_out
             tc["cost_est"] += self._estimate_cost(agent, tokens_in, tokens_out)
 
+    def record_execution(
+        self,
+        *,
+        agent: str,
+        module: str,
+        duration_s: float,
+        total_tokens: int,
+        total_cost: float,
+        success: bool,
+        retry_count: int = 0,
+        max_retries: int = 0,
+    ) -> None:
+        """Record a single execution outcome across the 8 KPI buckets."""
+        self.record_agent_run(
+            agent,
+            duration_s=duration_s,
+            tokens_in=0,
+            tokens_out=total_tokens,
+            success=success,
+        )
+        self.record_workflow(module, success=success)
+        self.record_capability(agent or "unknown", total_tokens, duration_s * 1000.0, success)
+        if retry_count > 0 or not success:
+            self.record_recovery(agent or "unknown", recovered=success and retry_count > 0)
+
     def record_phase(self, agent: str, phase: str, duration_s: float):
         key = f"{agent}:{phase}"
         with self._lock:

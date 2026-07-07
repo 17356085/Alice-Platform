@@ -13,20 +13,20 @@ class TestSOPGraphStructure:
 
     def test_build_graph_returns_state_graph(self):
         """build_sop_graph() returns a compilable StateGraph."""
-        from aitest.graphs.sop_graph import build_sop_graph
+        from alice_engine.workflow.sop_graph import build_sop_graph
         graph = build_sop_graph()
         assert graph is not None
 
     def test_compile_graph_succeeds(self):
         """Graph compiles without errors."""
-        from aitest.graphs.sop_graph import build_sop_graph
+        from alice_engine.workflow.sop_graph import build_sop_graph
         graph = build_sop_graph()
         compiled = graph.compile()
         assert compiled is not None
 
     def test_compile_with_sqlite_checkpointer(self):
         """Graph compiles with SqliteSaver checkpoint (in-memory)."""
-        from aitest.graphs.sop_graph import build_sop_graph
+        from alice_engine.workflow.sop_graph import build_sop_graph
         from langgraph.checkpoint.sqlite import SqliteSaver
 
         # Use in-memory SQLite to avoid path issues on Windows
@@ -37,7 +37,7 @@ class TestSOPGraphStructure:
 
     def test_graph_nodes_exist(self):
         """All 8 phase-agent nodes + entry/preflight/exit/cond_route exist."""
-        from aitest.graphs.sop_graph import build_sop_graph
+        from alice_engine.workflow.sop_graph import build_sop_graph
         graph = build_sop_graph()
 
         # The graph should contain expected nodes

@@ -8,7 +8,7 @@ import time
 import threading
 import pytest
 
-from aitest.llm.circuit_breaker import (
+from alice_engine.runtime.core.circuit_breaker import (
     CircuitBreaker, CircuitState, CircuitOpenError,
     get_circuit_breaker, get_all_metrics,
 )

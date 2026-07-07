@@ -116,6 +116,16 @@ class Engine:
         # 设置 LLM Provider 环境变量
         os.environ["LLM_PROVIDER"] = self.llm_provider
 
+        # 配置 alice_engine.workflow.state 的路径
+        from alice_engine.workflow.state import configure_paths
+        tlo_modules = self.workstudy / ".tlo" / "knowledge" / "modules"
+        context_modules = tlo_modules if tlo_modules.exists() else self.workstudy / "context"
+        configure_paths(
+            workstudy=self.workstudy,
+            context_modules=context_modules,
+            test_project_root=self.workstudy,
+        )
+
         logger.info("Engine initialized: workstudy=%s, governance=%s, llm=%s",
                      self.workstudy, self.governance, self.llm_provider)
 
@@ -181,7 +191,7 @@ class Engine:
         initial_state["run_id"] = run_id
 
         # 构建并编译图
-        from aitest.graphs.sop_graph import build_sop_graph
+        from alice_engine.workflow.sop_graph import build_sop_graph
         from aitest.graphs.checkpoint import get_checkpointer
 
         graph = build_sop_graph()

@@ -1,7 +1,7 @@
 """Unit tests for circuit_breaker.py — state machine transitions."""
 import time
 import pytest
-from aitest.llm.circuit_breaker import (
+from alice_engine.runtime.core.circuit_breaker import (
     CircuitBreaker, CircuitOpenError, CircuitState,
     get_circuit_breaker, get_all_metrics,
 )

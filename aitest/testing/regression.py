@@ -443,7 +443,7 @@ def check_prompt_upgrade(
     """
     import yaml
     from aitest.testing.evaluator import EvalRunner, _score_response
-    from aitest.llm.skill_loader import load_skill
+    from alice_engine.core.skill_loader import load_skill
 
     runner = EvalRunner(provider=provider)
     cases = runner.load_cases(tag=tag, skill_id=skill_id) if hasattr(runner, 'load_cases') else []
@@ -593,7 +593,7 @@ def promote_skill_version(skill_id: str, new_version: str, provider: str = "clau
     返回:
         {"promoted": True/False, "old_version": "...", "new_version": "...", "gate_result": {...}}
     """
-    from aitest.llm.skill_loader import get_skill_version
+    from alice_engine.core.skill_loader import get_skill_version
 
     ver_info = get_skill_version(skill_id)
     if ver_info is None:

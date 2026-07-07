@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 class OpenAIProvider(LLMProvider):
     """OpenAI API Provider。"""
 
+    provider_name = "openai"
+    provider_description = "OpenAI API provider"
+    provider_supports_tools = True
+
     def __init__(self, model: str = "gpt-4o-mini", api_key: str = ""):
         api_key = api_key or os.environ.get("OPENAI_API_KEY", "")
         if not api_key:
@@ -49,7 +53,7 @@ class OpenAIProvider(LLMProvider):
                 content=response.choices[0].message.content or "",
                 model=self.model,
                 finish_reason=response.choices[0].finish_reason or "stop",
-                token_usage={
+                usage={
                     "input": response.usage.prompt_tokens,
                     "output": response.usage.completion_tokens,
                 },

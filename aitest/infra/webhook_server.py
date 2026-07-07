@@ -17,10 +17,13 @@ import os
 import sys
 import json
 import time
+import logging
 import subprocess
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
@@ -31,6 +34,20 @@ WORKSTUDY = get_workstudy()
 sys.path.insert(0, str(WORKSTUDY))
 
 app = FastAPI(title="AI Test Platform Webhook", version="0.1.0")
+
+# ── Injected dependencies (break infra → audit_engine/knowledge cycles) ──
+_emit = None  # Optional[Callable]
+_search_known_issues = None  # Optional[Callable]
+
+
+def set_emit(fn):
+    global _emit
+    _emit = fn
+
+
+def set_search_known_issues(fn):
+    global _search_known_issues
+    _search_known_issues = fn
 
 
 @app.get("/health")
@@ -59,12 +76,6 @@ async def jenkins_webhook(request: Request):
         data = await request.json()
     except Exception as e:
         from aitest.infra.error_logger import log_error
-from aitest.audit_engine.event_bus import emit
-
-import logging
-
-logger = logging.getLogger(__name__)
-
         log_error("webhook_server", "parse_json", e)
         data = {}
 
@@ -108,12 +119,12 @@ logger = logging.getLogger(__name__)
             })
 
         # 发射 Event Bus 事件
-        emit("BugClosed", **{
-            "bug_id": f"CI-{build_id}",
-            "module": module,
-            "root_cause": f"CI build {build_id} failed — {failed_count}/{total_count} failures",
-            "known_issue_id": "TBD-RAG",
-        })
+        if _emit:
+            _emit("BugClosed",
+                  bug_id=f"CI-{build_id}",
+                  module=module,
+                  root_cause=f"CI build {build_id} failed — {failed_count}/{total_count} failures",
+                  known_issue_id="TBD-RAG")
 
     elif status == "SUCCESS":
         # CI 成功 → Report Agent + Knowledge Agent
@@ -128,18 +139,17 @@ logger = logging.getLogger(__name__)
             "mode": "precipitate",
         })
 
-        emit("CycleEnd", **{
-            "module": module,
-            "stats": f"build #{build_id}: {total_count} tests passed"
-        })
+        if _emit:
+            _emit("CycleEnd",
+                  module=module,
+                  stats=f"build #{build_id}: {total_count} tests passed")
 
     # ── RAG 已知问题自动匹配 ──
     rag_matches = []
-    if failed_count > 0:
+    if failed_count > 0 and _search_known_issues:
         try:
-            from aitest.knowledge.rag_engine import search_known_issues
             query = f"CI build failure {module} {failed_count} tests"
-            rag_results = search_known_issues(query, n_results=3)
+            rag_results = _search_known_issues(query, n_results=3)
             rag_matches = [
                 {"id": r["id"], "title": r["metadata"].get("title", ""), "distance": r.get("distance")}
                 for r in rag_results

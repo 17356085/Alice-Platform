@@ -15,6 +15,28 @@ from .event_bus import get_bus
 from .run_event import RunEvent, EventDataKey as K
 from aitest.infra.sql import safe_exec, safe_query
 
+
+def _decode_json_field(value, default):
+    if value is None:
+        return default
+    if isinstance(value, (dict, list)):
+        return value
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except Exception:
+            return default
+    return default
+
+
+def _normalize_entry(row: dict) -> dict:
+    entry = dict(row)
+    data = _decode_json_field(entry.get("data_json", {}), {})
+    entry["data"] = data
+    if K.REPLAY_SESSION_ID in data:
+        entry["replay_session_id"] = data.get(K.REPLAY_SESSION_ID, "")
+    return entry
+
 class AuditLogger:
     """Operational audit trail. Subscribes to all RunEvents at priority 0 (CRITICAL).
 
@@ -61,7 +83,7 @@ class AuditLogger:
             pass  # Audit failure must not break execution
 
     def query(self, *, org_id: str = "", workspace_id: str = "", event_type: str = "",
-              run_id: str = "", limit: int = 50, offset: int = 0,
+              run_id: str = "", replay_session_id: str = "", limit: int = 50, offset: int = 0,
               since: str = "", until: str = "") -> list[dict]:
         sql = "SELECT * FROM audit_entries WHERE 1=1"
         params: list = []
@@ -85,9 +107,27 @@ class AuditLogger:
             params.append(until)
         sql += " ORDER BY id DESC LIMIT ? OFFSET ?"
         params.extend([min(limit, 500), offset])
-        return safe_query(sql, params)
+        rows = safe_query(sql, params)
+        entries = [_normalize_entry(row) for row in rows]
+        if replay_session_id:
+            entries = [
+                entry for entry in entries
+                if entry.get("data", {}).get(K.REPLAY_SESSION_ID, "") == replay_session_id
+            ]
+        return entries
 
-    def count(self, *, org_id: str = "", workspace_id: str = "", event_type: str = "") -> int:
+    def count(self, *, org_id: str = "", workspace_id: str = "", event_type: str = "",
+              run_id: str = "", replay_session_id: str = "") -> int:
+        if replay_session_id:
+            return len(self.query(
+                org_id=org_id,
+                workspace_id=workspace_id,
+                event_type=event_type,
+                run_id=run_id,
+                replay_session_id=replay_session_id,
+                limit=500,
+                offset=0,
+            ))
         sql = "SELECT COUNT(*) as cnt FROM audit_entries WHERE 1=1"
         params: list = []
         if org_id:
@@ -99,6 +139,9 @@ class AuditLogger:
         if event_type:
             sql += " AND event_type=?"
             params.append(event_type)
+        if run_id:
+            sql += " AND run_id=?"
+            params.append(run_id)
         rows = safe_query(sql, params)
         return rows[0]["cnt"] if rows else 0
 

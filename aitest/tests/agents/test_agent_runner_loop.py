@@ -8,8 +8,8 @@ import threading
 import pytest
 from unittest.mock import MagicMock, patch, PropertyMock
 
-from aitest.agents.agent_runner import AgentLoop
-from aitest.agents.runner_state import AgentState, Observation
+from alice_engine.core.executor import AgentLoop
+from alice_engine.core.task import AgentState, Observation
 from aitest.llm.provider_base import LLMResponse
 
 

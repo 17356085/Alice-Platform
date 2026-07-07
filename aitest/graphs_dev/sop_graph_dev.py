@@ -100,7 +100,7 @@ def dev_route_next_phase(state: dict) -> str:
 def build_dev_sop_graph() -> StateGraph:
     builder = StateGraph(dict)
 
-    from aitest.graphs.nodes import make_agent_loop_node
+    from alice_engine.workflow.nodes import make_agent_loop_node
 
     # ── Entry / Exit ──
     builder.add_node("entry", entry_node)

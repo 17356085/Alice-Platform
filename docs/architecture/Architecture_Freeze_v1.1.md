@@ -3,12 +3,21 @@
 > 日期: 2026-07-03
 > 基于: Architecture Cleanup Sprint 完成
 > 前置: Architecture Freeze v1.0 (2026-06-23)
+> Phase 1 补充冻结: `docs/architecture/OFFICIAL_EXECUTION_MAINLINE.md`
 
 ---
 
 ## Frozen（不可修改）
 
 以下模块的公共接口（`__all__` 导出）已冻结。修改需要 RFC + 评审。
+
+### 执行主链路基线
+
+以下执行基线已冻结为 Phase 1 的官方架构约束：
+
+| 基线 | 冻结内容 | 文件 |
+|------|---------|------|
+| **Official Execution Mainline** | 官方执行入口、统一执行路径、兼容路径与禁止做法 | `docs/architecture/OFFICIAL_EXECUTION_MAINLINE.md` |
 
 ### Run 系统
 
@@ -110,6 +119,19 @@ grep -r "from aitest\." packages/alice-engine/ --include="*.py"
 ## 修改流程
 
 1. 检查是否涉及 Frozen 模块
-2. 如果是 → 写 RFC，说明为什么必须改
-3. 如果不是 → 直接改，但遵守 Import/DI/Event 规则
-4. 所有改动必须通过 `pytest tests/`
+2. 检查是否触碰官方执行主链路基线
+3. 如果是 → 写 RFC，说明为什么必须改
+4. 如果不是 → 直接改，但遵守 Import/DI/Event 规则
+5. 所有改动必须通过 `pytest tests/`
+
+## Phase 1 执行约束
+
+Phase 1 期间，凡是涉及以下主题的 PR，必须引用
+`docs/architecture/OFFICIAL_EXECUTION_MAINLINE.md`：
+
+- ExecutionService 改造
+- EngineFactory / Runtime / Executor 改造
+- Graph / Workflow 改造
+- Chat 执行链改造
+- Replay / Audit 主链路挂接
+- Capability / Tool / Memory / MCP 接入

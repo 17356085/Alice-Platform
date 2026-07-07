@@ -21,15 +21,63 @@ class ArtifactRule:
     label: str = ""
 
 
+AUTOMATION_ARTIFACT_RULES: dict[str, list["ArtifactRule"]] = {
+    "automation/page-object-generator": [
+        ArtifactRule(glob_pattern="*Page.py", label="Page Object file"),
+        ArtifactRule(
+            glob_pattern="*Page.py",
+            check_type="grep_pass",
+            grep_pattern=r"class \w+\(BasePage\):",
+            label="Inherit BasePage",
+        ),
+        ArtifactRule(
+            glob_pattern="*Page.py",
+            check_type="grep_pass",
+            grep_pattern=r"//\*\[@id=",
+            grep_should_find=False,
+            label="No absolute XPath",
+        ),
+        ArtifactRule(
+            glob_pattern="*Page.py",
+            check_type="grep_pass",
+            grep_pattern=r"time\.sleep\(",
+            grep_should_find=False,
+            label="No hard sleep",
+        ),
+    ],
+    "automation/test-script-generator": [
+        ArtifactRule(glob_pattern="test_*.py", label="Pytest script"),
+        ArtifactRule(
+            glob_pattern="test_*.py",
+            check_type="grep_pass",
+            grep_pattern=r"def test_",
+            label="Has pytest test functions",
+        ),
+        ArtifactRule(
+            glob_pattern="test_*.py",
+            check_type="grep_pass",
+            grep_pattern=r"time\.sleep\(",
+            grep_should_find=False,
+            label="No hard sleep",
+        ),
+    ],
+    "automation/code-consistency-checker": [],
+}
+DEV_ARTIFACT_RULES: dict[str, list["ArtifactRule"]] = {}
+
+
 # 默认产物规则 — 平台层可覆盖
 # v3.1: 添加验证和 setter，防止未填充时静默跳过检查
-_ALL_ARTIFACT_RULES: dict[str, list[ArtifactRule]] = {}
-_ARTIFACT_RULES_POPULATED = False
+_ALL_ARTIFACT_RULES: dict[str, list[ArtifactRule]] = {
+    **AUTOMATION_ARTIFACT_RULES,
+    **DEV_ARTIFACT_RULES,
+}
+_ARTIFACT_RULES_POPULATED = True
 
 def set_artifact_rules(rules: dict[str, list[ArtifactRule]]) -> None:
     """设置产物规则。平台层调用此函数填充规则。"""
     global _ALL_ARTIFACT_RULES, _ARTIFACT_RULES_POPULATED
-    _ALL_ARTIFACT_RULES = rules
+    _ALL_ARTIFACT_RULES = dict(rules)
     _ARTIFACT_RULES_POPULATED = True
 
 def is_artifact_rules_populated() -> bool:

@@ -7,11 +7,11 @@ Pure logic — no LLM calls for most paths.
 import pytest
 from unittest.mock import MagicMock
 
-from aitest.agents.plan_engine import (
+from alice_engine.core.planner import (
     plan_next_action, _advance, _is_retry_action,
     _skill_matches, check_skill_risk_level,
 )
-from aitest.agents.runner_state import AgentState, Observation
+from alice_engine.core.task import AgentState, Observation
 
 
 # ══════════════════════════════════════════════════════════════════════════

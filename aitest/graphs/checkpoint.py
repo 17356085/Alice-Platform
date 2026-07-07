@@ -20,7 +20,28 @@ _manager = None
 def _get_manager():
     global _manager
     if _manager is None:
-        _manager = CheckpointManager(governance_path=WORKSTUDY / "governance")
+        from aitest.infra.database import get_backend
+
+        if get_backend() == "postgres":
+            try:
+                from aitest.infra.checkpoint_pg import PostgresCheckpointStore
+                store = PostgresCheckpointStore()
+                # 验证 PG 依赖可用（ImportError 在 get_checkpointer() 时才抛）
+                store.get_checkpointer()
+                _manager = CheckpointManager(
+                    governance_path=WORKSTUDY / "governance",
+                    store=store,
+                )
+            except ImportError:
+                # langgraph-checkpoint-postgres 未安装，回落到 sqlite
+                import logging
+                logging.getLogger("checkpoint").warning(
+                    "PG backend selected but langgraph-checkpoint-postgres not installed, "
+                    "falling back to sqlite"
+                )
+                _manager = CheckpointManager(governance_path=WORKSTUDY / "governance")
+        else:
+            _manager = CheckpointManager(governance_path=WORKSTUDY / "governance")
     return _manager
 
 def get_checkpointer():
@@ -31,9 +52,12 @@ def get_checkpointer_for_thread(thread_id: str):
     """兼容旧接口。"""
     return get_checkpointer()
 
-def list_runs():
+def list_runs(limit: int = None):
     """兼容旧接口。"""
-    return _get_manager().list_runs()
+    runs = _get_manager().list_runs()
+    if limit is not None:
+        return runs[:limit]
+    return runs
 
 def get_latest_state(thread_id: str):
     """兼容旧接口。"""
@@ -41,7 +65,7 @@ def get_latest_state(thread_id: str):
 
 def cleanup_run(thread_id: str):
     """兼容旧接口。"""
-    pass
+    return True
 
 def cleanup_old_checkpoints():
     """兼容旧接口。"""

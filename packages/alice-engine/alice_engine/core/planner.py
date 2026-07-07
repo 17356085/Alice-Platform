@@ -308,3 +308,98 @@ def _llm_decide(skill_index: int, perception: dict, skills: list,
             logger_fn(f"  LLM plan failed ({str(e)[:60]}), fallback to sequential")
 
     return _advance(skills, skill_index, "LLM failed, sequential fallback")
+
+
+# ═══════════════════════════════════════════════════════════
+#  User Input 构建 — 从 executor.py L512-579 迁出
+# ═══════════════════════════════════════════════════════════
+
+def build_user_input(
+    skill_id: str,
+    state,
+    module: str,
+    page: str,
+    agent_name: str = "",
+    dev_agent_map: set | None = None,
+) -> str:
+    """构建 Skill 的 user prompt — 纯函数，不碰 AgentLoop self。
+
+    无-PRD 模式: 将 PO/Test 代码内容直接注入 user prompt，
+    使 LLM 无法忽视真实代码（user prompt 约束力 > system prompt）。
+
+    从 executor.py AgentLoop._build_user_input() 迁出。
+    """
+    import os
+    from pathlib import Path
+    from alice_engine.core.agent_definitions import FALLBACK_AGENT_SKILL_MAP
+    from alice_engine.runtime.core.security import PromptInjectionGuard
+    from alice_engine.core.path_utils import slug_to_page_name, page_slug_to_underscore
+
+    dev_agent_map = dev_agent_map or set()
+    _workstudy = Path(os.environ.get("AITEST_WORKSTUDY", "."))
+    _context_modules = _workstudy / "context"
+
+    parts = []
+    if module:
+        parts.append(f"模块: {module}")
+    if page:
+        parts.append(f"页面: {page}")
+    if state.memory.get("task_description"):
+        parts.append(f"任务: {state.memory['task_description']}")
+
+    # 注入代码内容到 user prompt
+    _CODE_SKILL_CATEGORIES = tuple(
+        k.replace("-agent", "") for k in FALLBACK_AGENT_SKILL_MAP.keys()
+        if k.endswith("-agent") and k not in (
+            "project-agent", "knowledge-agent", "report-agent",
+            "bug-analysis-agent", "execution-agent",
+        )
+    )
+    if any(c in skill_id for c in _CODE_SKILL_CATEGORIES) and module and page:
+        page_name = slug_to_page_name(page)
+        page_underscore = page_slug_to_underscore(page)
+
+        from alice_engine.workflow.state import get_test_project_root
+        zjsn = get_test_project_root()
+
+        if zjsn:
+            po_path = zjsn / "page" / f"{module}_page" / f"{page_name}Page.py"
+            if po_path.exists():
+                try:
+                    po_content = po_path.read_text(encoding="utf-8")
+                    parts.append(f"\n## Page Object 代码 ({page_name}Page.py)\n```python\n{po_content[:6000]}\n```")
+                except Exception:
+                    pass
+
+            test_path = zjsn / "script" / module / f"test_{page_underscore}.py"
+            if test_path.exists():
+                try:
+                    test_content = test_path.read_text(encoding="utf-8")
+                    parts.append(f"\n## 测试脚本 (test_{page_underscore}.py)\n```python\n{test_content[:4000]}\n```")
+                except Exception:
+                    pass
+
+        page_ctx = _context_modules / module / "pages" / page / "PAGE_CONTEXT.md"
+        if page_ctx.exists():
+            try:
+                ctx_content = page_ctx.read_text(encoding="utf-8")
+                parts.append(
+                    f"\n## 页面上下文 (PAGE_CONTEXT.md)\n"
+                    f"{PromptInjectionGuard.safe_user_input(ctx_content, source='PAGE_CONTEXT.md')}"
+                )
+            except Exception:
+                pass
+
+    # 重试反馈
+    if skill_id in state.retry_counts:
+        retry_n = state.retry_counts[skill_id]
+        prev_obs = [o for o in state.observations if o.skill_id == skill_id]
+        if prev_obs and prev_obs[-1].quality_issues:
+            issues = "\n".join(f"  - {i}" for i in prev_obs[-1].quality_issues)
+            parts.append(
+                f"\n⚠️ 第 {retry_n} 次重试。上一次执行存在以下问题，请修复:\n{issues}"
+            )
+
+    if not parts:
+        return f"执行 {skill_id}"
+    return "，".join(parts)

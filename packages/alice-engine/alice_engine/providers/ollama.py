@@ -16,6 +16,10 @@ logger = logging.getLogger(__name__)
 class OllamaProvider(LLMProvider):
     """Ollama 本地模型 Provider。"""
 
+    provider_name = "ollama"
+    provider_description = "Local Ollama model provider"
+    provider_supports_tools = False
+
     def __init__(self, model: str = "qwen3:14b", base_url: str = "http://localhost:11434"):
         try:
             import httpx
@@ -50,7 +54,7 @@ class OllamaProvider(LLMProvider):
                 content=content,
                 model=self.model,
                 finish_reason="stop",
-                token_usage={
+                usage={
                     "input": data.get("prompt_eval_count", 0),
                     "output": data.get("eval_count", 0),
                 },

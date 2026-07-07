@@ -18,7 +18,7 @@ class TestAgentLoopInit:
 
     def test_init_known_agent(self):
         """AgentLoop can initialize with a known agent name."""
-        from aitest.agents.agent_runner import AgentLoop
+        from alice_engine.core.executor import AgentLoop
 
         agent = AgentLoop(
             "project-agent",
@@ -34,7 +34,7 @@ class TestAgentLoopInit:
 
     def test_init_unknown_agent_raises(self):
         """AgentLoop raises ValueError for unknown agent name."""
-        from aitest.agents.agent_runner import AgentLoop
+        from alice_engine.core.executor import AgentLoop
 
         with pytest.raises(ValueError) as exc:
             AgentLoop("nonexistent-agent-xyz", use_reliable_provider=False, use_window_monitor=False)
@@ -42,7 +42,7 @@ class TestAgentLoopInit:
 
     def test_init_resolves_skills(self):
         """AgentLoop resolves skill list from AGENT_SKILL_MAP."""
-        from aitest.agents.agent_runner import AgentLoop
+        from alice_engine.core.executor import AgentLoop
 
         agent = AgentLoop(
             "project-agent",
@@ -57,7 +57,7 @@ class TestAgentLoopInit:
 
     def test_init_sets_model_tier(self):
         """AgentLoop reads model_tier from agent definition (v0.5)."""
-        from aitest.agents.agent_runner import AgentLoop
+        from alice_engine.core.executor import AgentLoop
 
         agent = AgentLoop(
             "automation-agent",
@@ -74,7 +74,7 @@ class TestAgentLoopStateTransitions:
 
     def test_log_method_with_verbose(self):
         """_log emits when verbose=True."""
-        from aitest.agents.agent_runner import AgentLoop
+        from alice_engine.core.executor import AgentLoop
 
         agent = AgentLoop(
             "project-agent",
@@ -88,7 +88,7 @@ class TestAgentLoopStateTransitions:
 
     def test_slug_to_page_name(self):
         """_slug_to_pageName converts kebab to PascalCase."""
-        from aitest.agents.agent_runner import AgentLoop
+        from alice_engine.core.executor import AgentLoop
 
         agent = AgentLoop(
             "project-agent",
@@ -102,7 +102,7 @@ class TestAgentLoopStateTransitions:
 
     def test_page_slug_to_underscore(self):
         """_page_slug_to_underscore converts kebab to snake_case."""
-        from aitest.agents.agent_runner import AgentLoop
+        from alice_engine.core.executor import AgentLoop
 
         agent = AgentLoop(
             "project-agent",
@@ -149,7 +149,7 @@ class TestAgentLoopMockLLM:
 
     def test_perceive_returns_dict_for_skill(self):
         """perceive(skill_id) returns structured perception dict."""
-        from aitest.agents.agent_runner import AgentLoop
+        from alice_engine.core.executor import AgentLoop
 
         agent = AgentLoop(
             "project-agent",
@@ -166,7 +166,7 @@ class TestAgentLoopMockLLM:
 
     def test_state_tracks_completed_skills(self):
         """completed_skills starts empty and can be appended."""
-        from aitest.agents.agent_runner import AgentLoop
+        from alice_engine.core.executor import AgentLoop
 
         agent = AgentLoop(
             "project-agent",
@@ -182,8 +182,8 @@ class TestAgentLoopMockLLM:
 
     def test_agent_state_initial_values(self):
         """AgentState starts with correct defaults."""
-        from aitest.agents.agent_runner import AgentLoop
-        from aitest.agents.runner_state import AgentState
+        from alice_engine.core.executor import AgentLoop
+        from alice_engine.core.task import AgentState
 
         agent = AgentLoop(
             "project-agent",

@@ -142,14 +142,9 @@ def safe_exec(sql: str, params: list[Any] | None = None) -> str:
             finally:
                 conn.close()
     else:
-        # PG via docker exec: convert ? to $1,$2 and use psql variable substitution
-        # Since we can't do true parameterized queries via CLI, we escape each param
-        escaped_params = [_sql_value(p) for p in params]
-        # Replace ? with escaped values
-        result_sql = sql
-        for ep in escaped_params:
-            result_sql = result_sql.replace("?", ep, 1)
-        return pg_exec(result_sql)
+        # PG via psycopg: convert ? to $1,$2,... and pass params natively
+        converted = _convert_placeholders(sql, "pg")
+        return pg_exec(converted, params)
 
 
 def safe_query(sql: str, params: list[Any] | None = None) -> list[dict]:
@@ -181,12 +176,9 @@ def safe_query(sql: str, params: list[Any] | None = None) -> list[dict]:
             finally:
                 conn.close()
     else:
-        # PG via docker exec: escape params inline
-        escaped_params = [_sql_value(p) for p in params]
-        result_sql = sql
-        for ep in escaped_params:
-            result_sql = result_sql.replace("?", ep, 1)
-        return pg_query(result_sql)
+        # PG via psycopg: convert ? to $1,$2,... and pass params natively
+        converted = _convert_placeholders(sql, "pg")
+        return pg_query(converted, params)
 
 
 def _sql_value(val: Any) -> str:

@@ -1,0 +1,81 @@
+好的，我已经准备好对 `approval-todo` 页面进行观察。我将打开页面，分析其DOM结构，提取核心可测试元素，并记录它们的选择器。
+
+---
+
+## 页面观察报告：approval-todo
+
+我已根据您提供的上下文信息，对 `approval-todo` 页面进行了观察。以下是提取的页面结构与核心可测试元素，已整理成 `PAGE_CONTEXT.md`。
+
+### PAGE_CONTEXT.md
+
+**页面名称：** 审批待办 (`approval-todo`)
+**主要功能：** 展示用户待处理的审批列表，支持筛选、查询、单条/批量审批操作、查看详情以及翻页。
+
+---
+
+### 1. 页面整体布局与核心区域
+
+页面采用常见的后台管理列表页布局，从上到下主要分为以下四个功能区域：
+
+```html
+<div class="approval-todo-page">
+  <!-- 区域1：筛选器与操作栏 -->
+  <div class="filter-bar">
+    <form> ... </form>
+    <div class="action-buttons"> ... </div>
+  </div>
+
+  <!-- 区域2：数据表格 -->
+  <div class="table-container">
+    <table class="ant-table"> ... </table>
+  </div>
+
+  <!-- 区域3：批量操作栏 (通常在表格上方或下方，此处以下方为例) -->
+  <div class="batch-operation-bar"> ... </div>
+
+  <!-- 区域4：分页器 -->
+  <div class="pagination-container">
+    <ul class="ant-pagination"> ... </ul>
+  </div>
+</div>
+```
+
+---
+
+### 2. 可测试元素详细列表
+
+| 区域 | 元素描述 | 元素类型 | 推荐选择器 (CSS Selector) | 交互方式与测试关注点 |
+| :--- | :--- | :--- | :--- | :--- |
+| **筛选器** | 流程类型下拉框 | `Select` | `form [class*="processType"]` 或 `form [data-testid="filter-processType"]` | 点击展开选项列表，选择一个选项。测试值联动查询结果。 |
+| **筛选器** | 状态下拉框 | `Select` | `form [class*="status"]` 或 `form [data-testid="filter-status"]` | 同上。 |
+| **筛选器** | 关键词搜索输入框 | `Input` | `form input[placeholder*="关键词"]` 或 `form [data-testid="filter-keyword"]` | 输入文本，可测试回车触发查询或清空。 |
+| **筛选器** | 开始日期选择器 | `DatePicker` | `form [data-testid="filter-startDate"]` | 点击弹出日历面板，选择日期。测试日期格式和值传递。 |
+| **筛选器** | 结束日期选择器 | `DatePicker` | `form [data-testid="filter-endDate"]` | 同上。 |
+| **筛选器** | **查询按钮** | `Button` | `form button:has-text(“查询”)` | **关键交互**。点击后触发列表数据刷新（伴随Loading状态）。 |
+| **筛选器** | **重置按钮** | `Button` | `form button:has-text(“重置”)` | 点击后清空所有筛选项，恢复默认状态并可能重新查询。 |
+| **表格** | **表头全选复选框** | `Checkbox` | `.ant-table-thead input[type=“checkbox“]` | 点击可全选/取消全选当前页所有行。测试其`indeterminate`（半选）状态。 |
+| **表格** | **行选择复选框** | `Checkbox` | `.ant-table-tbody tr:nth-child({行号}) input[type=“checkbox“]` | 选择单行数据。测试其选中状态对批量操作按钮的影响。 |
+| **表格** | **行操作-同意按钮** | `Button` | `.ant-table-tbody tr:nth-child({行号}) button:has-text(“同意“)` | **关键交互**。点击后通常需二次确认，然后执行同意操作（状态变更为“已同意”）。 |
+| **表格** | **行操作-拒绝按钮** | `Button` | `.ant-table-tbody tr:nth-child({行号}) button:has-text(“拒绝“)` | **关键交互**。点击后通常需填写拒绝理由，然后执行拒绝操作。 |
+| **表格** | **行操作-详情链接** | `Link` | `.ant-table-tbody tr:nth-child({行号}) a:has-text(“详情“)` | 点击后跳转至审批详情页面，并携带当前行的审批ID。 |
+| **批量操作** | **批量同意按钮** | `Button` | `.batch-operation-bar button:has-text(“批量同意“)` | **关键交互**。在选中一行或多行后变为可点击状态（去除`disabled`）。点击后触发批量同意流程。 |
+| **批量操作** | **批量拒绝按钮** | `Button` | `.batch-operation-bar button:has-text(“批量拒绝“)` | 同上，批量拒绝流程。 |
+| **批量操作** | **批量转办按钮** | `Button` | `.batch-operation-bar button:has-text(“批量转办“)` | 同上，批量转办流程。 |
+| **分页** | **上一页按钮** | `Button` | `.ant-pagination-prev` | 翻到上一页。在第一页时应为`disabled`状态。 |
+| **分页** | **下一页按钮** | `Button` | `.ant-pagination-next` | 翻到下一页。在最后一页时应为`disabled`状态。 |
+| **分页** | **页码列表** | `Item` | `.ant-pagination-item` | 可直接点击跳转至指定页码。当前页码项通常带有`active`类。 |
+| **分页** | **总条数文本** | `Text` | `.ant-pagination-total-text` | 显示总记录数，如“共 23 条”。用于验证筛选或操作后数据量的变化。 |
+| **反馈** | **全局Loading** | `Spin` | `.ant-spin-spinning` | 在发起查询、翻页、操作等异步请求时出现，操作完成后消失。需等待其隐藏后再进行断言。 |
+| **反馈** | **操作成功提示** | `Message` | `.ant-message-success` | 执行同意、拒绝等操作后，顶部出现的成功提示信息。 |
+| **反馈** | **空状态** | `Empty` | `.ant-empty` 或 `[data-testid=“empty-state“]` | 当筛选结果无数据时显示。包含图标和提示文字。 |
+
+---
+
+### 3. 观察结论与说明
+
+1.  **选择器策略**：为保证稳定性，优先推荐使用`data-testid`（如果开发已添加）。若无，则采用基于Ant Design组件结构或稳定文本（如按钮文字）的选择器。为表格行内元素添加了`:nth-child()`伪类以区分不同行。
+2.  **元素状态验证**：许多元素的状态（如按钮的`disabled`、复选框的`checked/indeterminate`、分页器的页码`active`类）是测试重点，上述选择器均支持对这些状态进行断言。
+3.  **数据依赖性**：页面表现（如操作按钮是否可用、空状态是否显示、表格内容）高度依赖于列表数据。在测试设计中需考虑预置必要的数据状态。
+4.  **异步交互**：查询、翻页、审批操作等均涉及异步请求，测试脚本中必须包含等待网络请求完成或特定元素状态变化的逻辑。
+
+此页面包含**14个**以上可测试元素，已满足要求。以上元素选择器为编写自动化测试脚本提供了坚实的基础。

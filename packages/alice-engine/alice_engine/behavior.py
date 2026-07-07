@@ -122,6 +122,22 @@ def get_default_pack_path() -> Path:
     return Path(__file__).parent / "governance_default"
 
 
+def is_governance_pack(path: str | Path | None) -> bool:
+    """Whether a path looks like a governance behavior pack root."""
+    if path is None:
+        return False
+    root = Path(path)
+    if not root.exists() or not root.is_dir():
+        return False
+    markers = [
+        root / "skills",
+        root / "skills-dev",
+        root / "agents",
+        root / "validators",
+    ]
+    return any(marker.exists() for marker in markers)
+
+
 def _try_alice_governance() -> Path | None:
     """尝试发现 alice-governance 包。"""
     try:
@@ -131,6 +147,45 @@ def _try_alice_governance() -> Path | None:
             return p
     except ImportError:
         pass
+    return None
+
+
+def resolve_governance_pack_path(
+    path: str | Path | None = None,
+    *,
+    project_root: str | Path | None = None,
+) -> Path | None:
+    """Resolve the canonical governance behavior pack root.
+
+    Priority:
+      1. explicit path argument (if it is a real governance pack)
+      2. ENGINE_GOVERNANCE_PATH / AITEST_GOVERNANCE_PATH
+      3. <project_root>/governance (legacy project-local override)
+      4. installed alice-governance package
+      5. SDK governance_default fallback
+    """
+    candidates: list[Path] = []
+
+    if path is not None:
+        candidates.append(Path(path).resolve())
+
+    for env_key in ("ENGINE_GOVERNANCE_PATH", "AITEST_GOVERNANCE_PATH"):
+        raw = __import__("os").environ.get(env_key, "")
+        if raw:
+            candidates.append(Path(raw).resolve())
+
+    if project_root is not None:
+        candidates.append(Path(project_root).resolve() / "governance")
+
+    gov_root = _try_alice_governance()
+    if gov_root is not None:
+        candidates.append(gov_root)
+
+    candidates.append(get_default_pack_path())
+
+    for candidate in candidates:
+        if is_governance_pack(candidate):
+            return candidate
     return None
 
 
@@ -148,25 +203,10 @@ def load_behavior_pack(path: str | Path | None = None) -> BehaviorPack:
     Returns:
         BehaviorPack 实例。
     """
-    # 优先级 1: 用户显式指定的外部路径
-    if path is not None:
-        root = Path(path).resolve()
-        if root.exists():
-            logger.info("Behavior pack loaded: %s", root)
-            return BehaviorPack(root=root)
-        logger.warning("Behavior pack path does not exist: %s", root)
-
-    # 优先级 2: alice-governance 包（独立安装的完整行为包）
-    gov_root = _try_alice_governance()
-    if gov_root is not None:
-        logger.info("Using alice-governance pack: %s", gov_root)
-        return BehaviorPack(root=gov_root)
-
-    # 优先级 3: SDK 内置骨架 fallback
-    default_root = get_default_pack_path()
-    if default_root.exists():
-        logger.info("Using default behavior pack: %s", default_root)
-        return BehaviorPack(root=default_root)
+    root = resolve_governance_pack_path(path)
+    if root is not None:
+        logger.info("Behavior pack loaded: %s", root)
+        return BehaviorPack(root=root)
 
     logger.warning("No behavior pack available")
     return BehaviorPack(root=None)

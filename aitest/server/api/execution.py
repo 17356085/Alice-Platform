@@ -24,6 +24,84 @@ def _get_from_state(request: Request, attr: str, factory):
     return obj
 
 
+def _require_request_workspace_access(request: Request, *, org_id: str, workspace_id: str, required_scope: str):
+    from aitest.platform.ownership import resolve_request_identity, require_workspace_access
+
+    user_id, request_org_id, scopes = resolve_request_identity(request)
+    if request_org_id and request_org_id != org_id:
+        raise PermissionError(f"Request org '{request_org_id}' cannot access org '{org_id}'")
+    require_workspace_access(
+        org_id=org_id,
+        workspace_id=workspace_id,
+        user_id=user_id,
+        required_scope=required_scope,
+        request_scopes=scopes,
+    )
+    return user_id, scopes
+
+
+def _require_request_run_access(request: Request, run, *, required_scope: str):
+    from aitest.platform.ownership import resolve_request_identity, require_run_access
+
+    user_id, request_org_id, scopes = resolve_request_identity(request)
+    run_org_id = getattr(run, "org_id", "")
+    if request_org_id and run_org_id and request_org_id != run_org_id:
+        raise PermissionError(f"Request org '{request_org_id}' cannot access org '{run_org_id}'")
+    require_run_access(
+        run=run,
+        user_id=user_id,
+        required_scope=required_scope,
+        request_scopes=scopes,
+    )
+    return user_id, scopes
+
+
+def _resolve_request_org(request: Request, org_id: str = ""):
+    from aitest.platform.ownership import resolve_request_identity
+
+    user_id, request_org_id, scopes = resolve_request_identity(request)
+    effective_org_id = org_id or request_org_id
+    if request_org_id and effective_org_id and request_org_id != effective_org_id:
+        raise PermissionError(f"Request org '{request_org_id}' cannot access org '{effective_org_id}'")
+    return user_id, effective_org_id, scopes
+
+
+def _require_request_scope(request: Request, required_scope: str):
+    from aitest.platform.ownership import resolve_request_identity
+
+    _, _, scopes = resolve_request_identity(request)
+    if required_scope not in scopes and "admin" not in scopes:
+        raise PermissionError(f"Request lacks scope '{required_scope}'")
+    return scopes
+
+
+def _require_request_workspace_by_id(request: Request, *, workspace_id: str, required_scope: str):
+    from aitest.platform.workspace import get_ws_manager
+
+    wm = get_ws_manager()
+    ws = wm.get(workspace_id)
+    if ws is None:
+        raise ValueError(f"Workspace '{workspace_id}' not found")
+    _require_request_workspace_access(
+        request,
+        org_id=getattr(ws, "org_id", ""),
+        workspace_id=workspace_id,
+        required_scope=required_scope,
+    )
+    return ws
+
+
+def _filter_accessible_runs(request: Request, runs: list, *, required_scope: str = "read") -> list:
+    allowed = []
+    for run in runs:
+        try:
+            _require_request_run_access(request, run, required_scope=required_scope)
+        except PermissionError:
+            continue
+        allowed.append(run)
+    return allowed
+
+
 class StartExecutionRequest(BaseModel):
     module: str
     pages: list[str] = []
@@ -31,6 +109,9 @@ class StartExecutionRequest(BaseModel):
     mode: str = "full"
     provider: str = "claude"
     priority: int = 0
+    idempotency_key: str = ""
+    max_retries: int = 3
+    async_mode: bool = False
 
 
 # ── POST /api/workspaces/:ws_id/executions ──────────────────────────
@@ -46,41 +127,58 @@ async def start_execution(ws_id: str, req: StartExecutionRequest, request: Reque
     # Resolve identity from auth middleware or header fallback
     user_id = getattr(request.state, "user_id", None) or request.headers.get("X-User-Id", "anonymous")
     org_id = getattr(request.state, "org_id", None) or request.headers.get("X-Org-Id", "")
+    idem_key = req.idempotency_key or request.headers.get("Idempotency-Key", "")
 
     ctx = ExecutionContext(
         workspace_id=ws_id,
         user_id=user_id,
         scopes=getattr(request.state, "scopes", ["read", "execute"]),
         org_id=org_id,
+        entrypoint="server.execution",
+        metadata={
+            "idempotency_key": idem_key,
+            "max_retries": req.max_retries,
+        },
     )
 
     try:
+        _require_request_workspace_access(
+            request,
+            org_id=org_id,
+            workspace_id=ws_id,
+            required_scope="execute",
+        )
         # v3.0: Use shared ExecutionService from app.state (DI)
         svc = getattr(request.app.state, "execution_service", None)
         if svc is None:
             from aitest.platform.execution_service import ExecutionService
             svc = ExecutionService()
-        result = await asyncio.to_thread(
-            svc.execute,
-            ctx=ctx,
-            module=req.module,
-            pages=req.pages,
-            agent=req.agent,
-            mode=req.mode,
-            provider=req.provider,
-            priority=req.priority,
-        )
-        return {
-            "request_id": result.request_id,
-            "run_id": result.run_id,
-            "status": result.status,
-            "total_tokens": result.total_tokens,
-            "total_cost": result.total_cost,
-            "agent_runs": result.agent_runs,
-            "artifacts": result.artifacts,
-            "error_message": result.error_message,
-            "duration_ms": result.duration_ms,
-        }
+        if req.async_mode:
+            result = svc.submit_async(
+                ctx=ctx,
+                module=req.module,
+                pages=req.pages,
+                agent=req.agent,
+                mode=req.mode,
+                provider=req.provider,
+                priority=req.priority,
+                idempotency_key=idem_key,
+                max_retries=req.max_retries,
+            )
+        else:
+            result = await asyncio.to_thread(
+                svc.execute,
+                ctx=ctx,
+                module=req.module,
+                pages=req.pages,
+                agent=req.agent,
+                mode=req.mode,
+                provider=req.provider,
+                priority=req.priority,
+                idempotency_key=idem_key,
+                max_retries=req.max_retries,
+            )
+        return result.to_dict()
     except PermissionError as e:
         raise HTTPException(403, str(e))
     except ValueError as e:
@@ -110,6 +208,11 @@ async def get_execution(request_id: str, request: Request):
             runs.append(r)
 
     latest = runs[-1] if runs else None
+    if latest is not None:
+        try:
+            _require_request_run_access(request, latest, required_scope="read")
+        except PermissionError as e:
+            raise HTTPException(403, str(e))
     events = store.list_events(run_id=latest.run_id, limit=50) if latest else []
 
     return {
@@ -136,6 +239,10 @@ async def get_run(run_id: str, request: Request):
 
     if run is None:
         raise HTTPException(404, f"Run '{run_id}' not found")
+    try:
+        _require_request_run_access(request, run, required_scope="read")
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
 
     events = store.list_events(run_id=run_id, limit=100)
 
@@ -159,6 +266,16 @@ async def list_runs(
     """List Runs. Filterable by workspace_id, org_id, status."""
     from aitest.platform.run_store import get_run_store
     store = _get_from_state(request, "run_store", get_run_store)
+    if workspace_id and org_id:
+        try:
+            _require_request_workspace_access(
+                request,
+                org_id=org_id,
+                workspace_id=workspace_id,
+                required_scope="read",
+            )
+        except PermissionError as e:
+            raise HTTPException(403, str(e))
     runs = store.list_runs(
         workspace_id=workspace_id,
         org_id=org_id,
@@ -181,7 +298,17 @@ async def list_runs(
 @execution_router.post("/executions/{request_id}/cancel")
 async def cancel_execution(request_id: str, request: Request):
     """Cancel a pending/queued execution."""
+    from aitest.platform.run_store import get_run_store
     from aitest.platform.execution_service import ExecutionService
+    store = _get_from_state(request, "run_store", get_run_store)
+    runs = store.list_runs(request_id=request_id, limit=1)
+    run = runs[0] if runs else None
+    if run is None:
+        raise HTTPException(404, f"Execution '{request_id}' not found or already terminal")
+    try:
+        _require_request_run_access(request, run, required_scope="execute")
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
     svc = _get_from_state(request, "execution_service", ExecutionService)
     cancelled = await asyncio.to_thread(svc.cancel, request_id)
 
@@ -196,7 +323,16 @@ async def cancel_execution(request_id: str, request: Request):
 @execution_router.post("/runs/{run_id}/timeout")
 async def timeout_run(run_id: str, request: Request):
     """Force-timeout a running execution. Sets abort + marks DB."""
+    from aitest.platform.run_store import get_run_store
     from aitest.platform.execution_service import ExecutionService
+    rs = _get_from_state(request, "run_store", get_run_store)
+    run = rs.load_run(run_id)
+    if run is None:
+        raise HTTPException(404, f"Run '{run_id}' not found or already terminal")
+    try:
+        _require_request_run_access(request, run, required_scope="execute")
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
     svc = _get_from_state(request, "execution_service", ExecutionService)
     ok = await asyncio.to_thread(svc.timeout_run, run_id)
 
@@ -212,6 +348,7 @@ async def timeout_run(run_id: str, request: Request):
 async def resume_execution(request_id: str, request: Request):
     """Resume a paused or interrupted execution from its last checkpoint."""
     from aitest.platform.run_store import get_run_store
+    from aitest.platform.execution_service import ExecutionService
 
     try:
         # Resolve request_id → run_id (indexed query, no O(n) scan)
@@ -223,6 +360,10 @@ async def resume_execution(request_id: str, request: Request):
             raise HTTPException(status_code=404, detail=f"Execution '{request_id}' not found")
         if run.is_frozen:
             raise HTTPException(status_code=409, detail=f"Execution '{request_id}' already terminal ({run.status})")
+        try:
+            _require_request_run_access(request, run, required_scope="execute")
+        except PermissionError as e:
+            raise HTTPException(status_code=403, detail=str(e))
 
         svc = _get_from_state(request, "execution_service", ExecutionService)
         result = await asyncio.to_thread(svc.resume, run.run_id)
@@ -253,6 +394,10 @@ async def get_run_debug(run_id: str, request: Request):
     run = rs.load_run(run_id)
     if run is None:
         raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
+    try:
+        _require_request_run_access(request, run, required_scope="read")
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
 
     events = rs.list_events(run_id)
 
@@ -315,6 +460,10 @@ async def get_run_inspector(run_id: str, request: Request):
     run = rs.load_run(run_id)
     if run is None:
         raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
+    try:
+        _require_request_run_access(request, run, required_scope="read")
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
 
     events = rs.list_events(run_id, limit=500)
 
@@ -493,6 +642,16 @@ def _build_execution_tree(events: list, phases: list[dict]) -> list[dict]:
 async def get_timeline(run_id: str, request: Request):
     """Time-ordered timeline of all events for a Run."""
     from aitest.platform.timeline import build_timeline
+    from aitest.platform.run_store import get_run_store
+
+    store = _get_from_state(request, "run_store", get_run_store)
+    run = store.load_run(run_id)
+    if run is None:
+        raise HTTPException(404, f"Run '{run_id}' not found")
+    try:
+        _require_request_run_access(request, run, required_scope="read")
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
 
     entries = build_timeline(run_id)
     if not entries:
@@ -537,12 +696,33 @@ async def execution_history(
         runs = [r for r in runs if r.module == module]
     if agent:
         runs = [r for r in runs if r.agent == agent]
+    if workspace_id:
+        try:
+            if org_id:
+                _require_request_workspace_access(
+                    request,
+                    org_id=org_id,
+                    workspace_id=workspace_id,
+                    required_scope="read",
+                )
+            else:
+                _require_request_workspace_by_id(
+                    request,
+                    workspace_id=workspace_id,
+                    required_scope="read",
+                )
+        except PermissionError as e:
+            raise HTTPException(403, str(e))
+        except ValueError as e:
+            raise HTTPException(404, str(e))
+
+    runs = _filter_accessible_runs(request, runs, required_scope="read")
 
     items = [timeline_summary(r.run_id) for r in runs]
 
     return {
         "history": items,
-        "total": total,
+        "total": len(items),
         "limit": limit,
         "offset": offset,
     }
@@ -564,6 +744,39 @@ async def query_audit(
 ):
     """Query operational audit log. Append-only, filterable."""
     from aitest.platform.audit_log import get_audit_logger
+    from aitest.platform.run_store import get_run_store
+
+    if run_id:
+        store = _get_from_state(request, "run_store", get_run_store)
+        run = store.load_run(run_id)
+        if run is None:
+            raise HTTPException(404, f"Run '{run_id}' not found")
+        try:
+            _require_request_run_access(request, run, required_scope="read")
+        except PermissionError as e:
+            raise HTTPException(403, str(e))
+        org_id = org_id or getattr(run, "org_id", "")
+        workspace_id = workspace_id or getattr(run, "workspace_id", "")
+    elif workspace_id:
+        try:
+            ws = _require_request_workspace_by_id(
+                request,
+                workspace_id=workspace_id,
+                required_scope="read",
+            )
+        except PermissionError as e:
+            raise HTTPException(403, str(e))
+        except ValueError as e:
+            raise HTTPException(404, str(e))
+        org_id = org_id or getattr(ws, "org_id", "")
+    else:
+        try:
+            _, org_id, _ = _resolve_request_org(request, org_id)
+        except PermissionError as e:
+            raise HTTPException(403, str(e))
+        if not org_id:
+            raise HTTPException(403, "Organization context required for audit query")
+
     logger = _get_from_state(request, "audit_logger", get_audit_logger)
     entries = logger.query(
         org_id=org_id,
@@ -595,8 +808,14 @@ async def query_audit(
 async def audit_stats(request: Request, org_id: str = ""):
     """Audit log statistics: event type breakdown, recent activity."""
     from aitest.platform.audit_log import get_audit_logger
+    try:
+        _, effective_org_id, _ = _resolve_request_org(request, org_id)
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
+    if not effective_org_id:
+        raise HTTPException(403, "Organization context required for audit stats")
     logger = _get_from_state(request, "audit_logger", get_audit_logger)
-    return logger.stats(org_id=org_id)
+    return logger.stats(org_id=effective_org_id)
 
 
 # ── GET /api/runs/:run_id/report ──────────────────────────────────────
@@ -605,6 +824,16 @@ async def audit_stats(request: Request, org_id: str = ""):
 async def get_run_report(run_id: str, request: Request):
     """AI-generated execution summary for a Run. Returns None if not yet generated."""
     from aitest.platform.hooks.report_consumer import get_report_consumer
+    from aitest.platform.run_store import get_run_store
+
+    store = _get_from_state(request, "run_store", get_run_store)
+    run = store.load_run(run_id)
+    if run is None:
+        raise HTTPException(404, f"Run '{run_id}' not found")
+    try:
+        _require_request_run_access(request, run, required_scope="read")
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
     rc = _get_from_state(request, "report_consumer", get_report_consumer)
     report = rc.get_report(run_id)
     if report is None:
@@ -618,9 +847,23 @@ async def get_run_report(run_id: str, request: Request):
 async def list_reports(request: Request, limit: int = 50):
     """List all generated AI reports."""
     from aitest.platform.hooks.report_consumer import get_report_consumer
+    from aitest.platform.run_store import get_run_store
+
     rc = _get_from_state(request, "report_consumer", get_report_consumer)
     reports = rc.list_reports(limit=min(limit, 100))
-    return {"reports": reports, "total": len(reports)}
+    store = _get_from_state(request, "run_store", get_run_store)
+    visible = []
+    for report in reports:
+        run_id = report.get("run_id", "")
+        run = store.load_run(run_id) if run_id else None
+        if run is None:
+            continue
+        try:
+            _require_request_run_access(request, run, required_scope="read")
+        except PermissionError:
+            continue
+        visible.append(report)
+    return {"reports": visible, "total": len(visible)}
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -639,6 +882,12 @@ class RegisterWebhookRequest(BaseModel):
 async def register_webhook(ws_id: str, req: RegisterWebhookRequest, request: Request):
     """Register a webhook endpoint for a workspace."""
     from aitest.platform.hooks.webhook import get_webhook_registry
+    try:
+        _require_request_workspace_by_id(request, workspace_id=ws_id, required_scope="write")
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
+    except ValueError as e:
+        raise HTTPException(404, str(e))
     registry = _get_from_state(request, "webhook_registry", get_webhook_registry)
     wh = registry.register(
         workspace_id=ws_id,
@@ -653,6 +902,12 @@ async def register_webhook(ws_id: str, req: RegisterWebhookRequest, request: Req
 async def list_webhooks(ws_id: str, request: Request):
     """List webhooks for a workspace."""
     from aitest.platform.hooks.webhook import get_webhook_registry
+    try:
+        _require_request_workspace_by_id(request, workspace_id=ws_id, required_scope="read")
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
+    except ValueError as e:
+        raise HTTPException(404, str(e))
     registry = _get_from_state(request, "webhook_registry", get_webhook_registry)
     hooks = registry.list(workspace_id=ws_id)
     return {"webhooks": [h.__dict__ for h in hooks]}
@@ -663,6 +918,12 @@ async def delete_webhook(ws_id: str, webhook_id: str, request: Request):
     """Delete a webhook registration."""
     from aitest.platform.hooks.webhook import get_webhook_registry
     registry = _get_from_state(request, "webhook_registry", get_webhook_registry)
+    try:
+        _require_request_workspace_by_id(request, workspace_id=ws_id, required_scope="write")
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
+    except ValueError as e:
+        raise HTTPException(404, str(e))
     deleted = registry.delete(webhook_id)
     if not deleted:
         raise HTTPException(404, f"Webhook '{webhook_id}' not found")
@@ -675,6 +936,10 @@ async def delete_webhook(ws_id: str, webhook_id: str, request: Request):
 async def metrics_snapshot(request: Request):
     """Current platform metrics: runs, cost, by module, by agent."""
     from aitest.platform.hooks.metrics_consumer import get_metrics_consumer
+    try:
+        _require_request_scope(request, "admin")
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
     mc = _get_from_state(request, "metrics_consumer", get_metrics_consumer)
     return mc.snapshot()
 
@@ -685,8 +950,14 @@ async def metrics_snapshot(request: Request):
 async def billing_records(request: Request, org_id: str = "", limit: int = 50):
     """Billing hook records. No balance — hook only."""
     from aitest.platform.hooks.billing_hook import get_billing_hook
+    try:
+        _, effective_org_id, _ = _resolve_request_org(request, org_id)
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
+    if not effective_org_id:
+        raise HTTPException(403, "Organization context required for billing records")
     hook = _get_from_state(request, "billing_hook", get_billing_hook)
-    records = hook.query(org_id=org_id, limit=limit)
+    records = hook.query(org_id=effective_org_id, limit=limit)
     return {"records": records, "total": len(records)}
 
 
@@ -696,6 +967,12 @@ async def billing_records(request: Request, org_id: str = "", limit: int = 50):
 async def workspace_usage(ws_id: str, request: Request):
     """Resource usage for a workspace. Stats only, no enforcement."""
     from aitest.platform.hooks.quota_usage import get_quota_usage
+    try:
+        _require_request_workspace_by_id(request, workspace_id=ws_id, required_scope="read")
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
+    except ValueError as e:
+        raise HTTPException(404, str(e))
     qu = _get_from_state(request, "quota_usage", get_quota_usage)
     return qu.get_usage(ws_id)
 
@@ -704,14 +981,42 @@ async def workspace_usage(ws_id: str, request: Request):
 async def all_usage(request: Request):
     """Resource usage for all workspaces."""
     from aitest.platform.hooks.quota_usage import get_quota_usage
+    try:
+        _require_request_scope(request, "admin")
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
     qu = _get_from_state(request, "quota_usage", get_quota_usage)
-    return {"usage": qu.snapshot()}
+    usage = []
+    for item in qu.snapshot():
+        ws_id = item.get("workspace_id", "")
+        if not ws_id:
+            continue
+        try:
+            _require_request_workspace_by_id(request, workspace_id=ws_id, required_scope="read")
+        except (PermissionError, ValueError):
+            continue
+        usage.append(item)
+    return {"usage": usage}
 
 
 @execution_router.get("/metrics/trends")
 async def metrics_trends(request: Request, days: int = 7, module: str = ""):
     """Historical metrics trends from PG metrics_daily table."""
     from aitest.platform.hooks.metrics_consumer import get_metrics_consumer
+    try:
+        _require_request_scope(request, "admin")
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
     mc = _get_from_state(request, "metrics_consumer", get_metrics_consumer)
     trends = mc.query_trends(days=min(days, 90), module=module)
-    return {"trends": trends, "days": days, "module": module or "all"}
+    visible = []
+    for row in trends:
+        ws_id = row.get("workspace_id", "")
+        if not ws_id:
+            continue
+        try:
+            _require_request_workspace_by_id(request, workspace_id=ws_id, required_scope="read")
+        except (PermissionError, ValueError):
+            continue
+        visible.append(row)
+    return {"trends": visible, "days": days, "module": module or "all"}

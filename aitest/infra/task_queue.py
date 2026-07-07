@@ -145,9 +145,11 @@ class TaskQueue:
 
 
 class TaskRunner:
-    def __init__(self, queue: TaskQueue = None, poll_interval: float = 2.0):
+    def __init__(self, queue: TaskQueue = None, poll_interval: float = 2.0,
+                 executor=None):
         self.queue = queue or TaskQueue()
         self.poll_interval = poll_interval
+        self._executor = executor  # Optional[Callable[[dict], dict]] — injected by platform
         self._running = False
         self._thread: Optional[threading.Thread] = None
         self._stale_check_count = 0
@@ -186,11 +188,9 @@ class TaskRunner:
                 time.sleep(self.poll_interval)
 
     def _execute(self, task: dict):
-        from aitest.agents.agent_runner import run_agent
-        result = run_agent(
-            agent_name=task["agent"], provider=task.get("provider", "claude"),
-            module=task["module"], page=task.get("page", ""), verbose=False,
-        )
+        if self._executor is None:
+            raise RuntimeError("TaskRunner has no executor — call set_executor() or pass executor= at init")
+        result = self._executor(task)
         self.queue.mark_completed(task["id"], result)
 
 

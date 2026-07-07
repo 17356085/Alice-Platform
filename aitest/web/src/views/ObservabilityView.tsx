@@ -4,6 +4,7 @@
  *  Tabs: Overview | Memory | Threads&Tasks | Queue&WS | Storage
  */
 import { useState, useEffect, useCallback } from 'react'
+import { api } from '@/api/client'
 import { Clock, Cpu, Database, Activity, Wifi, HardDrive, RefreshCw } from 'lucide-react'
 
 interface Snapshot {
@@ -48,9 +49,8 @@ export default function ObservabilityView() {
 
   const fetchSnapshot = useCallback(async () => {
     try {
-      const res = await fetch('/api/observability/snapshot')
-      if (!res.ok) throw new Error(`${res.status}`)
-      setSnap(await res.json())
+      const data = await api.get<Snapshot>('/api/observability/snapshot')
+      setSnap(data)
       setError('')
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e))

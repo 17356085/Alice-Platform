@@ -104,6 +104,23 @@ class TestRouterRegistration:
         for agent_name in ["automation-agent", "execution-agent", "report-agent"]:
             assert agent_name in AGENT_CAPABILITIES
 
+    def test_register_populates_capability_contract(self):
+        router = CapabilityRouter(load_plugins=False)
+        router.register(_FakeProvider("browser.navigate"))
+        contracts = router.get_capability_contracts("browser.navigate")
+        assert len(contracts) == 1
+        assert contracts[0].capability == "browser.navigate"
+        assert contracts[0].tool_name == "test__browser_navigate"
+
+    def test_capability_contracts_for_agent(self):
+        router = CapabilityRouter(load_plugins=False)
+        router.set_agent_capabilities({"my-agent": ["browser.navigate"]})
+        router.register(_FakeProvider("browser.navigate"))
+        router.register(_FakeProvider("codegen.page_object"))
+        contracts = router.capability_contracts_for_agent("my-agent")
+        assert len(contracts) == 1
+        assert contracts[0].capability == "browser.navigate"
+
 
 # ══════════════════════════════════════════════════════════════════════════
 #  enforce_capability

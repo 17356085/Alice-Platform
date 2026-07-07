@@ -42,8 +42,7 @@ def make_agent_loop_node(
     def agent_loop_node(state: dict) -> dict:
         import logging
         from alice_engine.core.executor import AgentLoop
-        from alice_engine.core.task import AgentResult
-        pass  # config removed
+        from alice_engine.workflow.state import AgentResult
 
         logger = logging.getLogger("aitest.graph")
 
@@ -131,8 +130,15 @@ def make_agent_loop_node(
         # ── Phase 完成/失败 ──
         if loop_state.success:
             # ★ 硬门禁: 检查强制产物是否物理存在
+            # 对于 Test Design 和 Automation，只检查当前页面
+            pages = state.get("pages", [])
+            current_idx = state.get("current_page_index", 0)
+            if phase in ("Test Design", "Automation") and pages and current_idx < len(pages):
+                pages_to_check = [pages[current_idx]]
+            else:
+                pages_to_check = pages
             artifact_ok, missing = validate_phase_artifacts(
-                phase, state["module"], state.get("pages", [])
+                phase, state["module"], pages_to_check
             )
             if artifact_ok:
                 updates["completed_phases"] = state.get("completed_phases", []) + [phase]
@@ -278,7 +284,7 @@ def make_skill_node(skill_id: str, provider_field: str = "provider"):
                 **state.get("agent_outputs", {}),
                 f"skill_{skill_id.replace('/', '_')}": {
                     "content_preview": response.content[:500] if response.content else "",
-                    "token_usage": response.token_usage,
+                    "token_usage": response.usage,
                     "finish_reason": response.finish_reason,
                 },
             },

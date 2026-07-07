@@ -9,6 +9,7 @@ import sys
 import asyncio
 import time
 import uuid
+import os
 import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -36,6 +37,11 @@ async def lifespan(app: FastAPI):
     await init_db()
     log.info("session_db_initialized")
 
+    # Wire infra/metrics → llm/circuit_breaker (break circular import)
+    from aitest.infra.metrics import register_cb_metrics_provider
+    from alice_engine.runtime.core.circuit_breaker import get_all_metrics
+    register_cb_metrics_provider(get_all_metrics)
+
     # Task runner (P4: auto-detect Redis or SQLite)
     from aitest.infra.queue_factory import get_queue, get_backend
     queue = get_queue()
@@ -44,6 +50,14 @@ async def lifespan(app: FastAPI):
     if backend == "sqlite":
         from aitest.infra.task_queue import get_runner
         runner = get_runner()
+        # Inject agent executor (break infra → agents cycle)
+        def _agent_executor(task):
+            from alice_engine.core.executor import run_agent
+            return run_agent(
+                agent_name=task["agent"], provider=task.get("provider", "claude"),
+                module=task["module"], page=task.get("page", ""), verbose=False,
+            )
+        runner._executor = _agent_executor
         runner.start()
         log.info("task_runner_started", backend="sqlite",
                  pending=queue.count_by_status().get("pending", 0))
@@ -55,9 +69,12 @@ async def lifespan(app: FastAPI):
                  cmd=f"rq worker aitest-tasks --url redis://localhost:6379/0{worker_flag}")
 
     # Wire event_bus → review_graph (break circular import, P0 2026-06-27)
-    from aitest.audit_engine.event_bus import set_review_runner
-    from aitest.graphs.review_graph import run_review
-    set_review_runner(run_review)
+    try:
+        from aitest.audit_engine.event_bus import set_review_runner
+        from alice_engine.workflow.review_graph import run_review
+        set_review_runner(run_review)
+    except (ImportError, ModuleNotFoundError):
+        log.info("review_graph_not_available", msg="skipping review_graph wiring")
 
     # Activate platform subscribers (v2.3-v2.5)
     from aitest.server.core.subscribers import activate_subscribers
@@ -116,6 +133,9 @@ async def lifespan(app: FastAPI):
         orphaned = rs.recover_crashed_runs()
         if orphaned:
             log.warning("crash_recovery", orphaned_runs=orphaned)
+        recovered_requests = rs.recover_stale_requests()
+        if recovered_requests:
+            log.warning("stale_request_recovery", recovered_requests=recovered_requests)
         from aitest.infra.task_queue import get_queue
         tq = get_queue()
         tq.recover_stale_tasks()
@@ -126,6 +146,16 @@ async def lifespan(app: FastAPI):
     from aitest.platform.execution_service import ExecutionService
     app.state.execution_service = ExecutionService()
     log.info("execution_service_created")
+
+    # v5.4: embedded execution worker for backward compatibility
+    worker = None
+    if os.environ.get("AITEST_EXECUTION_WORKER_DISABLED", "").lower() not in {"1", "true", "yes"}:
+        from aitest.platform.execution_worker import get_execution_worker
+
+        worker = get_execution_worker()
+        worker.start()
+        app.state.execution_worker = worker
+        log.info("execution_worker_started", worker_id=worker.worker_id)
 
     # v3.1: Store shared instances in app.state for DI
     from aitest.platform.run_store import get_run_store
@@ -180,6 +210,8 @@ async def lifespan(app: FastAPI):
     log.info("lifecycle_dispose_all_complete", count=count)
     if runner is not None:
         runner.stop()
+    if worker is not None:
+        worker.stop()
     log.info("server_shutdown_complete")
 
 
@@ -383,9 +415,22 @@ app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 # SPA frontend (Tauri desktop shell loads from this)
 _DIST_DIR = Path(__file__).resolve().parents[1] / "web" / "dist"
 if _DIST_DIR.is_dir():
+    from fastapi.responses import FileResponse
+
     app.mount("/assets", StaticFiles(directory=str(_DIST_DIR / "assets")), name="assets")
-    # SPA fallback: index.html for unmatched routes
-    app.mount("/", StaticFiles(directory=str(_DIST_DIR), html=True), name="spa")
+
+    # SPA fallback: serve index.html for all non-API routes
+    @app.get("/{full_path:path}")
+    async def spa_fallback(full_path: str):
+        # Don't serve index.html for API routes
+        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
+            raise HTTPException(status_code=404, detail="Not found")
+        # Try to serve static file first
+        file_path = _DIST_DIR / full_path
+        if file_path.is_file():
+            return FileResponse(str(file_path))
+        # Fallback to index.html for SPA routing
+        return FileResponse(str(_DIST_DIR / "index.html"))
 
 
 if __name__ == "__main__":

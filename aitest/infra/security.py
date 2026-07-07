@@ -6,7 +6,7 @@ _warnings.warn(
     DeprecationWarning,
     stacklevel=2,
 )
-from aitest.runtime.security import (  # noqa: F401
+from alice_engine.runtime.core.security import (  # noqa: F401
     BashValidator, SecurityHook, SecurityError, PromptInjectionGuard,
     BLOCKED_COMMANDS, CONTEXT_BLOCKED_PATTERNS, VALIDATORS,
     parse_commands, validate_rm_command, validate_git_command,

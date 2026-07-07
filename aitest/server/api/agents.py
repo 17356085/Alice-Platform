@@ -157,7 +157,7 @@ async def all_modules_status():
 @agents_router.get("/list")
 async def list_available_agents():
     """列出所有可用 Agent 及其 Skill 绑定。"""
-    from aitest.agents.agent_runner import AGENT_SKILL_MAP
+    from alice_engine.core.executor import AGENT_SKILL_MAP
     return {
         "agents": {
             agent: skills

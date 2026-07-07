@@ -134,7 +134,10 @@ class TestingMemoryStore:
         top_k: int = 5,
         min_confidence: Confidence = None,
     ) -> list[dict]:
-        """搜索记忆。按相关性 * decay_factor 排序。"""
+        """搜索记忆。按相关性 * decay_factor 排序。
+
+        P1: 每次命中递增 hit_count，达到阈值时提升 decay_factor（热度驱动）。
+        """
         if not self._client:
             return []
         try:
@@ -149,9 +152,14 @@ class TestingMemoryStore:
         if not results or not results.get("documents") or not results["documents"][0]:
             return []
 
+        # P1: 收集需要更新 hit_count 的记忆
+        hit_ids = []
+        hit_metas = []
+
         for i, doc in enumerate(results["documents"][0]):
             meta = results["metadatas"][0][i] if results.get("metadatas") else {}
             dist = results["distances"][0][i] if results.get("distances") else 0
+            mid = results["ids"][0][i] if results.get("ids") else ""
 
             if min_confidence:
                 conf = Confidence(meta.get("confidence", "once"))
@@ -163,15 +171,50 @@ class TestingMemoryStore:
             decay = float(meta.get("decay_factor", 1.0))
             score = (1.0 - (dist / 2.0)) if dist else 0.5  # ChromaDB distance → 0-1 score
 
+            # P1: 命中计数 + 热度增强
+            hit_count = int(meta.get("hit_count", 0)) + 1
+            mem = TestingMemory.from_metadata(doc, meta)
+            mem.hit_count = hit_count
+            mem = MemoryLifecycle.hit_boost(mem)
+
+            # 更新 metadata（保留增强后的 decay_factor）
+            meta["hit_count"] = mem.hit_count
+            meta["decay_factor"] = mem.decay_factor
+
             memories.append({
                 "content": doc,
                 "metadata": meta,
-                "score": round(score * decay, 3),
+                "score": round(score * mem.decay_factor, 3),
                 "raw_distance": dist,
             })
 
+            # P1: 收集待批量更新
+            if mid:
+                hit_ids.append(mid)
+                hit_metas.append(meta)
+
         memories.sort(key=lambda m: m["score"], reverse=True)
+
+        # P1: 批量更新 ChromaDB 中的 hit_count + decay_factor
+        if hit_ids:
+            self._batch_update_hits(collection_name, hit_ids, hit_metas)
+
         return memories[:top_k]
+
+    def _batch_update_hits(
+        self, collection_name: str, ids: list[str], metas: list[dict]
+    ) -> None:
+        """P1: 批量更新命中的记忆 metadata（hit_count + decay_factor）。"""
+        try:
+            collection = self._client.get_collection(collection_name)
+            # ChromaDB update 只需要 ids + metadatas，不需要 documents
+            for mid, meta in zip(ids, metas):
+                try:
+                    collection.update(ids=[mid], metadatas=[meta])
+                except Exception:
+                    pass  # 单条更新失败不影响整体
+        except Exception as e:
+            logger.debug(f"Batch hit update failed for '{collection_name}': {e}")
 
     def search_multi(
         self,

@@ -7,7 +7,7 @@ No real LLM calls — compaction LLM is mocked.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from aitest.llm.context_window import (
+from alice_engine.runtime.core.context_window import (
     ContextWindowMonitor, SessionCompactor, WindowStatus, WindowState,
     build_continuation_prompt, ContinuationResult,
     ContextWindowExceededError,
@@ -55,7 +55,7 @@ class TestEstimateTokens:
 
 class TestModelLimits:
     def test_known_model_returns_limit(self):
-        from aitest.llm.context_window import MODEL_CONTEXT_LIMITS
+        from alice_engine.runtime.core.context_window import MODEL_CONTEXT_LIMITS
         assert MODEL_CONTEXT_LIMITS["claude-sonnet-4-6"] == 200_000
         assert MODEL_CONTEXT_LIMITS["deepseek-chat"] == 64_000
         assert MODEL_CONTEXT_LIMITS["gpt-4o"] == 128_000
@@ -245,7 +245,7 @@ class TestSessionCompactor:
         messages = [{"role": "user", "content": "do task"}]
         memory = {"completed_skills": ["a", "b", "c"]}
 
-        with patch("aitest.llm.provider.get_provider", return_value=fake_llm):
+        with patch("alice_engine.providers.get_provider", return_value=fake_llm):
             result = compactor.compact(messages, agent_memory=memory)
             assert result == "Summary: completed 3 skills, 2 remaining."
 

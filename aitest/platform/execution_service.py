@@ -1,79 +1,125 @@
 """
-ExecutionService — Platform orchestration layer. v2.2
+ExecutionService — Platform orchestration layer.
 
-Sits between API and Runtime. Responsibilities:
-  1. Validate (scope check via ExecutionContext)
-  2. Create ExecutionRequest
-  3. Emit execution.requested event
-  4. Dispatch — create Run, emit execution.started
-  5. Execute via AgentLoop
-  6. Complete/fail Run, emit run.completed/run.failed
-  7. Persist Run (immutable) + RunEvents
-
-Runtime stays pure — it never sees Organization, Quota, or Billing.
-
-Usage:
-    from aitest.platform.execution_service import ExecutionService
-    from aitest.platform.workspace import ExecutionContext
-
-    svc = ExecutionService()
-    result = svc.execute(
-        ctx=ExecutionContext(workspace_id="ws-1", user_id="alice", org_id="my-org"),
-        module="equipment",
-        pages=["device-list"],
-        agent="automation-agent",
-    )
+Official mainline:
+  Entry Adapter -> ExecutionService -> EngineFactory -> Runtime Executor
 """
 
-__all__ = ["ExecutionService", "ExecutionResult"]
+from __future__ import annotations
 
-import uuid
-import time
+__all__ = ["ExecutionService", "ExecutionResult", "ExecutionContext"]
+
+import asyncio
+from datetime import datetime, timezone
 import threading
-from dataclasses import dataclass, field
+import time
+import uuid
+from typing import Any
 
-from .workspace import ExecutionContext
-from .execution_request import ExecutionRequest, RequestStatus
-from .run import Run
-from .run_event import RunEvent, EventType, make_event, EventDataKey as K
+from alice_engine.contracts import ExecutionContext, ExecutionResult
+
+from .config_registry import cfg
 from .event_bus import get_bus
+from .execution_request import ExecutionRequest
+from aitest.infra.metrics import (
+    record_execution_request,
+    record_execution_result,
+    record_execution_retry,
+)
+from .run import Run
+from .run_event import EventDataKey as K, EventType, make_event
 from .run_store import get_run_store
+from .versioning import resolve_version_metadata
+from alice_engine.kernel import KernelExecutionRequest
 
-
-# ── Result ───────────────────────────────────────────────────────────────
-
-@dataclass
-class ExecutionResult:
-    """Returned by ExecutionService after execution completes."""
-    request_id: str
-    run_id: str
-    status: str                    # completed|failed|cancelled
-    total_tokens: int = 0
-    total_cost: float = 0.0
-    agent_runs: int = 0
-    artifacts: list[str] = field(default_factory=list)
-    error_message: str = ""
-    duration_ms: float = 0.0
-
-
-# ── Service ──────────────────────────────────────────────────────────────
 
 class ExecutionService:
-    """Platform orchestration: API → ExecutionService → Runtime.
-
-    Args:
-        store: RunStore instance. If None, uses get_run_store() singleton.
-        bus: EventBus instance. If None, uses get_bus() singleton.
-    """
+    """Platform orchestration: API / CLI / Chat adapters -> runtime execution."""
 
     def __init__(self, store=None, bus=None):
         self._store = store or get_run_store()
         self._bus = bus or get_bus()
-        # ★ v2.6: Track active AgentLoop abort signals for cancel/timeout
-        self._active_aborts: dict[str, threading.Event] = {}
-        self._aborts_lock = threading.Lock()
+        self._active_controls: dict[str, Any] = {}
+        self._async_tasks: dict[str, asyncio.Task] = {}
+        self._controls_lock = threading.Lock()
 
-    # ── Public API ────────────────────────────────────────────────────
+    def normalize_context(
+        self,
+        ctx: ExecutionContext,
+        *,
+        module: str = "",
+        pages: list[str] | None = None,
+        agent: str = "automation-agent",
+        mode: str = "full",
+        provider: str | None = None,
+        priority: int = 0,
+        idempotency_key: str = "",
+        max_retries: int = 3,
+        metadata: dict[str, Any] | None = None,
+    ) -> ExecutionContext:
+        """Normalize any entrypoint input into the shared execution contract."""
+        merged_metadata = dict(metadata or {})
+        if idempotency_key:
+            merged_metadata["idempotency_key"] = idempotency_key
+        merged_metadata["max_retries"] = max_retries
+        return ctx.with_execution(
+            module=module or ctx.module,
+            pages=pages if pages is not None else ctx.pages,
+            agent=agent or ctx.agent,
+            mode=mode or ctx.mode,
+            provider=provider if provider is not None else ctx.provider,
+            priority=priority,
+            metadata=merged_metadata,
+        )
+
+    def create_engine(
+        self,
+        ctx: ExecutionContext,
+        *,
+        module: str = "",
+        pages: list[str] | None = None,
+        agent: str = "automation-agent",
+        mode: str = "full",
+        provider: str | None = None,
+        run_id: str = "",
+        checkpoint_thread_id: str = "",
+        verbose: bool = False,
+        **kwargs,
+    ):
+        """Build an execution engine through the official service boundary."""
+        from .engine_factory import get_engine
+
+        resolved = self.normalize_context(
+            ctx,
+            module=module,
+            pages=pages,
+            agent=agent,
+            mode=mode,
+            provider=provider,
+        )
+        return get_engine(
+            resolved.agent or "automation-agent",
+            module=resolved.module,
+            pages=resolved.pages,
+            page=resolved.page,
+            agent=resolved.agent or "automation-agent",
+            provider=resolved.provider or "",
+            mode=resolved.mode,
+            run_id=run_id,
+            checkpoint_thread_id=checkpoint_thread_id,
+            verbose=verbose,
+            **kwargs,
+        )
+
+    class _KernelRunControl:
+        def __init__(self, kernel, run_id: str):
+            self._kernel = kernel
+            self._run_id = run_id
+
+        def cancel(self) -> None:
+            cancel = getattr(self._kernel, "cancel", None)
+            if callable(cancel):
+                cancel(self._run_id)
 
     def execute(
         self,
@@ -83,370 +129,419 @@ class ExecutionService:
         pages: list[str] | None = None,
         agent: str = "automation-agent",
         mode: str = "full",
-        provider: str = None,
+        provider: str | None = None,
         priority: int = 0,
+        idempotency_key: str = "",
+        max_retries: int = 3,
+        checkpoint_thread_id: str = "",
     ) -> ExecutionResult:
-        """
-        Execute an agent run with full Platform lifecycle.
-
-        Flow:
-          1. Validate — scope check
-          2. Create ExecutionRequest
-          3. Emit execution.requested
-          4. Dispatch → Create Run → emit execution.started
-          5. Execute via AgentLoop
-          6. Complete/fail Run → emit run.completed/failed
-          7. Persist Run + Events
-
-        Args:
-            ctx: ExecutionContext from Platform layer (never seen by Runtime)
-            module: Target module name
-            pages: Page slugs to execute
-            agent: Agent name (automation-agent, execution-agent, ...)
-            mode: SOP mode (full|status|from_automation)
-            provider: LLM provider (claude|deepseek|openai)
-            priority: Queue priority (0=normal, 1=high, 2=critical)
-
-        Returns:
-            ExecutionResult with request_id, run_id, status, summary.
-        """
         pages = pages or []
-        t0 = time.perf_counter()
-
-        # 1. Validate
+        version_metadata = resolve_version_metadata()
+        ctx = self.normalize_context(
+            ctx,
+            module=module,
+            pages=pages,
+            agent=agent,
+            mode=mode,
+            provider=provider,
+            priority=priority,
+            idempotency_key=idempotency_key,
+            max_retries=max_retries,
+            metadata=version_metadata,
+        )
         ctx.require("execute")
+        idem_key = self._resolve_idempotency_key(ctx, idempotency_key)
+        if idem_key:
+            existing = self._find_existing_request(ctx, idem_key)
+            if existing is not None:
+                return self._build_result_from_request(ctx, existing)
+        request = self._create_request(ctx, agent=agent)
+        request.queue()
+        record_execution_request(request.agent or agent, request.module, request.status)
+        self._emit_execution_requested(ctx, request, agent)
+        self._store.save_request(request)
+        return self._run_request_flow(
+            ctx,
+            request,
+            agent=agent,
+            t0=time.perf_counter(),
+            verbose=True,
+            checkpoint_thread_id=checkpoint_thread_id or request.request_id,
+        )
 
-        # 2. Create ExecutionRequest
-        request = ExecutionRequest(
+    def submit_async(
+        self,
+        ctx: ExecutionContext,
+        *,
+        module: str,
+        pages: list[str] | None = None,
+        agent: str = "automation-agent",
+        mode: str = "full",
+        provider: str | None = None,
+        priority: int = 0,
+        idempotency_key: str = "",
+        max_retries: int = 3,
+        checkpoint_thread_id: str = "",
+    ) -> ExecutionResult:
+        """Create an execution request and hand it to the worker plane."""
+        pages = pages or []
+        version_metadata = resolve_version_metadata()
+        ctx = self.normalize_context(
+            ctx,
+            module=module,
+            pages=pages,
+            agent=agent,
+            mode=mode,
+            provider=provider,
+            priority=priority,
+            idempotency_key=idempotency_key,
+            max_retries=max_retries,
+            metadata=version_metadata,
+        )
+        ctx.require("execute")
+        idem_key = self._resolve_idempotency_key(ctx, idempotency_key)
+        if idem_key:
+            existing = self._find_existing_request(ctx, idem_key)
+            if existing is not None:
+                return self._build_result_from_request(ctx, existing)
+        request = self._create_request(ctx, agent=agent)
+        request.queue()
+        record_execution_request(request.agent or agent, request.module, request.status)
+        self._emit_execution_requested(ctx, request, agent)
+        self._store.save_request(request)
+        return self._build_pending_result(
+            ctx,
+            request=request,
+            agent=agent,
+            checkpoint_thread_id=checkpoint_thread_id or request.request_id,
+        )
+
+    def _create_request(self, ctx: ExecutionContext, *, agent: str) -> ExecutionRequest:
+        return ExecutionRequest(
             request_id=str(uuid.uuid4()),
             workspace_id=ctx.workspace_id,
             org_id=ctx.org_id,
             triggered_by=ctx.user_id,
-            trigger_type="manual",
-            module=module,
-            pages=pages,
-            mode=mode,
-            provider=provider,
-            priority=priority,
+            trigger_type=ctx.metadata.get("trigger_type", "manual"),
+            agent=agent,
+            idempotency_key=self._resolve_idempotency_key(ctx, ctx.metadata.get("idempotency_key", "")),
+            module=ctx.module,
+            pages=ctx.pages,
+            mode=ctx.mode,
+            provider=ctx.provider or None,
+            priority=ctx.priority,
+            max_retries=self._safe_int(ctx.metadata.get("max_retries", 3), default=3),
         )
 
-        # 3. Emit execution.requested
-        ev_req = make_event(
-            EventType.EXECUTION_REQUESTED,
+    def _safe_int(self, value: Any, *, default: int) -> int:
+        try:
+            return int(value)
+        except Exception:
+            return default
+
+    def _resolve_idempotency_key(self, ctx: ExecutionContext, idempotency_key: str = "") -> str:
+        key = str(idempotency_key or (ctx.metadata.get("idempotency_key", "") if isinstance(ctx.metadata, dict) else "")).strip()
+        return key
+
+    def _find_existing_request(self, ctx: ExecutionContext, idempotency_key: str) -> ExecutionRequest | None:
+        if not idempotency_key:
+            return None
+        finder = getattr(self._store, "find_request_by_idempotency_key", None)
+        if callable(finder):
+            return finder(
+                idempotency_key,
+                workspace_id=ctx.workspace_id,
+                org_id=ctx.org_id,
+            )
+        return None
+
+    def _build_result_from_request(self, ctx: ExecutionContext, request: ExecutionRequest) -> ExecutionResult:
+        latest_run_id = request.latest_run_id
+        if request.is_terminal and latest_run_id:
+            run = self._store.load_run(latest_run_id)
+            if run is not None:
+                duration_ms = 0.0
+                try:
+                    started = datetime.fromisoformat(run.created_at)
+                    ended = datetime.fromisoformat(run.completed_at or run.created_at)
+                    duration_ms = round((ended - started).total_seconds() * 1000, 1)
+                except Exception:
+                    pass
+                return self._build_result(
+                    ctx,
+                    request_id=request.request_id,
+                    run=run,
+                    duration_ms=duration_ms,
+                    completed_phases=[],
+                    failed_phases=[],
+                    checkpoint_thread_id=request.request_id,
+                )
+        return self._build_pending_result(
+            ctx,
+            request=request,
+            agent=request.agent or ctx.agent,
+            checkpoint_thread_id=request.request_id,
+        )
+
+    def _build_pending_result(
+        self,
+        ctx: ExecutionContext,
+        *,
+        request: ExecutionRequest,
+        agent: str,
+        checkpoint_thread_id: str,
+    ) -> ExecutionResult:
+        return ExecutionResult(
             request_id=request.request_id,
-            module=module, pages=pages, agent=agent,
+            run_id="",
+            status="pending",
+            module=ctx.module,
+            pages=list(ctx.pages),
+            agent=agent,
+            mode=ctx.mode,
+            summary="execution queued asynchronously",
+            metadata={
+                "workspace_id": ctx.workspace_id,
+                "org_id": ctx.org_id,
+                "entrypoint": ctx.entrypoint,
+                "async": True,
+                "checkpoint_thread_id": checkpoint_thread_id,
+                "idempotency_key": request.idempotency_key,
+                "retry_count": request.retry_count,
+                "max_retries": request.max_retries,
+                "policy_version": ctx.metadata.get(K.POLICY_VERSION, cfg.governance_policy_version),
+                "governance_version": ctx.metadata.get(K.GOVERNANCE_VERSION, cfg.governance_policy_version),
+                "config_version": ctx.metadata.get(K.CONFIG_VERSION, cfg.governance_policy_version),
+                "governance_pack_root": ctx.metadata.get(K.GOVERNANCE_PACK_ROOT, ""),
+            },
         )
-        self._store.save_event(ev_req)   # Persist before publish
-        self._bus.publish_async(ev_req)
-        request.queue()
-        self._store.save_request(request)  # Persist at queued
 
-        # 4. Dispatch — create Run
+    def _run_request_flow(
+        self,
+        ctx: ExecutionContext,
+        request: ExecutionRequest,
+        *,
+        agent: str,
+        t0: float,
+        verbose: bool,
+        checkpoint_thread_id: str = "",
+        allow_retry: bool = False,
+    ) -> ExecutionResult:
         run = Run(
             run_id=str(uuid.uuid4()),
             request_id=request.request_id,
             workspace_id=ctx.workspace_id,
             org_id=ctx.org_id,
             triggered_by=ctx.user_id,
-            capability="browser",
+            capability="graph" if agent == "sop" else "agent",
             agent=agent,
-            module=module,
-            pages=pages,
-            mode=mode,
-        )
-        request.dispatch(run.run_id)  # appends to run_ids (one-to-many)
-        self._store.save_request(request)  # Persist after dispatch
-        self._store.save_run(run)         # Persist Run early (in case AgentLoop crashes)
-
-        # Emit execution.started
-        ev_start = make_event(
-            EventType.EXECUTION_STARTED,
-            run_id=run.run_id,
-            request_id=request.request_id,
-            workspace_id=ctx.workspace_id,
-            org_id=ctx.org_id,
-            module=module, agent=agent,
-        )
-        self._store.save_event(ev_start)
-        self._bus.publish_async(ev_start)
-
-        # 5. Execute via engine factory
-        try:
-            from .engine_factory import get_engine
-
-            # Emit PHASE_STARTED — execution phase begins
-            ev_phase_start = make_event(
-                EventType.PHASE_STARTED,
-                run_id=run.run_id,
-                request_id=request.request_id,
-                phase="execution",
-                module=module,
-            )
-            self._store.save_event(ev_phase_start)
-            self._bus.publish_async(ev_phase_start)
-
-            loop = get_engine(
-                agent,
-                module=module,
-                pages=pages,
-                agent=agent,
-                provider=provider or "",
-                verbose=True,
-            )
-            # Register abort signal so cancel()/timeout can interrupt
-            with self._aborts_lock:
-                self._active_aborts[run.run_id] = loop._abort
-            try:
-                state = loop.run()
-            finally:
-                with self._aborts_lock:
-                    self._active_aborts.pop(run.run_id, None)
-
-            # 6. Complete Run — persist before publish
-            run.complete(
-                total_tokens=getattr(state, 'total_tokens', 0),
-                total_cost=getattr(state, 'estimated_cost', 0.0),
-                agent_runs=getattr(state, 'step', 0),
-            )
-            request.complete()
-            self._store.save_run(run)         # Persist Run (canonical) first
-            self._store.save_request(request)  # Persist completed
-
-            # Emit PHASE_COMPLETED — execution phase finished
-            ev_phase_done = make_event(
-                EventType.PHASE_COMPLETED,
-                run_id=run.run_id,
-                request_id=request.request_id,
-                phase="execution",
-                module=module,
-            )
-            self._store.save_event(ev_phase_done)
-            self._bus.publish_async(ev_phase_done)
-
-            ev_completed = make_event(
-                EventType.RUN_COMPLETED,
-                run_id=run.run_id,
-                request_id=request.request_id,
-                workspace_id=ctx.workspace_id,
-                org_id=ctx.org_id,
-                module=module,
-                agent=agent,
-                total_tokens=run.total_tokens,
-                total_cost=run.total_cost,
-                agent_runs=run.agent_runs,
-            )
-            self._store.save_event(ev_completed)
-            self._bus.publish_async(ev_completed)
-
-            # Emit cost.recorded
-            if run.total_cost > 0:
-                ev_cost = make_event(
-                    EventType.COST_RECORDED,
-                    run_id=run.run_id,
-                    request_id=request.request_id,
-                    total_cost=run.total_cost,
-                    total_tokens=run.total_tokens,
-                    org_id=ctx.org_id,
-                    workspace_id=ctx.workspace_id,
-                )
-                self._store.save_event(ev_cost)
-                self._bus.publish_async(ev_cost)
-
-        except Exception as e:
-            run.fail(str(e))
-            request.fail()
-            self._store.save_run(run)         # Persist Run (canonical) first
-            self._store.save_request(request)  # Persist failed
-
-            # Emit PHASE_COMPLETED — execution phase finished (with failure)
-            ev_phase_done = make_event(
-                EventType.PHASE_COMPLETED,
-                run_id=run.run_id,
-                request_id=request.request_id,
-                phase="execution",
-                module=module,
-            )
-            self._store.save_event(ev_phase_done)
-            self._bus.publish_async(ev_phase_done)
-
-            ev_failed = make_event(
-                EventType.RUN_FAILED,
-                run_id=run.run_id,
-                request_id=request.request_id,
-                workspace_id=ctx.workspace_id,
-                org_id=ctx.org_id,
-                module=module,
-                agent=agent,
-                total_tokens=run.total_tokens,
-                total_cost=run.total_cost,
-                agent_runs=run.agent_runs,
-                error=str(e),
-            )
-            self._store.save_event(ev_failed)
-            self._bus.publish_async(ev_failed)
-
-        # 7. Persist (success path already persisted above; this is for any remaining state)
-        self._store.save_run(run)
-        duration_ms = (time.perf_counter() - t0) * 1000
-
-        return ExecutionResult(
-            request_id=request.request_id,
-            run_id=run.run_id,
-            status=run.status,
-            total_tokens=run.total_tokens,
-            total_cost=run.total_cost,
-            agent_runs=run.agent_runs,
-            artifacts=run.artifacts,
-            error_message=run.error_message,
-            duration_ms=round(duration_ms, 1),
-        )
-
-    def resume(self, run_id: str) -> ExecutionResult | None:
-        """P4: Resume an interrupted Run from its last checkpoint.
-
-        Loads the Run from run_store, re-creates the execution context,
-        and continues the AgentLoop from where it left off.
-        Returns None if the Run is already complete or doesn't exist.
-
-        Args:
-            run_id: The Run.run_id to resume (from a previous failed/interrupted run)
-
-        Returns:
-            ExecutionResult or None if Run is terminal/not found.
-        """
-        run = self._store.load_run(run_id)
-        if run is None:
-            return None
-        if run.is_frozen:
-            return None  # Already terminal — nothing to resume
-
-        t0 = time.perf_counter()
-        pages = run.pages or []
-
-        # Create a new request linking to the resumed run
-        request = ExecutionRequest(
-            request_id=str(uuid.uuid4()),
-            workspace_id=run.workspace_id,
-            org_id=run.org_id,
-            triggered_by=run.triggered_by,
-            trigger_type="resume",
-            module=run.module,
-            pages=pages,
-            mode=run.mode,
-            provider=getattr(run, 'provider', 'claude'),
+            module=ctx.module,
+            pages=ctx.pages,
+            mode=ctx.mode,
         )
         request.dispatch(run.run_id)
-
-        # Emit execution.resumed
-        ev_resume = make_event(
-            EventType.EXECUTION_REQUESTED,
-            request_id=request.request_id,
-            run_id=run.run_id,
-            module=run.module,
-            pages=pages,
-            agent=run.agent,
-            data={"resume": True, "original_run_id": run.run_id},
-        )
-        self._store.save_event(ev_resume)
-        self._bus.publish_async(ev_resume)
         self._store.save_request(request)
+        self._store.save_run(run)
+        self._emit_started(ctx, request, run)
 
-        # Re-execute via engine factory
+        completed_phases: list[str] = []
+        failed_phases: list[str] = []
         try:
-            from .engine_factory import get_engine
+            self._emit_phase_started(request, run)
+            replay_recorder = None
+            try:
+                from .replay import ReplayRecorder
 
-            loop = get_engine(
-                run.agent,
-                module=run.module,
-                pages=pages,
-                agent=run.agent,
-                provider=getattr(run, 'provider', '') or "",
-                verbose=True,
-            )
-            state = loop.run()
+                replay_recorder = ReplayRecorder(
+                    run_id=run.run_id,
+                    module=ctx.module,
+                    page=ctx.page,
+                    agent=agent,
+                )
+                setattr(run, "replay_session_id", replay_recorder.session_id)
+            except Exception:
+                replay_recorder = None
 
-            run.complete(
-                total_tokens=getattr(state, 'total_tokens', 0),
-                total_cost=getattr(state, 'estimated_cost', 0.0),
-                agent_runs=getattr(state, 'step', 0),
-            )
+            kernel = self._resolve_execution_kernel()
+            self._register_control(run.run_id, self._KernelRunControl(kernel, run.run_id))
+            try:
+                state = self._execute_request_via_kernel(
+                    ctx,
+                    request,
+                    run,
+                    agent=agent,
+                    verbose=verbose,
+                    checkpoint_thread_id=checkpoint_thread_id or run.run_id,
+                    replay_recorder=replay_recorder,
+                    kernel=kernel,
+                )
+            finally:
+                self._unregister_control(run.run_id)
+                if replay_recorder is not None:
+                    try:
+                        replay_recorder.finish()
+                    except Exception:
+                        pass
+
+            completed_phases = self._extract_list(state, "completed_phases")
+            failed_phases = self._extract_list(state, "failed_phases")
+            self._finalize_run_from_state(run, state)
             request.complete()
             self._store.save_run(run)
             self._store.save_request(request)
-
-            ev_completed = make_event(
-                EventType.RUN_COMPLETED,
-                run_id=run.run_id,
-                request_id=request.request_id,
+            duration_ms = round((time.perf_counter() - t0) * 1000, 1)
+            self._emit_phase_completed(request, run)
+            self._emit_terminal_event(ctx, request, run, completed_phases, failed_phases, duration_ms=duration_ms)
+            record_execution_result(
+                run.agent or agent,
+                run.status,
+                duration_s=duration_ms / 1000.0,
                 module=run.module,
-                agent=run.agent,
-                data={"resumed": True},
             )
-            self._store.save_event(ev_completed)
-            self._bus.publish_async(ev_completed)
-
-        except Exception as e:
-            run.fail(str(e))
-            request.fail()
+        except Exception as exc:
+            retry_scheduled = False
+            duration_ms = round((time.perf_counter() - t0) * 1000, 1)
+            if allow_retry and self._can_retry_request(request, exc):
+                retry_scheduled = True
+                delay_s = self._retry_delay_for_request(request)
+                run.fail(str(exc))
+                request.schedule_retry(delay_s)
+                record_execution_retry(request.agent or agent, request.module)
+            else:
+                run.fail(str(exc))
+                request.fail()
             self._store.save_run(run)
             self._store.save_request(request)
-
-            ev_failed = make_event(
-                EventType.RUN_FAILED,
-                run_id=run.run_id,
-                request_id=request.request_id,
-                module=run.module,
-                agent=run.agent,
-                error=str(e),
+            self._emit_phase_completed(request, run)
+            self._emit_failed(ctx, request, run, str(exc), duration_ms=duration_ms)
+            record_execution_result(
+                request.agent or agent,
+                run.status,
+                duration_s=duration_ms / 1000.0,
+                module=request.module,
             )
-            self._store.save_event(ev_failed)
-            self._bus.publish_async(ev_failed)
+            if retry_scheduled:
+                return self._build_pending_result(
+                    ctx,
+                    request=request,
+                    agent=agent,
+                    checkpoint_thread_id=checkpoint_thread_id or request.request_id,
+                )
 
+        duration_ms = round((time.perf_counter() - t0) * 1000, 1)
         self._store.save_run(run)
-        duration_ms = (time.perf_counter() - t0) * 1000
-
-        return ExecutionResult(
+        return self._build_result(
+            ctx,
             request_id=request.request_id,
-            run_id=run.run_id,
-            status=run.status,
-            total_tokens=run.total_tokens,
-            total_cost=run.total_cost,
-            agent_runs=run.agent_runs,
-            artifacts=run.artifacts,
-            error_message=run.error_message,
-            duration_ms=round(duration_ms, 1),
+            run=run,
+            duration_ms=duration_ms,
+            completed_phases=completed_phases,
+            failed_phases=failed_phases,
+            checkpoint_thread_id=checkpoint_thread_id or request.request_id,
         )
 
-    def cancel(self, request_id: str) -> bool:
-        """Cancel a pending/queued ExecutionRequest. Best-effort.
+    def _can_retry_request(self, request: ExecutionRequest, exc: Exception) -> bool:
+        if request.is_terminal:
+            return False
+        if request.max_retries <= 0:
+            return False
+        if request.retry_count >= request.max_retries:
+            return False
+        error = str(exc).lower()
+        fatal_markers = ("fatal", "permission", "denied", "auth", "context_length", "invalid")
+        return not any(marker in error for marker in fatal_markers)
 
-        v2.2: ExecutionRequest is in-memory only. Look up Run by request_id,
-        cancel if not yet terminal.
-        v2.6: Signals AgentLoop._abort to interrupt running execution.
-        """
+    def _retry_delay_for_request(self, request: ExecutionRequest) -> float:
+        from .scheduler import RetryPolicy
+
+        policy = RetryPolicy(max_attempts=max(request.max_retries, 1))
+        return policy.delay_for_attempt(request.retry_count)
+
+    def _resolve_execution_kernel(self):
+        from .engine_factory import get_execution_kernel
+
+        return get_execution_kernel()
+
+    def _execute_request_via_kernel(
+        self,
+        ctx: ExecutionContext,
+        request: ExecutionRequest,
+        run: Run,
+        *,
+        agent: str,
+        verbose: bool,
+        checkpoint_thread_id: str,
+        replay_recorder=None,
+        kernel=None,
+    ) -> ExecutionResult:
+        from .engine_factory import resolve_kernel_kind
+
+        kernel = kernel or self._resolve_execution_kernel()
+        kernel_ctx = ctx.with_execution(
+            agent=agent,
+            request_id=request.request_id,
+            run_id=run.run_id,
+        )
+        kernel_request = KernelExecutionRequest(
+            context=kernel_ctx,
+            kind=resolve_kernel_kind(agent, agent=agent),
+            project_path=str(ctx.metadata.get("project_path", "")) if isinstance(ctx.metadata, dict) else "",
+            run_id=run.run_id,
+            checkpoint_thread_id=checkpoint_thread_id,
+            metadata={
+                "page": ctx.page,
+                "verbose": verbose,
+                "replay_recorder": replay_recorder,
+            },
+        )
+        return kernel.execute(kernel_request)
+
+    def resume(self, run_id: str) -> ExecutionResult | None:
+        run = self._store.load_run(run_id)
+        if run is None or run.status == "completed":
+            return None
+
+        checkpoint_thread_id = run.request_id or run.run_id
+        ctx = ExecutionContext(
+            workspace_id=run.workspace_id,
+            user_id=run.triggered_by,
+            scopes=["read", "execute"],
+            org_id=run.org_id,
+            module=run.module,
+            pages=list(run.pages),
+            agent=run.agent,
+            mode=run.mode,
+            metadata={"entrypoint": "resume", "trigger_type": "resume"},
+        )
+        result = self.execute(
+            ctx,
+            module=run.module,
+            pages=run.pages,
+            agent=run.agent,
+            mode="resume",
+            provider="",
+            checkpoint_thread_id=checkpoint_thread_id,
+        )
+        return result
+
+    def cancel(self, request_id: str) -> bool:
         runs = self._store.list_runs(limit=500)
         run = next((r for r in runs if r.request_id == request_id), None)
-
-        if run is None:
-            return False
-        if run.is_frozen:
+        if run is None or run.is_frozen:
             return False
 
-        # ★ v2.6: Signal AgentLoop abort event if running
-        with self._aborts_lock:
-            abort_ev = self._active_aborts.get(run.run_id)
-        if abort_ev is not None:
-            abort_ev.set()
+        control = self._get_control(run.run_id)
+        if control is not None and hasattr(control, "cancel"):
+            control.cancel()
 
         run.cancel()
         self._store.save_run(run)
-
         request = self._store.load_request(request_id)
         if request:
             request.cancel()
             self._store.save_request(request)
 
-        ev_cancelled = make_event(
+        ev = make_event(
             EventType.RUN_CANCELLED,
             run_id=run.run_id,
             request_id=request_id,
@@ -455,31 +550,24 @@ class ExecutionService:
             module=run.module,
             agent=run.agent,
         )
-        self._store.save_event(ev_cancelled)
-        self._bus.publish_async(ev_cancelled)
+        self._store.save_event(ev)
+        self._bus.publish_async(ev)
         return True
 
     def timeout_run(self, run_id: str) -> bool:
-        """Force-timeout a running Run. Sets abort signal + marks DB.
-
-        Returns True if the run was found and timed out.
-        """
         run = self._store.load_run(run_id)
         if run is None or run.is_frozen:
             return False
 
-        # Signal abort
-        with self._aborts_lock:
-            abort_ev = self._active_aborts.get(run_id)
-        if abort_ev is not None:
-            abort_ev.set()
+        control = self._get_control(run_id)
+        if control is not None and hasattr(control, "cancel"):
+            control.cancel()
 
         run.timed_out()
         self._store.save_run(run)
-
         ev = make_event(
             EventType.RUN_FAILED,
-            run_id=run_id,
+            run_id=run.run_id,
             request_id=run.request_id,
             workspace_id=run.workspace_id,
             org_id=run.org_id,
@@ -492,6 +580,321 @@ class ExecutionService:
         return True
 
     def get_active_run_ids(self) -> list[str]:
-        """Return run_ids of currently executing AgentLoops."""
-        with self._aborts_lock:
-            return list(self._active_aborts.keys())
+        with self._controls_lock:
+            return list(self._active_controls.keys())
+
+    def _register_control(self, run_id: str, control: Any) -> None:
+        with self._controls_lock:
+            self._active_controls[run_id] = control
+
+    def _unregister_control(self, run_id: str) -> None:
+        with self._controls_lock:
+            self._active_controls.pop(run_id, None)
+
+    def _get_control(self, run_id: str) -> Any | None:
+        with self._controls_lock:
+            return self._active_controls.get(run_id)
+
+    def _emit_execution_requested(self, ctx: ExecutionContext, request: ExecutionRequest, agent: str) -> None:
+        ev = make_event(
+            EventType.EXECUTION_REQUESTED,
+            request_id=request.request_id,
+            workspace_id=ctx.workspace_id,
+            org_id=ctx.org_id,
+            module=request.module,
+            pages=request.pages,
+            agent=agent,
+            **self._version_payload(ctx),
+        )
+        self._store.save_event(ev)
+        self._bus.publish_async(ev)
+
+    def _emit_started(self, ctx: ExecutionContext, request: ExecutionRequest, run: Run) -> None:
+        replay_session_id = getattr(run, "replay_session_id", "")
+        ev = make_event(
+            EventType.EXECUTION_STARTED,
+            run_id=run.run_id,
+            request_id=request.request_id,
+            workspace_id=ctx.workspace_id,
+            org_id=ctx.org_id,
+            module=run.module,
+            agent=run.agent,
+            replay_session_id=replay_session_id,
+            **self._version_payload(ctx),
+        )
+        self._store.save_event(ev)
+        self._bus.publish_async(ev)
+
+    def _emit_phase_started(self, request: ExecutionRequest, run: Run) -> None:
+        replay_session_id = getattr(run, "replay_session_id", "")
+        ev = make_event(
+            EventType.PHASE_STARTED,
+            run_id=run.run_id,
+            request_id=request.request_id,
+            phase="execution",
+            module=run.module,
+            replay_session_id=replay_session_id,
+            **self._version_payload_from_run(run),
+        )
+        self._store.save_event(ev)
+        self._bus.publish_async(ev)
+
+    def _emit_phase_completed(self, request: ExecutionRequest, run: Run) -> None:
+        replay_session_id = getattr(run, "replay_session_id", "")
+        ev = make_event(
+            EventType.PHASE_COMPLETED,
+            run_id=run.run_id,
+            request_id=request.request_id,
+            phase="execution",
+            module=run.module,
+            replay_session_id=replay_session_id,
+            **self._version_payload_from_run(run),
+        )
+        self._store.save_event(ev)
+        self._bus.publish_async(ev)
+
+    def _emit_terminal_event(
+        self,
+        ctx: ExecutionContext,
+        request: ExecutionRequest,
+        run: Run,
+        completed_phases: list[str],
+        failed_phases: list[str],
+        *,
+        duration_ms: float = 0.0,
+    ) -> None:
+        replay_session_id = getattr(run, "replay_session_id", "")
+        if run.status == "completed":
+            event_type = EventType.RUN_COMPLETED
+        elif run.status == "cancelled":
+            event_type = EventType.RUN_CANCELLED
+        else:
+            event_type = EventType.RUN_FAILED
+        ev = make_event(
+            event_type,
+            run_id=run.run_id,
+            request_id=request.request_id,
+            workspace_id=ctx.workspace_id,
+            org_id=ctx.org_id,
+            module=run.module,
+            agent=run.agent,
+            total_tokens=run.total_tokens,
+            total_cost=run.total_cost,
+            agent_runs=run.agent_runs,
+            duration_ms=duration_ms,
+            retry_count=request.retry_count,
+            max_retries=request.max_retries,
+            error=run.error_message,
+            completed_phases=completed_phases,
+            failed_phases=failed_phases,
+            replay_session_id=replay_session_id,
+            **self._version_payload(ctx),
+        )
+        self._store.save_event(ev)
+        self._bus.publish_async(ev)
+
+        if run.total_cost > 0:
+            cost = make_event(
+                EventType.COST_RECORDED,
+                run_id=run.run_id,
+                request_id=request.request_id,
+                total_cost=run.total_cost,
+                total_tokens=run.total_tokens,
+                org_id=ctx.org_id,
+                workspace_id=ctx.workspace_id,
+                replay_session_id=replay_session_id,
+                **self._version_payload(ctx),
+            )
+            self._store.save_event(cost)
+            self._bus.publish_async(cost)
+
+    def _emit_failed(self, ctx: ExecutionContext, request: ExecutionRequest, run: Run, error: str, *, duration_ms: float = 0.0) -> None:
+        replay_session_id = getattr(run, "replay_session_id", "")
+        ev = make_event(
+            EventType.RUN_FAILED,
+            run_id=run.run_id,
+            request_id=request.request_id,
+            workspace_id=ctx.workspace_id,
+            org_id=ctx.org_id,
+            module=run.module,
+            agent=run.agent,
+            total_tokens=run.total_tokens,
+            total_cost=run.total_cost,
+            agent_runs=run.agent_runs,
+            duration_ms=duration_ms,
+            retry_count=request.retry_count,
+            max_retries=request.max_retries,
+            error=error,
+            replay_session_id=replay_session_id,
+            **self._version_payload(ctx),
+        )
+        self._store.save_event(ev)
+        self._bus.publish_async(ev)
+
+    def _extract_value(self, state: Any, key: str, default: Any = None) -> Any:
+        if isinstance(state, ExecutionResult):
+            return getattr(state, key, default)
+        if isinstance(state, dict):
+            return state.get(key, default)
+        return getattr(state, key, default)
+
+    def _extract_list(self, state: Any, key: str) -> list[str]:
+        value = self._extract_value(state, key, [])
+        return list(value) if isinstance(value, (list, tuple, set)) else []
+
+    def _extract_artifacts(self, state: Any) -> list[str]:
+        if isinstance(state, ExecutionResult):
+            return [str(v) for v in state.artifacts]
+        value = self._extract_value(state, "artifacts", [])
+        if isinstance(value, list):
+            return [str(v) for v in value]
+        return []
+
+    def _version_payload(self, ctx: ExecutionContext) -> dict[str, Any]:
+        metadata = ctx.metadata if isinstance(ctx.metadata, dict) else {}
+        return {
+            K.POLICY_VERSION: metadata.get(K.POLICY_VERSION, cfg.governance_policy_version),
+            K.GOVERNANCE_VERSION: metadata.get(K.GOVERNANCE_VERSION, cfg.governance_policy_version),
+            K.CONFIG_VERSION: metadata.get(K.CONFIG_VERSION, cfg.governance_policy_version),
+            K.GOVERNANCE_PACK_ROOT: metadata.get(K.GOVERNANCE_PACK_ROOT, ""),
+        }
+
+    def _version_payload_from_run(self, run: Run) -> dict[str, Any]:
+        metadata = getattr(run, "runtime_context", {})
+        if not isinstance(metadata, dict):
+            metadata = {}
+        return {
+            K.POLICY_VERSION: metadata.get(K.POLICY_VERSION, cfg.governance_policy_version),
+            K.GOVERNANCE_VERSION: metadata.get(K.GOVERNANCE_VERSION, cfg.governance_policy_version),
+            K.CONFIG_VERSION: metadata.get(K.CONFIG_VERSION, cfg.governance_policy_version),
+            K.GOVERNANCE_PACK_ROOT: metadata.get(K.GOVERNANCE_PACK_ROOT, ""),
+        }
+
+    def _finalize_run_from_state(self, run: Run, state: Any) -> None:
+        if isinstance(state, ExecutionResult):
+            setattr(run, "runtime_context", state.metadata.get("runtime_context", {}))
+            setattr(run, "replay_session_id", state.metadata.get("replay_session_id", ""))
+            if state.status == "cancelled":
+                run.total_tokens = state.total_tokens
+                run.total_cost = state.total_cost
+                run.agent_runs = state.agent_runs
+                run.artifacts = list(state.artifacts)
+                run.cancel()
+                return
+
+            if state.status in {"failed", "timed_out"} or state.failed_phases:
+                run.total_tokens = state.total_tokens
+                run.total_cost = state.total_cost
+                run.agent_runs = state.agent_runs
+                run.artifacts = list(state.artifacts)
+                if state.status == "timed_out":
+                    run.timed_out()
+                else:
+                    run.fail(state.error_message or "execution_failed")
+                return
+
+            run.complete(
+                total_tokens=state.total_tokens,
+                total_cost=state.total_cost,
+                agent_runs=state.agent_runs,
+                artifacts=list(state.artifacts),
+            )
+            return
+
+        total_tokens = int(self._extract_value(state, "total_tokens", 0) or 0)
+        total_cost = float(
+            self._extract_value(
+                state,
+                "estimated_cost",
+                self._extract_value(state, "total_cost", 0.0),
+            )
+            or 0.0
+        )
+        agent_runs = int(
+            self._extract_value(
+                state,
+                "step",
+                len(self._extract_value(state, "agent_outputs", {}) or {}),
+            )
+            or 0
+        )
+        artifacts = self._extract_artifacts(state)
+        failed_phases = self._extract_list(state, "failed_phases")
+        termination_reason = str(self._extract_value(state, "termination_reason", "") or "")
+        success = self._extract_value(state, "success", None)
+        status_hint = str(self._extract_value(state, "status", "") or "").lower()
+        setattr(run, "runtime_context", self._extract_value(state, "memory", {}).get("runtime_context", {}))
+        setattr(run, "replay_session_id", self._extract_value(state, "memory", {}).get("replay_session_id", ""))
+
+        if status_hint == "cancelled" or termination_reason == "cancelled":
+            run.total_tokens = total_tokens
+            run.total_cost = total_cost
+            run.agent_runs = agent_runs
+            run.artifacts = artifacts
+            run.cancel()
+            return
+
+        if status_hint in {"failed", "timed_out"} or success is False or failed_phases:
+            run.total_tokens = total_tokens
+            run.total_cost = total_cost
+            run.agent_runs = agent_runs
+            run.artifacts = artifacts
+            if status_hint == "timed_out":
+                run.timed_out()
+            else:
+                run.fail(termination_reason or "execution_failed")
+            return
+
+        run.complete(
+            total_tokens=total_tokens,
+            total_cost=total_cost,
+            agent_runs=agent_runs,
+            artifacts=artifacts,
+        )
+
+    def _build_result(
+        self,
+        ctx: ExecutionContext,
+        *,
+        request_id: str,
+        run: Run,
+        duration_ms: float,
+        completed_phases: list[str],
+        failed_phases: list[str],
+        checkpoint_thread_id: str = "",
+    ) -> ExecutionResult:
+        summary = (
+            f"{run.agent} {run.status}"
+            f" | phases={len(completed_phases)}"
+            f" | failed={len(failed_phases)}"
+        )
+        return ExecutionResult(
+            request_id=request_id,
+            run_id=run.run_id,
+            status=run.status,
+            module=run.module,
+            pages=list(run.pages),
+            agent=run.agent,
+            mode=run.mode,
+            total_tokens=run.total_tokens,
+            total_cost=run.total_cost,
+            agent_runs=run.agent_runs,
+            artifacts=list(run.artifacts),
+            error_message=run.error_message,
+            duration_ms=duration_ms,
+            completed_phases=completed_phases,
+            failed_phases=failed_phases,
+            summary=summary,
+            metadata={
+                "workspace_id": ctx.workspace_id,
+                "org_id": ctx.org_id,
+                "entrypoint": ctx.entrypoint,
+                "runtime_context": getattr(run, "runtime_context", {}),
+                "replay_session_id": getattr(run, "replay_session_id", ""),
+                "checkpoint_thread_id": checkpoint_thread_id,
+                "policy_version": ctx.metadata.get(K.POLICY_VERSION, cfg.governance_policy_version),
+                "governance_version": ctx.metadata.get(K.GOVERNANCE_VERSION, cfg.governance_policy_version),
+                "config_version": ctx.metadata.get(K.CONFIG_VERSION, cfg.governance_policy_version),
+                "governance_pack_root": ctx.metadata.get(K.GOVERNANCE_PACK_ROOT, ""),
+            },
+        )

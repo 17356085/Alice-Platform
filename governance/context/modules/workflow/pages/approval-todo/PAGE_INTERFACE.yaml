@@ -1,0 +1,58 @@
+# PAGE_CONTEXT.md: 审批待办 (approval-todo)
+
+## 页面概述
+- **模块**: workflow
+- **页面名称**: 审批待办 (approval-todo)
+- **核心功能**: 展示、筛选、管理和处理待审批的流程列表。
+- **技术栈线索**: 使用了 Ant Design 组件库 (如 `.ant-*` 类名)。
+
+## 关键区域与可测元素
+
+### 1. 筛选器区域
+| 元素标识 | 选择器 (优先使用 `data-testid`) | 备选选择器 | 交互方式 | 关联测试点 |
+| :--- | :--- | :--- | :--- | :--- |
+| **流程类型下拉框** | `[data-testid="filter-processType"]` | `.ant-select:nth-of-type(1)` | 下拉选择 | AT-FLT-01 |
+| **状态下拉框** | `[data-testid="filter-status"]` | `.ant-select:nth-of-type(2)` | 下拉选择 | AT-FLT-01 |
+| **关键词输入框** | `[data-testid="filter-keyword"]` | `input[placeholder*="关键词"]` | 文本输入 | AT-FLT-02 |
+| **开始日期** | `[data-testid="filter-startDate"]` | `.ant-picker:first-of-type` | 日期选择 | AT-FLT-03 |
+| **结束日期** | `[data-testid="filter-endDate"]` | `.ant-picker:last-of-type` | 日期选择 | AT-FLT-03 |
+| **查询按钮** | `[data-testid="btn-query"]` | `button:has-text("查询")` | 点击 | AT-FLT-01/02/03 |
+| **重置按钮** | `[data-testid="btn-reset"]` | `button:has-text("重置")` | 点击 | AT-FLT-04 |
+
+### 2. 表格操作区域
+| 元素标识 | 选择器 | 交互方式 | 关联测试点 | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| **全选复选框** | `.ant-table-thead .ant-checkbox-input` | 点击切换状态 | AT-BATCH-01 | 关注 `indeterminate` 属性。 |
+| **行复选框** | `.ant-table-row .ant-checkbox-input` | 点击选择单行 | AT-BATCH-02 | 用于测试批量操作前置条件。 |
+| **详情链接** | `.ant-table-row:nth-child(n) a:has-text("详情")` | 点击跳转 | AT-SIGN-02 | 需结合行号定位。 |
+| **同意按钮** | `.ant-table-row:nth-child(n) button:has-text("同意")` | 点击触发操作 | AT-SIGN-01 | 通常伴随二次确认。 |
+| **拒绝按钮** | `.ant-table-row:nth-child(n) button:has-text("拒绝")` | 点击触发操作 | AT-SIGN-03 | 通常伴随二次确认。 |
+
+### 3. 批量操作区域
+| 元素标识 | 选择器 | 状态依赖 | 关联测试点 |
+| :--- | :--- | :--- | :--- |
+| **批量同意按钮** | `[data-testid="btn-batch-approve"]` | 选中行后可用 | AT-BATCH-01 |
+| **批量拒绝按钮** | `[data-testid="btn-batch-reject"]` | 选中行后可用 | AT-BATCH-02 |
+| **批量转办按钮** | `[data-testid="btn-batch-transfer"]` | 选中行后可用 | AT-BATCH-03 |
+
+### 4. 分页区域
+| 元素标识 | 选择器 | 关联测试点 |
+| :--- | :--- | :--- |
+| **总条数文本** | `.ant-pagination-total-text` | AT-PAGE-01 |
+| **上一页按钮** | `.ant-pagination-prev` | AT-PAGE-02 |
+| **下一页按钮** | `.ant-pagination-next` | AT-PAGE-03 |
+| **页码按钮** | `.ant-pagination-item` | AT-PAGE-04 |
+
+### 5. 状态反馈区域
+| 元素标识 | 选择器 | 出现场景 | 关联测试点 |
+| :--- | :--- | :--- | :--- |
+| **全局加载蒙层** | `.ant-spin-spinning` | 数据请求中 | AT-FLT-*, AT-PAGE-* |
+| **成功消息** | `.ant-message-success` | 操作执行成功后 | AT-SIGN-*, AT-BATCH-* |
+| **空状态** | `.ant-empty` | 列表无数据时 | AT-FLT-05 |
+
+## 测试注意事项
+1.  **异步等待**: 任何触发数据变化的交互（查询、翻页、批量操作）后，必须等待 `.ant-spin-spinning` 消失后再进行断言。
+2.  **定位器策略**: 优先使用 `[data-testid]`。对于表格行内元素，建议采用 `.ant-table-row:nth-child({行号})` 结合具体元素选择器的方式。
+3.  **状态断言**: 批量操作按钮的启用/禁用状态、全选复选框的半选状态，是重要的验证点。
+4.  **数据依赖**: 部分测试用例（如筛选、单条操作）需要特定状态的数据前置，请确保测试数据集包含“待我审批”状态的记录。
+5.  **弹窗处理**: “同意”、“拒绝”操作很可能触发二次确认弹窗，测试中需要定位并操作弹窗内的确认按钮。

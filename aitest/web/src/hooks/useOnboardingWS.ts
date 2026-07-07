@@ -4,6 +4,7 @@
  *  Vue onUnmounted → useEffect return cleanup.
  */
 import { useEffect, useRef, useCallback, useState } from 'react'
+import { api } from '@/api/client'
 import { useOnboardingStore } from '@/stores/onboarding'
 
 export function useOnboardingWS() {
@@ -42,7 +43,7 @@ export function useOnboardingWS() {
 
     try {
       const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const socket = new WebSocket(`${proto}//${location.host}/api/onboarding/ws/${store.sessionId}`)
+      const socket = api.connectWS(`/api/onboarding/ws/${store.sessionId}`)
       wsRef.current = socket
 
       socket.onopen = () => {

@@ -38,7 +38,7 @@ def print_phase_start(phase: str, index: int, total: int):
 
 def print_phase_result(phase: str, files: list[str] = None, summary: str = "", elapsed: float = 0):
     """打印 Phase 完成信息。"""
-    status = f"[green]✅ {phase} 完成[/green]"
+    status = f"[green][OK] {phase} 完成[/green]"
     if elapsed > 0:
         status += f" ({elapsed:.1f}s)"
     console.print(status)
@@ -112,11 +112,11 @@ def print_gate_result(gate: dict):
     pass_rate = gate.get("pass_rate", 0)
 
     if status == "pass":
-        console.print(f"[green]✅ 门禁通过[/green] (通过率: {pass_rate:.1f}%)")
+        console.print(f"[green][OK] 门禁通过[/green] (通过率: {pass_rate:.1f}%)")
     elif status == "partial":
-        console.print(f"[yellow]⚠️  部分通过[/yellow] (调整后通过率: {pass_rate:.1f}%)")
+        console.print(f"[yellow][WARN]  部分通过[/yellow] (调整后通过率: {pass_rate:.1f}%)")
     else:
-        console.print(f"[red]❌ 门禁不通过[/red] (通过率: {pass_rate:.1f}%)")
+        console.print(f"[red][FAIL] 门禁不通过[/red] (通过率: {pass_rate:.1f}%)")
 
 
 def print_final_result(result: dict):
@@ -132,9 +132,9 @@ def print_final_result(result: dict):
 
     # 状态图标
     status_icon = {
-        "completed": "✅",
-        "completed_with_issues": "⚠️",
-        "failed": "❌",
+        "completed": "[OK]",
+        "completed_with_issues": "[WARN]",
+        "failed": "[FAIL]",
     }.get(status, "❓")
 
     # 结果面板
@@ -156,12 +156,12 @@ def print_final_result(result: dict):
     if completed:
         console.print("\n[bold]已完成 Phase:[/bold]")
         for phase in completed:
-            console.print(f"  ✅ {phase}")
+            console.print(f"  [OK] {phase}")
 
     if failed:
         console.print("\n[bold red]失败 Phase:[/bold]")
         for phase in failed:
-            console.print(f"  ❌ {phase}")
+            console.print(f"  [FAIL] {phase}")
 
 
 def print_agent_progress(agent_name: str, skills_completed: int, skills_total: int, steps: int):
@@ -173,9 +173,9 @@ def print_agent_progress(agent_name: str, skills_completed: int, skills_total: i
 def print_skill_execution(skill_id: str, status: str, elapsed: float = 0, tokens: int = 0):
     """打印 Skill 执行详情。"""
     status_icon = {
-        "pass": "✅",
-        "fail": "❌",
-        "partial": "⚠️",
+        "pass": "[OK]",
+        "fail": "[FAIL]",
+        "partial": "[WARN]",
         "skip": "⏭️",
     }.get(status, "❓")
 
@@ -205,9 +205,9 @@ def print_summary_table(phases: list[dict]):
         summary = phase.get("summary", "")
 
         status_icon = {
-            "completed": "[green]✅[/green]",
+            "completed": "[green][OK][/green]",
             "skipped": "[yellow]⏭️[/yellow]",
-            "failed": "[red]❌[/red]",
+            "failed": "[red][FAIL][/red]",
             "running": "[blue]🔄[/blue]",
         }.get(status, f"[dim]{status}[/dim]")
 

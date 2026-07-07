@@ -2,6 +2,7 @@
 
 > 版本: v3.2 | 日期: 2026-07-03
 > 前置: Architecture Cleanup Sprint 完成
+> Phase 1 基线: `docs/architecture/OFFICIAL_EXECUTION_MAINLINE.md`
 
 ---
 
@@ -14,6 +15,25 @@ AITest Platform 是一个 **AI 测试自动化 Agent Native 平台**。
 - 9 个开发 Agent 的 Dev SOP
 - 实时 SSE 聊天工作台
 - 事件驱动的审计、计费、指标、Webhook
+
+## 1.1 Phase 1 基线说明
+
+从 Phase 1 开始，平台的“官方执行主链路”以
+`docs/architecture/OFFICIAL_EXECUTION_MAINLINE.md`
+为准。
+
+本总览文档的作用是：
+
+- 描述系统整体结构
+- 提供模块分层视图
+- 解释当前核心路径与基础设施关系
+
+而以下内容以后统一由主链路文档定义：
+
+- 官方执行入口
+- 统一执行路径
+- 兼容路径与收敛原则
+- 执行层职责边界
 
 ---
 
@@ -96,6 +116,13 @@ server/api  →  platform  →  infra  →  runtime
 ---
 
 ## 4. 核心执行链路
+
+说明：
+
+- 本节描述的是当前代码库中的核心运行路径
+- 对于“哪条路径是官方主链路、哪些路径只属于兼容层”，以
+  `docs/architecture/OFFICIAL_EXECUTION_MAINLINE.md`
+  为最终基准
 
 ### 4.1 Execution API
 

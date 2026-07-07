@@ -15,30 +15,46 @@ Week 1 Day 3: Token 估算 + 阈值检查 + 对话压缩 + continuation prompt�
         compactor = SessionCompactor()
         summary = compactor.compact(messages)
 """
+import json
+import logging
+import os
 import re
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional, Callable
 from enum import Enum
 
+logger = logging.getLogger(__name__)
+
 # ══════════════════════════════════════════════════════════════════════════
-#  Model Context Limits
+#  Model Context Limits — 外置为 JSON 配置（model_limits.json），非硬编码。
+#
+#  查找顺序：
+#    1. 环境变量 ALICE_MODEL_LIMITS_PATH 指向的文件（平台层可覆盖/新增模型）
+#    2. 包内置默认 model_limits.json（本目录下）
+#    3. 都读不到时回落到最小内置默认值，保证 engine 独立可用不因配置缺失而炸
 # ══════════════════════════════════════════════════════════════════════════
 
-MODEL_CONTEXT_LIMITS: dict[str, int] = {
-    "claude-sonnet-4-6-20250514":   200_000,
-    "claude-sonnet-4-5-20250929":   200_000,
-    "claude-opus-4-8-20251101":     200_000,
-    "claude-haiku-4-5-20251001":    200_000,
-    "claude-sonnet-4-6":            200_000,  # short name alias
-    "claude-opus-4-8":              200_000,
-    "deepseek-chat":                 64_000,
-    "deepseek-reasoner":             64_000,
-    "gpt-4o":                       128_000,
-    "gpt-4o-mini":                  128_000,
-}
+_BUNDLED_LIMITS_PATH = Path(__file__).parent / "model_limits.json"
+_FALLBACK_LIMITS: dict[str, int] = {"claude-sonnet-4-6": 200_000}
+_FALLBACK_DEFAULT_LIMIT = 128_000
 
-DEFAULT_CONTEXT_LIMIT = 128_000
+
+def _load_model_limits() -> tuple[dict[str, int], int]:
+    """加载 model context limits 配置。返回 (limits, default_limit)。"""
+    path_str = os.environ.get("ALICE_MODEL_LIMITS_PATH")
+    path = Path(path_str) if path_str else _BUNDLED_LIMITS_PATH
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return data.get("limits", {}), data.get("default_limit", _FALLBACK_DEFAULT_LIMIT)
+    except Exception as e:
+        logger.warning("model_limits_load_failed path=%s err=%s — using fallback defaults", path, e)
+        return dict(_FALLBACK_LIMITS), _FALLBACK_DEFAULT_LIMIT
+
+
+MODEL_CONTEXT_LIMITS, DEFAULT_CONTEXT_LIMIT = _load_model_limits()
 
 
 class WindowStatus(Enum):

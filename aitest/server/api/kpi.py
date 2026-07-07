@@ -8,6 +8,7 @@ Routes:
   POST /api/kpi/audit-all           — Trigger full audit
   GET  /api/kpi/operational         — 8 runtime KPIs
   GET  /api/kpi/trends/operational  — Operational trends
+  GET  /api/kpi/performance-baseline — Runtime/provider/knowledge/memory baseline
   GET  /api/kpi/product             — Product KPI (this week vs last)
   GET  /api/kpi/optimization-insights — Auto-detected optimizations
   GET  /api/timeline/{project_id}   — Agent activity timeline
@@ -19,6 +20,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from collections import OrderedDict
+from collections import deque
 
 from aitest.platform.paths import get_workstudy
 from fastapi import APIRouter
@@ -30,6 +32,26 @@ SOP_PHASES = [
     "Automation", "Execute & Debug", "Bug Analysis",
     "Data Sanitization", "Report", "Knowledge",
 ]
+
+
+def _read_jsonl_tail(path: Path, limit: int) -> list[dict]:
+    """Return the last N JSONL entries without loading the whole file."""
+    if limit <= 0 or not path.exists():
+        return []
+    tail = deque(maxlen=limit)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    tail.append(json.loads(line))
+                except Exception:
+                    continue
+    except Exception:
+        return []
+    return list(tail)
 
 
 # ── SOP Status ────────────────────────────────────────────────────────
@@ -240,6 +262,21 @@ async def operational_trends(days: int = 7):
     return {"points": points[-200:], "total": len(points), "days": days}
 
 
+@kpi_router.get("/kpi/performance-baseline")
+async def performance_baseline(namespace: str = "web-automation", run_id: str = "", persist: bool = True):
+    try:
+        from aitest.platform.performance_baseline import get_performance_baseline_service
+
+        snapshot = get_performance_baseline_service().capture(
+            namespace=namespace,
+            run_id=run_id,
+            persist=persist,
+        )
+        return snapshot.to_dict()
+    except Exception as e:
+        return {"error": str(e)[:300]}
+
+
 @kpi_router.get("/kpi/product")
 async def product_kpi():
     from datetime import datetime, timedelta, timezone
@@ -377,20 +414,11 @@ async def timeline(project_id: str, limit: int = 50):
                            "module": mod, "message": f"{mod}: {data['success']}/{data['total']} ({round(data['rate']*100)}%)",
                            "success": data["rate"] >= 0.9})
         trace_file = get_workstudy() / "governance" / ".traces" / "trace_log.jsonl"
-        if trace_file.exists():
-            lines = []
-            with open(trace_file, "r", encoding="utf-8") as f:
-                for line in f:
-                    lines.append(line.strip())
-            for line in lines[-limit:]:
-                try:
-                    te = json.loads(line)
-                    events.append({"ts": te.get("timestamp", ""), "type": te.get("event_type", "trace"),
-                                   "agent": te.get("agent_name", ""),
-                                   "message": f"{te.get('event_type', '')} — {te.get('provider', '')} {te.get('model', '')} — {te.get('latency_ms', 0)}ms",
-                                   "tokens": te.get("token_input", 0) + te.get("token_output", 0)})
-                except Exception:
-                    pass
+        for te in _read_jsonl_tail(trace_file, limit):
+            events.append({"ts": te.get("timestamp", ""), "type": te.get("event_type", "trace"),
+                           "agent": te.get("agent_name", ""),
+                           "message": f"{te.get('event_type', '')} — {te.get('provider', '')} {te.get('model', '')} — {te.get('latency_ms', 0)}ms",
+                           "tokens": te.get("token_input", 0) + te.get("token_output", 0)})
     except Exception as e:
         events.append({"ts": "", "type": "error", "message": str(e)[:200]})
     return {"project": project_id, "events": events[:limit], "total": len(events)}
@@ -400,22 +428,13 @@ async def timeline(project_id: str, limit: int = 50):
 async def timeline_replay(run_id: str):
     events = []
     trace_file = get_workstudy() / "governance" / ".traces" / "trace_log.jsonl"
-    if trace_file.exists():
-        with open(trace_file, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    te = json.loads(line)
-                    if te.get("run_id") == run_id:
-                        events.append({"ts": te.get("timestamp", ""), "type": te.get("event_type", ""),
-                                       "agent": te.get("agent_name", ""), "provider": te.get("provider", ""),
-                                       "model": te.get("model", ""), "latency_ms": te.get("latency_ms", 0),
-                                       "tokens_in": te.get("token_input", 0), "tokens_out": te.get("token_output", 0),
-                                       "status": te.get("status", "")})
-                except Exception:
-                    pass
+    for te in _read_jsonl_tail(trace_file, 2000):
+        if te.get("run_id") == run_id:
+            events.append({"ts": te.get("timestamp", ""), "type": te.get("event_type", ""),
+                           "agent": te.get("agent_name", ""), "provider": te.get("provider", ""),
+                           "model": te.get("model", ""), "latency_ms": te.get("latency_ms", 0),
+                           "tokens_in": te.get("token_input", 0), "tokens_out": te.get("token_output", 0),
+                           "status": te.get("status", "")})
     events.sort(key=lambda e: e["ts"])
     return {"run_id": run_id, "events": events, "total_events": len(events),
             "total_tokens": sum(e["tokens_in"] + e["tokens_out"] for e in events),

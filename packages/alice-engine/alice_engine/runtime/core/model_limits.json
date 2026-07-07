@@ -1,0 +1,15 @@
+{
+  "default_limit": 128000,
+  "limits": {
+    "claude-sonnet-4-6-20250514": 200000,
+    "claude-sonnet-4-5-20250929": 200000,
+    "claude-opus-4-8-20251101": 200000,
+    "claude-haiku-4-5-20251001": 200000,
+    "claude-sonnet-4-6": 200000,
+    "claude-opus-4-8": 200000,
+    "deepseek-chat": 64000,
+    "deepseek-reasoner": 64000,
+    "gpt-4o": 128000,
+    "gpt-4o-mini": 128000
+  }
+}

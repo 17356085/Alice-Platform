@@ -18,10 +18,13 @@ Usage:
 
 from __future__ import annotations
 
-__all__ = ["ExecutionEngine", "get_engine", "register_engine"]
+__all__ = ["ExecutionEngine", "get_engine", "register_engine", "get_execution_kernel", "resolve_kernel_kind"]
 
 import logging
-from typing import Protocol, Any, Iterator, runtime_checkable
+from dataclasses import dataclass
+from typing import Protocol, Any, Iterator, runtime_checkable, Callable
+
+from alice_engine.kernel import ExecutionKernel, RuntimeExecutionKernel
 
 _log = logging.getLogger(__name__)
 
@@ -49,36 +52,138 @@ class ExecutionEngine(Protocol):
 
 # ── Engine Registry ─────────────────────────────────────────────────────
 
-_ENGINES: dict[str, type] = {}
+@dataclass
+class _EngineSpec:
+    name: str
+    factory: Callable[..., "ExecutionEngine"]
 
 
-def register_engine(name: str, cls: type) -> None:
-    """Register an engine implementation. Call at module import time."""
-    _ENGINES[name] = cls
+_ENGINES: dict[str, _EngineSpec] = {}
+_KERNEL: ExecutionKernel | None = None
+
+
+def register_engine(
+    name: str,
+    factory: Callable[..., "ExecutionEngine"],
+    *,
+    aliases: list[str] | None = None,
+) -> None:
+    """Register an engine implementation factory."""
+    spec = _EngineSpec(name=name, factory=factory)
+    _ENGINES[name] = spec
+    for alias in aliases or []:
+        _ENGINES[alias] = spec
+
+
+def _build_agent_engine(
+    *,
+    engine_type: str,
+    module: str = "",
+    pages: list[str] | None = None,
+    page: str = "",
+    agent: str = "",
+    provider: str = "",
+    verbose: bool = False,
+    checkpoint_thread_id: str = "",
+    **kwargs,
+) -> ExecutionEngine:
+    from alice_engine.core.executor import AgentLoop
+
+    pages = pages or []
+    effective_page = page or (pages[0] if pages else "")
+    agent_name = agent or (engine_type if engine_type not in ("agent", "sop") else "automation-agent")
+    return AgentLoop(
+        agent_name=agent_name,
+        provider=provider or None,
+        module=module,
+        page=effective_page,
+        pages=pages,
+        verbose=verbose,
+        **kwargs,
+    )
+
+
+def _build_sop_engine(
+    *,
+    module: str = "",
+    pages: list[str] | None = None,
+    provider: str = "",
+    mode: str = "full",
+    run_id: str = "",
+    checkpoint_thread_id: str = "",
+    **kwargs,
+) -> ExecutionEngine:
+    from alice_engine.workflow.sop_runner import SOPRunner
+
+    return SOPRunner(
+        module=module,
+        pages=pages or [],
+        provider=provider or None,
+        mode=mode,
+        run_id=run_id,
+        checkpoint_thread_id=checkpoint_thread_id,
+        **kwargs,
+    )
 
 
 def _ensure_builtin_engines() -> None:
     """Lazy-register built-in engines. Called once on first get_engine()."""
+    try:
+        from aitest.platform.sdk_ports import register_platform_ports
+
+        register_platform_ports()
+    except Exception:
+        pass
     if _ENGINES:
         return
 
     # AgentLoop — the standard agent execution engine
     try:
-        from aitest.agents.agent_runner import AgentLoop
-        register_engine("agent", AgentLoop)
-        # Also register common agent names
-        for agent_name in ("automation-agent", "execution-agent", "test-design-agent",
-                           "review-agent", "arch-agent", "dev-agent"):
-            register_engine(agent_name, AgentLoop)
+        register_engine(
+            "agent",
+            _build_agent_engine,
+            aliases=[
+                "automation-agent",
+                "execution-agent",
+                "test-design-agent",
+                "review-agent",
+                "arch-agent",
+                "dev-agent",
+                "project-agent",
+                "requirement-agent",
+                "report-agent",
+                "knowledge-agent",
+                "bug-analysis-agent",
+            ],
+        )
     except ImportError:
         _log.warning("AgentLoop not available — agent engines disabled")
 
     # SOPRunner — SOP graph execution engine
     try:
-        from aitest.graphs.sop_runner import SOPRunner
-        register_engine("sop", SOPRunner)
+        register_engine("sop", _build_sop_engine)
     except ImportError:
         _log.warning("SOPRunner not available — SOP engine disabled")
+
+
+def get_execution_kernel() -> ExecutionKernel:
+    """Return the shared public kernel for platform synchronous execution."""
+    global _KERNEL
+    try:
+        from aitest.platform.sdk_ports import register_platform_ports
+
+        register_platform_ports()
+    except Exception:
+        pass
+    if _KERNEL is None:
+        _KERNEL = RuntimeExecutionKernel()
+    return _KERNEL
+
+
+def resolve_kernel_kind(engine_type: str, *, agent: str = "") -> str:
+    """Map platform engine selectors onto the public kernel request kind."""
+    effective = (agent or engine_type or "").strip()
+    return "sop" if effective == "sop" else "agent"
 
 
 def get_engine(
@@ -115,42 +220,25 @@ def get_engine(
     _ensure_builtin_engines()
 
     # Resolve: direct match → agent fallback
-    cls = _ENGINES.get(engine_type)
-    if cls is None:
+    spec = _ENGINES.get(engine_type)
+    if spec is None:
         # Try "agent" as fallback for unknown agent names
-        cls = _ENGINES.get("agent")
-        if cls is None:
+        spec = _ENGINES.get("agent")
+        if spec is None:
             raise ValueError(
                 f"Unknown engine type '{engine_type}'. "
                 f"Registered: {list(_ENGINES.keys())}"
             )
         _log.info(f"Engine type '{engine_type}' not registered, falling back to 'agent'")
 
-    pages = pages or []
-    effective_page = page or (pages[0] if pages else "")
-
-    # Instantiate based on engine class
-    from aitest.agents.agent_runner import AgentLoop as _AgentLoop
-    from aitest.graphs.sop_runner import SOPRunner as _SOPRunner
-
-    if cls is _AgentLoop or (isinstance(cls, type) and issubclass(cls, _AgentLoop)):
-        return cls(
-            agent_name=agent or engine_type if engine_type not in ("agent",) else agent or "automation-agent",
-            provider=provider or None,
-            module=module,
-            page=effective_page,
-            pages=pages,
-            verbose=verbose,
-            **kwargs,
-        )
-    elif cls is _SOPRunner or (isinstance(cls, type) and issubclass(cls, _SOPRunner)):
-        return cls(
-            module=module,
-            pages=pages,
-            provider=provider or None,
-            mode=mode,
-            **kwargs,
-        )
-    else:
-        # Generic instantiation
-        return cls(**kwargs)
+    return spec.factory(
+        engine_type=engine_type,
+        module=module,
+        pages=pages or [],
+        page=page,
+        agent=agent,
+        provider=provider,
+        mode=mode,
+        verbose=verbose,
+        **kwargs,
+    )

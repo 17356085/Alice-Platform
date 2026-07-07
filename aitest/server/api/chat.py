@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from fastapi import APIRouter, Request, HTTPException
 from sse_starlette.sse import EventSourceResponse
 
-from aitest.agents.agent_runner import list_agents
+from alice_engine.core.executor import list_agents
 from alice_engine.core.task import AgentEvent
 from aitest.chat.intent_parser import parse_intent
 from aitest.platform.ui_projection import map_agent_event, UIEventType
@@ -63,23 +63,17 @@ async def _persist_session(session_id: str, messages: list, title: str = ""):
     try:
         await _ensure_db()
         from aitest.server.session_store import (
-            async_session_factory, create_session, update_session_messages,
-            update_session_title, get_session, ChatSessionRecord,
+            create_session, update_session_messages,
+            update_session_title, get_session,
         )
-        import uuid as _uuid
-        try:
-            sid = _uuid.UUID(session_id.replace("chat-", ""))
-        except ValueError:
-            sid = _uuid.uuid4()
-        async with async_session_factory() as db:
-            existing = await get_session(db, sid)
-            if existing:
-                await update_session_messages(db, sid, messages)
-                if title:
-                    await update_session_title(db, sid, title)
-            else:
-                s = await create_session(db, title=title or f"Chat {session_id[:12]}")
-                await update_session_messages(db, s.id, messages)
+        existing = get_session(session_id)
+        if existing:
+            update_session_messages(session_id, messages)
+            if title:
+                update_session_title(session_id, title)
+        else:
+            create_session(title=title or f"Chat {session_id[:12]}")
+            update_session_messages(session_id, messages)
     except Exception:
         pass  # Best-effort: don't break chat if DB fails
 
@@ -418,24 +412,47 @@ async def stream_response(session_id: str, message_id: str, request: Request):
         if agent_name not in valid:
             agent_name = "test-design-agent"
 
-        from aitest.platform.engine_factory import get_engine
-        s.agent = get_engine(
-            agent_name,
+        from aitest.platform.workspace import ExecutionContext
+        svc = getattr(request.app.state, "execution_service", None)
+        if svc is None:
+            from aitest.platform.execution_service import ExecutionService
+            svc = ExecutionService()
+        ctx = ExecutionContext(
+            workspace_id="chat",
+            user_id=getattr(request.state, "user_id", "anonymous"),
+            scopes=getattr(request.state, "scopes", ["read", "execute"]),
+            org_id=getattr(request.state, "org_id", ""),
+            entrypoint="server.chat",
+        )
+        s.agent = svc.create_engine(
+            ctx,
             module=intent.get("module", ""),
-            page=intent.get("page", ""),
+            pages=[intent.get("page", "")] if intent.get("page") else [],
             agent=agent_name,
             provider=_DEFAULT_PROVIDER,
             verbose=False,
         )
     elif intent["type"] == "run_sop":
         # Phase 6: 真正的 SOP 图流式执行
-        from aitest.platform.engine_factory import get_engine
-        s.agent = get_engine(
-            "sop",
+        from aitest.platform.workspace import ExecutionContext
+        svc = getattr(request.app.state, "execution_service", None)
+        if svc is None:
+            from aitest.platform.execution_service import ExecutionService
+            svc = ExecutionService()
+        ctx = ExecutionContext(
+            workspace_id="chat",
+            user_id=getattr(request.state, "user_id", "anonymous"),
+            scopes=getattr(request.state, "scopes", ["read", "execute"]),
+            org_id=getattr(request.state, "org_id", ""),
+            entrypoint="server.chat",
+        )
+        s.agent = svc.create_engine(
+            ctx,
             module=intent.get("module", ""),
             pages=[intent.get("page", "")] if intent.get("page") else [],
+            agent="sop",
             provider=_DEFAULT_PROVIDER,
-            mode="from-requirement",  # 跳过 Project Init，已有文档基础
+            mode="from-requirement",
         )
     elif intent["type"] == "status":
         s.agent = None

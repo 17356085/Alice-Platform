@@ -34,6 +34,15 @@ from .event_bus import EventBus, get_bus, set_bus, reset_bus
 from .run_store import RunStore, get_run_store, set_run_store, reset_run_store
 from .execution_request import ExecutionRequest, RequestStatus
 from .execution_service import ExecutionService, ExecutionResult
+from .execution_worker import ExecutionWorker, get_execution_worker
+from .scheduler import (
+    JobStatus,
+    SchedulerJob,
+    RetryPolicy,
+    QueueLease,
+    ACTIVE_JOB_STATUSES,
+    TERMINAL_JOB_STATUSES,
+)
 
 # ★ v2.3 Platform Observability
 from .timeline import build_timeline, timeline_summary
@@ -99,6 +108,14 @@ __all__ = [
     "RequestStatus",
     "ExecutionService",
     "ExecutionResult",
+    "ExecutionWorker",
+    "get_execution_worker",
+    "JobStatus",
+    "SchedulerJob",
+    "RetryPolicy",
+    "QueueLease",
+    "ACTIVE_JOB_STATUSES",
+    "TERMINAL_JOB_STATUSES",
     # v2.3
     "build_timeline",
     "timeline_summary",

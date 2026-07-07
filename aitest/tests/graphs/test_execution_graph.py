@@ -7,7 +7,7 @@ No real AgentLoop — only tests pure state transformations.
 import pytest
 from unittest.mock import MagicMock
 
-from aitest.graphs.execution_graph import (
+from alice_engine.workflow.execution_graph import (
     _get_page, exec_entry, exec_exit, exec_gate,
     report_entry, report_exit, report_act, report_act2,
     knowledge_entry, knowledge_exit, knowledge_act,
@@ -101,7 +101,7 @@ class TestKnowledgeNodes:
             token_usage={"input": 100, "output": 50},
             finish_reason="stop",
         ))
-        monkeypatch.setattr("aitest.agents.agent_runner.run_skill", mock_run)
+        monkeypatch.setattr("alice_engine.workflow.execution_graph.run_skill", mock_run)
         state = {"module": "equipment", "pages": ["alarm"],
                  "current_page_index": 0, "provider": "fake", "agent_outputs": {}}
         result = knowledge_act(state)
@@ -153,7 +153,7 @@ class TestSingleSkillAct:
             token_usage={"input": 100, "output": 50},
             finish_reason="stop",
         ))
-        monkeypatch.setattr("aitest.agents.agent_runner.run_skill", mock_run)
+        monkeypatch.setattr("alice_engine.workflow.execution_graph.run_skill", mock_run)
 
         state = {"module": "equipment", "pages": ["alarm"],
                  "current_page_index": 0, "provider": "fake", "agent_outputs": {}}
@@ -166,7 +166,7 @@ class TestSingleSkillAct:
             token_usage={"input": 50, "output": 20},
             finish_reason="stop",
         ))
-        monkeypatch.setattr("aitest.agents.agent_runner.run_skill", mock_run)
+        monkeypatch.setattr("alice_engine.workflow.execution_graph.run_skill", mock_run)
 
         state = {"module": "equipment", "pages": ["alarm"],
                  "current_page_index": 0, "provider": "fake", "agent_outputs": {}}

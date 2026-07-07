@@ -84,6 +84,7 @@ class TestingMemory:
     updated_at: str = field(default_factory=lambda: datetime.now().isoformat())
     decay_factor: float = 1.0
     verify_count: int = 0
+    hit_count: int = 0               # P1: 搜索命中计数（热度驱动）
     tags: list[str] = field(default_factory=list)
 
     def to_metadata(self) -> dict:
@@ -95,6 +96,7 @@ class TestingMemory:
             "source": self.source,
             "decay_factor": self.decay_factor,
             "verify_count": self.verify_count,
+            "hit_count": self.hit_count,
             "tags": ",".join(self.tags),
         }
 
@@ -109,6 +111,7 @@ class TestingMemory:
             source=metadata.get("source", ""),
             decay_factor=float(metadata.get("decay_factor", 1.0)),
             verify_count=int(metadata.get("verify_count", 0)),
+            hit_count=int(metadata.get("hit_count", 0)),
             tags=metadata.get("tags", "").split(",") if metadata.get("tags") else [],
         )
 
@@ -173,6 +176,8 @@ class MemoryLifecycle:
     BOOST_RATE = 0.2
     VERIFY_THRESHOLD = 3
     DELETE_THRESHOLD = 0.3
+    HIT_BOOST_THRESHOLD = 5        # P1: 命中 ≥5 次触发热度提升
+    HIT_BOOST_RATE = 0.15          # P1: 每次触发提升 0.15
 
     @staticmethod
     def decay(memory: TestingMemory) -> TestingMemory:
@@ -187,6 +192,20 @@ class MemoryLifecycle:
         memory.decay_factor = min(1.0, memory.decay_factor + MemoryLifecycle.BOOST_RATE)
         if memory.verify_count >= MemoryLifecycle.VERIFY_THRESHOLD:
             memory.confidence = Confidence.VERIFIED
+        return memory
+
+    @staticmethod
+    def hit_boost(memory: TestingMemory) -> TestingMemory:
+        """P1: 热度驱动增强 — 命中次数达到阈值时提升 decay_factor。
+
+        每 HIT_BOOST_THRESHOLD 次命中触发一次增强，上限 1.0。
+        与 boost()（验证增强）互补：boost 来自人工验证，hit_boost 来自自动命中。
+        """
+        if memory.hit_count > 0 and memory.hit_count % MemoryLifecycle.HIT_BOOST_THRESHOLD == 0:
+            memory.decay_factor = min(
+                1.0,
+                memory.decay_factor + MemoryLifecycle.HIT_BOOST_RATE
+            )
         return memory
 
     @staticmethod

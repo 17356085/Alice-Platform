@@ -1,9 +1,14 @@
 """
 DiffFirstReviewAdapter — Review Skill 接收 Diff 而不是整文件。
 
+v2.0: 集成 Review Extension (RuleConfig + FileBundler + PositionVerifier)
+  - 规则注入: glob → prompt 映射，4 层优先级链
+  - 文件打包: 关联文件合并为审查单元
+  - 位置校正: 验证 LLM 输出的行号
+
 集成点:
   1. review_graph.py:run_review_phase() 改用 DiffFirstReviewAdapter
-  2. Skill prompt 注入 Diff + 条件降级到全文
+  2. Skill prompt 注入 Diff + 规则 + 条件降级到全文
 """
 
 from __future__ import annotations
@@ -24,16 +29,50 @@ WORKSTUDY = get_workstudy()
 
 
 class DiffFirstReviewAdapter:
-    """Diff-first review 适配器。"""
+    """Diff-first review 适配器 (v2.0 with Review Extension)。"""
 
-    def __init__(self, context_lines: int = 3, full_file_threshold: int = 100):
+    def __init__(
+        self,
+        context_lines: int = 3,
+        full_file_threshold: int = 100,
+        enable_rules: bool = True,
+        enable_bundling: bool = True,
+    ):
         """
         Args:
             context_lines: diff hunk 前后上下文行数
             full_file_threshold: 何时降级到全文 (改动行 > N)
+            enable_rules: 是否启用规则匹配
+            enable_bundling: 是否启用文件打包
         """
         self.context_lines = context_lines
         self.full_file_threshold = full_file_threshold
+        self.enable_rules = enable_rules
+        self.enable_bundling = enable_bundling
+
+        # 延迟初始化 Review Extension 组件
+        self._rule_config = None
+        self._file_bundler = None
+
+    def _get_rule_config(self):
+        """延迟加载 RuleConfig。"""
+        if self._rule_config is None and self.enable_rules:
+            try:
+                from alice_engine.extensions.review import RuleConfig
+                self._rule_config = RuleConfig(project_root=WORKSTUDY)
+            except ImportError:
+                pass
+        return self._rule_config
+
+    def _get_file_bundler(self):
+        """延迟加载 FileBundler。"""
+        if self._file_bundler is None and self.enable_bundling:
+            try:
+                from alice_engine.extensions.review import FileBundler
+                self._file_bundler = FileBundler()
+            except ImportError:
+                pass
+        return self._file_bundler
 
     def prepare_review_input(
         self,
@@ -103,7 +142,7 @@ class DiffFirstReviewAdapter:
                 f"(large changes or new files)"
             )
 
-        return {
+        result = {
             "strategy": "hybrid" if full_files else "diff",
             "diff_text": diff_text,
             "full_files": full_file_contents,
@@ -120,6 +159,36 @@ class DiffFirstReviewAdapter:
             ],
             "summary": " | ".join(summary_parts) if summary_parts else "No changes",
         }
+
+        # v2.0: 文件打包
+        all_files = [d.file for d in diff_files] + list(full_file_contents.keys())
+        bundler = self._get_file_bundler()
+        if bundler and all_files:
+            bundles = bundler.bundle(all_files)
+            result["bundles"] = [
+                {
+                    "id": b.bundle_id,
+                    "files": b.files,
+                    "reason": b.reason,
+                }
+                for b in bundles
+            ]
+            summary_parts.append(f"Bundled into {len(bundles)} review units")
+
+        # v2.0: 规则匹配
+        rule_config = self._get_rule_config()
+        if rule_config and all_files:
+            matched_rules = rule_config.match_for_files(all_files)
+            result["matched_rules"] = matched_rules
+            if matched_rules:
+                summary_parts.append(
+                    f"Rules matched for {len(matched_rules)} files"
+                )
+
+        # 更新 summary
+        result["summary"] = " | ".join(summary_parts) if summary_parts else "No changes"
+
+        return result
 
     def build_review_prompt(
         self,
@@ -161,6 +230,25 @@ class DiffFirstReviewAdapter:
                     parts.append(f"\n... ({len(content) - 5000} chars omitted)")
                 parts.append("```\n")
 
+        # v2.0: 审查规则注入
+        if review_input.get("matched_rules"):
+            parts.append("\n## Review Rules (per-file instructions)\n")
+            for filepath, instructions in review_input["matched_rules"].items():
+                parts.append(f"### {filepath}")
+                for instr in instructions:
+                    parts.append(f"- {instr}")
+                parts.append("")
+
+        # v2.0: 文件分组信息
+        if review_input.get("bundles"):
+            parts.append("\n## File Bundles (related files grouped)\n")
+            for bundle in review_input["bundles"]:
+                parts.append(
+                    f"- **{bundle['id']}** ({bundle['reason']}): "
+                    + ", ".join(bundle["files"])
+                )
+            parts.append("")
+
         # 审计上下文
         if context_text:
             parts.append("\n## Review Context\n")
@@ -197,6 +285,50 @@ Format output as:
         )
 
         return "\n".join(parts)
+
+    def verify_review_positions(
+        self,
+        issues: list[dict],
+    ) -> list[dict]:
+        """v2.0: 校正 LLM 输出的 file:line 引用。
+
+        Args:
+            issues: LLM 输出的问题列表, 每个 dict 至少有 file, line, message
+
+        Returns:
+            校正后的问题列表
+        """
+        try:
+            from alice_engine.extensions.review import PositionVerifier, ReviewIssue
+
+            verifier = PositionVerifier()
+            review_issues = [
+                ReviewIssue(
+                    severity=issue.get("severity", "minor"),
+                    file=issue.get("file", ""),
+                    line=issue.get("line", 0),
+                    message=issue.get("message", ""),
+                    rule_source=issue.get("rule_source", ""),
+                    fix_suggestion=issue.get("fix_suggestion", ""),
+                )
+                for issue in issues
+            ]
+
+            verified = verifier.verify_issues(review_issues, workspace=WORKSTUDY)
+
+            return [
+                {
+                    "severity": v.severity,
+                    "file": v.file,
+                    "line": v.line,
+                    "message": v.message,
+                    "rule_source": v.rule_source,
+                    "fix_suggestion": v.fix_suggestion,
+                }
+                for v in verified
+            ]
+        except ImportError:
+            return issues
 
 
 def adapt_review_graph_node(
@@ -242,7 +374,7 @@ def adapt_review_graph_node(
         )
 
         # 运行 Skill (原逻辑)
-        from aitest.agents.agent_runner import run_skill
+        from alice_engine.core.executor import run_skill
 
         try:
             from aitest.config import config

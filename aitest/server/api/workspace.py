@@ -40,6 +40,26 @@ def _get_ws_manager():
     return get_ws_manager()
 
 
+def _require_workspace_access(request: Request, *, org_id: str, ws_id: str, required_scope: str = "read"):
+    from aitest.platform.ownership import resolve_request_identity, require_workspace_access
+
+    user_id, request_org_id, scopes = resolve_request_identity(request)
+    if request_org_id and request_org_id != org_id:
+        raise HTTPException(403, f"Request org '{request_org_id}' cannot access org '{org_id}'")
+    try:
+        require_workspace_access(
+            org_id=org_id,
+            workspace_id=ws_id,
+            user_id=user_id,
+            required_scope=required_scope,
+            request_scopes=scopes,
+        )
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+
+
 # ── CRUD ───────────────────────────────────────────────────────────────
 
 @workspace_router.post("")
@@ -135,8 +155,6 @@ async def get_context(org_id: str, ws_id: str, request: Request):
             user_id = "anonymous"
         else:
             raise HTTPException(401, "Authentication required")
-    try:
-        ctx = _get_ws_manager().make_context(org_id, ws_id, user_id)
-        return {"context": ctx.to_dict()}
-    except ValueError as e:
-        raise HTTPException(404, str(e))
+    _require_workspace_access(request, org_id=org_id, ws_id=ws_id, required_scope="read")
+    ctx = _get_ws_manager().make_context(org_id, ws_id, user_id)
+    return {"context": ctx.to_dict()}

@@ -25,6 +25,7 @@ from ..consumer import RunEventConsumer
 from ..run_event import RunEvent, EventType, RunCompletedData, RunFailedData, EventDataKey as K
 from ..event_bus import get_bus
 from ..event_replay import mark_event_seen, is_event_seen
+from ..operational_metrics import get_collector
 
 
 class MetricsConsumer:
@@ -114,6 +115,9 @@ class MetricsConsumer:
         agent = event.data.get(K.AGENT, "unknown")
         org_id = event.data.get(K.ORG_ID, "")
         workspace_id = event.data.get(K.WORKSPACE_ID, "")
+        duration_ms = float(event.data.get("duration_ms", 0.0) or 0.0)
+        retry_count = int(event.data.get("retry_count", 0) or 0)
+        max_retries = int(event.data.get("max_retries", 0) or 0)
         is_completed = event.event_type == EventType.RUN_COMPLETED
         is_failed = event.event_type == EventType.RUN_FAILED
 
@@ -157,6 +161,21 @@ class MetricsConsumer:
         # v3.1: Persist to PG for historical trends
         self._persist_to_pg(module, agent, org_id, workspace_id,
                             is_completed, is_failed, tokens, cost)
+
+        try:
+            collector = get_collector()
+            collector.record_execution(
+                agent=agent,
+                module=module,
+                duration_s=duration_ms / 1000.0 if duration_ms > 0 else 0.0,
+                total_tokens=tokens,
+                total_cost=cost,
+                success=is_completed,
+                retry_count=retry_count,
+                max_retries=max_retries,
+            )
+        except Exception:
+            pass
 
     # ── Snapshot ──────────────────────────────────────────────────────
 

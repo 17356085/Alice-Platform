@@ -425,7 +425,7 @@ class KnowledgeAgentSubscriber:
     def _execute_knowledge_action(self, event: Event, action: dict) -> None:
         """执行知识管理动作——调用 knowledge-manager Skill。"""
         try:
-            from aitest.agents.agent_runner import run_skill
+            from alice_engine.core.executor import run_skill
             # W06: format() may raise KeyError if event.data missing template fields.
             # Fall back to raw string concatenation (same as process_pending()).
             try:

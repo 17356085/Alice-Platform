@@ -28,6 +28,32 @@ from pathlib import Path
 from typing import Optional
 from aitest.runtime._paths_core import _WORKSTUDY, get_workstudy, get_governance_dir  # noqa: F401
 
+# ── Project resolver (injected by platform layer to break runtime→platform cycle) ──
+_project_resolver = None  # Optional[Callable[[str], ProjectContext]]
+
+
+def register_project_resolver(resolver) -> None:
+    """注册项目解析器（由平台层注入）。"""
+    global _project_resolver
+    _project_resolver = resolver
+
+
+def _get_project(project_id: str = None):
+    """获取项目上下文——优先使用注入的 resolver，回退到 platform import。"""
+    if _project_resolver is not None:
+        return _project_resolver(project_id)
+    from aitest.platform.context import get_project
+    return get_project(project_id)
+
+
+def _get_active_project_id() -> str:
+    """获取活跃项目 ID——优先使用注入的 resolver。"""
+    if _project_resolver is not None:
+        ctx = _project_resolver(None)
+        return ctx.project_id
+    from aitest.platform.context import get_active_project_id
+    return get_active_project_id()
+
 
 def get_test_project_root(project_id: str = None) -> Optional[Path]:
     """Return test project code_path for the active (or specified) project.
@@ -35,8 +61,7 @@ def get_test_project_root(project_id: str = None) -> Optional[Path]:
     Reads test_project.code_path from project.yaml.
     Returns None if not configured or path does not exist on disk.
     """
-    from aitest.platform.context import get_project
-    ctx = get_project(project_id)
+    ctx = _get_project(project_id)
     code_path = ctx.config.test_project_code_path
     if code_path:
         p = _WORKSTUDY / code_path
@@ -89,8 +114,7 @@ def resolve_path(category: str, *parts: str, project_id: str = None) -> Path:
         return p
 
     # Priority 2: Legacy governance/context/projects/<id>/
-    from aitest.platform.context import get_active_project_id
-    pid = project_id or get_active_project_id()
+    pid = project_id or _get_active_project_id()
     legacy = _WORKSTUDY / "governance" / "context" / "projects" / pid / category
     p = legacy / Path(*parts)
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -107,8 +131,7 @@ def get_context_modules(project_id: str = None) -> Path:
         return tlo / "knowledge" / "modules"
 
     # Fallback: legacy governance/context/projects/<id>/modules/
-    from aitest.platform.context import get_active_project_id
-    pid = project_id or get_active_project_id()
+    pid = project_id or _get_active_project_id()
     return _WORKSTUDY / "governance" / "context" / "projects" / pid / "modules"
 
 
@@ -123,8 +146,7 @@ def get_sop_status_dir(project_id: str = None) -> Path:
         d.mkdir(parents=True, exist_ok=True)
         return d
 
-    from aitest.platform.context import get_active_project_id
-    pid = project_id or get_active_project_id()
+    pid = project_id or _get_active_project_id()
     d = _WORKSTUDY / "governance" / "artifacts" / "sop-status" / pid
     d.mkdir(parents=True, exist_ok=True)
     return d
@@ -135,15 +157,13 @@ def get_project_dir(project_id: str = None) -> Path:
     tlo = get_tlo_dir(project_id=project_id)
     if tlo:
         return tlo
-    from aitest.platform.context import get_active_project_id
-    pid = project_id or get_active_project_id()
+    pid = project_id or _get_active_project_id()
     return _WORKSTUDY / "governance" / "context" / "projects" / pid
 
 
 def _legacy_modules_dir(project_id: str = None) -> Path:
     """Legacy modules directory — for migration compatibility."""
-    from aitest.platform.context import get_active_project_id
-    pid = project_id or get_active_project_id()
+    pid = project_id or _get_active_project_id()
     return _WORKSTUDY / "governance" / "context" / "projects" / pid / "modules"
 
 

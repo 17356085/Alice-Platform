@@ -1,0 +1,10 @@
+# 页面观察任务：workflow / my-application
+
+我将使用浏览器工具导航到该页面并分析其DOM结构。
+
+## 步骤1：导航到目标页面<tool_call>
+<function=bash>
+<parameter=command>echo "开始观察 workflow 模块的 my-application 页面"</parameter>
+<parameter=description>准备开始页面观察任务</parameter>
+</function>
+</tool_call>

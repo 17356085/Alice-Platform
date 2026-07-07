@@ -11,6 +11,7 @@ SOPRunner — 将 LangGraph SOP 图执行包装为 AgentEvent 生成器。
 """
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -78,16 +79,35 @@ class SOPRunner:
         mode: str = "full",
         provider: str = None,
         run_id: str = "",
+        checkpoint_thread_id: str = "",
     ):
         if provider is None:
-            pass  # config removed
-            provider = config.resolve_llm_provider()
+            provider = os.environ.get("LLM_PROVIDER", os.environ.get("AITEST_PROVIDER", "anthropic"))
         self.module = module
         self.pages = pages or []
         self.mode = mode
         self.provider = provider
         self._interaction_queue: queue.Queue = queue.Queue()
         self._run_id = run_id or f"sop-{module}-{int(time.time())}"
+        self._checkpoint_thread_id = checkpoint_thread_id or self._run_id
+        self._cancelled = False
+
+    def cancel(self) -> None:
+        """Best-effort cancellation for the interactive SOP stream."""
+        self._cancelled = True
+        try:
+            self._interaction_queue.put_nowait("abort")
+        except Exception:
+            pass
+
+    def run(self) -> dict:
+        """Synchronous adapter used by ExecutionService and CLI."""
+        gen = self.run_interactive()
+        while True:
+            try:
+                next(gen)
+            except StopIteration as stop:
+                return stop.value or {}
 
     def send_interaction(self, response: str) -> None:
         """供 chat.py 的 /interact 端点调用，向暂停中的 run_interactive() 发送用户输入。"""
@@ -108,7 +128,7 @@ class SOPRunner:
             provider=self.provider,
             run_id=self._run_id,
         )
-        thread = {"configurable": {"thread_id": self._run_id}}
+        thread = {"configurable": {"thread_id": self._checkpoint_thread_id}}
 
         try:
             compiled = build_compiled_graph()
@@ -137,10 +157,27 @@ class SOPRunner:
         # 累积的阶段摘要
         phase_summaries: list[str] = []
         # 当前 stream 迭代器
-        stream = compiled.stream(initial_state, thread, stream_mode="updates")
+        resume_state = initial_state
+        if self.mode == "resume":
+            try:
+                saved = compiled.get_state(thread)
+                saved_values = saved.values if saved else {}
+                if isinstance(saved_values, dict) and saved_values:
+                    resume_state = {**initial_state, **saved_values}
+            except Exception:
+                pass
+        stream = compiled.stream(resume_state, thread, stream_mode="updates")
 
         try:
             while True:
+                if self._cancelled:
+                    yield AgentEvent(
+                        type="sop_complete",
+                        status="fail",
+                        content="SOP 流水线已取消",
+                        error="cancelled",
+                    )
+                    return {"status": "cancelled", "completed_phases": [], "failed_phases": []}
                 try:
                     raw_event = next(stream)
                 except StopIteration:

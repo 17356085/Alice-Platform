@@ -6,7 +6,7 @@ Pure dataclass tests — zero IO.
 """
 import pytest
 
-from aitest.agents.runner_state import (
+from alice_engine.core.task import (
     ArtifactRule, Observation, AgentState, AgentEvent,
     AUTOMATION_ARTIFACT_RULES, DEV_ARTIFACT_RULES, _ALL_ARTIFACT_RULES,
 )

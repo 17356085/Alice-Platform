@@ -7,11 +7,11 @@ Pure logic — no LLM calls.
 import pytest
 from unittest.mock import MagicMock
 
-from aitest.agents.state_updater import (
+from alice_engine.core.state_machine import (
     update_agent_state, _emit_milestone, emit_cache_summary,
     MILESTONE_SKILLS,
 )
-from aitest.agents.runner_state import AgentState, Observation
+from alice_engine.core.task import AgentState, Observation
 
 
 # ══════════════════════════════════════════════════════════════════════════

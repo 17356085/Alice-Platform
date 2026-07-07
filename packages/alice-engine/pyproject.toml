@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "alice-engine"
-version = "0.1.0"
+version = "1.0.0"
 description = "Alice Engine — AI 测试自动化 SDK"
 requires-python = ">=3.11"
 dependencies = [
@@ -43,6 +43,7 @@ include = ["alice_engine*"]
 alice_engine = [
     "governance_default/**/*.yaml",
     "governance_default/**/*.md",
+    "runtime/core/*.json",
 ]
 
 [tool.pytest.ini_options]

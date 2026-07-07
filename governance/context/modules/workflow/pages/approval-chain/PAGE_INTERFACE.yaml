@@ -1,0 +1,52 @@
+# PAGE_CONTEXT.md: workflow - approval-chain
+
+## 1. 页面概述
+本页面为“审批链管理”列表页，用于展示、检索、新增、编辑、删除及状态管理审批链数据。主要功能区域包括**数据检索区**、**数据操作区**、**数据展示与分页区**。
+
+## 2. 可测元素提取
+
+### 2.1 数据检索区
+负责列表数据的过滤与重置。
+
+| 元素名称 | 元素类型 | CSS 选择器 | 交互方式 | 关联测试用例ID |
+| :--- | :--- | :--- | :--- | :--- |
+| **搜索输入框** | 文本输入框 | `.search-input` 或 `input[placeholder*=\"搜索\"]` | 键入文本，可回车触发搜索 | TC-SEARCH-01, 02, 03, 05, 06 |
+| **状态下拉框** | 下拉选择器 | `.status-filter-dropdown` 或 `select[data-field=\"status\"]` | 点击展开选项列表（全部/启用/禁用），选择后刷新表格 | TC-SEARCH-04, TC-FILTER-02 |
+| **搜索按钮** | 按钮 | `.btn-search` | 单击，根据输入框和下拉框条件筛选列表 | TC-SEARCH-01, 02 |
+| **重置按钮** | 按钮 | `.btn-reset` | 单击，清空搜索输入框、重置状态下拉框为“全部”，并刷新列表 | TC-FILTER-03 |
+
+### 2.2 数据操作区
+负责数据的增删改及状态变更。
+
+| 元素名称 | 元素类型 | CSS 选择器 | 交互方式 | 关联测试用例ID |
+| :--- | :--- | :--- | :--- | :--- |
+| **新建按钮** | 按钮 | `.btn-add` 或 `.btn-primary:contains(\"新建\")` | 单击，跳转至新建页面或弹出新建弹窗 | TC-LIST-ADD-01 |
+| **编辑按钮 (行级)** | 按钮 (在表格每一行) | `.table-row .btn-edit` 或 `button:contains(\"编辑\")` | 单击，跳转至编辑页面或弹出编辑弹窗，并预填充该行数据 | TC-LIST-EDIT-01 |
+| **删除按钮 (行级)** | 按钮 (在表格每一行) | `.table-row .btn-delete` 或 `button:contains(\"删除\")` | 单击，触发二次确认弹窗 | TC-LIST-DELETE-01, 04 |
+| **启用/停用按钮 (行级)** | 按钮 (在表格每一行) | `.table-row .btn-toggle-status` 或 `button:contains(\"启用\"), button:contains(\"停用\")` | 单击，切换该行数据状态，并更新按钮文本和状态标签 | TC-LIST-TOGGLE-01, 02, 03 |
+
+### 2.3 数据展示与分页区
+负责数据的渲染与分页浏览。
+
+| 元素名称 | 元素类型 | CSS 选择器 | 交互方式 | 关联测试用例ID |
+| :--- | :--- | :--- | :--- | :--- |
+| **数据表格** | 表格 | `.data-table` 或 `table` | 用于展示审批链列表数据（编码、名称、状态、节点数、更新时间等列） | TC-LIST-VIEW-01, TC-LIST-DELETE-05, TC-PAGINATE-01 |
+| **数据空状态提示** | 文本/图像 | `.empty-data` 或 `.ant-empty` | 当表格无数据时显示，如“暂无数据” | TC-SEARCH-02, TC-LIST-VIEW-02 |
+| **上一页按钮** | 按钮 | `.pagination .prev-page` 或 `.ant-pagination-prev` | 单击，加载上一页数据。在第一页时禁用。 | TC-PAGINATE-01, 05 |
+| **下一页按钮** | 按钮 | `.pagination .next-page` 或 `.ant-pagination-next` | 单击，加载下一页数据。在最后一页时禁用。 | TC-PAGINATE-01, 05 |
+| **页码跳转输入框** | 数字输入框 | `.pagination .jump-input` 或 `.ant-pagination-options-quick-jumper input` | 输入页码数字，可回车或点击“跳至”跳转至指定页 | TC-PAGINATE-03, 04 |
+| **每页条数下拉框** | 下拉选择器 | `.pagination .page-size-select` 或 `.ant-pagination-options-size-changer` | 点击展开选项（10条/页、20条/页等），选择后刷新列表 | TC-PAGINATE-02, 06 |
+| **分页信息文本** | 文本 | `.pagination .total-info` 或 `.ant-pagination-total-text` | 只读展示，如“共 42 条， 1/3 页” | TC-PAGINATE-01, 05, 07 |
+
+### 2.4 关键弹窗
+以下弹窗是操作流程中的关键节点。
+
+| 弹窗名称 | 元素类型 | CSS 选择器 | 交互方式 | 关联测试用例ID |
+| :--- | :--- | :--- | :--- | :--- |
+| **删除确认弹窗** | 模态对话框 | `.modal-delete-confirm` 或 `.ant-modal-confirm` | 内含“确定”和“取消”按钮。 | TC-LIST-DELETE-02, 03 |
+| **操作成功提示** | 提示条 | `.toast-success` 或 `.ant-message-success` | 操作成功后短暂显示，如“删除成功”、“操作成功”。 | TC-LIST-DELETE-02, TC-LIST-TOGGLE-01, 02 |
+
+## 3. 元素选择器说明
+*   **精确选择器优先**：优先使用 `data-testid`、`data-field` 等专用属性，或 `id`、唯一 `class` 进行定位（如 `.btn-reset`）。
+*   **相对定位作为补充**：对于列表行内按钮，可使用父容器 `.table-row` 或 `.ant-table-row` 结合按钮文本 `button:contains(“编辑”)` 进行相对定位。
+*   **框架类名依赖**：示例中包含了类似 Ant Design (`ant-*`) 的类名，实际环境中请根据所用UI框架的DOM结构进行调整。

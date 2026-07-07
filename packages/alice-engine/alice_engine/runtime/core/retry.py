@@ -1,24 +1,11 @@
-"""ReliableProvider — LLM 调用可靠性层。
+"""ReliableProvider — LLM reliability helpers with compatibility shims."""
 
-重试 + 降级 + 超时 + 用量追踪。
-
-解耦: LLM provider 通过接口注入，不依赖平台模块。
-
-用法:
-    from alice_engine.runtime.retry import ReliableProvider
-
-    provider = MockProvider()
-    reliable = ReliableProvider(primary=provider, max_retries=3)
-    response = reliable.complete(system_prompt, user_prompt)
-"""
-
-import time
-import random
-import logging
 import concurrent.futures
-from dataclasses import dataclass, field
-from typing import Callable
 from enum import Enum
+from dataclasses import dataclass, field
+import logging
+import random
+import time
 
 from alice_engine.providers.base import LLMProvider, LLMResponse
 
@@ -31,76 +18,164 @@ class ErrorClass(Enum):
     FATAL = "fatal"            # 400, context_length
 
 
-def classify_error(error: Exception) -> ErrorClass:
+def classify_error(error: Exception, status_code: int | None = None) -> ErrorClass:
     """分类错误类型。"""
     msg = str(error).lower()
-    if any(kw in msg for kw in ["429", "503", "timeout", "rate limit"]):
+    if status_code in (429, 503):
         return ErrorClass.RETRYABLE
-    if any(kw in msg for kw in ["401", "403", "500", "auth"]):
+    if status_code in (401, 403, 500):
         return ErrorClass.FALLBACK
-    if any(kw in msg for kw in ["400", "context_length", "too long"]):
+    if status_code == 400:
+        if "context_length" in msg or "too many tokens" in msg:
+            return ErrorClass.FATAL
         return ErrorClass.FATAL
-    return ErrorClass.RETRYABLE
+    if any(kw in msg for kw in ["429", "503", "timeout", "timed out", "rate limit", "server error"]):
+        return ErrorClass.RETRYABLE
+    if any(kw in msg for kw in ["401", "403", "500", "auth", "unauthorized", "forbidden", "invalid_api_key"]):
+        return ErrorClass.FALLBACK
+    if any(kw in msg for kw in ["400", "context_length", "too long", "too many tokens", "bad request"]):
+        return ErrorClass.FATAL
+    return ErrorClass.FATAL
 
 
 @dataclass
+class RetryConfig:
+    max_retries: int = 3
+    base_delay: float = 1.0
+    max_delay: float = 60.0
+    backoff_multiplier: float = 2.0
+    jitter: bool = True
+
+
+def compute_backoff(attempt: int, config: RetryConfig) -> float:
+    delay = min(config.base_delay * (config.backoff_multiplier ** attempt), config.max_delay)
+    if config.jitter:
+        delay = delay * (0.5 + random.random())
+    return delay
+
+
+DEFAULT_FALLBACK_CHAIN = [
+    {"provider": "mimo", "model": "mimo-default"},
+    {"provider": "deepseek", "model": "deepseek-chat"},
+    {"provider": "openai", "model": "gpt-4o-mini"},
+    {"provider": "claude", "model": "claude-sonnet"},
+]
+
+
+@dataclass
+class FallbackConfig:
+    chain: list[dict] = field(default_factory=lambda: DEFAULT_FALLBACK_CHAIN.copy())
+    per_provider_retry: RetryConfig = field(default_factory=RetryConfig)
+    total_timeout: float = 600.0
+    per_call_timeout: float = 120.0
+
+
+class _FatalError(Exception):
+    """不可恢复错误。"""
+
+
 class UsageTracker:
     """用量追踪。"""
 
-    total_input_tokens: int = 0
-    total_output_tokens: int = 0
-    total_requests: int = 0
-    total_errors: int = 0
-    total_retries: int = 0
+    def __init__(self):
+        self._records: list[dict] = []
+        self._session_input = 0
+        self._session_output = 0
+        self._cache_read = 0
+        self._fallback_count = 0
+        self._retry_count = 0
 
-    def record(self, response: LLMResponse):
-        self.total_input_tokens += response.usage.get("input", 0)
-        self.total_output_tokens += response.usage.get("output", 0)
-        self.total_requests += 1
+    def record(
+        self,
+        provider: str,
+        agent: str,
+        input_tokens: int,
+        output_tokens: int,
+        cache_read: int = 0,
+    ) -> None:
+        self._records.append(
+            {
+                "provider": provider,
+                "agent": agent,
+                "input": input_tokens,
+                "output": output_tokens,
+                "cache_read": cache_read,
+                "timestamp": time.time(),
+            }
+        )
+        self._session_input += input_tokens
+        self._session_output += output_tokens
+        self._cache_read += cache_read
 
-    def record_error(self):
-        self.total_errors += 1
+    def session_total(self) -> int:
+        return self._session_input + self._session_output
 
-    def record_retry(self):
-        self.total_retries += 1
+    def record_fallback(self) -> None:
+        self._fallback_count += 1
 
-    def summary(self) -> dict:
-        return {
-            "input_tokens": self.total_input_tokens,
-            "output_tokens": self.total_output_tokens,
-            "requests": self.total_requests,
-            "errors": self.total_errors,
-            "retries": self.total_retries,
-        }
+    def record_retry(self) -> None:
+        self._retry_count += 1
+
+    def cache_hit_rate(self) -> float:
+        if self._session_input == 0:
+            return 0.0
+        return self._cache_read / self._session_input
+
+    def estimated_cost(self) -> float:
+        return (self._session_input / 1_000_000 * 3.0 +
+                self._session_output / 1_000_000 * 15.0)
+
+    def reset_session(self) -> None:
+        self._session_input = 0
+        self._session_output = 0
+        self._cache_read = 0
+        self._fallback_count = 0
+        self._retry_count = 0
+
+    def summary(self) -> str:
+        total = self.session_total()
+        return (
+            f"Tokens: {total:,} | "
+            f"Fallback: {self._fallback_count} | "
+            f"Retry: {self._retry_count} | "
+            f"Cache hit: {self.cache_hit_rate():.0%}"
+        )
 
 
 class ReliableProvider(LLMProvider):
-    """可靠性 Provider — 重试 + 降级 + 超时。
-
-    用法:
-        provider = MockProvider()
-        reliable = ReliableProvider(primary=provider, max_retries=3)
-        response = reliable.complete(system_prompt, user_prompt)
-    """
+    """可靠性 Provider — 重试 + 降级 + 超时。"""
 
     def __init__(
         self,
-        primary: LLMProvider,
+        primary: LLMProvider | None = None,
         fallback_chain: list[LLMProvider] | None = None,
         max_retries: int = 3,
         timeout: float = 120.0,
         backoff_base: float = 1.0,
         backoff_max: float = 30.0,
+        fallback_config: FallbackConfig | None = None,
     ):
         self.primary = primary
-        self.fallback_chain = fallback_chain or []
-        self.max_retries = max_retries
-        self.timeout = timeout
-        self.backoff_base = backoff_base
-        self.backoff_max = backoff_max
-        self.usage = UsageTracker()
+        self.fallback_chain = list(fallback_chain or [])
+        if fallback_config is None:
+            chain = DEFAULT_FALLBACK_CHAIN.copy()
+            if self.fallback_chain:
+                chain = [{"provider": getattr(primary, "provider_id", lambda: "primary")()}] if primary else []
+            fallback_config = FallbackConfig(
+                chain=chain,
+                per_provider_retry=RetryConfig(
+                    max_retries=max_retries,
+                    base_delay=backoff_base,
+                    max_delay=backoff_max,
+                ),
+                per_call_timeout=timeout,
+            )
+        self.fallback_config = fallback_config
+        self.tracker = UsageTracker()
 
     def supports_tools(self) -> bool:
+        if self.primary is None:
+            return True
         return self.primary.supports_tools()
 
     def complete(
@@ -111,42 +186,80 @@ class ReliableProvider(LLMProvider):
         **kwargs,
     ) -> LLMResponse:
         """带重试和降级的 completion。"""
-        providers = [self.primary] + self.fallback_chain
+        providers = self._resolve_chain()
         last_error = None
+        chain_start = time.time()
+        retry_config = self.fallback_config.per_provider_retry
 
-        for provider in providers:
-            for attempt in range(self.max_retries):
+        for provider_name, provider in providers:
+            for attempt in range(retry_config.max_retries + 1):
                 try:
-                    response = provider.complete(
-                        system_prompt, user_prompt, tools=tools, **kwargs
+                    response = self._call_with_timeout(
+                        provider.complete,
+                        system_prompt,
+                        user_prompt,
+                        tools=tools,
+                        **kwargs,
                     )
-                    self.usage.record(response)
-                    return response
+                    usage = getattr(response, "usage", {}) or getattr(response, "token_usage", {}) or {}
+                    self.tracker.record(
+                        provider_name,
+                        str(kwargs.get("agent_name", "")),
+                        int(usage.get("input", usage.get("prompt_tokens", 0)) or 0),
+                        int(usage.get("output", usage.get("completion_tokens", 0)) or 0),
+                        int(usage.get("cache_read_input_tokens", 0) or 0),
+                    )
+                    return response if isinstance(response, LLMResponse) else LLMResponse(content=str(response))
 
                 except Exception as e:
                     last_error = e
                     error_class = classify_error(e)
 
                     if error_class == ErrorClass.FATAL:
-                        self.usage.record_error()
-                        raise
+                        raise _FatalError(str(e)) from e
 
                     if error_class == ErrorClass.FALLBACK:
-                        logger.warning("Provider %s failed: %s, trying next",
-                                       type(provider).__name__, e)
-                        break  # 跳到下一个 provider
+                        self.tracker.record_fallback()
+                        logger.warning("Provider %s failed: %s, trying next", provider_name, e)
+                        break
 
-                    # RETRYABLE: 指数退避重试
-                    self.usage.record_retry()
-                    wait = min(
-                        self.backoff_base * (2 ** attempt) + random.uniform(0, 1),
-                        self.backoff_max,
-                    )
-                    logger.info("Retry %d/%d after %.1fs: %s",
-                                attempt + 1, self.max_retries, wait, e)
-                    time.sleep(wait)
+                    if attempt < retry_config.max_retries:
+                        self.tracker.record_retry()
+                        wait = compute_backoff(attempt, retry_config)
+                        logger.info("Retry %d/%d after %.1fs: %s", attempt + 1, retry_config.max_retries, wait, e)
+                        time.sleep(wait)
+                    else:
+                        self.tracker.record_fallback()
+                        break
+
+            if time.time() - chain_start > self.fallback_config.total_timeout:
+                raise TimeoutError(
+                    f"Fallback chain timed out after {self.fallback_config.total_timeout}s"
+                ) from last_error
 
         raise last_error or Exception("All providers failed")
+
+    def _resolve_chain(self) -> list[tuple[str, LLMProvider]]:
+        chain: list[tuple[str, LLMProvider]] = []
+        if self.primary is not None:
+            chain.append((self.primary.provider_id(), self.primary))
+        for item in self.fallback_chain:
+            chain.append((item.provider_id(), item))
+        if chain:
+            return chain
+
+        from alice_engine.providers import get_provider
+
+        for item in self.fallback_config.chain:
+            provider_name = item.get("provider", "mock")
+            chain.append((provider_name, get_provider(provider_name)))
+        return chain
+
+    def _call_with_timeout(self, fn, *args, **kwargs):
+        timeout = self.fallback_config.per_call_timeout
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(fn, *args, **kwargs)
+            return future.result(timeout=timeout)
 
 
 def get_reliable_provider(

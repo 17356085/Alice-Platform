@@ -8,7 +8,7 @@ No real AgentLoop execution — _run_agent is mocked.
 import pytest
 from unittest.mock import patch, MagicMock
 
-from aitest.graphs.parallel_sop import (
+from alice_engine.workflow.parallel import (
     merge_pages, process_single_page, fanout_pages,
     benchmark_parallel_vs_sequential, _PHASE_SLUG_TO_CANONICAL,
 )

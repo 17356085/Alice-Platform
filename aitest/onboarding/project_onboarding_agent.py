@@ -290,7 +290,7 @@ class ProjectOnboardingAgent:
                 self._set_step(OnboardingStep.VALIDATING, 0.03)
                 if _cancelled_check(): return
                 try:
-                    from aitest.discovery.source import FrameworkDetector, SourceDiscoveryPipeline
+                    from alice_discovery import FrameworkDetector, SourceDiscoveryPipeline
                     detector = FrameworkDetector()
                     # Resolve actual frontend root (may be subdir for multi-module projects)
                     self._set_step(OnboardingStep.VALIDATING, 0.06)
@@ -423,7 +423,7 @@ class ProjectOnboardingAgent:
             if source_routes and browser_pages:
                 self._set_step(OnboardingStep.GENERATING_CONFIG, 0.85)
                 if _cancelled_check(): return
-                from aitest.discovery.source.merger import MetadataMergeEngine
+                from alice_discovery import MetadataMergeEngine
                 merger = MetadataMergeEngine()
                 merged = merger.merge(
                     browser_pages=browser_pages,

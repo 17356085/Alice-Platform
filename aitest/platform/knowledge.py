@@ -178,3 +178,50 @@ class KnowledgeStore:
         """Ensure all namespaced collections exist (used during migration)."""
         for base_name in ALL_COLLECTIONS:
             self._get_or_create(base_name)
+
+    def available(self) -> bool:
+        """Best-effort health check for the underlying vector store."""
+        try:
+            self._client.heartbeat()
+            return True
+        except Exception:
+            return False
+
+    def search(self, query: str, collection: str = "all", top_k: int = 5) -> list[dict]:
+        """Unified search API used by capability router and execution mainline."""
+        collection = (collection or "all").lower()
+        if collection in {"known_issues", KNOWN_ISSUES}:
+            return self.search_issues(query, k=top_k)
+        if collection in {"project_context", PROJECT_CONTEXT}:
+            return self.search_context(query, k=top_k)
+        if collection in {"tech_analysis", TECH_ANALYSIS}:
+            return self.search_tech(query, k=top_k)
+        if collection in {"page_context", PAGE_CONTEXT}:
+            return self.search_pages(query, k=top_k)
+        if collection in {"page_objects", PAGE_OBJECTS}:
+            return self.search_objects(query, k=top_k)
+
+        merged = []
+        for fn in (
+            self.search_issues,
+            self.search_context,
+            self.search_tech,
+            self.search_pages,
+            self.search_objects,
+        ):
+            merged.extend(fn(query, k=min(top_k, 3)))
+        merged.sort(key=lambda item: item.get("distance", 999))
+        return merged[:top_k]
+
+
+_knowledge_store: KnowledgeStore | None = None
+
+
+def get_knowledge(namespace: str = "web-automation") -> KnowledgeStore:
+    """Global KnowledgeStore singleton for platform-level consumers."""
+    global _knowledge_store
+    if _knowledge_store is None:
+        _knowledge_store = KnowledgeStore(namespace=namespace)
+    elif namespace and _knowledge_store.namespace != namespace:
+        _knowledge_store.switch_project(namespace)
+    return _knowledge_store

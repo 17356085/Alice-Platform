@@ -1,0 +1,6 @@
+personnel (人员列表)
+├── personnel-detail (人员详情)
+│   └── edit-personnel (编辑人员)
+├── add-personnel (新增人员)
+├── personnel-role (角色管理)
+└── personnel-dept (部门管理)

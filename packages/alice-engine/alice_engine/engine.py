@@ -28,9 +28,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
+from alice_engine.contracts import ExecutionContext, ExecutionResult
 from alice_engine.events import EventBus
 from alice_engine.exceptions import ProjectNotFoundError
 from alice_engine.extension import EngineExtension
+from alice_engine.kernel import ExecutionKernel, KernelExecutionRequest, RuntimeExecutionKernel
 from alice_engine.project import Project, ValidationResult
 from alice_engine.runtime import KnowledgeStore, MemoryStore
 from alice_engine.workflow import configure_behavior_pack, configure_paths
@@ -39,14 +41,9 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class RunResult:
+class RunResult(ExecutionResult):
     """SOP 执行结果。"""
 
-    status: Literal["completed", "completed_with_issues", "failed"] = "failed"
-    run_id: str = ""
-    module: str = ""
-    pages: list[str] = field(default_factory=list)
-    mode: str = "full"
     elapsed_seconds: float = 0.0
     completed_phases: list[str] = field(default_factory=list)
     failed_phases: list[str] = field(default_factory=list)
@@ -89,6 +86,7 @@ class Engine:
         knowledge: KnowledgeStore | None = None,
         memory: MemoryStore | None = None,
         extensions: list[EngineExtension] | None = None,
+        kernel: ExecutionKernel | None = None,
     ):
         """初始化 Engine。
 
@@ -113,6 +111,7 @@ class Engine:
         self.event_bus = event_bus or EventBus()
         self.knowledge = knowledge
         self.memory = memory
+        self._kernel = kernel or RuntimeExecutionKernel()
         self._extensions: list[EngineExtension] = []
 
         # 注册扩展
@@ -127,8 +126,14 @@ class Engine:
         # 配置行为包 + 路径（替代硬编码 governance 路径）
         self._behavior_pack = self._project.behavior_pack
         configure_behavior_pack(self._behavior_pack)
+
+        # 配置路径: 优先使用 .tlo/knowledge/modules/，fallback 到 context/
+        tlo_modules = self._project.path / ".tlo" / "knowledge" / "modules"
+        context_modules = tlo_modules if tlo_modules.exists() else self._project.path / "context"
+
         configure_paths(
             workstudy=self._project.path,
+            context_modules=context_modules,
             test_project_root=self._project.path,
         )
 
@@ -176,6 +181,11 @@ class Engine:
     def list_modules(self) -> list[str]:
         """列出可用模块。"""
         return self._project.modules
+
+    @property
+    def kernel(self) -> ExecutionKernel:
+        """Public execution kernel used by the standalone SDK facade."""
+        return self._kernel
 
     def run(
         self,
@@ -236,40 +246,34 @@ class Engine:
 
         start_time = time.time()
 
+        request = self._build_kernel_request(
+            module=module,
+            pages=pages or [],
+            mode=mode,
+            run_id=run_id,
+            knowledge_context=knowledge_context,
+            memory_context=memory_context,
+        )
+
         try:
-            from alice_engine._internal.graph import build_sop_graph
-
-            initial_state = {
-                "module": module,
-                "pages": pages or [],
-                "mode": mode,
-                "run_id": run_id,
-                "current_phase": "",
-                "completed_phases": [],
-                "failed_phases": [],
-                "status": "running",
-                "agent_outputs": {},
-                "governance": {},
-                "project_path": str(self._project.path),
-                "knowledge_context": knowledge_context,
-                "memory_context": memory_context,
-            }
-
-            graph = build_sop_graph()
-            final_state = graph.run(initial_state, event_bus=self.event_bus)
-
+            execution_result = self._kernel.execute(request)
         except Exception as e:
             logger.error("Engine.run failed: %s", e, exc_info=True)
             elapsed = time.time() - start_time
 
             error_result = RunResult(
                 status="failed",
+                request_id=f"sdk-{run_id}",
                 run_id=run_id,
                 module=module,
                 pages=pages or [],
                 mode=mode,
                 elapsed_seconds=round(elapsed, 2),
+                duration_ms=round(elapsed * 1000, 1),
                 error=str(e),
+                error_message=str(e),
+                summary=f"{module} failed",
+                metadata={"entrypoint": "sdk.engine"},
             )
 
             self.event_bus.emit("error", {
@@ -281,17 +285,7 @@ class Engine:
 
         elapsed = time.time() - start_time
 
-        result = RunResult(
-            status=final_state.get("status", "completed"),
-            run_id=run_id,
-            module=module,
-            pages=final_state.get("pages", pages or []),
-            mode=mode,
-            elapsed_seconds=round(elapsed, 2),
-            completed_phases=final_state.get("completed_phases", []),
-            failed_phases=final_state.get("failed_phases", []),
-            agent_outputs=final_state.get("agent_outputs", {}),
-        )
+        result = self._to_run_result(execution_result, elapsed_seconds=elapsed)
 
         # Runtime: 知识沉淀 (执行后)
         if self.knowledge:
@@ -328,6 +322,74 @@ class Engine:
         })
 
         return result
+
+    def _build_kernel_request(
+        self,
+        *,
+        module: str,
+        pages: list[str],
+        mode: str,
+        run_id: str,
+        knowledge_context: dict[str, Any],
+        memory_context: Any,
+    ) -> KernelExecutionRequest:
+        context = ExecutionContext(
+            workspace_id=self._project.name or "standalone-sdk",
+            user_id="sdk",
+            scopes=["read", "execute"],
+            org_id="",
+            module=module,
+            pages=pages,
+            agent="sop",
+            mode=mode,
+            provider=self.llm_provider,
+            entrypoint="sdk.engine",
+            request_id=f"sdk-{run_id}",
+            run_id=run_id,
+            metadata={"project_name": self._project.name},
+        )
+        return KernelExecutionRequest(
+            context=context,
+            kind="sop",
+            project_path=str(self._project.path),
+            run_id=run_id,
+            checkpoint_thread_id=run_id,
+            metadata={
+                "event_bus": self.event_bus,
+                "knowledge_context": knowledge_context,
+                "memory_context": memory_context,
+            },
+        )
+
+    def _to_run_result(
+        self,
+        result: ExecutionResult,
+        *,
+        elapsed_seconds: float,
+    ) -> RunResult:
+        metadata = dict(result.metadata)
+        return RunResult(
+            status=result.status,
+            request_id=result.request_id,
+            run_id=result.run_id,
+            module=result.module,
+            pages=list(result.pages),
+            agent=result.agent,
+            mode=result.mode,
+            total_tokens=result.total_tokens,
+            total_cost=result.total_cost,
+            agent_runs=result.agent_runs,
+            artifacts=list(result.artifacts),
+            error_message=result.error_message,
+            elapsed_seconds=round(elapsed_seconds, 2),
+            duration_ms=round(elapsed_seconds * 1000, 1),
+            completed_phases=list(result.completed_phases),
+            failed_phases=list(result.failed_phases),
+            summary=result.summary,
+            metadata=metadata,
+            agent_outputs=metadata.get("agent_outputs", {}),
+            error=result.error_message or None,
+        )
 
     async def run_async(
         self,

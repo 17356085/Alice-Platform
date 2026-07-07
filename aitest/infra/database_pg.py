@@ -1,88 +1,74 @@
-"""PostgreSQL backend — via docker exec psql.
+"""PostgreSQL backend — native psycopg connection.
 
+Replaces the old docker-exec-psql approach with direct TCP connection.
 Same interface as database_sqlite.py: pg_exec(), pg_query(), init_db().
 
-Note: This uses docker exec psql because asyncpg/psycopg2 can't connect
-to Docker PG on Windows. When deploying on Linux/Mac, replace subprocess
-calls with native async SQLAlchemy:
-
-    from sqlalchemy.ext.asyncio import create_async_engine
-    engine = create_async_engine(DATABASE_URL)
-    async with engine.connect() as conn:
-        result = await conn.execute(text(sql))
+Usage:
+    from aitest.infra.database import pg_exec, pg_query  # auto-selects backend
 """
 
-import os
 import json
 import logging
-import subprocess
+import os
+import socket
 
 logger = logging.getLogger("database.pg")
 
-DATABASE_URL = os.environ.get(
+_conn_string = os.environ.get(
     "AITEST_DATABASE_URL",
-    "postgresql+asyncpg://aitest:aitest@localhost:5432/aitest",
+    "postgresql://aitest:aitest@localhost:5432/aitest",
 )
 
 
-def pg_exec(sql: str, database: str = "aitest", user: str = "aitest") -> str:
-    """Execute SQL via docker exec psql. Returns stdout."""
-    result = subprocess.run(
-        ["docker", "exec", "aitest-pg", "psql", "-U", user, "-d", database, "-c", sql],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=30,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(f"psql error: {result.stderr.strip()}")
-    return result.stdout
+def _get_conn():
+    """Create a new psycopg connection (autocommit, dict_row)."""
+    import psycopg
+    from psycopg.rows import dict_row
+    return psycopg.connect(_conn_string, autocommit=True, row_factory=dict_row)
 
 
-def pg_query(sql: str, database: str = "aitest", user: str = "aitest") -> list[dict]:
-    """Execute SQL query and return results as list of dicts."""
-    json_sql = f"SELECT COALESCE(json_agg(t), '[]'::json) FROM ({sql}) t"
-    result = subprocess.run(
-        ["docker", "exec", "aitest-pg", "psql", "-t", "-A", "-U", user, "-d", database, "-c", json_sql],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=30,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(f"psql error: {result.stderr.strip()}")
+def pg_exec(sql: str, params: list | None = None, **kwargs) -> str:
+    """Execute SQL statement. Returns row count info.
 
-    raw = (result.stdout or "").strip()
-    raw = raw.replace("+\n", "").replace("\n", "")
-    if "(" in raw and "rows)" in raw:
-        raw = raw[:raw.rfind("(")].strip()
-
-    if raw.startswith("["):
-        return json.loads(raw)
-    return []
+    Args:
+        sql: SQL statement. May contain %s placeholders for parameterized queries.
+        params: Optional parameter values for %s placeholders.
+    """
+    with _get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, params or [])
+            return f"{cur.rowcount} rows affected"
 
 
-def pg_exec_file(sql_file: str, database: str = "aitest", user: str = "aitest") -> str:
-    """Execute SQL file via docker exec psql."""
-    result = subprocess.run(
-        ["docker", "exec", "-i", "aitest-pg", "psql", "-U", user, "-d", database],
-        input=open(sql_file, encoding="utf-8").read(),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=60,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(f"psql error: {result.stderr.strip()}")
-    return result.stdout
+def pg_query(sql: str, params: list | None = None, **kwargs) -> list[dict]:
+    """Execute SQL query and return results as list of dicts.
+
+    Args:
+        sql: SQL query. May contain %s placeholders for parameterized queries.
+        params: Optional parameter values for %s placeholders.
+    """
+    with _get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, params or [])
+            return cur.fetchall()
+
+
+def pg_exec_file(sql_file: str, **kwargs) -> str:
+    """Execute SQL file."""
+    with open(sql_file, encoding="utf-8") as f:
+        sql = f.read()
+    with _get_conn() as conn:
+        conn.execute(sql)
+    return "OK"
 
 
 def pg_table_exists(table_name: str) -> bool:
     """Check if a table exists."""
-    result = pg_query(
-        f"SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname='public' AND tablename='{table_name}')"
+    rows = pg_query(
+        "SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname='public' AND tablename=%s)",
+        [table_name],
     )
-    return result[0].get("exists", False) if result else False
+    return rows[0].get("exists", False) if rows else False
 
 
 def init_db():
@@ -94,3 +80,12 @@ def init_db():
         logger.info("pg_database_initialized")
     else:
         logger.warning("create_tables.sql not found, skipping init_db")
+
+
+def check_connection() -> bool:
+    """Quick TCP probe to verify PG is reachable."""
+    try:
+        with socket.create_connection(("localhost", 5432), timeout=3):
+            return True
+    except OSError:
+        return False

@@ -19,6 +19,8 @@ Usage:
 """
 
 import logging
+import json
+from contextlib import AsyncExitStack
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -33,6 +35,7 @@ class McpClientResult:
     server_id: str
     tools: dict      # tool_name → tool_definition (for LLM function calling)
     close: callable   # async cleanup function
+    call_tool: callable = None
 
 
 @dataclass
@@ -74,12 +77,13 @@ async def create_mcp_client(config: McpServerConfig) -> McpClientResult:
     """
     tools: dict = {}
     close_fn = _noop_close
+    call_fn = _noop_call
 
     try:
         if config.transport_type == "stdio":
-            tools, close_fn = await _connect_stdio(config)
+            tools, close_fn, call_fn = await _connect_stdio(config)
         elif config.transport_type == "streamable-http":
-            tools, close_fn = await _connect_http(config)
+            tools, close_fn, call_fn = await _connect_http(config)
     except Exception as e:
         logger.warning(
             "MCP client creation failed for server=%s: %s", config.id, e,
@@ -89,6 +93,7 @@ async def create_mcp_client(config: McpServerConfig) -> McpClientResult:
         server_id=config.id,
         tools=tools,
         close=close_fn,
+        call_tool=call_fn,
     )
 
 
@@ -162,32 +167,52 @@ async def _connect_stdio(config: McpServerConfig) -> tuple[dict, callable]:
         from mcp.client.stdio import stdio_client
         from mcp.client.session import ClientSession
 
-        async with stdio_client(
+        stack = AsyncExitStack()
+        read_stream, write_stream = await stack.enter_async_context(
+            stdio_client(
             command=config.command,
             args=config.args or [],
             env=config.env or None,
-        ) as (read_stream, write_stream):
-            async with ClientSession(read_stream, write_stream) as session:
-                await session.initialize()
-                result = await session.list_tools()
-                tools = {
-                    f"mcp__{config.id}__{t.name}": {
-                        "description": t.description or "",
-                        "inputSchema": t.inputSchema or {},
-                    }
-                    for t in result.tools
-                }
+            )
+        )
+        session = await stack.enter_async_context(ClientSession(read_stream, write_stream))
+        await session.initialize()
+        result = await session.list_tools()
+        tools = {
+            f"mcp__{config.id}__{t.name}": {
+                "type": "function",
+                "function": {
+                    "name": f"mcp__{config.id}__{t.name}",
+                    "description": t.description or "",
+                    "parameters": t.inputSchema or {"type": "object", "properties": {}},
+                },
+                "x-mcp-server": config.id,
+                "x-mcp-tool": t.name,
+            }
+            for t in result.tools
+        }
 
-                async def _close():
-                    pass  # Session auto-closes via context manager
+        async def _call(tool_name: str, arguments: dict | None = None) -> dict:
+            remote_name = tool_name.split(f"mcp__{config.id}__", 1)[-1]
+            resp = await session.call_tool(remote_name, arguments or {})
+            return {
+                "call_id": tool_name,
+                "success": True,
+                "content": _normalize_tool_response(resp),
+                "data": resp,
+                "error": None,
+            }
 
-                return tools, _close
+        async def _close():
+            await stack.aclose()
+
+        return tools, _close, _call
     except ImportError:
         logger.debug("MCP SDK not available for stdio client — returning empty tools")
-        return {}, _noop_close
+        return {}, _noop_close, _noop_call
     except Exception as e:
         logger.debug("Stdio MCP connection failed for %s: %s", config.id, e)
-        return {}, _noop_close
+        return {}, _noop_close, _noop_call
 
 
 async def _connect_http(config: McpServerConfig) -> tuple[dict, callable]:
@@ -200,29 +225,79 @@ async def _connect_http(config: McpServerConfig) -> tuple[dict, callable]:
         from mcp.client.sse import sse_client
         from mcp.client.session import ClientSession
 
-        async with sse_client(url=config.url) as (read_stream, write_stream):
-            async with ClientSession(read_stream, write_stream) as session:
-                await session.initialize()
-                result = await session.list_tools()
-                tools = {
-                    f"mcp__{config.id}__{t.name}": {
-                        "description": t.description or "",
-                        "inputSchema": t.inputSchema or {},
-                    }
-                    for t in result.tools
-                }
+        stack = AsyncExitStack()
+        read_stream, write_stream = await stack.enter_async_context(sse_client(url=config.url))
+        session = await stack.enter_async_context(ClientSession(read_stream, write_stream))
+        await session.initialize()
+        result = await session.list_tools()
+        tools = {
+            f"mcp__{config.id}__{t.name}": {
+                "type": "function",
+                "function": {
+                    "name": f"mcp__{config.id}__{t.name}",
+                    "description": t.description or "",
+                    "parameters": t.inputSchema or {"type": "object", "properties": {}},
+                },
+                "x-mcp-server": config.id,
+                "x-mcp-tool": t.name,
+            }
+            for t in result.tools
+        }
 
-                async def _close():
-                    pass
+        async def _call(tool_name: str, arguments: dict | None = None) -> dict:
+            remote_name = tool_name.split(f"mcp__{config.id}__", 1)[-1]
+            resp = await session.call_tool(remote_name, arguments or {})
+            return {
+                "call_id": tool_name,
+                "success": True,
+                "content": _normalize_tool_response(resp),
+                "data": resp,
+                "error": None,
+            }
 
-                return tools, _close
+        async def _close():
+            await stack.aclose()
+
+        return tools, _close, _call
     except ImportError:
         logger.debug("MCP SDK not available for HTTP client — returning empty tools")
-        return {}, _noop_close
+        return {}, _noop_close, _noop_call
     except Exception as e:
         logger.debug("HTTP MCP connection failed for %s: %s", config.id, e)
-        return {}, _noop_close
+        return {}, _noop_close, _noop_call
 
 
 async def _noop_close():
     pass
+
+
+async def _noop_call(tool_name: str, arguments: dict | None = None) -> dict:
+    return {
+        "call_id": tool_name,
+        "success": False,
+        "content": "MCP tool unavailable",
+        "data": None,
+        "error": "unavailable",
+    }
+
+
+def _normalize_tool_response(response) -> str:
+    if response is None:
+        return ""
+    content = getattr(response, "content", None)
+    if isinstance(content, list):
+        parts = []
+        for item in content:
+            if isinstance(item, dict):
+                parts.append(str(item.get("text", item)))
+            else:
+                parts.append(str(getattr(item, "text", item)))
+        return "\n".join(part for part in parts if part).strip()
+    if isinstance(content, str):
+        return content
+    if isinstance(response, dict):
+        try:
+            return json.dumps(response, ensure_ascii=False)
+        except Exception:
+            return str(response)
+    return str(response)

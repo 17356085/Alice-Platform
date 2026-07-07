@@ -14,6 +14,10 @@ class MockProvider(LLMProvider):
     不调用真实 LLM，返回预设的 mock 内容。
     """
 
+    provider_name = "mock"
+    provider_description = "Local mock provider for tests and demos"
+    provider_supports_tools = True
+
     def supports_tools(self) -> bool:
         return True
 

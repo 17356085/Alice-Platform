@@ -121,7 +121,7 @@ class ABTestRunner:
         runner = EvalRunner(provider=self.provider)
 
         # 验证变体存在
-        from aitest.llm.skill_loader import list_variants, load_variant
+        from alice_engine.core.skill_loader import list_variants, load_variant
         available = [v.variant_id for v in list_variants(skill_id)]
         if variant_a not in available:
             raise ValueError(f"Variant '{variant_a}' not found. Available: {available}")

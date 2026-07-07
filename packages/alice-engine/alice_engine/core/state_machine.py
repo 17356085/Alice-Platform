@@ -10,7 +10,7 @@
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
+from typing import Optional, Callable
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -136,6 +136,17 @@ def _build_milestone_skills() -> list[str]:
     return milestones
 
 MILESTONE_SKILLS = _build_milestone_skills()
+_legacy_event_emitter: Callable[..., object] | None = None
+
+
+def register_legacy_event_emitter(emitter: Callable[..., object] | None) -> None:
+    """Register an optional compatibility event emitter.
+
+    Platform-side compatibility shims can call this during import so the SDK
+    stays free of reverse imports into ``aitest``.
+    """
+    global _legacy_event_emitter
+    _legacy_event_emitter = emitter
 
 
 def update_agent_state(state, skill_id: str, observation,
@@ -190,5 +201,38 @@ def _emit_milestone(skill_id: str, observation, agent_name: str = "", module: st
                 "status": "success",
                 "artifacts": observation.summary,
             })
+        except Exception:
+            pass
+        return
+    if _legacy_event_emitter is not None:
+        try:
+            _legacy_event_emitter(
+            "agent_completed",
+            agent=agent_name,
+            module=module,
+            skill=skill_id,
+            status="success",
+            artifacts=observation.summary,
+        )
+        except Exception:
+            pass
+
+
+def emit_cache_summary(stats: dict | None = None, *, event_bus=None, logger=None) -> None:
+    """Backward-compatible cache summary hook.
+
+    The runtime SDK no longer owns a concrete cache bus, but old callers/tests
+    still import this symbol.
+    """
+    payload = stats or {}
+    if event_bus and hasattr(event_bus, "emit"):
+        try:
+            event_bus.emit("cache_summary", payload)
+            return
+        except Exception:
+            pass
+    if _legacy_event_emitter is not None:
+        try:
+            _legacy_event_emitter("cache_summary", payload)
         except Exception:
             pass

@@ -1,0 +1,44 @@
+# PAGE_CONTEXT.md (页面结构与可测元素)
+**模块**: `workflow`
+**页面**: `approval-chain`
+**更新时间**: 2023-10-27
+
+## 1. 页面整体结构描述
+审批链管理列表页面，包含顶部的操作与筛选区域、中心的数据表格区域、以及底部的分页控件区域。所有交互元素均可通过 CSS 选择器或 XPath 进行定位。
+
+## 2. 核心可测元素清单
+
+### 2.1 数据检索模块 (Search & Filter)
+| 元素名称 | 元素类型 | 交互方式 | 描述 | 推荐选择器 (CSS / XPath) |
+| :--- | :--- | :--- | :--- | :--- |
+| **搜索输入框** | Input | 输入文本，回车或触发搜索 | 用于输入审批链名称或编码进行搜索。 | CSS: `input[placeholder*="搜索"]` 或 `input.ant-input` <br> XPath: `//input[contains(@placeholder, ‘搜索‘)]` |
+| **状态下拉框** | Select | 点击展开，选择选项 | 用于按“启用”、“禁用”状态筛选列表。 | CSS: `.ant-select` > `.ant-select-selector` <br> XPath: `//div[contains(@class, ‘ant-select‘)]/div[contains(@class, ‘ant-select-selector‘)]` |
+| **搜索按钮** | Button | 点击 | 触发根据当前输入和筛选条件的查询。 | CSS: `button` 包含文本 “搜索” <br> XPath: `//button[normalize-space(‘搜索‘)]` |
+| **重置按钮** | Button | 点击 (若存在) | 清空所有筛选条件，恢复默认列表。 | CSS: `button` 包含文本 “重置” <br> XPath: `//button[normalize-space(‘重置‘)]` |
+
+### 2.2 数据操作模块 (Actions)
+| 元素名称 | 元素类型 | 交互方式 | 描述 | 推荐选择器 (CSS / XPath) |
+| :--- | :--- | :--- | :--- | :--- |
+| **新建按钮** | Button | 点击 | 跳转到新建审批链页面或弹出新建对话框。 | CSS: `button` 包含文本 “新建” <br> XPath: `//button[normalize-space(‘新建‘)]` |
+| **列表编辑按钮** | Button | 点击 (位于每行) | 编辑当前行的审批链信息。 | CSS: `tr` 行内 `button` 包含文本 “编辑” <br> XPath: `(//td[normalize-space(‘操作‘)]//button[contains(normalize-space(), ‘编辑‘)])[1]` <br> **注意**: `[1]` 表示定位到第一行的编辑按钮，实际使用时需在循环中动态定位。 |
+| **列表删除按钮** | Button | 点击 (位于每行) | 触发删除当前行的审批链，会弹出确认框。 | CSS: `tr` 行内 `button` 包含文本 “删除” <br> XPath: `(//td[normalize-space(‘操作‘)]//button[contains(normalize-space(), ‘删除‘)])[1]` |
+| **列表启用/停用按钮** | Button | 点击 (位于每行) | 切换当前行审批链的启用状态。 | CSS: `tr` 行内 `button` 包含文本 “启用” 或 “停用” <br> XPath: `(//td[normalize-space(‘操作‘)]//button[contains(normalize-space(), ‘启用‘) or contains(normalize-space(), ‘停用‘)])[1]` |
+| **删除确认框 - 确定按钮** | Button | 点击 (弹窗内) | 确认删除操作。 | CSS: `.ant-modal-confirm-btns button.ant-btn-primary` 或包含文本 “确定” 的按钮 <br> XPath: `//div[contains(@class, ‘ant-modal-confirm‘)]//button[normalize-space(‘确定‘)]` |
+| **删除确认框 - 取消按钮** | Button | 点击 (弹窗内) | 取消删除操作，关闭弹窗。 | CSS: `.ant-modal-confirm-btns button:not(.ant-btn-primary)` 或包含文本 “取消” 的按钮 <br> XPath: `//div[contains(@class, ‘ant-modal-confirm‘)]//button[normalize-space(‘取消‘)]` |
+
+### 2.3 数据展示与分页模块 (Table & Pagination)
+| 元素名称 | 元素类型 | 交互方式 | 描述 | 推荐选择器 (CSS / XPath) |
+| :--- | :--- | :--- | :--- | :--- |
+| **数据表格** | Table | 展示数据 | 显示审批链列表的表格。 | CSS: `table.ant-table-tbody` <br> XPath: `//table[contains(@class, ‘ant-table‘)]/tbody` |
+| **表格行** | Row | - | 表格中的每一行数据。 | CSS: `tr.ant-table-row` <br> XPath: `//tr[contains(@class, ‘ant-table-row‘)]` |
+| **下一页按钮** | Button | 点击 | 跳转到下一页。 | CSS: `li.ant-pagination-next:not(.ant-pagination-disabled) a` <br> XPath: `//li[contains(@class, ‘ant-pagination-next‘) and not(contains(@class, ‘disabled‘))]/a` |
+| **上一页按钮** | Button | 点击 | 跳转到上一页。 | CSS: `li.ant-pagination-prev:not(.ant-pagination-disabled) a` <br> XPath: `//li[contains(@class, ‘ant-pagination-prev‘) and not(contains(@class, ‘disabled‘))]/a` |
+| **每页条数选择器** | Select | 点击展开，选择选项 | 切换每页显示的数据条数。 | CSS: `.ant-pagination-options-size-changer` <br> XPath: `//div[contains(@class, ‘ant-pagination-options-size-changer‘)]/div[contains(@class, ‘ant-select‘)]` |
+| **页码跳转输入框** | Input | 输入页码，回车或失焦 | 跳转至指定页码。 | CSS: `.ant-pagination-options-quick-jumper input` <br> XPath: `//div[contains(@class, ‘ant-pagination-options-quick-jumper‘)]/input` |
+| **总条数显示** | Text | - | 显示“共X条”信息。 | CSS: `.ant-pagination-total-text` <br> XPath: `//span[contains(@class, ‘ant-pagination-total-text‘)]` |
+
+## 3. 使用说明
+1.  **选择器优先级**：优先使用具有唯一性、稳定性的 CSS ID 或 Data-testid 属性（若存在）。上述选择器基于常见 UI 库的 class 模式推导，**在实际测试中，请通过浏览器开发者工具 (F12) 检查并确认最准确、最稳定的选择器**。
+2.  **动态元素处理**：对于列表中重复的行操作按钮（如编辑、删除），在自动化脚本中应定位到目标行，再在其子元素中查找具体按钮，避免使用固定索引。
+3.  **弹窗等待**：操作后可能触发弹窗（如删除确认），脚本中需加入等待弹窗出现和元素可交互的逻辑。
+4.  **状态依赖**：某些按钮状态（如“下一页”按钮是否可点、启用/停用按钮的文字）依赖于当前数据状态，测试时需要先构造特定数据或进行前置操作。

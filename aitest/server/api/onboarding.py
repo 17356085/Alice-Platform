@@ -155,7 +155,7 @@ async def validate_project_path(req: PathValidateRequest):
         }
 
     # 2. Tech stack detection (frontend + backend)
-    from aitest.discovery.source.framework_detector import TechStackDetector
+    from alice_discovery import TechStackDetector
     detector = TechStackDetector()
     stack = detector.detect(str(path))
 

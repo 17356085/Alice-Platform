@@ -83,6 +83,8 @@ class TestConstruction:
         assert req.priority == 0
         assert req.run_ids == []
         assert req.retry_count == 0
+        assert req.idempotency_key == ""
+        assert req.next_retry_at is None
 
     def test_auto_created_at(self):
         req = _make_request()
@@ -95,11 +97,13 @@ class TestConstruction:
             pages=["alarm", "camera"],
             priority=2,
             trigger_type="api",
+            idempotency_key="idem-1",
         )
         assert req.module == "equipment"
         assert req.pages == ["alarm", "camera"]
         assert req.priority == 2
         assert req.trigger_type == "api"
+        assert req.idempotency_key == "idem-1"
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -227,6 +231,31 @@ class TestFail:
         req.fail()
         assert req.status == RequestStatus.FAILED
         assert req.completed_at is not None
+
+
+class TestRecover:
+    def test_recover_running_request(self):
+        req = _make_request(status=RequestStatus.RUNNING, started_at="2026-07-06T00:00:00+00:00", next_retry_at="2026-07-06T00:05:00+00:00")
+        req.recover()
+        assert req.status == RequestStatus.QUEUED
+        assert req.started_at is None
+        assert req.completed_at is None
+        assert req.next_retry_at is None
+
+    def test_recover_is_noop_for_terminal(self):
+        req = _make_request(status=RequestStatus.COMPLETED)
+        req.recover()
+        assert req.status == RequestStatus.COMPLETED
+
+
+class TestRetryScheduling:
+    def test_schedule_retry_sets_backoff_state(self):
+        req = _make_request(status=RequestStatus.RUNNING)
+        req.schedule_retry(2.5)
+        assert req.status == RequestStatus.QUEUED
+        assert req.retry_count == 1
+        assert req.next_retry_at is not None
+        assert req.completed_at is None
 
 
 class TestCancel:

@@ -205,6 +205,49 @@ class SecurityHook:
         command_str = " ".join(str(a) for a in args)
         return self.bash_validator.validate(command_str)
 
+    def before_prompt(self, text: str, source: str = "unknown") -> tuple[bool, str, str]:
+        try:
+            sanitized = PromptInjectionGuard.safe_user_input(text or "", source=source)
+        except Exception as e:
+            return False, f"Prompt sanitization failed: {e}", text or ""
+        return True, "", sanitized
+
+    def before_provider(
+        self,
+        provider_name: str,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        tools: list[dict] | None = None,
+    ) -> tuple[bool, str]:
+        if not provider_name:
+            return False, "Provider name is required"
+        if not re.match(r"^[a-zA-Z0-9_.-]+$", provider_name):
+            return False, f"Invalid provider name: {provider_name}"
+        if len(system_prompt or "") > 500_000 or len(user_prompt or "") > 500_000:
+            return False, "Prompt payload exceeds security size limit"
+        if tools is not None and not isinstance(tools, list):
+            return False, "Tool definitions must be a list"
+        return True, ""
+
+    def before_tool_call(self, tool_name: str, arguments: dict | None = None) -> tuple[bool, str]:
+        if not tool_name:
+            return False, "Tool name is required"
+        arguments = arguments or {}
+        if not isinstance(arguments, dict):
+            return False, "Tool arguments must be an object"
+
+        dangerous_fields = {"command", "cmd", "bash_command", "script", "shell"}
+        for key, value in arguments.items():
+            if isinstance(value, str):
+                if PromptInjectionGuard.scan(value):
+                    return False, f"Prompt injection pattern detected in tool argument '{key}'"
+                if key.lower() in dangerous_fields:
+                    ok, reason = self.bash_validator.validate(value)
+                    if not ok:
+                        return False, f"Tool argument '{key}' blocked: {reason}"
+        return True, ""
+
 
 # ══════════════════════════════════════════════════════════════════════════
 #  PromptInjectionGuard — 提示注入防护
@@ -256,10 +299,8 @@ class PromptInjectionGuard:
         detected = cls.scan(text)
         if detected:
             try:
-                pass  # emit removed
-                emit("security.prompt_injection_detected",
-                     patterns=detected, source=source, text_preview=text[:200])
-            except (ImportError, ValueError):
+                pass  # reserved: future security event emission hook
+            except Exception:
                 pass
         return cls.sanitize(text)
 

@@ -253,12 +253,15 @@ class RQTaskQueue:
             return {"backend": "redis", "status": "disconnected"}
 
 
-# ── Task function (executed by rq worker) ─────────────────────────────
+# ── Task function (executed by rq worker in separate process) ─────────
+# NOTE: This is a lazy import by design — RQ workers run in separate
+# processes and won't hit the circular dependency. The import only
+# triggers in the worker process, not in the main server process.
 
 def _run_agent_task(agent_name: str, provider: str = "claude",
                     module: str = "", page: str = "") -> dict:
     """RQ worker entry point — called in a separate process."""
-    from aitest.agents.agent_runner import run_agent
+    from alice_engine.core.executor import run_agent  # noqa: E402
     return run_agent(
         agent_name=agent_name,
         provider=provider,

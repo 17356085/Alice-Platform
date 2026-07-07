@@ -6,7 +6,7 @@ Pure string processing — no LLM calls.
 """
 import pytest
 
-from aitest.llm.prompt_adapter import PromptAdapter
+from alice_engine.core.prompt_adapter import PromptAdapter
 
 
 # ══════════════════════════════════════════════════════════════════════════

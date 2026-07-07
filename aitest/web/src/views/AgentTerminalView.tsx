@@ -1,5 +1,6 @@
 /** Agent Terminal — per-agent tabbed log viewer with metrics. */
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { api } from '@/api/client'
 import { Wifi, WifiOff, Trash2, Zap, Clock, DollarSign } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge, type BadgeVariant } from '@/components/ui/badge'
@@ -76,8 +77,7 @@ export default function AgentTerminalView() {
   const connect = useCallback(() => {
     if (wsRef.current) wsRef.current.close()
     setConnecting(true)
-    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const socket = new WebSocket(`${proto}//${location.host}/ws/agent-terminal`)
+    const socket = api.connectWS('/ws/agent-terminal')
     wsRef.current = socket
     socket.onopen = () => { setConnected(true); setConnecting(false) }
     socket.onclose = () => { setConnected(false); setConnecting(false) }

@@ -103,13 +103,20 @@ class Project:
 
     @property
     def governance_path(self) -> Path:
-        """Governance 目录路径（向后兼容）。"""
+        """Canonical governance pack path for this project/runtime."""
+        from alice_engine.behavior import resolve_governance_pack_path
+
+        resolved = resolve_governance_pack_path(project_root=self._path)
+        if resolved is not None:
+            return resolved
         return self._path / "governance"
 
     @property
     def has_governance(self) -> bool:
         """是否有 governance 目录。"""
-        return self.governance_path.exists()
+        from alice_engine.behavior import is_governance_pack
+
+        return is_governance_pack(self.governance_path)
 
     @property
     def behavior_pack(self) -> BehaviorPack:

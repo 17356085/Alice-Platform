@@ -15,15 +15,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python deps from pyproject.toml
+# Copy workspace source so Docker installs the same packages CI does.
 COPY pyproject.toml .
-RUN pip install --no-cache-dir fastapi uvicorn pydantic sqlalchemy chromadb \
-    langgraph anthropic openai pyyaml python-dotenv httpx
-
-# Copy platform source
+COPY packages/ packages/
 COPY aitest/ aitest/
 COPY governance/ governance/
 COPY docs/ docs/
+
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir \
+        ./packages/alice-governance \
+        ./packages/alice-discovery \
+        ./packages/alice-engine \
+        . \
+    && python -c "import aitest, alice_discovery, alice_engine, alice_governance; from alice_governance import get_pack_path; print(get_pack_path())"
 
 # Runtime config
 ENV PYTHONUNBUFFERED=1

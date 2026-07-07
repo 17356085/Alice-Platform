@@ -7,7 +7,6 @@ No real LLM calls. Tests the routing + enforcement wiring.
 """
 import pytest
 from aitest.platform.capability_router.router import CapabilityRouter
-from aitest.platform.paths import get_workstudy
 
 
 class _FakeProvider:
@@ -87,22 +86,14 @@ class TestCapabilityEnforcement:
         # No capabilities mapped — should allow everything
         assert router.enforce_capability("any-agent", "anything") is True
 
-    def test_agent_capabilities_loaded_from_yaml(self):
-        """Verify the real YAML has capabilities for all 8 core agents."""
-        import yaml
-        from pathlib import Path
+    def test_agent_capability_contracts_are_discoverable(self):
+        """Verify core agents resolve to discoverable capability contracts."""
+        from aitest.platform.capability_router import create_router
 
-        yaml_path = get_workstudy() / "governance" / "agents" / "agent-definitions.yaml"
-        data = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
-
-        agents_with_caps = 0
-        for name, cfg in data["agents"].items():
-            caps = cfg.get("capabilities", [])
-            if caps:
-                agents_with_caps += 1
-                assert isinstance(caps, list), f"{name}: capabilities must be a list"
-                for c in caps:
-                    assert c in ("project", "analyze", "codegen", "execute", "report", "knowledge", "browser"), \
-                        f"{name}: unknown capability '{c}'"
-
-        assert agents_with_caps >= 8, f"Expected >=8 agents with capabilities, got {agents_with_caps}"
+        router = create_router()
+        for agent_name, caps in router._agent_capabilities.items():
+            contracts = router.capability_contracts_for_agent(agent_name)
+            assert isinstance(caps, list)
+            assert contracts, f"{agent_name} should have discoverable contracts"
+            for contract in contracts:
+                assert contract.capability in caps

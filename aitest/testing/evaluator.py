@@ -268,7 +268,7 @@ class EvalRunner:
         errors = []
 
         try:
-            from aitest.agents.agent_runner import run_skill
+            from alice_engine.core.executor import run_skill
             response = run_skill(
                 skill_id=skill_id,
                 user_input=input_text,
@@ -331,7 +331,7 @@ class EvalRunner:
                 "total_tokens": ...,
             }
         """
-        from aitest.agents.agent_runner import AgentLoop
+        from alice_engine.core.executor import AgentLoop
 
         agent = AgentLoop(
             agent_name=agent_name,

@@ -54,6 +54,13 @@ def _get_current_user(request: Request) -> str:
     raise HTTPException(401, "Authentication required")
 
 
+@platform_router.get("/ecosystem")
+async def ecosystem_snapshot():
+    from aitest.platform.ecosystem import collect_ecosystem_snapshot
+
+    return collect_ecosystem_snapshot()
+
+
 # ── Organization CRUD ──────────────────────────────────────────────────
 
 @platform_router.post("/orgs")

@@ -66,41 +66,18 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       const pid = projectId || ''
       const qs = pid ? `?project=${encodeURIComponent(pid)}` : ''
       const data = await api.get<{
-        modules: Record<string, any>
-        projects?: Array<{ id: string; name: string; base_url: string; framework: string; test_path: string; module_count: number }>
+        projects: Array<{ id: string; name: string; base_url: string; framework: string; test_path: string; module_count: number }>
       }>(ENDPOINTS.SOP_STATUS + qs)
 
-      // Use projects field if available (v3: sop-status now returns registered projects)
-      if (data.projects && data.projects.length > 0) {
-        const projectList: ProjectInfo[] = data.projects.map(p => ({
-          id: p.id,
-          name: p.name || p.id,
-          path: p.base_url || p.test_path || '',
-          description: p.framework || '',
-          modules: [],
-          status: p.module_count > 0 ? 'discovered' : 'new',
-        }))
-        set({ projects: projectList, loading: false })
-      } else {
-        // Fallback: derive from module keys (legacy behavior)
-        const arr = get().projects.slice()
-        const existing = new Set(arr.map(p => p.id))
-        for (const [key, info] of Object.entries(data.modules || {})) {
-          const m = info as Record<string, unknown>
-          const projId = (m.project_id as string) || key
-          if (!existing.has(projId)) {
-            arr.push({
-              id: projId,
-              name: (m.name as string) || projId,
-              path: '',
-              modules: (m.pages_list as string[]) || [],
-              status: m.status as ProjectInfo['status'],
-              updated_at: m.updated as string,
-            })
-          }
-        }
-        set({ projects: arr, loading: false })
-      }
+      const projectList: ProjectInfo[] = (data.projects || []).map(p => ({
+        id: p.id,
+        name: p.name || p.id,
+        path: p.base_url || p.test_path || '',
+        description: p.framework || '',
+        modules: [],
+        status: p.module_count > 0 ? 'discovered' : 'new',
+      }))
+      set({ projects: projectList, loading: false })
     } catch (e: unknown) {
       set({ error: e instanceof Error ? e.message : String(e), loading: false })
     }

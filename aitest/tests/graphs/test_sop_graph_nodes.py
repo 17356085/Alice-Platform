@@ -6,7 +6,7 @@ Pure node functions — no LangGraph compilation.
 import pytest
 from unittest.mock import patch, MagicMock
 
-from aitest.graphs.sop_graph import (
+from alice_engine.workflow.sop_graph import (
     entry_node, page_advance_node, _route_after_page_advance,
     PHASE_TO_NODE, ALL_AGENT_NODES, _CUSTOM_EDGE_NODES,
 )

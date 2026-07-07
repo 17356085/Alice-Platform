@@ -7,7 +7,7 @@ Uses real skill files from governance/skills/ (checked into repo).
 import pytest
 from unittest.mock import patch, MagicMock
 
-from aitest.llm.skill_loader import (
+from alice_engine.core.skill_loader import (
     load_skill, list_skills, list_categories,
     get_skill_version, resolve_skill_version,
     load_variant, list_variants,

@@ -19,7 +19,18 @@
 
 由 Agent Loop 驱动，`review-agent` 按以下 Skill 链执行：
 
-1. `code-review/source-code-reviewer` — 源代码审查
+### v2.0: 规则驱动审查流程
+
+1. **规则匹配** — `RuleConfig.match_for_files(changed_files)` 获取适用规则
+2. **文件打包** — `FileBundler.bundle(changed_files)` 将关联文件分组
+3. **Diff 提取** — `DiffFirstReviewAdapter.prepare_review_input()` 获取 diff + 规则 + 分组
+4. **Prompt 构建** — `build_review_prompt()` 注入规则指令到审查 prompt
+5. **LLM 审查** — 带规则上下文的深度审查
+6. **位置校正** — `PositionVerifier.verify_issues()` 验证行号准确性
+
+### 传统 Skill 链 (与规则审查并行)
+
+1. `code-review/source-code-reviewer` — 源代码审查 (已注入规则指令)
 2. `code-review/consistency-enforcer` — 前后端一致性检查
 3. `code-review/performance-analyzer` — 性能分析
 4. `code-review/security-scanner` — 安全扫描
@@ -29,8 +40,9 @@
 ```
 review-agent 输出 → agent_outputs["review-agent"]
   ├── success: bool         ← 决定 Debug & Fix 是否触发
-  ├── issues: list          ← 问题列表
-  └── reports: dict         ← 各项报告引用
+  ├── issues: list          ← 问题列表 (已校正行号)
+  ├── reports: dict         ← 各项报告引用
+  └── rules_applied: list   ← 已应用的规则列表
 ```
 
 ## 涉及 Skills

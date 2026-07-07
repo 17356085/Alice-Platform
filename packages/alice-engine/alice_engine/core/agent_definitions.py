@@ -25,7 +25,8 @@ FALLBACK_AGENT_SKILL_MAP = {
         "requirements/module-modeling", "requirements/requirement-analysis",
     ],
     "test-design-agent": [
-        "test-design/page-analysis", "test-design/risk-modeling", "test-design/testcase-design",
+        "test-design/page-analysis", "test-design/page-observe", "test-design/risk-modeling",
+        "test-design/testcase-design", "test-design/pair-seed",
     ],
     "automation-agent": [
         "automation/tech-analysis", "automation/auto-strategy",

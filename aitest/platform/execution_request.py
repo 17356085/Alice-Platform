@@ -6,15 +6,16 @@ Transitions to Run on dispatch.
 
 Lifecycle:
   created → queued → running → completed
-                            → failed
-                            → cancelled
+                             → failed
+                             → cancelled
+                           ↘ queued (crash recovery)
 
 Simple is deliberate. Alice is not Temporal. Expand states only when a real
 consumer needs them.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 
@@ -47,6 +48,8 @@ class ExecutionRequest:
     # ── Who / How ───────────────────────────────────────────────────────
     triggered_by: str = ""             # user_id or api_key_id
     trigger_type: str = "manual"       # manual|webhook|schedule|api
+    agent: str = ""                    # execution agent name
+    idempotency_key: str = ""          # dedupe key for repeated submissions
 
     # ── What ────────────────────────────────────────────────────────────
     module: str = ""
@@ -61,6 +64,7 @@ class ExecutionRequest:
     created_at: str = ""
     started_at: str | None = None
     completed_at: str | None = None
+    next_retry_at: str | None = None
     retry_count: int = 0
     max_retries: int = 0
 
@@ -87,6 +91,7 @@ class ExecutionRequest:
         if self.status != RequestStatus.CREATED:
             raise ValueError(f"Cannot queue request in status '{self.status}'")
         self.status = RequestStatus.QUEUED
+        self.next_retry_at = None
 
     def dispatch(self, run_id: str):
         """Create a new Run attempt. One request can have many runs (retry/resume)."""
@@ -95,20 +100,40 @@ class ExecutionRequest:
         self.status = RequestStatus.RUNNING
         self.run_ids.append(run_id)
         self.started_at = self.started_at or datetime.now(timezone.utc).isoformat()
+        self.next_retry_at = None
 
     def complete(self):
         self.status = RequestStatus.COMPLETED
         self.completed_at = datetime.now(timezone.utc).isoformat()
+        self.next_retry_at = None
 
     def fail(self):
         self.status = RequestStatus.FAILED
         self.completed_at = datetime.now(timezone.utc).isoformat()
+        self.next_retry_at = None
+
+    def recover(self):
+        """Recover a running request after a crash so it can be claimed again."""
+        if self.status not in (RequestStatus.RUNNING, RequestStatus.QUEUED):
+            return
+        self.status = RequestStatus.QUEUED
+        self.started_at = None
+        self.completed_at = None
+        self.next_retry_at = None
+
+    def schedule_retry(self, delay_s: float) -> None:
+        """Return request to queue with a backoff delay."""
+        self.retry_count += 1
+        self.status = RequestStatus.QUEUED
+        self.completed_at = None
+        self.next_retry_at = (datetime.now(timezone.utc) + timedelta(seconds=max(delay_s, 0.0))).isoformat()
 
     def cancel(self):
         if self.is_terminal:
             return
         self.status = RequestStatus.CANCELLED
         self.completed_at = datetime.now(timezone.utc).isoformat()
+        self.next_retry_at = None
 
     def to_dict(self) -> dict:
         return {
@@ -117,6 +142,8 @@ class ExecutionRequest:
             "org_id": self.org_id,
             "triggered_by": self.triggered_by,
             "trigger_type": self.trigger_type,
+            "agent": self.agent,
+            "idempotency_key": self.idempotency_key,
             "module": self.module,
             "pages": self.pages,
             "mode": self.mode,
@@ -128,6 +155,7 @@ class ExecutionRequest:
             "created_at": self.created_at,
             "started_at": self.started_at,
             "completed_at": self.completed_at,
+            "next_retry_at": self.next_retry_at,
             "retry_count": self.retry_count,
             "max_retries": self.max_retries,
         }

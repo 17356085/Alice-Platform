@@ -120,7 +120,7 @@ class AgentBenchmark:
         for i in range(repeat):
             start_ns = time.time()
             try:
-                from aitest.agents.agent_runner import AgentLoop
+                from alice_engine.core.executor import AgentLoop
                 agent = AgentLoop(
                     agent_name=agent_name,
                     provider=self.provider,

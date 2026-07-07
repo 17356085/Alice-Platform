@@ -2,6 +2,7 @@
 import os
 import pytest
 from aitest.config import Config, _env, _env_int
+from aitest.platform.config_registry import cfg as platform_cfg
 
 
 class TestConfigDefaults:
@@ -13,7 +14,8 @@ class TestConfigDefaults:
         for k in ("AITEST_PROVIDER", "AITEST_PROJECT", "BU_LLM_PROVIDER",
                    "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "DEEPSEEK_API_KEY",
                    "MIMO_API_KEY", "GOOGLE_API_KEY", "BROWSER_WS_URL",
-                   "DEFAULT_PASSWORD", "DEFAULT_USERNAME", "BASE_URL"):
+                   "DEFAULT_PASSWORD", "DEFAULT_USERNAME", "BASE_URL",
+                   "AITEST_GOVERNANCE_POLICY_VERSION"):
             self._saved[k] = os.environ.pop(k, None)
 
     def teardown_method(self):
@@ -73,14 +75,18 @@ class TestConfigDefaults:
 
     def test_resolve_llm_provider_no_keys(self):
         c = Config()
-        # With all API keys cleared, should fall back to deepseek
+        # With all API keys cleared, should fall back to anthropic (default)
         provider = c.resolve_llm_provider()
-        assert provider == "deepseek"
+        assert provider == "anthropic"
 
     def test_resolve_llm_provider_explicit(self):
         os.environ["AITEST_PROVIDER"] = "claude"
         c = Config()
         assert c.resolve_llm_provider() == "claude"
+
+    def test_governance_policy_version_override(self):
+        os.environ["AITEST_GOVERNANCE_POLICY_VERSION"] = "2026.07"
+        assert platform_cfg.governance_policy_version == "2026.07"
 
 
 class TestEnvHelpers:

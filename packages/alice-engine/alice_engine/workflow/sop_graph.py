@@ -115,7 +115,7 @@ def build_sop_graph() -> StateGraph:
     builder.add_node("knowledge_agent", build_knowledge_subgraph().compile())
 
     # bug-analysis → 保留（HITL interrupt + 自动循环修复，无法用 AgentLoop 替代）
-    from alice_engine.workflow.bug_analysis_graph import build_bug_analysis_graph
+    from alice_engine.workflow.bug_analysis_graph import build_bug_analysis_compiled
     builder.add_node("bug_analysis_agent", build_bug_analysis_compiled())
 
     # H5: QA Loop decision node — Bug Analysis 后的状态机
@@ -183,20 +183,20 @@ def build_sop_graph() -> StateGraph:
     # ── P2-5 业务覆盖质量门禁路由 ──
     # test_design_agent → testcase_quality_gate（优先于通用条件的定制边）
     builder.add_edge("test_design_agent", "testcase_quality_gate")
-    # quality_gate → automation_agent_pre（有页面未处理）/ route_next_phase（通过）/ test_design_agent（打回重做）
+    # quality_gate → page_advance（页面迭代）/ test_design_agent（打回重做）/ route_next_phase（所有页面完成）
     def _route_quality_gate(state):
         if not state.get("test_cases_approved") or state.get("force_retry_phase") == "Test Design":
             return "test_design_agent"
-        # 如果还有页面未自动化，直接进 automation_agent_pre（跳过 phase 检查）
+        # 页面迭代: 如果还有页面未处理，推进到下一页
         pages = state.get("pages", [])
         idx = state.get("current_page_index", 0)
-        if idx < len(pages):
-            return "automation_agent_pre"
+        if idx < len(pages) - 1:
+            return "page_advance"
         return route_next_phase(state)
     builder.add_conditional_edges(
         "testcase_quality_gate",
         _route_quality_gate,
-        {**route_map, "test_design_agent": "test_design_agent", "automation_agent_pre": "automation_agent_pre"},
+        {**route_map, "test_design_agent": "test_design_agent", "page_advance": "page_advance"},
     )
 
     # exit → END

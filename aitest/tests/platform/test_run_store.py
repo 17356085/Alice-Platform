@@ -186,3 +186,46 @@ class TestRequestCRUD:
         store.save_request(req)
         loaded = store.load_request("req-1")
         assert loaded.status == "queued"
+
+    def test_recover_stale_requests_requeues_running_request(self, store):
+        from datetime import datetime, timezone, timedelta
+
+        old_started_at = (datetime.now(timezone.utc) - timedelta(seconds=7200)).isoformat()
+        req = _make_request(
+            request_id="req-stale",
+            status="running",
+            started_at=old_started_at,
+            run_ids=["run-stale"],
+        )
+        store.save_request(req)
+        run = _make_run(run_id="run-stale", request_id="req-stale", status="running")
+        store.save_run(run)
+
+        recovered = store.recover_stale_requests()
+
+        assert recovered == 1
+        loaded = store.load_request("req-stale")
+        assert loaded.status == "queued"
+        assert loaded.started_at is None
+        assert loaded.completed_at is None
+        assert loaded.next_retry_at is None
+
+        loaded_run = store.load_run("run-stale")
+        assert loaded_run.status == "failed"
+        assert loaded_run.error_message == "Server crash — run interrupted"
+
+    def test_recover_stale_requests_ignores_recent_running_request(self, store):
+        from datetime import datetime, timezone
+
+        req = _make_request(
+            request_id="req-recent",
+            status="running",
+            started_at=datetime.now(timezone.utc).isoformat(),
+        )
+        store.save_request(req)
+
+        recovered = store.recover_stale_requests()
+
+        assert recovered == 0
+        loaded = store.load_request("req-recent")
+        assert loaded.status == "running"

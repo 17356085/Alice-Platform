@@ -66,7 +66,11 @@
       "Bash(python -m pytest script/equipment/test_unit_management.py::TestUnitAdd::test_un_10_add_required_fields -v --tb=short --reruns 0 -o \"addopts=-v --tb=short --alluredir=allure-results\" --no-header -q)",
       "Bash(python -m pytest script/equipment/test_unit_management.py::TestUnitAdd::test_un_10_add_required_fields -v --tb=long --reruns 0 -o \"addopts=-v --tb=long --alluredir=allure-results\" --no-header)",
       "Bash(rm d:/Desktop/Alice/.claude/sop_status.json)",
-      "Bash(sort -t- -k1)"
+      "Bash(sort -t- -k1)",
+      "Bash(MIMO_API_KEY=tp-ck9bh20x6hwimudikhwfpillttfcngv6dcj5n9sikzhfoy2o python -c ' *)",
+      "Bash(MIMO_API_KEY=tp-ck9bh20x6hwimudikhwfpillttfcngv6dcj5n9sikzhfoy2o timeout 300 python -c ' *)",
+      "Bash(mkdir -p \"d:/Desktop/Alice/packages/alice-engine/alice_engine/extensions/review\")",
+      "Bash(mkdir -p \"d:/Desktop/Alice/governance/review-rules\")"
     ],
     "additionalDirectories": [
       "d:\\Desktop\\Alice\\.claude"

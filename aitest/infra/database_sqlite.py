@@ -29,10 +29,17 @@ def _get_db_path() -> Path:
 
 
 def _get_conn() -> sqlite3.Connection:
-    conn = sqlite3.connect(str(_get_db_path()))
+    db_path = _get_db_path()
+    new_db = not db_path.exists()
+    conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
+    if new_db:
+        ddl_file = Path(__file__).parent.parent.parent / "create_tables_sqlite.sql"
+        if ddl_file.exists():
+            conn.executescript(ddl_file.read_text(encoding="utf-8"))
+            conn.commit()
     return conn
 
 

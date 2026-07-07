@@ -58,7 +58,7 @@ def _load_yaml(path: Path) -> dict:
 
 def check_agent_skill_sync() -> CheckResult:
     """检查 agent-definitions.yaml 和 AGENT_SKILL_MAP 是否同步。"""
-    from aitest.agents.agent_runner import AGENT_SKILL_MAP
+    from alice_engine.core.executor import AGENT_SKILL_MAP
 
     yaml_data = _load_yaml(AGENT_DEFS)
     agents = yaml_data.get("agents", {})
@@ -121,7 +121,7 @@ def check_skill_files_exist() -> CheckResult:
 
 def check_skill_registry_completeness() -> CheckResult:
     """检查 AGENT_SKILL_MAP 中的 skill 是否都在 registry 注册。"""
-    from aitest.agents.agent_runner import AGENT_SKILL_MAP
+    from alice_engine.core.executor import AGENT_SKILL_MAP
 
     reg = _load_yaml(SKILL_REGISTRY)
     # registry uses category/id convention: {category}/{id} = full skill ID
@@ -200,7 +200,7 @@ def check_page_interface_freshness() -> CheckResult:
 
 def check_no_deprecated_skills() -> CheckResult:
     """检查 active agent 是否引用了 status=deprecated 的 skill。"""
-    from aitest.agents.agent_runner import AGENT_SKILL_MAP
+    from alice_engine.core.executor import AGENT_SKILL_MAP
 
     reg = _load_yaml(SKILL_REGISTRY)
     deprecated_ids = {s["id"] for s in reg.get("skills", []) if s.get("status") == "deprecated"}

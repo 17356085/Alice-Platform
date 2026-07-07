@@ -155,7 +155,7 @@ function sseStart(sid: string, streamUrl: string, callbacks: SSECallbacks) {
   _sseCallbacks = callbacks
   _accumulated = []
 
-  const es = new EventSource(streamUrl)
+  const es = api.streamSSE(streamUrl)
   _es = es
 
   const guard = () => _activeSid === sid

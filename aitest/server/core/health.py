@@ -126,7 +126,7 @@ async def get_health_response(app_state=None) -> dict:
         from aitest.config import config
         provider = config.resolve_llm_provider()
         components["llm"] = {"status": "ok", "resolved_provider": provider}
-        from aitest.llm.circuit_breaker import get_all_metrics
+        from alice_engine.runtime.core.circuit_breaker import get_all_metrics
         cb_metrics = get_all_metrics()
         if cb_metrics:
             open_breakers = [m for m in cb_metrics if m["state"] == "open"]
@@ -178,6 +178,34 @@ async def get_health_response(app_state=None) -> dict:
     except Exception as e:
         components["worker_pool"] = {"status": "error", "error": str(e)[:100]}
 
+    # Execution Worker (v5.4: control plane / execution plane separation)
+    try:
+        from aitest.platform.execution_worker import get_execution_worker
+        worker = get_execution_worker()
+        wstats = worker.stats()
+        queued_requests = 0
+        try:
+            from aitest.platform.run_store import get_run_store
+            queued_requests = len(get_run_store().list_requests(status="queued", limit=1000))
+            pending_tasks += queued_requests
+        except Exception:
+            pass
+        components["execution_worker"] = {
+            "status": "ok" if wstats.running else "idle",
+            "worker_id": wstats.worker_id,
+            "running": wstats.running,
+            "claimed": wstats.claimed,
+            "completed": wstats.completed,
+            "failed": wstats.failed,
+            "retried": getattr(wstats, "retried", 0),
+            "throttled": getattr(wstats, "throttled", 0),
+            "last_claimed_request_id": wstats.last_claimed_request_id,
+            "last_error": wstats.last_error,
+            "queued_requests": queued_requests,
+        }
+    except Exception as e:
+        components["execution_worker"] = {"status": "error", "error": str(e)[:100]}
+
     # Platform Consumers — v3.2: DI via app_state, fallback to singletons
     try:
         from aitest.platform.audit_log import get_audit_logger
@@ -213,6 +241,18 @@ async def get_health_response(app_state=None) -> dict:
                 overall = "degraded"
     except Exception as e:
         components["platform"] = {"status": "error", "error": str(e)[:100]}
+        if overall == "healthy":
+            overall = "degraded"
+
+    # Ecosystem control plane — projects, discovery strategies, compatibility
+    try:
+        from aitest.platform.ecosystem import collect_ecosystem_snapshot
+        ecosystem = collect_ecosystem_snapshot()
+        components["ecosystem"] = ecosystem
+        if ecosystem.get("status") != "healthy" and overall == "healthy":
+            overall = "degraded"
+    except Exception as e:
+        components["ecosystem"] = {"status": "error", "error": str(e)[:100]}
         if overall == "healthy":
             overall = "degraded"
 

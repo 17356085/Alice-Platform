@@ -108,6 +108,34 @@ agent_execution_duration = _make_histogram(
     buckets=[10, 30, 60, 120, 300, 600, 1200],
 )
 
+# Execution requests / retries / worker health
+execution_request_total = _make_counter(
+    "aitest_execution_requests_total",
+    "Total execution requests by agent, module and status",
+    ["agent", "module", "status"],
+)
+execution_result_total = _make_counter(
+    "aitest_execution_results_total",
+    "Total execution results by agent, module and status",
+    ["agent", "module", "status"],
+)
+execution_duration = _make_histogram(
+    "aitest_execution_duration_seconds",
+    "Execution duration in seconds by agent and status",
+    ["agent", "status"],
+    buckets=[0.5, 1, 2, 5, 10, 30, 60, 120, 300, 600],
+)
+execution_retry_total = _make_counter(
+    "aitest_execution_retries_total",
+    "Total execution retries by agent and module",
+    ["agent", "module"],
+)
+execution_worker_throttle_total = _make_counter(
+    "aitest_execution_worker_throttles_total",
+    "Total worker throttle events by worker",
+    ["worker_id"],
+)
+
 # SOP runs
 sop_run_total = _make_counter(
     "aitest_sop_runs_total",
@@ -188,11 +216,46 @@ def track_agent_execution(agent_name: str):
     return _Tracker()
 
 
+def record_execution_request(agent: str, module: str, status: str = "created") -> None:
+    execution_request_total.labels(agent=agent or "unknown", module=module or "unknown", status=status).inc()
+
+
+def record_execution_result(
+    agent: str,
+    status: str,
+    *,
+    duration_s: float,
+    module: str = "",
+) -> None:
+    execution_result_total.labels(agent=agent or "unknown", module=module or "unknown", status=status).inc()
+    execution_duration.labels(agent=agent or "unknown", status=status).observe(max(duration_s, 0.0))
+
+
+def record_execution_retry(agent: str, module: str = "") -> None:
+    execution_retry_total.labels(agent=agent or "unknown", module=module or "unknown").inc()
+
+
+def record_execution_worker_throttle(worker_id: str) -> None:
+    execution_worker_throttle_total.labels(worker_id=worker_id or "unknown").inc()
+
+
+# ── Circuit breaker metrics provider (injected by platform layer) ─────
+
+_cb_metrics_provider = None  # Optional[Callable[[], list[dict]]]
+
+
+def register_cb_metrics_provider(provider) -> None:
+    """注册熔断器指标提供者（由平台层注入，解耦 infra → llm 依赖）。"""
+    global _cb_metrics_provider
+    _cb_metrics_provider = provider
+
+
 def update_cb_metrics():
-    """Update circuit breaker gauge from current state."""
+    """Update circuit breaker gauge from registered provider."""
+    if _cb_metrics_provider is None:
+        return
     try:
-        from aitest.llm.circuit_breaker import get_all_metrics
-        for m in get_all_metrics():
+        for m in _cb_metrics_provider():
             state_map = {"closed": 0, "half_open": 1, "open": 2}
             cb_state.labels(name=m["name"]).set(state_map.get(m["state"], -1))
     except Exception:

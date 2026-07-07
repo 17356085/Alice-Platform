@@ -1,8 +1,6 @@
-"""Re-export from alice_engine.core.executor — 保持向后兼容。"""
+"""Compatibility alias to the canonical executor module."""
 
-from alice_engine.core.executor import (  # noqa: F401
-    AgentLoop,
-    run_agent,
-    list_agents,
-    list_dev_agents,
-)
+import sys
+from alice_engine.core import executor as _impl
+
+sys.modules[__name__] = _impl

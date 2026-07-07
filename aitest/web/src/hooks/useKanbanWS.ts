@@ -4,6 +4,7 @@
  * Each consumer gets the same `connected` / `lastEvent` / `connect` / `disconnect` / `sendCardMove`.
  */
 import { useSyncExternalStore } from 'react'
+import { api } from '@/api/client'
 import { useKanbanStore } from '@/stores/kanban'
 
 // ── Module-level state (singleton) ─────────────────────────────
@@ -43,7 +44,7 @@ function connect() {
   }
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
   try {
-    ws = new WebSocket(`${protocol}//${location.host}/ws/kanban`)
+    ws = api.connectWS('/ws/kanban')
     ws.onopen = () => {
       connected = true
       reconnectAttempts = 0

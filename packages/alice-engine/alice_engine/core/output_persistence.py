@@ -53,19 +53,27 @@ def save_skill_output(
         # 确定保存目录
         # v3.1: 使用 GOVERNANCE 路径而非 CWD，避免 worktree 操作时路径错误
         if context_modules:
-            parent_dir = Path(context_modules) / module
+            module_dir = Path(context_modules) / module
         elif governance_path:
-            parent_dir = Path(governance_path) / "context" / "modules" / module
+            module_dir = Path(governance_path) / "context" / "modules" / module
         else:
             # 使用 WORKSTUDY 环境变量或默认路径
             import os
             workstudy = os.environ.get("AITEST_WORKSTUDY", ".")
-            parent_dir = Path(workstudy) / "governance" / "context" / "modules" / module
+            module_dir = Path(workstudy) / "governance" / "context" / "modules" / module
 
-        parent_dir.mkdir(parents=True, exist_ok=True)
+        module_dir.mkdir(parents=True, exist_ok=True)
 
-        # 确定文件名
+        # 确定文件名和保存目录
         filename = _skill_to_filename(skill_id)
+
+        # 如果是页面级产物且有 page 参数，保存到页面目录
+        if skill_id in _SKILL_TO_PAGE_ARTIFACT and page:
+            parent_dir = module_dir / "pages" / page
+            parent_dir.mkdir(parents=True, exist_ok=True)
+        else:
+            parent_dir = module_dir
+
         filepath = parent_dir / filename
 
         # 提取有意义的内容
@@ -86,8 +94,25 @@ def save_skill_output(
         return ""
 
 
+# Skill ID → 页面级产物文件名映射
+_SKILL_TO_PAGE_ARTIFACT = {
+    "test-design/page-analysis": "PAGE_CONTEXT.md",
+    "test-design/page-observe": "PAGE_INTERFACE.yaml",
+    "test-design/risk-modeling": "RISK_MODEL.md",
+    "test-design/testcase-design": "TEST_CASES.md",
+    "test-design/testcase-quality-gate": "TEST_CASES.md",
+    "test-design/pair-seed": "TEST_DESIGN.md",
+    "automation/tech-analysis": "TECH_ANALYSIS.md",
+    "automation/auto-strategy": "AUTO_STRATEGY.md",
+    "requirements/module-modeling": "MODULE_CONTEXT.md",
+}
+
+
 def _skill_to_filename(skill_id: str) -> str:
     """Skill ID 转文件名。"""
+    # 优先使用页面级产物映射
+    if skill_id in _SKILL_TO_PAGE_ARTIFACT:
+        return _SKILL_TO_PAGE_ARTIFACT[skill_id]
     name = skill_id.split("/")[-1] if "/" in skill_id else skill_id
     return name.replace("-", "_") + ".md"
 

@@ -72,6 +72,14 @@ export default function DashboardView() {
                   )}
                 </span>
               )}
+              {health.components?.ecosystem && (
+                <span className="text-[11px] text-muted-foreground/60">
+                  {health.components.ecosystem.project_count || 0} 项目 / {health.components.ecosystem.discovery_strategy_count || 0} 策略
+                  {health.components.ecosystem.status && health.components.ecosystem.status !== 'healthy' && (
+                    <span className="text-warning ml-1">{health.components.ecosystem.status}</span>
+                  )}
+                </span>
+              )}
             </div>
           )}
           {healthLoading && <span className="text-xs text-muted-foreground ml-4">检查中...</span>}

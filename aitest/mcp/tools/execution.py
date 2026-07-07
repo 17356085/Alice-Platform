@@ -210,7 +210,7 @@ def run_sop_handler(arguments: dict) -> dict:
     try:
         from aitest.graphs.state import create_initial_state
         from aitest.graphs.checkpoint import get_checkpointer
-        from aitest.graphs.sop_graph import build_sop_graph
+        from alice_engine.workflow.sop_graph import build_sop_graph
 
         initial_state = create_initial_state(module=module, pages=pages, mode=mode, provider=provider)
         checkpointer = get_checkpointer()
