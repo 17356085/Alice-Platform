@@ -1,3 +1,8 @@
+"""Deprecated provider implementation.
+
+Retained only for backward compatibility with older CLI/runtime paths.
+"""
+
 from typing import Optional, Literal
 from collections.abc import Generator
 from dataclasses import dataclass, field
@@ -231,4 +236,3 @@ class OpenAIProvider(LLMProvider):
 
     def supports_tools(self) -> bool:
         return True
-

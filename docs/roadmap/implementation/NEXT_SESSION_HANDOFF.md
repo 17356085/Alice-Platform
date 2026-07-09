@@ -1,12 +1,12 @@
 # Next Session Handoff
 
-> 更新时间：2026-07-06
+> 更新时间：2026-07-08
 > 适用对象：下一个继续实施本项目的会话
 > 目标：不重复长对话，直接接手执行
 
 ## 1. 一句话结论
 
-Phase 1 到 Phase 6 的结构化改造和文档化工作已经完成一轮，但项目当前仍处于“主链已接通、发布基线未收口”的状态。下一个会话不应再重复宏观规划，而应进入收口执行。
+Phase 1 到 Phase 8 已经完成收口，且 `PH8-PR-8.1 ~ 8.7` gate 全部通过。下一个会话应切换到 Phase 9 规划，不要再重复 Phase 1-8 的架构分析。
 
 ## 2. 阶段映射
 
@@ -26,8 +26,11 @@ Phase 1 到 Phase 6 的结构化改造和文档化工作已经完成一轮，但
 - `Phase 6`
   - Metrics / Trace / Performance / HA / Ecosystem 控制面
 - `Phase 7`
-  - 当前建议进入的新阶段
   - 目标是“发布收口 + SDK 独立发布边界收口 + 统一执行内核”
+  - 已由用户确认全部走完
+- `Phase 8`
+  - 当前建议进入的新阶段
+  - 目标是“可治理模块化单体 + 边界减重 + 依赖门禁 + Runtime 合同固化”
 
 ## 3. 当前真实状态
 
@@ -43,15 +46,28 @@ Phase 1 到 Phase 6 的结构化改造和文档化工作已经完成一轮，但
 
 - `Phase 1~6` 文档里的 `Done`，代表该轮任务卡已落地，不等于整个项目已经达到稳定发布状态。
 - 当前工作区存在大量未提交改动，属于“进行中的大快照”，不是干净发布基线。
-- SDK 和 Platform 还没有共享同一个公开、稳定、可发布的 `ExecutionKernel`。
-- `alice_engine.Engine.run()` 仍走 `_internal.graph`，与 Platform `ExecutionService` 下方主链并未完全统一。
-- `packages/alice-engine/alice_engine/platform_bridge.py` 仍通过动态加载 `aitest.*` 维持能力接线，这不满足真正的 SDK 独立发布要求。
-- 测试、镜像、workspace package 安装链是否完全收口，仍需下个会话继续验证。
+- 公开 `ExecutionKernel` 已建立，`alice_engine.Engine.run()` 与 Platform `ExecutionService / EngineFactory` 已切到共享 Kernel 主链。
+- `packages/alice-engine/alice_engine/platform_bridge.py` 已改为显式 Port 注册读取，不再字符串动态导入 `aitest.*`。
+- 测试收集已恢复到可证明状态，本地按 CI 口径已可 `collect 1346`。
+- 本地完整 CI 风格回归现已通过：`1344 passed, 2 skipped`（`pytest -x -q -p no:cacheprovider -m "not slow and not llm" packages/alice-engine/tests aitest/tests`，2026-07-07）。
+- `alice-engine` wheel 已可在本机构建成功；并已在临时安装环境完成 installed-wheel smoke，确认 `import alice_engine`、`platform_bridge`、`GovernanceRouter`、`InlineExecutionKernel`、`Engine(..., kernel=...)` 最小 facade 路径可运行且不会把 `aitest` 导入进 `sys.modules`。
+- `.github/workflows/ci.yml` 中 standalone smoke 已与当前公开 `KernelExecutionRequest` 合同重新对齐，修正了旧脚本仍读取 `request.request_id` 的漂移，现改为 `request.context.request_id`。
+- CI / Docker / standalone wheel 验收已由用户确认全部走完，`PH7-PR-7.5 ~ 7.6` 已关闭。
+- 当前工作区仍是 dirty snapshot；Phase 8 开始前仍要先看 `git status --short`，但不要擅自回退用户已有改动。
+- Phase 8 的核心不是继续扩能力，而是治理已经接入主链的能力边界。
+- `PH8-PR-8.1` 已落地 `tools/check_dependency_graph.py`、SCC 基线、CI 门禁与依赖回潮测试，并通过 gate。
+- `PH8-PR-8.2` 已落地 Runtime Contract Pack、RunEvent 投影路径统一与硬 contract tests，并通过 gate。
+- `PH8-PR-8.3` 已完成 `AgentLoop` 第一轮减重：`runtime_context_builder`、`ProviderRuntimeLifecycle`、`MCPClientLifecycle`、`ReplayStepSink`、`SessionLoopOrchestrator` 已接入主链，并通过 gate。
+- `PH8-PR-8.4` 已完成第一轮组合根治理：server API、CLI、worker 解析路径统一，`aitest/llm/providers/*.py` 已标记 deprecated，并通过本机测试组。
+- `PH8-PR-8.5` 已完成代码落地并通过 gate：`McpClientResult` 字段标注表达 async 语义、`sdk_ports._mcp_clients_factory` 事件循环冲突不再静默吞错（线程池 fallback + WARNING 日志）、新增 `AsyncToolProvider` Protocol、`test_mcp_client_degradation.py` 16 个测试全部通过；顺带修复两个阻塞验证的既有 bug（`path_utils.py` 向后兼容常量缺失、`aitest/mcp/__init__.py` 无条件 SDK 导入）。
+- `PH8-PR-8.6` 已完成代码落地并通过 gate：SDK Provider 功能补齐（claude/openai/deepseek/mimo/ollama 全部支持 complete + stream + tool calling + 特殊功能如 Prompt Caching / reasoning_content），平台 adapter 改为委托实现（API key 注入 + trace 装饰器），设计文档完成（`docs/architecture/PH8-PR-8.6-PROVIDER-CONSOLIDATION.md`），测试文件已补齐（SDK 单元测试 + 平台 adapter 集成测试）。
+- `PH8-PR-8.7` 已完成代码落地并通过 gate：所有必需测试文件已存在（`test_dependency_graph_guard.py`、`test_runtime_contract_pack.py`、`test_runtime_contract_projection.py`、`test_runtime_event_contracts.py`），统一 gate 脚本 `tools/phase8_gate.py` 集成全部 6 个 PR 的验收命令，文档与实际测试文件已完全对齐。
 
 ## 4. 下个会话不要再做什么
 
 - 不要从头再做一遍架构分析。
 - 不要再按 Phase 1 到 Phase 6 重新拆 Sprint。
+- 不要再把 Phase 7 发布验收当作当前主线。
 - 不要把“SDK 复用 Platform ExecutionService”当作目标。
 - 不要直接做大重构式搬迁。
 - 不要忽略当前 dirty worktree，尤其不要擅自回退用户已有改动。
@@ -62,9 +78,9 @@ Phase 1 到 Phase 6 的结构化改造和文档化工作已经完成一轮，但
 
 1. [NEXT_SESSION_HANDOFF.md](/D:/Desktop/Alice/docs/roadmap/implementation/NEXT_SESSION_HANDOFF.md)
 2. [Principle AI Engineer.md](/D:/Desktop/Alice/docs/roadmap/implementation/Principle%20AI%20Engineer.md)
-3. [OFFICIAL_EXECUTION_MAINLINE.md](/D:/Desktop/Alice/docs/architecture/OFFICIAL_EXECUTION_MAINLINE.md)
-4. [phase-7-pr-backlog.md](/D:/Desktop/Alice/docs/roadmap/implementation/phase-7-pr-backlog.md)
-5. [phase-7-acceptance-matrix.md](/D:/Desktop/Alice/docs/roadmap/implementation/phase-7-acceptance-matrix.md)
+3. [phase-8-pr-backlog.md](/D:/Desktop/Alice/docs/roadmap/implementation/phase-8-pr-backlog.md)
+4. [phase-8-acceptance-matrix.md](/D:/Desktop/Alice/docs/roadmap/implementation/phase-8-acceptance-matrix.md)
+5. [OFFICIAL_EXECUTION_MAINLINE.md](/D:/Desktop/Alice/docs/architecture/OFFICIAL_EXECUTION_MAINLINE.md)
 
 如需回看历史实施文档，再读：
 
@@ -74,64 +90,48 @@ Phase 1 到 Phase 6 的结构化改造和文档化工作已经完成一轮，但
 
 ## 6. 下个会话的主目标
 
-下一个会话的主目标不是继续横向扩能力，而是完成以下三件事：
-
-1. 统一 SDK 与 Platform 下方的执行内核。
-2. 收口 SDK 独立发布边界，逐步移除动态 `aitest.*` Bridge。
-3. 把测试收集、workspace package 安装、镜像/CI 验证拉到可证明状态。
+下一个会话的主目标是 Phase 9 规划，不要再继续 Phase 8 的收尾。
 
 ## 7. 推荐执行顺序
 
 建议严格按下面顺序推进：
 
-1. 先做 `PH7-PR-7.1`
-   - 明确公开 `ExecutionKernel` 契约
-   - 不先搬代码，先固定边界
-2. 再做 `PH7-PR-7.2`
-   - 让 standalone SDK `Engine` 改为调用公开 Kernel
-3. 再做 `PH7-PR-7.3`
-   - 让 Platform `ExecutionService / EngineFactory` 也调用同一 Kernel
-4. 再做 `PH7-PR-7.4`
-   - 用显式 Port 注入替代 `platform_bridge` 的动态 `aitest.*` 加载
-5. 然后做 `PH7-PR-7.5`
-   - 收口 workspace package 安装、Docker/CI 发布基线、测试收集问题
-6. 最后做 `PH7-PR-7.6`
-   - 在未安装 `aitest` 的前提下，验证 SDK wheel / 独立运行 / 边界契约
+1. 先做 Phase 9 规划与需求收敛
+2. 再根据 Phase 9 目标拆分新的 PR / 验收矩阵
+3. 保持 Phase 8 的 gate 状态不回退
 
 ## 8. 并行与串行关系
 
 必须串行：
 
-- `PH7-PR-7.1 -> PH7-PR-7.2 -> PH7-PR-7.3 -> PH7-PR-7.4`
-- `PH7-PR-7.6` 必须等待 `PH7-PR-7.4` 完成
+- `PH8-PR-8.1 -> PH8-PR-8.2` 建议串行
+- `PH8-PR-8.2 -> PH8-PR-8.3` 已按顺序完成代码落地
+- `PH8-PR-8.7` 必须最后做
 
 可部分并行：
 
-- `PH7-PR-7.5` 可以在 `PH7-PR-7.3` 后半段开始准备
-- 但 `PH7-PR-7.5` 的最终验收，需要在 `PH7-PR-7.4` 之后再跑完整回归
+- `PH8-PR-8.4 ~ 8.6` 可以在当前合同和 AgentLoop 第一轮减重基础上部分并行
+- 但每张 PR 都必须保持 Phase 7 发布回归可运行
 
 ## 9. 关键风险提示
 
 - 当前仓库是 dirty worktree，下一会话开始前先看 `git status --short`，但不要擅自清理。
 - `Phase 1~6` 文档中的 `Done` 不能直接当成“无需验证”。
-- `platform_bridge` 的存在会导致静态依赖图与真实运行依赖不一致。
-- 若直接推进新功能而不先收口内核，会继续放大 Platform 与 SDK 的双执行语义问题。
-- 若未先固定 Kernel 契约就直接删兼容层，极容易引入入口行为漂移。
+- Phase 8 最大风险是把边界治理做成大重构；必须单 PR 单主题、小步可回滚。
+- `aitest/platform/` 和 `alice_engine/core/executor.py` 是减重重点，但不能一次性大搬迁。
+- 依赖图门禁初期应先设基线和防回潮，不要第一步就要求清零所有历史环。
+- Provider、MCP、Replay、Context 合同变更会影响主执行链，必须有回归保护。
 
 ## 10. 建议的起手检查清单
 
-- 查看 `docs/roadmap/implementation/Principle AI Engineer.md` 中“当前关键偏差”和“SDK 独立发布与能力归属分析”两节。
-- 核对 `packages/alice-engine/alice_engine/engine.py` 当前是否仍走 `_internal.graph`。
-- 核对 `aitest/platform/execution_service.py` 与 `aitest/platform/engine_factory.py` 是否已经可以承接公共 Kernel。
-- 核对 `packages/alice-engine/alice_engine/platform_bridge.py` 里有哪些 `aitest.*` 动态加载点仍存在。
-- 先收集测试/安装/镜像阻断项，再进入 Phase 7 第一张 PR 卡。
+- Phase 8 已验收完毕，下一会话优先进入 Phase 9 规划。
 
 ## 11. 本次交接物
 
 本次会话已补齐以下交接文档：
 
 - [NEXT_SESSION_HANDOFF.md](/D:/Desktop/Alice/docs/roadmap/implementation/NEXT_SESSION_HANDOFF.md)
-- [phase-7-pr-backlog.md](/D:/Desktop/Alice/docs/roadmap/implementation/phase-7-pr-backlog.md)
-- [phase-7-acceptance-matrix.md](/D:/Desktop/Alice/docs/roadmap/implementation/phase-7-acceptance-matrix.md)
+- [phase-8-pr-backlog.md](/D:/Desktop/Alice/docs/roadmap/implementation/phase-8-pr-backlog.md)
+- [phase-8-acceptance-matrix.md](/D:/Desktop/Alice/docs/roadmap/implementation/phase-8-acceptance-matrix.md)
 
 这三份文件就是下一个会话的正式入口。

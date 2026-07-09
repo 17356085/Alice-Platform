@@ -11,6 +11,7 @@ __all__ = ["AuditLogger", "get_audit_logger", "set_audit_logger", "reset_audit_l
 import json
 import threading
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 from .event_bus import get_bus
 from .run_event import RunEvent, EventDataKey as K
 from aitest.infra.sql import safe_exec, safe_query
@@ -47,9 +48,16 @@ class AuditLogger:
         bus: EventBus instance. If None, uses get_bus() singleton.
     """
 
-    def __init__(self, bus=None):
+    def __init__(self, bus=None, db_path: str | Path | None = None):
         self._active = False
         self._bus = bus  # injected EventBus (None = lazy singleton)
+        if db_path is not None:
+            from aitest.infra import database as _db
+            from aitest.infra import database_sqlite as _sqlite
+            _db._backend = "sqlite"
+            _sqlite._DB_PATH = Path(db_path)
+            _sqlite._DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+            safe_exec("SELECT 1")
 
     def start(self):
         if self._active: return

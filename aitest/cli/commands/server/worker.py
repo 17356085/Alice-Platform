@@ -5,6 +5,8 @@ from __future__ import annotations
 import time
 
 from rich.console import Console
+from aitest.cli.core.composition import get_cli_execution_service
+from aitest.platform.execution_worker import get_execution_worker
 
 console = Console()
 
@@ -14,9 +16,11 @@ def worker_command(
     poll_interval: float = 1.0,
 ):
     """启动独立执行 worker，消费 execution_requests。"""
-    from aitest.platform.execution_worker import get_execution_worker
-
-    worker = get_execution_worker(worker_id=worker_id, poll_interval=poll_interval)
+    worker = get_execution_worker(
+        service=get_cli_execution_service(),
+        worker_id=worker_id,
+        poll_interval=poll_interval,
+    )
     worker.start()
     console.print(f"[bold green]Execution worker started[/bold green] ({worker.worker_id})")
     console.print("  Polling execution_requests table ...")

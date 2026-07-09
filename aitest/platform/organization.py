@@ -80,14 +80,14 @@ class OrganizationManager:
 
     # ── Organization CRUD ────────────────────────────────────────────
 
-    def create(self, org_id: str, name: str, owner: str) -> Organization:
+    def create(self, org_id: str, name: str | None = None, owner: str = "") -> Organization:
         key = org_id.lower().replace(" ", "-")
         path = self._data_dir / f"{key}.json"
         if path.exists():
             raise ValueError(f"Organization '{key}' already exists")
 
         org = Organization(
-            id=key, name=name, owner=owner,
+            id=key, name=name or org_id, owner=owner,
             members={owner: "owner"},
             created_at=datetime.now(timezone.utc).isoformat(),
         )
@@ -111,6 +111,10 @@ class OrganizationManager:
                 pass
         return orgs
 
+    def list_orgs(self) -> list[str]:
+        """Backward-compatible list API returning organization IDs."""
+        return [org.id for org in self.list()]
+
     def delete(self, org_id: str):
         path = self._data_dir / f"{org_id}.json"
         if path.exists():
@@ -118,19 +122,23 @@ class OrganizationManager:
 
     # ── Members ──────────────────────────────────────────────────────
 
-    def add_member(self, org_id: str, user_id: str, role: str = "member") -> Organization:
+    def add_member(self, org_id: str, user_id: str, role: str = "member") -> str:
         if role not in ROLES:
             raise ValueError(f"Invalid role '{role}'. Must be one of {ROLES}")
         org = self._get_or_raise(org_id)
+        if user_id in org.members:
+            raise ValueError(f"User '{user_id}' is already a member")
         org.members[user_id] = role
         org.updated_at = datetime.now(timezone.utc).isoformat()
         self._save(org)
-        return org
+        return role
 
     def remove_member(self, org_id: str, user_id: str):
         org = self._get_or_raise(org_id)
         if user_id == org.owner:
-            raise ValueError("Cannot remove the organization owner")
+            raise ForbiddenError("Cannot remove the organization owner")
+        if user_id not in org.members:
+            raise ValueError(f"User '{user_id}' is not a member")
         org.members.pop(user_id, None)
         org.updated_at = datetime.now(timezone.utc).isoformat()
         self._save(org)
@@ -145,14 +153,20 @@ class OrganizationManager:
 
     # ── API Keys ─────────────────────────────────────────────────────
 
-    def create_api_key(self, org_id: str, created_by: str, scopes: list[str] = None) -> tuple[str, str]:
+    def create_api_key(
+        self,
+        org_id: str,
+        created_by: str | None = None,
+        scopes: list[str] | None = None,
+    ) -> tuple[str, str]:
         """Create an API key. Returns (key_id, raw_key). Raw key is NOT stored."""
         org = self._get_or_raise(org_id)
         scopes = scopes or ["read", "execute"]
+        created_by = created_by or org.owner
 
         raw_key = "aitest_" + secrets.token_urlsafe(32)
         key_hash = self._hash_key(raw_key)
-        key_id = secrets.token_hex(8)
+        key_id = "key_" + secrets.token_hex(8)
 
         org.api_keys[key_id] = {
             "key_hash": key_hash,

@@ -198,9 +198,20 @@ _worker: ExecutionWorker | None = None
 _worker_lock = threading.Lock()
 
 
-def get_execution_worker(*, worker_id: str = "", poll_interval: float = 1.0) -> ExecutionWorker:
+def get_execution_worker(
+    *,
+    service: ExecutionService | None = None,
+    worker_id: str = "",
+    poll_interval: float = 1.0,
+) -> ExecutionWorker:
     global _worker
     with _worker_lock:
         if _worker is None:
-            _worker = ExecutionWorker(worker_id=worker_id, poll_interval=poll_interval)
+            _worker = ExecutionWorker(
+                service=service,
+                worker_id=worker_id,
+                poll_interval=poll_interval,
+            )
+        elif service is not None:
+            _worker._service = service
         return _worker

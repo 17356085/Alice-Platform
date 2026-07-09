@@ -1,43 +1,45 @@
-"""LLM Provider 基类 — 保持原始代码。"""
+"""Backward-compatible LLM provider base facade."""
 
-from dataclasses import dataclass, field
-from typing import Any, Optional
-from abc import ABC, abstractmethod
+from __future__ import annotations
 
-
-@dataclass
-class LLMResponse:
-    """LLM 响应。"""
-    content: str = ""
-    tool_calls: list = field(default_factory=list)
-    token_usage: dict = field(default_factory=dict)
-    model: str = ""
-    finish_reason: str = "stop"
-    latency_ms: int = 0
+from aitest.adapters.llm.provider_base import (  # noqa: F401
+    LLMProvider,
+    LLMResponse,
+    StreamEvent,
+)
+from aitest.runtime.config import config as _runtime_config
 
 
-@dataclass
-class StreamEvent:
-    """流式事件。"""
-    type: str = ""
-    content: str = ""
-    delta: str = ""
-    tool_calls: list = field(default_factory=list)
-    finish_reason: str = ""
+class _CompatConfig:
+    """Expose legacy provider config attributes expected by old providers."""
+
+    @property
+    def anthropic_api_key(self) -> str:
+        return _runtime_config.get_env("ANTHROPIC_API_KEY", "")
+
+    @property
+    def deepseek_api_key(self) -> str:
+        return _runtime_config.get_env("DEEPSEEK_API_KEY", "")
+
+    @property
+    def openai_api_key(self) -> str:
+        return _runtime_config.get_env("OPENAI_API_KEY", "")
+
+    @property
+    def mimo_api_key(self) -> str:
+        return _runtime_config.get_env("MIMO_API_KEY", "")
+
+    @property
+    def mimo_base_url(self) -> str:
+        return _runtime_config.get_env("MIMO_BASE_URL", "")
+
+    @property
+    def ollama_base_url(self) -> str:
+        return _runtime_config.ollama_base_url
 
 
-class LLMProvider(ABC):
-    """LLM Provider 抽象基类。"""
-
-    @abstractmethod
-    def complete(self, system_prompt, user_prompt, tools=None, **kwargs) -> LLMResponse:
-        ...
-
-    @abstractmethod
-    def supports_tools(self) -> bool:
-        ...
+def _get_config() -> _CompatConfig:
+    return _CompatConfig()
 
 
-def _get_config():
-    """获取配置。"""
-    return {}
+__all__ = ["LLMProvider", "LLMResponse", "StreamEvent", "_get_config"]

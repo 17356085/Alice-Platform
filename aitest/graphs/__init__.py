@@ -22,10 +22,13 @@ from aitest.graphs.checkpoint import (
     CHECKPOINT_DIR,
     DB_PATH,
 )
+from alice_engine.workflow import execution_graph  # noqa: F401
+from alice_engine.workflow import parallel as parallel_sop  # noqa: F401
 
 __all__ = [
     "SOPState", "SOPMode", "PhaseName", "GateResult", "GateLevel",
     "CANONICAL_PHASES", "create_initial_state",
     "SkillObservation", "AgentResult",
+    "execution_graph", "parallel_sop",
     "get_checkpointer", "list_runs", "CHECKPOINT_DIR", "DB_PATH",
 ]

@@ -18,19 +18,11 @@ import re
 import sys
 import time
 import queue
-import asyncio
 from pathlib import Path
 from collections.abc import Generator
 from typing import Optional
 import io
 import threading
-
-# Fix Windows GBK encoding for emoji output
-# v3.1: 只在显式调用时执行，不在模块导入时全局替换 stdout
-def fix_stdout_encoding():
-    """修复 Windows GBK 编码问题。仅在需要时调用。"""
-    if hasattr(sys.stdout, 'buffer') and not isinstance(sys.stdout, io.TextIOWrapper):
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 from alice_engine.providers.base import LLMResponse, LLMProvider; from alice_engine.providers import get_provider
 from alice_engine.runtime.core.retry import ReliableProvider, get_reliable_provider, UsageTracker  # ★ v1.0
@@ -56,115 +48,42 @@ from alice_engine.core.output_persistence import (
 from alice_engine.core.consistency_checks import (
     run_mechanical_consistency_check, run_llm_consistency_review,
 )
+from alice_engine.core.runtime_context_builder import RuntimeContextBuilder
+from alice_engine.core.runtime_lifecycle import (
+    MCPClientLifecycle,
+    ProviderRuntimeLifecycle,
+    ReplayStepSink,
+)
+from alice_engine.core.session_orchestrator import SessionLoopOrchestrator
+from alice_engine.core.runtime_environment import (
+    current_context_modules,
+    current_llm_provider,
+    current_workstudy,
+)
 from alice_engine.runtime.core.security import PromptInjectionGuard  # ★ v1.0
 from alice_engine.events import EventType, get_bus  # ★ v3.0: SDK 内事件系统
 
-# ── 路径配置 ──────────────────────────────────────────────────────────
-from pathlib import Path
-import os
-# v3.1: 使用环境变量，避免 CWD 依赖
-# 优先使用 ENGINE_WORKSTUDY (Engine 设置), 然后 AITEST_WORKSTUDY, 最后当前目录
-WORKSTUDY = Path(os.environ.get("ENGINE_WORKSTUDY", os.environ.get("AITEST_WORKSTUDY", ".")))
+# ── v3.2: 导入拆分后的辅助模块 ─────────────────────────────────────
+from alice_engine.core.executor_utils import (
+    get_logger,
+    get_project_dir,
+    get_test_project_root,
+    config,
+    TraceContext,
+    get_tracer,
+)
+from alice_engine.core.agent_helpers import (
+    get_agent_skill_map,
+    get_dev_agent_skill_map,
+    get_agent_definition,
+    run_skill,
+    list_agents,
+    list_dev_agents,
+)
 
-# 优先使用 .tlo/knowledge/modules/，fallback 到 context/
-_tlo_modules = WORKSTUDY / ".tlo" / "knowledge" / "modules"
-CONTEXT_MODULES = _tlo_modules if _tlo_modules.exists() else WORKSTUDY / "context"
-
-# ── v3.1: 自给自足 — 定义 executor 需要的所有名称 ─────────────────────
-# 这些名称之前从 aitest/engine/skill_executor.py (上层 wrapper) 导入，
-# 但 alice_engine 包应该自包含。
-
-import logging as _logging
-
-def get_logger(name: str):
-    """获取 logger。v3.1: executor 自包含，不依赖上层 wrapper。"""
-    return _logging.getLogger(name)
-
-
-def get_project_dir() -> Path:
-    """获取项目目录。"""
-    return WORKSTUDY
-
-
-def get_test_project_root() -> Path:
-    """获取测试项目根目录。"""
-    return WORKSTUDY
-
-# Agent skill maps — 从 AgentDefinitions 加载
-_defs_instance = None
-def _get_governance_root() -> Path:
-    resolved = resolve_governance_pack_path(project_root=WORKSTUDY)
-    return resolved or (WORKSTUDY / "governance")
-
-def _get_defs() -> AgentDefinitions:
-    global _defs_instance
-    if _defs_instance is None:
-        _defs_instance = AgentDefinitions(governance_path=_get_governance_root())
-    return _defs_instance
-
-AGENT_SKILL_MAP = _get_defs()._load_skill_map() if _get_defs() else FALLBACK_AGENT_SKILL_MAP
-DEV_AGENT_SKILL_MAP: dict[str, list[str]] = {}
-
-def get_agent_definition(agent_name: str) -> dict:
-    """获取 agent 定义。v3.1: executor 自包含。"""
-    return _get_defs().get_definition(agent_name)
-
-# run_skill — 从 SkillExecutorImpl 构建
-def run_skill(skill_id: str, user_input: str, provider=None, context_vars=None, **kwargs):
-    """执行单个 skill。v3.1: executor 自包含。"""
-    from alice_engine.providers import get_provider as _get_provider
-    from alice_engine.core.skill_loader import SkillLoader
-    from alice_engine.core.skill_executor_impl import SkillExecutorImpl
-
-    loader = SkillLoader(governance_path=_get_governance_root())
-    try:
-        prov = _get_provider(provider or "mock")
-    except Exception:
-        prov = _get_provider("mock")
-    executor = SkillExecutorImpl(skill_loader=loader, provider=prov)
-    return executor.execute(skill_id, user_input, context_vars=context_vars, **kwargs)
-
-# config — 简单配置解析
-class _Config:
-    """v3.1: 最小化 config 替代品。"""
-    @staticmethod
-    def resolve_llm_provider() -> str:
-        return os.environ.get("LLM_PROVIDER", os.environ.get("AITEST_PROVIDER", "anthropic"))
-
-    @staticmethod
-    def resolve_model_for_tier(tier: str, provider: str) -> dict:
-        return {"model": "claude-sonnet-4-6", "provider": provider}
-
-config = _Config()
-
-# TraceContext — 简单线程本地上下文
-class _TraceContext:
-    """v3.1: 最小化 TraceContext 替代品。"""
-    _local = threading.local()
-
-    @classmethod
-    def set(cls, **kwargs):
-        for k, v in kwargs.items():
-            setattr(cls._local, k, v)
-
-    @classmethod
-    def get_skill_version(cls) -> str:
-        return getattr(cls._local, "skill_version", "latest")
-
-TraceContext = _TraceContext
-
-# get_tracer — OpenTelemetry tracer (stub)
-class _NoopSpan:
-    def __enter__(self): return self
-    def __exit__(self, *args): pass
-    def set_attribute(self, *args): pass
-
-class _NoopTracer:
-    def start_as_current_span(self, name): return _NoopSpan()
-
-def get_tracer():
-    """v3.1: 最小化 tracer 替代品。"""
-    return _NoopTracer()
+# Backward compatibility — expose at module level
+AGENT_SKILL_MAP = get_agent_skill_map()
+DEV_AGENT_SKILL_MAP = get_dev_agent_skill_map()
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -250,6 +169,7 @@ class AgentLoop:
         # is always safe to call (even if _run_single_session fails early).
         # H3 fix: was previously only set inside _run_single_session.
         self._mcp_clients: list = []
+        self._mcp_tools: dict = {}
         self._wt_mgr = None
         self._worktree_ctx = None
 
@@ -262,43 +182,38 @@ class AgentLoop:
         self._continuation_count = 0
         self._session_messages: list[dict] = []
         self._replay_recorder = context.get("replay_recorder")
+        self._provider_lifecycle = ProviderRuntimeLifecycle(
+            agent_name=agent_name,
+            log_fn=self._log,
+            resolve_agent_definition_fn=get_agent_definition,
+            resolve_model_for_tier_fn=config.resolve_model_for_tier,
+            resolve_provider_model_fn=self._resolve_model_for_provider,
+            get_reliable_provider_fn=get_reliable_provider,
+            context_window_monitor_cls=ContextWindowMonitor,
+        )
+        self._mcp_lifecycle = MCPClientLifecycle(
+            agent_name=agent_name,
+            log_fn=self._log,
+        )
+        self._replay_sink = ReplayStepSink(recorder=self._replay_recorder)
+        self._session_orchestrator = None
 
         # [LAYER:Adapter/LLM] ★ v2.0: Capability Router (lazy init)
         self._capability_router = None
         self._use_tool_calling = True  # 默认启用 tool calling
 
-        # [LAYER:Runtime/Config] ★ v0.5: Phase-Aware Model Tier
-        self._model_tier = "balanced"
-        try:
-            agent_def = get_agent_definition(agent_name)
-            self._model_tier = agent_def.get("model_tier", "balanced")
-        except Exception as e:
-            self._log(f"[warn] model_tier fallback: {e}")
-        if model is None:
-            tier_cfg = config.resolve_model_for_tier(self._model_tier, provider)
-            model = tier_cfg["model"]
-            if tier_cfg["provider"] != provider:
-                provider = tier_cfg["provider"]
-
-        # [LAYER:Runtime/Retry] 初始化可靠性 Provider
-        if self._use_reliable:
-            # Pass resolved model to override provider default
-            chain_override = None
-            if model and model != self._resolve_model_for_provider(provider):
-                chain_override = [{"provider": provider, "model": model}]
-            try:
-                self._reliable_provider = get_reliable_provider(
-                    primary=provider, fallback_chain=chain_override,
-                )
-            except Exception as e:
-                self._reliable_provider = get_reliable_provider(primary="mock")
-                self._log(f"[warn] reliable provider disabled: {e}")
-
-        # [LAYER:Runtime/ContextWindow] 初始化窗口监控器
-        if self._use_window:
-            pass  # MODEL_CONTEXT_LIMITS removed
-            resolved_model = model or self._resolve_model_for_provider(provider)
-            self._window_monitor = ContextWindowMonitor(model=resolved_model)
+        provider_runtime = self._provider_lifecycle.initialize(
+            provider=provider,
+            requested_model=model,
+            use_reliable_provider=self._use_reliable,
+            use_window_monitor=self._use_window,
+        )
+        provider = provider_runtime["provider"]
+        model = provider_runtime["model"]
+        self.provider = provider
+        self._model_tier = provider_runtime["model_tier"]
+        self._reliable_provider = provider_runtime["reliable_provider"]
+        self._window_monitor = provider_runtime["window_monitor"]
 
         # [LAYER:Core/Task] Goal 构建 + AgentState 创建
         module = context.get("module", "")
@@ -328,6 +243,15 @@ class AgentLoop:
             page=page,
             provider=provider,
             max_steps=context.get("max_steps", len(self.skills) * 2),
+        )
+        self._runtime_context_builder = RuntimeContextBuilder(
+            state=self.state,
+            module=module,
+            page=page,
+            goal=goal,
+            focused_context=self._focused_context,
+            token_budget=self.token_budget,
+            log_fn=self._log,
         )
         if self._replay_recorder is not None:
             self.state.memory["replay_session_id"] = getattr(self._replay_recorder, "session_id", "")
@@ -382,72 +306,15 @@ class AgentLoop:
 
     def _init_mcp_clients(self) -> None:
         """Connect MCP clients once per session and cache their tool directory."""
-        from alice_engine.platform_bridge import create_mcp_clients_for_agent
-
-        self._mcp_clients = []
-        self._mcp_tools = {}
-        try:
-            clients, tools = create_mcp_clients_for_agent(self.agent_name)
-            self._mcp_clients = clients or []
-            self._mcp_tools = tools or {}
-        except Exception as e:
-            self._log(f"[warn] MCP init skipped: {e}")
-            self._mcp_clients = []
-            self._mcp_tools = {}
+        self._mcp_lifecycle.agent_name = self.agent_name
+        self._mcp_clients, self._mcp_tools = self._mcp_lifecycle.connect()
 
     def _build_runtime_context(self) -> dict:
         """Assemble memory / knowledge context onto the official execution mainline."""
-        runtime_context = self.state.memory.setdefault("runtime_context", {})
-        if runtime_context:
-            return runtime_context
-
-        module = self.module or ""
-        page = self.page or ""
-        query = " ".join(part for part in [module, page, self.state.goal] if part).strip() or module or page
-        assembled = {
-            "memory_context": {},
-            "knowledge_context": {},
-            "context_sources": [],
-        }
-
-        try:
-            from alice_engine.platform_bridge import create_testing_memory_store
-
-            store = create_testing_memory_store()
-            if store.available():
-                memory_queries = []
-                if query:
-                    memory_queries = [
-                        {"collection": "known_bugs", "query": query},
-                        {"collection": "historical_failures", "query": query},
-                        {"collection": "workflow_recipes", "query": query},
-                    ]
-                if memory_queries:
-                    memory_context = store.search_multi(memory_queries, top_k=3)
-                    if memory_context:
-                        assembled["memory_context"] = memory_context
-                        assembled["context_sources"].append("memory")
-        except Exception as e:
-            self._log(f"[warn] memory context skipped: {e}")
-
-        try:
-            from alice_engine.platform_bridge import get_knowledge_service
-
-            knowledge = get_knowledge_service()
-            if getattr(knowledge, "available", lambda: False)():
-                knowledge_context = knowledge.search(
-                    query=query or module or page or self.state.goal,
-                    collection="all",
-                    top_k=5,
-                )
-                if knowledge_context:
-                    assembled["knowledge_context"] = {"results": knowledge_context}
-                    assembled["context_sources"].append("knowledge")
-        except Exception as e:
-            self._log(f"[warn] knowledge context skipped: {e}")
-
-        runtime_context.update(assembled)
-        return runtime_context
+        self._runtime_context_builder.module = self.module
+        self._runtime_context_builder.page = self.page
+        self._runtime_context_builder.goal = self.state.goal
+        return self._runtime_context_builder.build_runtime_context()
 
     # [LAYER:Adapter/Event] 事件发射
     def _emit_obs(self, event_type: EventType, data: dict = None) -> None:
@@ -488,7 +355,7 @@ class AgentLoop:
         if self.agent_name in DEV_AGENT_SKILL_MAP:
                 module_dir = str(_get_governance_root() / "context" / "projects" / "dev-platform")
         else:
-            module_dir = str(CONTEXT_MODULES / self.module)
+            module_dir = str(current_context_modules() / self.module)
         resolved = resolved.replace("{module_dir}", module_dir)
         resolved = resolved.replace("{module}", self.module)
         resolved = resolved.replace("{page}", page_slug)
@@ -504,8 +371,9 @@ class AgentLoop:
         """将 pattern 解析为绝对路径。"""
         resolved = self._resolve_artifact_path(pattern)
         # If path is relative (starts with project name), resolve from WORKSTUDY
-        if not Path(resolved).is_absolute() and not resolved.startswith(str(WORKSTUDY)):
-            resolved = str(WORKSTUDY / resolved)
+        workstudy = get_project_dir()
+        if not Path(resolved).is_absolute() and not resolved.startswith(str(workstudy)):
+            resolved = str(workstudy / resolved)
         return Path(resolved)
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -519,96 +387,12 @@ class AgentLoop:
         无-PRD 模式: 注入 Page Object / 测试脚本 / 治理文档的文件路径，
         context_injector 的 SKILL_CONTEXT_MAP 使用这些路径读取并注入文件内容。
         """
-        vars_ = {
-            "module": self.module,
-            "page": self.page,
-        }
-        # 将 memory 中的关键信息注入
-        if self.state.memory.get("prev_output"):
-            vars_["prev_output"] = str(self.state.memory["prev_output"])[:3000]
-        if self.state.memory.get("tech_analysis_summary"):
-            vars_["tech_analysis_summary"] = self.state.memory["tech_analysis_summary"]
-
-        runtime_context = self._build_runtime_context()
-        if runtime_context.get("memory_context"):
-            vars_["memory_context"] = runtime_context["memory_context"]
-        if runtime_context.get("knowledge_context"):
-            vars_["knowledge_context"] = runtime_context["knowledge_context"]
-        if runtime_context.get("context_sources"):
-            vars_["context_sources"] = runtime_context["context_sources"]
-
-        # ── 无-PRD 模式: 注入文件路径供 context_injector 使用 ──
-        if self.module:
-            page_name = self._slug_to_page_name(self.page) if self.page else ""
-            page_underscore = self._page_slug_to_underscore(self.page) if self.page else ""
-            zjsn = get_test_project_root()
-
-            # PROJECT_CONTEXT 路径
-            project_ctx = get_project_dir() / "PROJECT_CONTEXT.md"
-            if project_ctx.exists():
-                vars_["project_context_path"] = str(project_ctx)
-
-            # Page Object 路径 (from test project root)
-            if zjsn:
-                po_path = zjsn / "page" / f"{self.module}_page" / f"{page_name}Page.py"
-                if page_name and po_path.exists():
-                    vars_["po_path"] = str(po_path)
-
-                # 测试脚本路径
-                test_path = zjsn / "script" / self.module / f"test_{page_underscore}.py"
-                if page_underscore and test_path.exists():
-                    vars_["test_path"] = str(test_path)
-
-                # Page Object 目录（用于 module-modeling 发现页面）
-                po_dir = zjsn / "page" / f"{self.module}_page"
-                if po_dir.exists():
-                    vars_["po_dir"] = str(po_dir)
-
-                # 测试脚本目录
-                test_dir = zjsn / "script" / self.module
-                if test_dir.exists():
-                    vars_["test_dir"] = str(test_dir)
-
-            # 页面目录（治理文档目标路径）
-            page_dir = CONTEXT_MODULES / self.module / "pages" / self.page
-            if self.page:
-                vars_["page_dir"] = str(page_dir)
-
-        # ContextAgent 精准 context —— 优先级高于 SKILL_CONTEXT_MAP 文件读取
-        if self._focused_context:
-            vars_["focused_context"] = self._focused_context
-
-        # ★ P2 RAG: Token 预算估算
-        # 粗估：已使用 token 从 trace 中获取，或用步数估算
-        # 简单做法：根据 step 预估已消耗（每 step ~2k token）
-        estimated_used = self.state.step * 2000
-        estimated_remaining = max(1000, self.token_budget - estimated_used)
-        vars_["token_budget_remaining"] = estimated_remaining
-
-        # ── Task 3a: 动态上下文发现 (ContextBuilder) ──
-        # Runs once per session — lazy-init via vars_ cache check.
-        # Pure filesystem discovery (steps 1-5), optional Memory (step 6).
-        if zjsn and not vars_.get("builder_context"):
-            try:
-                from alice_engine.core.context_builder import build_context
-                builder_ctx = build_context(
-                    module=self.module,
-                    project_root=zjsn,
-                    page=self.page,
-                    task_description=self.state.goal,
-                )
-                vars_["builder_context"] = builder_ctx
-                self._log(
-                    f"  🔍 ContextBuilder: {builder_ctx.source_count} files, "
-                    f"{len(builder_ctx.patterns)} patterns, "
-                    f"memory={'yes' if builder_ctx.memory_hints else 'no'}"
-                )
-            except Exception as e:
-                self._log(f"[warn] context discovery skipped: {e}")
-
-        if extra:
-            vars_.update(extra)
-        return vars_
+        self._runtime_context_builder.module = self.module
+        self._runtime_context_builder.page = self.page
+        self._runtime_context_builder.goal = self.state.goal
+        self._runtime_context_builder.focused_context = self._focused_context
+        self._runtime_context_builder.token_budget = self.token_budget
+        return self._runtime_context_builder.build_context_vars(extra)
 
     # [LAYER:Core/Planner] Skill 用户输入构建
     def _build_user_input(self, skill_id: str) -> str:
@@ -654,7 +438,7 @@ class AgentLoop:
                     except Exception:
                         pass  # test file optional — skip silently
             # Read PAGE_CONTEXT if it exists (from requirement phase)
-            page_ctx = CONTEXT_MODULES / self.module / "pages" / self.page / "PAGE_CONTEXT.md"
+            page_ctx = current_context_modules() / self.module / "pages" / self.page / "PAGE_CONTEXT.md"
             if page_ctx.exists():
                 try:
                     ctx_content = page_ctx.read_text(encoding="utf-8")
@@ -868,10 +652,8 @@ class AgentLoop:
             import re
             from alice_engine.core.task import _ALL_ARTIFACT_RULES
 
-            # 获取当前 CONTEXT_MODULES 值（运行时更新）
-            context_modules = Path(os.environ.get("ENGINE_WORKSTUDY", ".")) / ".tlo" / "knowledge" / "modules"
-            if not context_modules.exists():
-                context_modules = Path(os.environ.get("ENGINE_WORKSTUDY", ".")) / "context"
+            # 获取当前 context modules 值（运行时更新）
+            context_modules = current_context_modules()
 
             # Priority 1: Use artifact rule glob_pattern for exact path match
             rules = _ALL_ARTIFACT_RULES.get(skill_id, [])
@@ -1222,15 +1004,7 @@ class AgentLoop:
         # MCP client cleanup — close connections
         _mcp_clients = getattr(self, "_mcp_clients", [])
         if _mcp_clients:
-            for client in _mcp_clients:
-                try:
-                    if hasattr(client, "close"):
-                        close_result = client.close()
-                        if asyncio.iscoroutine(close_result):
-                            asyncio.run(close_result)
-                except Exception:
-                    pass
-            _mcp_clients.clear()
+            self._mcp_lifecycle.close_all(_mcp_clients)
 
         # Artifact lineage
         # v3.1: artifact_lineage 未在 alice_engine 中实现，跳过
@@ -1270,169 +1044,35 @@ class AgentLoop:
         self._log("-" * 60)
 
         skill_index = 0
+        self._session_orchestrator = SessionLoopOrchestrator(
+            state=self.state,
+            skills=self.skills,
+            agent_name=self.agent_name,
+            module=self.module,
+            page=self.page,
+            provider=self.provider,
+            abort_event=getattr(self, "_abort", None),
+            replay_sink=self._replay_sink,
+            replay_recorder=self._replay_recorder,
+            perceive_fn=self.perceive,
+            plan_fn=self.plan,
+            act_fn=self.act,
+            observe_fn=self.observe,
+            update_fn=self.update,
+            persist_skill_artifact_fn=self._persist_skill_artifact,
+            emit_obs_fn=self._emit_obs,
+            log_fn=self._log,
+            retry_counts=self.state.retry_counts,
+            completed_skills_getter=lambda: self.state.completed_skills,
+        )
 
         while not self.state.done and self.state.step < self.state.max_steps:
-            # Check abort signal (set by ExecutionService.cancel())
-            if getattr(self, "_abort", None) and self._abort.is_set():
-                self.state.done = True
-                self.state.success = False
-                self.state.termination_reason = "cancelled"
-                self._log("🛑 Agent cancelled via abort signal")
+            iteration = self._session_orchestrator.run_iteration(skill_index)
+            skill_index = iteration.next_skill_index
+            if not iteration.should_continue:
                 break
 
-            # ── 1. Perceive ──
-            current_skill = self.skills[skill_index] if skill_index < len(self.skills) else ""
-            perception = self.perceive(current_skill) if current_skill else {}
-
-            # ── 2. Plan ──
-            plan_result = self.plan(skill_index, perception)
-
-            if plan_result["action"] == "done":
-                self.state.done = True
-                self.state.success = True
-                self.state.termination_reason = "all_skills_completed"
-                self._log("✅ 所有 Skill 已完成")
-                break
-
-            if plan_result["action"] == "confirm_required":
-                skill_id = plan_result["skill_id"]
-                safe_skill = skill_id.replace("/", "_").replace(":", "_")
-                task_id = plan_result.get("task_id", f"{self.module}--{safe_skill}")
-                risk_level = plan_result.get("risk_level", "high")
-                self._log(f"  ⏸️  HITL: 等待确认执行 '{skill_id}' "
-                         f"(risk={risk_level}, task={task_id})")
-
-                # ── HITL: auto-confirm in SDK mode ──
-                try:
-                    from alice_engine.core.planner import confirm_skill
-                    confirm_skill(skill_id, self.module)
-                    self._log(f"  ✅ Auto-confirmed '{skill_id}' (SDK mode)")
-                except Exception:
-                    pass
-                # Re-plan after confirmation
-                plan_result = self.plan(skill_index, perception)
-                if plan_result["action"] in ("confirm_required", "done", "abort"):
-                    continue
-
-            if plan_result["action"] == "abort":
-                self.state.done = True
-                self.state.success = False
-                self.state.termination_reason = f"agent_aborted: {plan_result['reason']}"
-                self._log(f"🛑 Agent 中止: {plan_result['reason']}")
-                break
-
-            if plan_result["action"] == "skip":
-                skill_id = plan_result["skill_id"]
-                self._log(f"  ⏭️ [{skill_index + 1}/{len(self.skills)}] {skill_id} — {plan_result['reason']}")
-                obs = Observation(skill_id=skill_id, status="skipped",
-                                  summary=plan_result["reason"], suggestion="continue")
-                self.update(skill_id, obs)
-                skill_index += 1
-                continue
-
-            # ── 3. Act ──
-            skill_id = plan_result["skill_id"]
-            is_retry = plan_result["action"] == "retry"
-
-            if is_retry:
-                retry_n = self.state.retry_counts.get(skill_id, 1)
-                self._log(f"  🔄 [{skill_index + 1}/{len(self.skills)}] {skill_id} — 重试 #{retry_n}...")
-                self._emit_obs(EventType.SKILL_RETRY, {"skill_id": skill_id, "attempt": retry_n})
-            else:
-                self._log(f"  ▶️  [{skill_index + 1}/{len(self.skills)}] {skill_id}...")
-                self._emit_obs(EventType.SKILL_START, {"skill_id": skill_id})
-
-            replay_step = None
-            if getattr(self, "_replay_recorder", None):
-                try:
-                    replay_step = self._replay_recorder.begin_step(
-                        "skill",
-                        skill_id,
-                        input_data={
-                            "module": self.module,
-                            "page": self.page,
-                            "agent": self.agent_name,
-                        },
-                        metadata={"skill_index": skill_index},
-                    )
-                except Exception:
-                    replay_step = None
-
-            response = self.act(skill_id)
-
-            if replay_step and getattr(self, "_replay_recorder", None):
-                try:
-                    self._replay_recorder.record_llm_call(
-                        replay_step.id,
-                        getattr(response, "model", ""),
-                        self.provider,
-                        [],
-                        response.content or "",
-                        usage=getattr(response, "usage", {}) or {},
-                    )
-                    self._replay_recorder.end_step(
-                        replay_step.id,
-                        output_data={
-                            "finish_reason": response.finish_reason,
-                            "tool_calls": getattr(response, "tool_calls", []) or [],
-                            "tool_results": getattr(response, "tool_results", []) or [],
-                        },
-                        status="error" if response.finish_reason == "error" else "success",
-                        error_message=(response.content[:200] if response.finish_reason == "error" else ""),
-                    )
-                except Exception:
-                    pass
-
-            # Persist artifact IMMEDIATELY — before observe() checks file existence
-            if response.content and response.finish_reason != "error":
-                saved = self._persist_skill_artifact(skill_id, response.content)
-                if saved:
-                    self._log(f"  📄 saved: {Path(saved).name}")
-
-            if not is_retry and response.finish_reason != "error":
-                usage = getattr(response, "usage", {}) or {}
-                elapsed = usage.get("elapsed_seconds", 0)
-                tokens_in = usage.get("input", 0)
-                tokens_out = usage.get("output", 0)
-                self._log(f"✅ {elapsed:.1f}s | {tokens_in}+{tokens_out} tokens")
-                self._emit_obs(EventType.SKILL_COMPLETE, {
-                    "skill_id": skill_id, "elapsed": elapsed,
-                    "tokens_in": tokens_in, "tokens_out": tokens_out,
-                })
-            elif response.finish_reason == "error":
-                self._emit_obs(EventType.SKILL_FAILED, {
-                    "skill_id": skill_id, "error": response.content[:200],
-                })
-
-            # ── 4. Observe ──
-            observation = self.observe(skill_id, response)
-
-            # ── 5. Update ── (state_updater.update_agent_state handles step += 1)
-            self.update(skill_id, observation)
-
-            if observation.suggestion == "retry":
-                pass
-            elif observation.suggestion == "skip":
-                skill_index += 1
-            else:
-                skill_index += 1
-
-            if skill_index >= len(self.skills):
-                all_pass = all(
-                    s in self.state.completed_skills
-                    for s in self.skills
-                )
-                self.state.done = True
-                self.state.success = all_pass
-                self.state.termination_reason = (
-                    "all_skills_completed" if all_pass
-                    else "some_skills_failed"
-                )
-
-        if self.state.step >= self.state.max_steps and not self.state.done:
-            self.state.done = True
-            self.state.success = False
-            self.state.termination_reason = "max_steps_reached"
+        self._session_orchestrator.apply_max_steps_termination()
 
         self._finalize_session()
         return self.state
@@ -1482,14 +1122,3 @@ def run_agent(
     state = agent.run()
     return state.to_dict()
 
-
-# [LAYER:Core/Planner] Agent 列表
-def list_agents() -> list[str]:
-    """列出所有可用的 Agent 名称（含测试 + 开发）。"""
-    return sorted(set(list(AGENT_SKILL_MAP.keys()) + list(DEV_AGENT_SKILL_MAP.keys())))
-
-
-# [LAYER:Core/Planner] Agent 列表
-def list_dev_agents() -> list[str]:
-    """列出所有开发 Agent 名称。"""
-    return sorted(DEV_AGENT_SKILL_MAP.keys())

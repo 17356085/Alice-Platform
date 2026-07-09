@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Prometheus Metrics — operational metrics for the AITest Platform.
 

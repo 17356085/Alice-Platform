@@ -94,6 +94,7 @@ class TestAgentLoopInit:
     def test_mcp_clients_initialized_empty(self):
         agent = AgentLoop("project-agent", module="m", page="p")
         assert agent._mcp_clients == []
+        assert agent._mcp_tools == {}
 
     def test_state_initialized(self):
         agent = AgentLoop("project-agent", module="m", page="p")
@@ -101,6 +102,18 @@ class TestAgentLoopInit:
         assert agent.state.agent_name == "project-agent"
         assert agent.state.step == 0
         assert agent.state.done is False
+
+    def test_runtime_context_builder_initialized(self):
+        agent = AgentLoop("project-agent", module="m", page="p")
+        assert agent._runtime_context_builder is not None
+        assert agent._runtime_context_builder.state is agent.state
+
+    def test_runtime_lifecycle_collaborators_initialized(self):
+        agent = AgentLoop("project-agent", module="m", page="p")
+        assert agent._provider_lifecycle is not None
+        assert agent._mcp_lifecycle is not None
+        assert agent._replay_sink is not None
+        assert agent._session_orchestrator is None
 
     def test_skills_populated(self):
         agent = AgentLoop("project-agent", module="m", page="p")

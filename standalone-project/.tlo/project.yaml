@@ -1,0 +1,4 @@
+name: standalone
+url: https://example.invalid
+modules:
+  - equipment

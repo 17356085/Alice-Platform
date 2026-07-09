@@ -4,11 +4,13 @@ v3.1: Uses parameterized queries via aitest.infra.sql (no more f-string SQL).
 """
 
 import json
+import sqlite3
 import time
 import uuid
 import random
 import threading
 from typing import Optional
+from pathlib import Path
 from aitest.infra.sql import safe_exec, safe_query
 from aitest.infra.logging import get_logger
 from aitest.infra.config_registry import cfg
@@ -19,6 +21,24 @@ STALE_TASK_TIMEOUT_S = cfg.task_stale_timeout_s
 
 
 class TaskQueue:
+    def __init__(self, db_path: str | Path | None = None):
+        self._db_path = Path(db_path) if db_path is not None else None
+        if self._db_path is not None:
+            from aitest.infra import database as _db
+            from aitest.infra import database_sqlite as _sqlite
+
+            _db._backend = "sqlite"
+            _sqlite._DB_PATH = self._db_path
+            _sqlite._DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+            safe_exec("SELECT 1")
+
+    def _get_conn(self):
+        if self._db_path is None:
+            raise RuntimeError("TaskQueue._get_conn() is only available for sqlite-backed test queues")
+        conn = sqlite3.connect(str(self._db_path))
+        conn.row_factory = sqlite3.Row
+        return conn
+
     def enqueue(self, agent: str, module: str, page: str = "",
                 provider: str = "claude", max_retries: int = DEFAULT_MAX_RETRIES) -> str:
         task_id = f"task-{uuid.uuid4().hex[:12]}"

@@ -17,6 +17,7 @@ from langgraph.types import Send
 
 from alice_engine.workflow.state import SOPState, create_initial_state, CANONICAL_PHASES
 from alice_engine.workflow.nodes import make_agent_loop_node
+from alice_engine.workflow.sop_nodes import preflight_node
 
 logger = logging.getLogger(__name__)
 
@@ -219,9 +220,6 @@ def build_parallel_sop_graph() -> StateGraph:
                                                       END
     """
     builder = StateGraph(SOPState)
-
-    # 复用现有 preflight
-    pass  # preflight_node removed
 
     builder.add_node("preflight", preflight_node)
     builder.add_node("process_single_page", process_single_page)

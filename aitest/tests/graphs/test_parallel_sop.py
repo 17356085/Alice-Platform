@@ -146,7 +146,7 @@ class TestProcessSinglePage:
         mock_run.return_value = {"agent": "x", "success": True,
                                   "completed_skills": [], "failed_skills": [],
                                   "termination": "completed"}
-        monkeypatch.setattr("aitest.graphs.parallel_sop._run_agent", mock_run)
+        monkeypatch.setattr("alice_engine.workflow.parallel._run_agent", mock_run)
 
         state = {"module": "equipment", "pages": ["alarm"], "provider": "claude"}
         result = process_single_page(state)
@@ -167,7 +167,7 @@ class TestProcessSinglePage:
             if call_count[0] >= 3:  # Fail on 3rd phase
                 raise RuntimeError("Agent crashed")
 
-        monkeypatch.setattr("aitest.graphs.parallel_sop._run_agent", failing_agent)
+        monkeypatch.setattr("alice_engine.workflow.parallel._run_agent", failing_agent)
 
         state = {"module": "equipment", "pages": ["alarm"], "provider": "claude"}
         result = process_single_page(state)
@@ -182,7 +182,7 @@ class TestProcessSinglePage:
         def always_fail(*args, **kwargs):
             raise RuntimeError("Agent unavailable")
 
-        monkeypatch.setattr("aitest.graphs.parallel_sop._run_agent", always_fail)
+        monkeypatch.setattr("alice_engine.workflow.parallel._run_agent", always_fail)
 
         state = {"module": "equipment", "pages": ["alarm"], "provider": "claude"}
         result = process_single_page(state)
@@ -196,7 +196,7 @@ class TestProcessSinglePage:
         mock_run = MagicMock(return_value={"agent": "x", "success": True,
                                             "completed_skills": [], "failed_skills": [],
                                             "termination": "completed"})
-        monkeypatch.setattr("aitest.graphs.parallel_sop._run_agent", mock_run)
+        monkeypatch.setattr("alice_engine.workflow.parallel._run_agent", mock_run)
 
         state = {"module": "equipment", "pages": ["alarm"], "provider": "claude"}
         result = process_single_page(state)

@@ -259,23 +259,24 @@ class PlatformBridge:
     def _make_forwarder(platform_bus, event_type: str):
         """Create a forwarder function for a specific event type."""
         import uuid as _uuid
-        from aitest.platform.run_event import RunEvent
+        from aitest.platform.runtime_contracts import runtime_event_from_payload, runtime_event_to_run_event
 
         def forwarder(obs_event):
             try:
-                run_event = RunEvent(
-                    event_id=str(_uuid.uuid4()),
+                envelope = runtime_event_from_payload(
                     event_type=event_type,
+                    event_id=str(_uuid.uuid4()),
                     run_id=obs_event.data.get("run_id", ""),
                     request_id="",
-                    data={
+                    module=obs_event.module,
+                    metadata={
                         **obs_event.data,
                         "agent_name": obs_event.agent_name,
-                        "module": obs_event.module,
                         "page": obs_event.page,
                         "_source": "observation_bus",
                     },
                 )
+                run_event = runtime_event_to_run_event(envelope)
                 platform_bus.publish(run_event)
             except Exception as e:
                 logger.warning(f"PlatformBridge forward failed for {event_type}: {e}")

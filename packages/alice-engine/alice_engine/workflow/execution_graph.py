@@ -5,13 +5,13 @@ execution + report + knowledge Agent LangGraph SubGraphs。
 让 LangGraph 对每个 Skill 的执行状态可见。
 """
 
+import os
 from pathlib import Path
 from typing import Literal
-import os
 
 from langgraph.graph import StateGraph, END
 
-from alice_engine.workflow.state import SOPState, GateResult, GateLevel
+from alice_engine.workflow.state import SOPState, GateResult, GateLevel, resolve_default_provider
 
 from alice_engine.workflow.state import get_test_project_root, get_behavior_pack
 from pathlib import Path as _Path
@@ -20,7 +20,8 @@ WORKSTUDY = _Path(".")
 
 
 def _default_provider() -> str:
-    return os.environ.get("LLM_PROVIDER", os.environ.get("AITEST_PROVIDER", "claude"))
+    provider = resolve_default_provider()
+    return "claude" if provider == "anthropic" else provider
 
 
 def run_skill(*args, **kwargs):

@@ -10,20 +10,19 @@ for backward compatibility.
 
 from __future__ import annotations
 
-import uuid
 import threading
 from typing import Callable
 
 from aitest.platform.event_bus import get_bus as get_platform_bus
-from aitest.platform.run_event import RunEvent
+from aitest.platform.runtime_contracts import runtime_event_from_payload, runtime_event_to_run_event
 
 
 class EngineEventBusAdapter:
-    """Adapt engine-level emit(event_type, data) to platform EventBus.publish(RunEvent).
+    """Adapt engine-level emit(event_type, data) to the RuntimeEventEnvelope projection path.
 
     This bridges the two EventBus systems:
       Engine:  emit("skill_start", {"skill_id": "foo"})
-      Platform: publish(RunEvent(event_type="engine.skill_start", data={...}))
+      Platform: RuntimeEventEnvelope -> RunEvent -> publish(...)
     """
 
     def __init__(self):
@@ -66,13 +65,18 @@ class EngineEventBusAdapter:
                 pass
 
         # 2. Publish to platform EventBus as RunEvent
-        run_event = RunEvent(
-            event_id=str(uuid.uuid4()),
+        envelope = runtime_event_from_payload(
             event_type=f"engine.{event_type}",
             run_id=data.get("run_id", ""),
             request_id=data.get("request_id", ""),
-            data=data,
+            module=str(data.get("module", "")),
+            pages=list(data.get("pages", [])) if isinstance(data.get("pages", []), list) else [],
+            agent=str(data.get("agent", data.get("agent_name", ""))),
+            phase=str(data.get("phase", "")),
+            status=str(data.get("status", "")),
+            metadata=dict(data),
         )
+        run_event = runtime_event_to_run_event(envelope)
         self._platform_bus.publish(run_event)
 
     def clear(self) -> None:

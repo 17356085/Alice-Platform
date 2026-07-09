@@ -24,6 +24,13 @@ _TEST_PROJECT_ROOT: Path | None = None
 _BEHAVIOR_PACK = None  # alice_engine.behavior.BehaviorPack
 
 
+def resolve_default_provider() -> str:
+    """Resolve the default provider using the shared runtime rules."""
+    if os.environ.get("MOCK_LLM") == "1":
+        return "mock"
+    return os.environ.get("LLM_PROVIDER", os.environ.get("AITEST_PROVIDER", "anthropic"))
+
+
 def configure_paths(workstudy: Path, context_modules: Path = None,
                     test_project_root: Path = None):
     """配置路径（由 Engine 初始化时调用）。"""
@@ -534,8 +541,7 @@ def create_initial_state(
         完整的初始状态字典
     """
     if provider is None:
-        import os
-        provider = os.environ.get("LLM_PROVIDER", os.environ.get("AITEST_PROVIDER", "anthropic"))
+        provider = resolve_default_provider()
 
     import time
 

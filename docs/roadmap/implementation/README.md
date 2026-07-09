@@ -19,6 +19,14 @@
 - `NEXT_SESSION_HANDOFF.md`
   - 提供给下一个会话的正式交接说明
   - 记录当前真实进度、阶段映射、剩余主线、执行顺序和风险边界
+- `scripts/phase7_acceptance.ps1`
+  - Phase 7 本地 / 在线环境一键验收入口
+  - 覆盖 workspace install、pytest、wheel smoke、可选 Docker build
+- `phase-8-pr-backlog.md`
+  - 记录 V2 模块治理阶段的 PR 任务卡
+  - 聚焦依赖门禁、合同固化、边界减重、组合根治理
+- `phase-8-acceptance-matrix.md`
+  - 记录 Phase 8 每张 PR 的验收项、负责人、Reviewer 和回滚点
 - `docs/architecture/OFFICIAL_EXECUTION_MAINLINE.md`
   - 平台官方执行主链路文档
   - 作为 Phase 1 的架构冻结基线
@@ -34,6 +42,11 @@
 - `Phase 7`
   - 用于承接当前改造后的收口工作
   - 重点解决 SDK 独立发布、统一执行内核、发布基线和测试收集问题
+  - 已完成
+- `Phase 8`
+  - 用于承接 V2 可治理模块化单体
+  - 重点解决依赖图门禁、Runtime 合同、AgentLoop / Platform 减重、Tool/MCP 生命周期和 Provider 单一事实源
+  - 当前真实状态：`PH8-PR-8.1 ~ 8.7` 已代码落地且 gate 全部通过
 
 ## 角色约定
 

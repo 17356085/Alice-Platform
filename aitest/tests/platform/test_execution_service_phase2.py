@@ -1,4 +1,9 @@
 from alice_engine.contracts import ExecutionContext, ExecutionResult
+from alice_engine.core.runtime_environment import (
+    current_llm_provider,
+    current_mock_llm,
+    current_workstudy,
+)
 
 from aitest.platform.execution_service import ExecutionService
 
@@ -121,3 +126,55 @@ def test_execution_service_idempotency_returns_existing_request(monkeypatch, tmp
     rows = service._store.list_requests(workspace_id="ws", limit=10)
     assert len(rows) == 1
     assert rows[0].idempotency_key == "idem-123"
+
+
+def test_execution_service_scopes_runtime_environment_for_kernel(monkeypatch, tmp_path):
+    monkeypatch.setenv("LLM_PROVIDER", "outer-provider")
+    monkeypatch.setenv("ENGINE_WORKSTUDY", "outer-workstudy")
+    monkeypatch.delenv("MOCK_LLM", raising=False)
+
+    seen = {}
+
+    class _ScopedKernel:
+        def execute(self, request):
+            seen["provider"] = current_llm_provider()
+            seen["workstudy"] = current_workstudy()
+            seen["mock_llm"] = current_mock_llm()
+            return ExecutionResult(
+                request_id=request.context.request_id or "req-scope",
+                run_id=request.run_id or "run-scope",
+                status="completed",
+                module=request.module,
+                pages=request.pages,
+                agent=request.agent,
+                mode=request.mode,
+                metadata={},
+            )
+
+    monkeypatch.setattr(
+        "aitest.platform.engine_factory.get_execution_kernel",
+        lambda: _ScopedKernel(),
+    )
+
+    service = ExecutionService()
+    ctx = ExecutionContext(
+        workspace_id="ws",
+        scopes=["read", "execute"],
+        entrypoint="test",
+        metadata={"project_path": str(tmp_path)},
+    )
+
+    result = service.execute(
+        ctx,
+        module="equipment",
+        pages=["alarm"],
+        agent="automation-agent",
+        provider="mock",
+    )
+
+    assert result.status == "completed"
+    assert seen["provider"] == "mock"
+    assert seen["workstudy"] == tmp_path
+    assert seen["mock_llm"] is True
+    assert current_llm_provider() == "outer-provider"
+    assert current_workstudy().name == "outer-workstudy"

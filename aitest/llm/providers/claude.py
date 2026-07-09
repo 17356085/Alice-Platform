@@ -1,3 +1,8 @@
+"""Deprecated provider implementation.
+
+Retained only for backward compatibility with older CLI/runtime paths.
+"""
+
 from typing import Optional, Literal
 from collections.abc import Generator
 from pathlib import Path
@@ -22,7 +27,9 @@ class ClaudeProvider(LLMProvider):
     def __init__(self, model: str = "claude-sonnet-4-6", api_key: str = ""):
         api_key = api_key or _get_config().anthropic_api_key
         if not api_key:
-            raise ValueError("ANTHROPIC_API_KEY 未设置。请在 .env 文件或环境变量中配置。")
+            self.client = None
+            self.model = model
+            return
 
         try:
             from anthropic import Anthropic
@@ -41,6 +48,8 @@ class ClaudeProvider(LLMProvider):
         max_tokens: int = 8192,
         cache_system: bool = True,   # ★ Prompt Caching: mark system prompt as cacheable
     ) -> LLMResponse:
+        if self.client is None:
+            return LLMResponse(content="ANTHROPIC_API_KEY 未设置", model=self.model, finish_reason="error")
         # Build system block — optionally with cache_control for Anthropic Prompt Caching
         # Threshold: ≥1024 tokens. AITest skill prompts typically 2K-5K tokens → always cacheable.
         # Cache TTL: 5 minutes. Cost reduction: 90% on cached input tokens.
@@ -247,4 +256,3 @@ class ClaudeProvider(LLMProvider):
 
     def supports_tools(self) -> bool:
         return True
-

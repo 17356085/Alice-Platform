@@ -475,17 +475,20 @@ class ExecutionService:
         kernel=None,
     ) -> ExecutionResult:
         from .engine_factory import resolve_kernel_kind
+        from alice_engine.core.runtime_environment import runtime_environment_scope
 
         kernel = kernel or self._resolve_execution_kernel()
         kernel_ctx = ctx.with_execution(
             agent=agent,
             request_id=request.request_id,
             run_id=run.run_id,
+            provider=ctx.provider,
         )
+        project_path = str(ctx.metadata.get("project_path", "")) if isinstance(ctx.metadata, dict) else ""
         kernel_request = KernelExecutionRequest(
             context=kernel_ctx,
             kind=resolve_kernel_kind(agent, agent=agent),
-            project_path=str(ctx.metadata.get("project_path", "")) if isinstance(ctx.metadata, dict) else "",
+            project_path=project_path,
             run_id=run.run_id,
             checkpoint_thread_id=checkpoint_thread_id,
             metadata={
@@ -494,7 +497,15 @@ class ExecutionService:
                 "replay_recorder": replay_recorder,
             },
         )
-        return kernel.execute(kernel_request)
+        provider = ctx.provider or ""
+        scope_kwargs: dict[str, Any] = {}
+        if provider:
+            scope_kwargs["llm_provider"] = provider
+            scope_kwargs["mock_llm"] = provider == "mock"
+        if project_path:
+            scope_kwargs["workstudy"] = project_path
+        with runtime_environment_scope(**scope_kwargs):
+            return kernel.execute(kernel_request)
 
     def resume(self, run_id: str) -> ExecutionResult | None:
         run = self._store.load_run(run_id)

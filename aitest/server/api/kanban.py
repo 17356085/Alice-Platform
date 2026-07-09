@@ -14,6 +14,7 @@ import asyncio
 from datetime import datetime
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
+from aitest.server.core.dependencies import get_execution_service
 
 kanban_router = APIRouter(tags=["kanban"])
 
@@ -139,7 +140,6 @@ async def sop_start(request: Request):
         return {"error": "module is required"}
 
     # v3.1: Use real ExecutionService instead of fake sleep-based execution
-    from aitest.platform.execution_service import ExecutionService
     from aitest.platform.workspace import ExecutionContext
 
     user_id = getattr(request.state, "user_id", None) or request.headers.get("X-User-Id", "anonymous")
@@ -152,9 +152,7 @@ async def sop_start(request: Request):
         org_id=org_id,
     )
 
-    svc = getattr(request.app.state, "execution_service", None)
-    if svc is None:
-        svc = ExecutionService()
+    svc = get_execution_service(request)
 
     # Execute in background (non-blocking)
     async def _run():

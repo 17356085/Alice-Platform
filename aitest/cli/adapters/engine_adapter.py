@@ -26,9 +26,10 @@ class EngineAdapterProtocol(Protocol):
 class LiveEngineAdapter:
     """真实 Engine 调用。"""
 
-    def __init__(self, project_path: str, llm_provider: str | None = None, event_bus=None):
+    def __init__(self, project_path: str, llm_provider: str | None = None, mock_llm: bool = False, event_bus=None):
         self.project_path = project_path
         self.llm_provider = llm_provider
+        self.mock_llm = mock_llm
         self.event_bus = event_bus
 
     def run(self, module: str, pages: list[str] | None = None, mode: str = "full", **kwargs) -> dict:
@@ -38,6 +39,7 @@ class LiveEngineAdapter:
         engine = Engine(
             workstudy=self.project_path,
             llm_provider=self.llm_provider,
+            mock_llm=self.mock_llm or kwargs.get("mock_llm", False) or None,
             event_bus=self.event_bus,
         )
 

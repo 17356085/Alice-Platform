@@ -11,7 +11,6 @@ SOPRunner — 将 LangGraph SOP 图执行包装为 AgentEvent 生成器。
 """
 
 import json
-import os
 import subprocess
 import sys
 import time
@@ -21,7 +20,7 @@ from pathlib import Path
 from collections.abc import Generator
 
 from alice_engine.core.task import AgentEvent
-from alice_engine.workflow.state import create_initial_state
+from alice_engine.workflow.state import create_initial_state, resolve_default_provider
 from alice_engine.workflow.sop_graph import build_compiled_graph
 from pathlib import Path as _Path; WORKSTUDY = _Path(".")
 import logging; logger = logging.getLogger(__name__)
@@ -82,7 +81,7 @@ class SOPRunner:
         checkpoint_thread_id: str = "",
     ):
         if provider is None:
-            provider = os.environ.get("LLM_PROVIDER", os.environ.get("AITEST_PROVIDER", "anthropic"))
+            provider = resolve_default_provider()
         self.module = module
         self.pages = pages or []
         self.mode = mode

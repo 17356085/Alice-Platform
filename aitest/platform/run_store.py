@@ -356,7 +356,11 @@ class RunStore:
             self.save_request(request)
             recovered += 1
         if recovered:
-            logger.warning("stale_requests_recovered", count=recovered, cutoff=cutoff)
+            logger.warning(
+                "stale_requests_recovered count=%s cutoff=%s",
+                recovered,
+                cutoff,
+            )
         return recovered
 
     def get_stats(self) -> dict:

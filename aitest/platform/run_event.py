@@ -127,9 +127,15 @@ class EventType:
 # but provide static type checking and IDE autocompletion.
 
 class ExecutionRequestedData(TypedDict, total=False):
+    workspace_id: str
+    org_id: str
     module: str
     pages: list[str]
     agent: str
+    policy_version: str
+    governance_version: str
+    config_version: str
+    governance_pack_root: str
 
 class ExecutionStartedData(TypedDict, total=False):
     workspace_id: str
@@ -146,6 +152,7 @@ class RunCompletedData(TypedDict, total=False):
     workspace_id: str
     org_id: str
     module: str
+    pages: list[str]
     agent: str
     total_tokens: int
     total_cost: float
@@ -154,6 +161,12 @@ class RunCompletedData(TypedDict, total=False):
     retry_count: int
     max_retries: int
     replay_session_id: str
+    checkpoint_thread_id: str
+    completed_phases: list[str]
+    failed_phases: list[str]
+    artifacts: list[dict[str, Any]]
+    artifact_type: str
+    artifact_path: str
     policy_version: str
     governance_version: str
     config_version: str
@@ -172,6 +185,12 @@ class RunFailedData(TypedDict, total=False):
     max_retries: int
     error: str
     replay_session_id: str
+    checkpoint_thread_id: str
+    completed_phases: list[str]
+    failed_phases: list[str]
+    artifacts: list[dict[str, Any]]
+    artifact_type: str
+    artifact_path: str
     policy_version: str
     governance_version: str
     config_version: str
@@ -180,6 +199,8 @@ class RunFailedData(TypedDict, total=False):
 class RunCancelledData(TypedDict, total=False):
     workspace_id: str
     org_id: str
+    module: str
+    agent: str
 
 class CostRecordedData(TypedDict, total=False):
     total_cost: float
@@ -239,9 +260,15 @@ RunEventData = Union[
 
 EVENT_SCHEMAS: dict[str, dict[str, tuple[type, bool]]] = {
     EventType.EXECUTION_REQUESTED: {
+        "workspace_id": (str, False),
+        "org_id": (str, False),
         "module": (str, True),
         "pages": (list, False),
         "agent": (str, False),
+        "policy_version": (str, False),
+        "governance_version": (str, False),
+        "config_version": (str, False),
+        "governance_pack_root": (str, False),
     },
     EventType.EXECUTION_STARTED: {
         "workspace_id": (str, False),
@@ -249,11 +276,16 @@ EVENT_SCHEMAS: dict[str, dict[str, tuple[type, bool]]] = {
         "module": (str, False),
         "agent": (str, False),
         "replay_session_id": (str, False),
+        "policy_version": (str, False),
+        "governance_version": (str, False),
+        "config_version": (str, False),
+        "governance_pack_root": (str, False),
     },
     EventType.RUN_COMPLETED: {
         "workspace_id": (str, False),
         "org_id": (str, False),
         "module": (str, False),
+        "pages": (list, False),
         "agent": (str, False),
         "total_tokens": (int, False),
         "total_cost": (float, False),
@@ -262,21 +294,46 @@ EVENT_SCHEMAS: dict[str, dict[str, tuple[type, bool]]] = {
         "retry_count": (int, False),
         "max_retries": (int, False),
         "replay_session_id": (str, False),
+        "checkpoint_thread_id": (str, False),
+        "completed_phases": (list, False),
+        "failed_phases": (list, False),
+        "artifacts": (list, False),
+        "artifact_type": (str, False),
+        "artifact_path": (str, False),
+        "policy_version": (str, False),
+        "governance_version": (str, False),
+        "config_version": (str, False),
+        "governance_pack_root": (str, False),
     },
     EventType.RUN_FAILED: {
         "workspace_id": (str, False),
         "org_id": (str, False),
         "module": (str, False),
         "agent": (str, False),
+        "total_tokens": (int, False),
+        "total_cost": (float, False),
+        "agent_runs": (int, False),
         "error": (str, False),
         "duration_ms": (float, False),
         "retry_count": (int, False),
         "max_retries": (int, False),
         "replay_session_id": (str, False),
+        "checkpoint_thread_id": (str, False),
+        "completed_phases": (list, False),
+        "failed_phases": (list, False),
+        "artifacts": (list, False),
+        "artifact_type": (str, False),
+        "artifact_path": (str, False),
+        "policy_version": (str, False),
+        "governance_version": (str, False),
+        "config_version": (str, False),
+        "governance_pack_root": (str, False),
     },
     EventType.RUN_CANCELLED: {
         "workspace_id": (str, False),
         "org_id": (str, False),
+        "module": (str, False),
+        "agent": (str, False),
     },
     EventType.COST_RECORDED: {
         "total_cost": (float, False),
@@ -284,16 +341,28 @@ EVENT_SCHEMAS: dict[str, dict[str, tuple[type, bool]]] = {
         "org_id": (str, False),
         "workspace_id": (str, False),
         "replay_session_id": (str, False),
+        "policy_version": (str, False),
+        "governance_version": (str, False),
+        "config_version": (str, False),
+        "governance_pack_root": (str, False),
     },
     EventType.PHASE_STARTED: {
         "phase": (str, True),
         "module": (str, False),
         "replay_session_id": (str, False),
+        "policy_version": (str, False),
+        "governance_version": (str, False),
+        "config_version": (str, False),
+        "governance_pack_root": (str, False),
     },
     EventType.PHASE_COMPLETED: {
         "phase": (str, True),
         "module": (str, False),
         "replay_session_id": (str, False),
+        "policy_version": (str, False),
+        "governance_version": (str, False),
+        "config_version": (str, False),
+        "governance_pack_root": (str, False),
     },
     EventType.ARTIFACT_CREATED: {
         "artifact_type": (str, False),

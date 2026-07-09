@@ -1,4 +1,5 @@
-"""
+"""Deprecated provider implementation.
+
 Mock LLM Provider — 用于测试，不调用真实 API。
 
 用法:

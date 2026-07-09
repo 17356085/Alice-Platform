@@ -57,18 +57,19 @@ class TestProviderFactory:
     def test_get_provider_claude(self):
         from aitest.llm.provider import get_provider
         llm = get_provider("claude")
-        from aitest.llm.providers.claude import ClaudeProvider
+        from alice_engine.providers.claude import ClaudeProvider
         assert isinstance(llm, ClaudeProvider)
 
     def test_get_provider_deepseek(self):
         from aitest.llm.provider import get_provider
         llm = get_provider("deepseek")
-        from aitest.llm.providers.deepseek import DeepSeekProvider
+        from alice_engine.providers.deepseek import DeepSeekProvider
         assert isinstance(llm, DeepSeekProvider)
 
     def test_get_provider_unknown_raises(self):
         from aitest.llm.provider import get_provider
-        with pytest.raises(ValueError, match="Unknown provider"):
+        from alice_engine.exceptions import LLMProviderError
+        with pytest.raises(LLMProviderError, match="未知 Provider"):
             get_provider("nonexistent")
 
     def test_backward_compat_import(self):

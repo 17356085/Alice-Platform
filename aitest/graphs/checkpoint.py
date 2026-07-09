@@ -1,5 +1,7 @@
 """Re-export — 保持向后兼容。"""
 
+import os
+
 from alice_engine.runtime.core.checkpoint import (  # noqa: F401
     CheckpointManager,
 )
@@ -20,9 +22,8 @@ _manager = None
 def _get_manager():
     global _manager
     if _manager is None:
-        from aitest.infra.database import get_backend
-
-        if get_backend() == "postgres":
+        backend = os.environ.get("AITEST_DB_BACKEND", "auto").lower()
+        if backend == "postgres":
             try:
                 from aitest.infra.checkpoint_pg import PostgresCheckpointStore
                 store = PostgresCheckpointStore()

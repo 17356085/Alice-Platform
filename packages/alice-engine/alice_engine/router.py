@@ -170,8 +170,7 @@ class GovernanceRouter:
     def _try_import(self, module: str, func: str) -> Path | None:
         """尝试 import 并获取路径。"""
         try:
-            import importlib
-            mod = importlib.import_module(module)
+            mod = __import__(module, fromlist=[func])
             path = getattr(mod, func)()
             return Path(path) if path else None
         except (ImportError, AttributeError):

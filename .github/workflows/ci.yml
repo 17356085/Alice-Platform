@@ -57,18 +57,11 @@ jobs:
       - name: Collect tests
         run: python -m pytest --collect-only -q -p no:cacheprovider aitest/tests packages/alice-engine/tests
 
+      - name: Check dependency graph and SCC baseline
+        run: python tools/check_dependency_graph.py
+
       - name: Run tests
         run: python -m pytest -q -p no:cacheprovider -m "not slow and not llm" packages/alice-engine/tests aitest/tests
-
-      - name: Check engine has no platform imports
-        run: |
-          result=$(grep -R -nE "\b(from|import) aitest(\.|$)" packages/alice-engine/ --include="*.py" | grep -v "__pycache__" | grep -v "tests/" || true)
-          if [ -n "$result" ]; then
-            echo "ERROR: alice_engine package must not import from aitest:"
-            echo "$result"
-            exit 1
-          fi
-          echo "OK: zero aitest imports in alice_engine"
 
   sdk-standalone:
     name: SDK Standalone (Python 3.11)
@@ -108,7 +101,9 @@ jobs:
           import alice_engine
           bridge = importlib.import_module("alice_engine.platform_bridge")
 
-          from alice_engine import ExecutionContext, ExecutionResult, InlineExecutionKernel, KernelExecutionRequest
+          from pathlib import Path
+
+          from alice_engine import Engine, ExecutionContext, ExecutionResult, InlineExecutionKernel, KernelExecutionRequest, Project
           from alice_engine.behavior import load_behavior_pack
           from alice_engine.router import GovernanceRouter, Source
 
@@ -127,7 +122,7 @@ jobs:
 
           kernel = InlineExecutionKernel(
               lambda request: ExecutionResult(
-                  request_id=request.request_id or "req-standalone",
+                  request_id=request.context.request_id or "req-standalone",
                   run_id=request.effective_run_id or "run-standalone",
                   status="completed",
                   module=request.module,
@@ -135,8 +130,10 @@ jobs:
                   agent=request.agent,
                   mode=request.mode,
                   summary="standalone-ok",
+                  metadata={"kernel": "InlineExecutionKernel"},
               )
           )
+
           result = kernel.execute(
               KernelExecutionRequest(
                   context=ExecutionContext(
@@ -158,6 +155,24 @@ jobs:
           assert result.status == "completed"
           assert result.run_id == "run-standalone"
           assert result.module == "equipment"
+
+          project_root = Path("standalone-project")
+          (project_root / ".tlo").mkdir(parents=True, exist_ok=True)
+          (project_root / ".tlo" / "project.yaml").write_text(
+              "name: standalone\nurl: https://example.invalid\nmodules:\n  - equipment\n",
+              encoding="utf-8",
+          )
+
+          engine = Engine(
+              project=Project(project_root),
+              llm_provider="mock",
+              kernel=kernel,
+          )
+          run_result = engine.run("equipment", pages=["alarm-config"], run_id="engine-standalone")
+          assert run_result.status == "completed"
+          assert run_result.run_id == "engine-standalone"
+          assert run_result.metadata["kernel"] == "InlineExecutionKernel"
+          assert run_result.module == "equipment"
           print("standalone wheel smoke OK")
           PY
 

@@ -8,7 +8,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 from aitest.infra.secure_subprocess import secure_run, secure_popen, get_security_hook
-from aitest.infra.security import SecurityError
+from alice_engine.runtime.core.security import SecurityError, SecurityHook
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -155,7 +155,6 @@ class TestSecurePopen:
 
 class TestGetSecurityHook:
     def test_returns_security_hook(self):
-        from aitest.infra.security import SecurityHook
         hook = get_security_hook()
         assert isinstance(hook, SecurityHook)
 

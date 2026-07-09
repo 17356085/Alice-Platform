@@ -27,6 +27,7 @@ from alice_engine.core.executor import list_agents
 from alice_engine.core.task import AgentEvent
 from aitest.chat.intent_parser import parse_intent
 from aitest.platform.ui_projection import map_agent_event, UIEventType
+from aitest.server.core.dependencies import get_execution_service
 
 chat_router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -413,10 +414,7 @@ async def stream_response(session_id: str, message_id: str, request: Request):
             agent_name = "test-design-agent"
 
         from aitest.platform.workspace import ExecutionContext
-        svc = getattr(request.app.state, "execution_service", None)
-        if svc is None:
-            from aitest.platform.execution_service import ExecutionService
-            svc = ExecutionService()
+        svc = get_execution_service(request)
         ctx = ExecutionContext(
             workspace_id="chat",
             user_id=getattr(request.state, "user_id", "anonymous"),
@@ -435,10 +433,7 @@ async def stream_response(session_id: str, message_id: str, request: Request):
     elif intent["type"] == "run_sop":
         # Phase 6: 真正的 SOP 图流式执行
         from aitest.platform.workspace import ExecutionContext
-        svc = getattr(request.app.state, "execution_service", None)
-        if svc is None:
-            from aitest.platform.execution_service import ExecutionService
-            svc = ExecutionService()
+        svc = get_execution_service(request)
         ctx = ExecutionContext(
             workspace_id="chat",
             user_id=getattr(request.state, "user_id", "anonymous"),

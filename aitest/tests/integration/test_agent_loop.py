@@ -10,6 +10,7 @@ Strategy:
 """
 import pytest
 import sys
+from types import SimpleNamespace
 from unittest.mock import patch, MagicMock
 
 
@@ -163,6 +164,122 @@ class TestAgentLoopMockLLM:
             assert isinstance(ctx, dict)
             assert "skill_id" in ctx
             assert "existing_files" in ctx
+
+    def test_build_context_vars_uses_runtime_context_builder(self):
+        """AgentLoop delegates context assembly to the extracted collaborator."""
+        from alice_engine.core.executor import AgentLoop
+
+        agent = AgentLoop(
+            "project-agent",
+            module="test-module",
+            use_reliable_provider=False,
+            use_window_monitor=False,
+            verbose=False,
+        )
+        agent._runtime_context_builder.build_context_vars = MagicMock(return_value={"module": "delegated"})
+
+        result = agent._build_context_vars({"x": 1})
+
+        agent._runtime_context_builder.build_context_vars.assert_called_once_with({"x": 1})
+        assert result == {"module": "delegated"}
+
+    def test_init_mcp_clients_uses_mcp_lifecycle(self):
+        """AgentLoop delegates MCP connect to the extracted collaborator."""
+        from alice_engine.core.executor import AgentLoop
+
+        agent = AgentLoop(
+            "project-agent",
+            module="test-module",
+            use_reliable_provider=False,
+            use_window_monitor=False,
+            verbose=False,
+        )
+        agent._mcp_lifecycle.connect = MagicMock(return_value=(["client"], {"tool": {"ok": True}}))
+
+        agent._init_mcp_clients()
+
+        agent._mcp_lifecycle.connect.assert_called_once_with()
+        assert agent._mcp_clients == ["client"]
+        assert agent._mcp_tools == {"tool": {"ok": True}}
+
+    def test_init_uses_provider_lifecycle_result(self):
+        """Provider lifecycle can override the final provider selection."""
+        from alice_engine.core import executor as executor_module
+
+        class StubLifecycle:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def initialize(self, **kwargs):
+                return {
+                    "provider": "deepseek",
+                    "model": "tier-model",
+                    "model_tier": "max",
+                    "reliable_provider": {"kind": "reliable"},
+                    "window_monitor": {"kind": "window"},
+                }
+
+        original = executor_module.ProviderRuntimeLifecycle
+        executor_module.ProviderRuntimeLifecycle = StubLifecycle
+        try:
+            agent = executor_module.AgentLoop(
+                "project-agent",
+                module="test-module",
+                provider="anthropic",
+                use_reliable_provider=True,
+                use_window_monitor=True,
+                verbose=False,
+            )
+        finally:
+            executor_module.ProviderRuntimeLifecycle = original
+
+        assert agent.provider == "deepseek"
+        assert agent.state.provider == "deepseek"
+        assert agent._model_tier == "max"
+        assert agent._reliable_provider == {"kind": "reliable"}
+        assert agent._window_monitor == {"kind": "window"}
+
+    def test_run_single_session_builds_session_orchestrator(self):
+        """AgentLoop wires the extracted session orchestrator before the loop runs."""
+        from alice_engine.core import executor as executor_module
+
+        built = {}
+
+        class StubSessionOrchestrator:
+            def __init__(self, **kwargs):
+                built.update(kwargs)
+
+            def run_iteration(self, skill_index):
+                built["skill_index"] = skill_index
+                built["state"].done = True
+                built["state"].success = True
+                built["state"].termination_reason = "all_skills_completed"
+                return SimpleNamespace(next_skill_index=skill_index, should_continue=False)
+
+            def apply_max_steps_termination(self):
+                built["max_steps_checked"] = True
+
+        original = executor_module.SessionLoopOrchestrator
+        executor_module.SessionLoopOrchestrator = StubSessionOrchestrator
+        try:
+            agent = executor_module.AgentLoop(
+                "project-agent",
+                module="test-module",
+                use_reliable_provider=False,
+                use_window_monitor=False,
+                verbose=False,
+            )
+            state = agent._run_single_session()
+        finally:
+            executor_module.SessionLoopOrchestrator = original
+
+        assert built["agent_name"] == "project-agent"
+        assert built["provider"] == agent.provider
+        assert built["state"] is agent.state
+        assert built["skills"] == agent.skills
+        assert built["skill_index"] == 0
+        assert built["max_steps_checked"] is True
+        assert state.termination_reason == "all_skills_completed"
 
     def test_state_tracks_completed_skills(self):
         """completed_skills starts empty and can be appended."""

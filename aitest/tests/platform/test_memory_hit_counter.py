@@ -6,7 +6,7 @@ No ChromaDB dependency — mocks collection operations.
 import pytest
 from unittest.mock import MagicMock, patch, PropertyMock
 from aitest.platform.testing_memory import (
-    TestingMemory, MemoryType, Confidence, MemoryLifecycle,
+    TestingMemory as MemoryItem, MemoryType, Confidence, MemoryLifecycle,
 )
 
 
@@ -18,7 +18,7 @@ from aitest.platform.testing_memory import (
 class TestHitBoost:
     def test_no_boost_below_threshold(self):
         """hit_count 未达阈值时不提升。"""
-        mem = TestingMemory(
+        mem = MemoryItem(
             type=MemoryType.UI_PATTERN,
             content="test",
             hit_count=3,
@@ -29,7 +29,7 @@ class TestHitBoost:
 
     def test_boost_at_threshold(self):
         """hit_count == 5 时触发提升。"""
-        mem = TestingMemory(
+        mem = MemoryItem(
             type=MemoryType.UI_PATTERN,
             content="test",
             hit_count=5,
@@ -40,7 +40,7 @@ class TestHitBoost:
 
     def test_boost_at_10(self):
         """hit_count == 10 时再次触发。"""
-        mem = TestingMemory(
+        mem = MemoryItem(
             type=MemoryType.UI_PATTERN,
             content="test",
             hit_count=10,
@@ -51,7 +51,7 @@ class TestHitBoost:
 
     def test_boost_capped_at_1(self):
         """decay_factor 上限为 1.0。"""
-        mem = TestingMemory(
+        mem = MemoryItem(
             type=MemoryType.UI_PATTERN,
             content="test",
             hit_count=5,
@@ -62,7 +62,7 @@ class TestHitBoost:
 
     def test_no_boost_at_hit_count_0(self):
         """hit_count == 0 不触发。"""
-        mem = TestingMemory(
+        mem = MemoryItem(
             type=MemoryType.UI_PATTERN,
             content="test",
             hit_count=0,
@@ -73,7 +73,7 @@ class TestHitBoost:
 
     def test_no_boost_at_7(self):
         """hit_count == 7（非 5 的倍数）不触发。"""
-        mem = TestingMemory(
+        mem = MemoryItem(
             type=MemoryType.UI_PATTERN,
             content="test",
             hit_count=7,
@@ -90,11 +90,11 @@ class TestHitBoost:
 
 class TestMemoryHitCountField:
     def test_default_hit_count(self):
-        mem = TestingMemory(content="test")
+        mem = MemoryItem(content="test")
         assert mem.hit_count == 0
 
     def test_hit_count_in_metadata(self):
-        mem = TestingMemory(content="test", hit_count=42)
+        mem = MemoryItem(content="test", hit_count=42)
         meta = mem.to_metadata()
         assert meta["hit_count"] == 42
 
@@ -110,7 +110,7 @@ class TestMemoryHitCountField:
             "hit_count": 17,
             "tags": "",
         }
-        mem = TestingMemory.from_metadata("test", meta)
+        mem = MemoryItem.from_metadata("test", meta)
         assert mem.hit_count == 17
 
     def test_hit_count_missing_in_metadata_defaults_0(self):
@@ -125,7 +125,7 @@ class TestMemoryHitCountField:
             "verify_count": 0,
             "tags": "",
         }
-        mem = TestingMemory.from_metadata("test", meta)
+        mem = MemoryItem.from_metadata("test", meta)
         assert mem.hit_count == 0
 
 

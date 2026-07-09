@@ -9,9 +9,17 @@ venv/
 ENV/
 env/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tmp/
+tmp/
+.uv-cache/
 .coverage
+.coverage.*
 htmlcov/
+coverage/
 *.egg-info/
+.phase7-workspace/
 
 # IDE
 .idea/
@@ -71,6 +79,7 @@ downloads/
 .workbuddy/
 
 # Build output
+build/
 dist/
 aitest/web/dist/
 aitest/web/dist-test/

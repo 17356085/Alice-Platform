@@ -1,4 +1,5 @@
-"""
+"""Deprecated provider implementation.
+
 MiMo Provider — Xiaomi MiMo via OpenAI-compatible API.
 
 MiMo is an OpenAI-compatible provider. This implementation uses the

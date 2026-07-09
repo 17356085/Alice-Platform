@@ -7,7 +7,7 @@
 
     issues = run_mechanical_check(
         content=code_content,
-        checks=[("继承 BasePage", r"class \w+\(BasePage\):", True)],
+        checks=[("继承 BasePage", r"class \\w+\\(BasePage\\):", True)],
     )
 """
 

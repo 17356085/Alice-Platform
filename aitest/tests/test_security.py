@@ -7,7 +7,7 @@ command parser, BashValidator, and PromptInjectionGuard.
 import pytest
 import os
 from pathlib import Path
-from aitest.infra.security import (
+from alice_engine.runtime.core.security import (
     BLOCKED_COMMANDS, CONTEXT_BLOCKED_PATTERNS,
     validate_rm_command, validate_git_command, validate_python_command,
     validate_pip_command, validate_curl_wget,

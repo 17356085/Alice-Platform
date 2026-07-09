@@ -5,11 +5,16 @@ run 命令 — 通过官方 ExecutionService 主链路执行 SOP。
 from __future__ import annotations
 
 import os
-from pathlib import Path
 from typing import Optional
 
 import typer
 from rich.console import Console
+from aitest.cli.core.composition import (
+    cli_runtime_scope,
+    get_cli_execution_service,
+    resolve_cli_project_dir,
+    resolve_cli_provider,
+)
 
 console = Console()
 
@@ -27,34 +32,19 @@ def run_command(
     """执行一次完整 SOP 流水线。"""
     del extensions, verbose  # Phase 1: CLI 先统一主链路，扩展挂接后续回收
 
-    if not project_path:
-        from aitest.cli.config import CLIConfig
-
-        config = CLIConfig()
-        project_path = config.active_project_path
-        if not project_path:
-            console.print("[red]未指定项目路径，请使用 --project-path 或 alice project set --id=<id>[/red]")
-            return
-
-    project_dir = Path(project_path)
-    if not project_dir.exists():
-        console.print(f"[red]项目路径不存在: {project_dir}[/red]")
+    try:
+        project_dir = resolve_cli_project_dir(project_path)
+    except (FileNotFoundError, ValueError) as exc:
+        console.print(f"[red]{exc}[/red]")
         raise typer.Exit(1)
 
-    if mock_llm:
-        os.environ["MOCK_LLM"] = "1"
-    if llm_provider:
-        os.environ["LLM_PROVIDER"] = llm_provider
-    else:
-        os.environ.setdefault("LLM_PROVIDER", os.environ.get("AITEST_PROVIDER", "deepseek"))
-    os.environ["ENGINE_WORKSTUDY"] = str(project_dir)
+    resolved_provider = resolve_cli_provider(llm_provider)
 
     pages = pages or []
 
-    from aitest.platform.execution_service import ExecutionService
     from aitest.platform.workspace import ExecutionContext
 
-    svc = ExecutionService()
+    svc = get_cli_execution_service()
     ctx = ExecutionContext(
         workspace_id=project_dir.name or "cli",
         user_id="cli",
@@ -72,14 +62,15 @@ def run_command(
     console.print()
 
     try:
-        result = svc.execute(
-            ctx,
-            module=module,
-            pages=pages,
-            agent="sop",
-            mode=mode,
-            provider=os.environ.get("LLM_PROVIDER", ""),
-        )
+        with cli_runtime_scope(project_dir, resolved_provider, mock_llm):
+            result = svc.execute(
+                ctx,
+                module=module,
+                pages=pages,
+                agent="sop",
+                mode=mode,
+                provider=resolved_provider,
+            )
     except KeyboardInterrupt:
         console.print("[yellow]执行已中断[/yellow]")
         raise typer.Exit(130)

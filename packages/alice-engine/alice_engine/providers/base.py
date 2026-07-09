@@ -1,8 +1,9 @@
 """LLMProvider — LLM 提供者抽象。"""
 
 from abc import ABC, abstractmethod
+from collections.abc import Generator
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Literal, Optional
 
 
 @dataclass
@@ -16,6 +17,32 @@ class LLMResponse:
     model: str = ""
     finish_reason: str = "stop"
     latency_ms: int = 0
+
+
+# ── 流式事件类型 ──
+StreamEventType = Literal[
+    "content_start", "content_chunk", "content_end",
+    "tool_use_start", "tool_input_chunk", "tool_use_end",
+    "done", "error",
+]
+
+
+@dataclass
+class StreamEvent:
+    """流式 LLM 调用的单个事件。
+
+    典型流:
+      content_start → content_chunk* → content_end → done
+      或 tool_use_start → tool_input_chunk* → tool_use_end → done
+    """
+    type: StreamEventType
+    content: str = ""                         # text delta / tool_input partial JSON
+    tool_name: str = ""                       # tool_use_start
+    tool_id: str = ""                         # tool_use_start
+    tool_input: dict = field(default_factory=dict)  # tool_use_end (final)
+    finish_reason: str = ""                   # done (stop/length/tool_use)
+    token_usage: dict = field(default_factory=dict)  # done (final usage)
+    error_message: str = ""                   # error
 
 
 @dataclass
@@ -84,6 +111,19 @@ class LLMProvider(ABC):
         """Standardized provider identity."""
         return getattr(cls, "provider_name", "") or cls.__name__.removesuffix("Provider").lower()
 
-    def stream(self, system_prompt: str, user_prompt: str, **kwargs):
-        """流式输出（可选实现）。"""
+    def stream(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        tools: Optional[list[dict]] = None,
+        **kwargs,
+    ) -> Generator[StreamEvent, None, LLMResponse]:
+        """流式输出（可选实现）。
+
+        yield StreamEvent 逐块输出，最后 return LLMResponse（聚合结果）。
+
+        yield 顺序:
+          content_start → content_chunk* → content_end → done
+          或 tool_use_start → tool_input_chunk* → tool_use_end → done
+        """
         raise NotImplementedError(f"{type(self).__name__} does not support streaming")

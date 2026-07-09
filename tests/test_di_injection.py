@@ -92,17 +92,24 @@ def test_endpoint_accepts_request(endpoint_name):
 # ── 3. main.py lifespan stores shared instances ────────────────────────
 
 def test_main_lifespan_stores_instances():
-    """main.py lifespan should store shared instances in app.state."""
+    """Server composition root should store shared instances in app.state."""
     # Read source directly to avoid import chain issues (config.py pre-existing bug)
     import os
-    main_path = os.path.join(os.path.dirname(__file__), "..", "aitest", "server", "main.py")
-    with open(main_path, encoding="utf-8") as f:
+    composition_path = os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "aitest",
+        "server",
+        "core",
+        "composition.py",
+    )
+    with open(composition_path, encoding="utf-8") as f:
         source = f.read()
-    assert "app.state.execution_service" in source
-    assert "app.state.run_store" in source
-    assert "app.state.audit_logger" in source
-    assert "app.state.report_consumer" in source
-    assert "app.state.metrics_consumer" in source
-    assert "app.state.billing_hook" in source
-    assert "app.state.quota_usage" in source
-    assert "app.state.webhook_registry" in source
+    assert "app_state.execution_service" in source
+    assert "app_state.run_store" in source
+    assert "app_state.audit_logger" in source
+    assert "app_state.report_consumer" in source
+    assert "app_state.metrics_consumer" in source
+    assert "app_state.billing_hook" in source
+    assert "app_state.quota_usage" in source
+    assert "app_state.webhook_registry" in source

@@ -48,7 +48,7 @@ class TestParallelSOPFixes:
         from alice_engine.workflow.parallel import process_single_page
 
         # Mock _run_agent to fail on first phase
-        with patch("aitest.graphs.parallel_sop._run_agent", side_effect=RuntimeError("Boom")):
+        with patch("alice_engine.workflow.parallel._run_agent", side_effect=RuntimeError("Boom")):
             state = {"module": "test", "pages": ["test-page"], "provider": "claude"}
             result = process_single_page(state)
 
@@ -73,7 +73,7 @@ class TestParallelSOPFixes:
                 raise RuntimeError("Boom at phase 3")
             return {"success": True}
 
-        with patch("aitest.graphs.parallel_sop._run_agent", side_effect=flaky_agent):
+        with patch("alice_engine.workflow.parallel._run_agent", side_effect=flaky_agent):
             state = {"module": "test", "pages": ["test-page"], "provider": "claude"}
             result = process_single_page(state)
 

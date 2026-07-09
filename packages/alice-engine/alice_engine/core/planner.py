@@ -59,6 +59,7 @@ def plan_next_action(
     config: PlannerConfig = None,
     event_bus=None,
     logger_fn=None,
+    *legacy_args,
 ) -> dict:
     """规划下一步动作。
 
@@ -75,6 +76,26 @@ def plan_next_action(
         {"action": "retry"|"execute"|"skip"|"abort"|"done"|"confirm_required",
          "skill_id": str, "reason": str}
     """
+    if isinstance(config, PlannerConfig):
+        resolved_config = config
+    elif config is None:
+        resolved_config = PlannerConfig()
+    else:
+        # Backward compatibility: older callers passed positional flags like
+        # (deep_review, event_bus_enabled, max_retries, provider).
+        legacy_values = (config, event_bus, logger_fn, *legacy_args)
+        resolved_config = PlannerConfig()
+        if len(legacy_values) >= 1 and isinstance(legacy_values[0], bool):
+            resolved_config.deep_review = legacy_values[0]
+        if len(legacy_values) >= 3 and isinstance(legacy_values[2], int):
+            resolved_config.max_retries = legacy_values[2]
+        if len(legacy_values) >= 4 and isinstance(legacy_values[3], str):
+            resolved_config.provider = legacy_values[3]
+        event_bus = None
+        logger_fn = None
+
+    config = resolved_config
+
     if config is None:
         config = PlannerConfig()
 

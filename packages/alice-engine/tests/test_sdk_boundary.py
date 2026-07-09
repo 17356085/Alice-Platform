@@ -10,6 +10,23 @@ from __future__ import annotations
 
 import builtins
 import importlib
+import ast
+from pathlib import Path
+
+
+SDK_PACKAGE_ROOT = Path(__file__).resolve().parents[1] / "alice_engine"
+SDK_TEST_ROOT = Path(__file__).resolve().parent
+
+
+def _first_party_imports(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    imports: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imports.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imports.add(node.module)
+    return imports
 
 
 def test_alice_engine_import_is_lazy():
@@ -32,6 +49,19 @@ def test_platform_bridge_is_optional():
 
     assert hasattr(bridge, "get_planner_memory_context")
     assert hasattr(bridge, "create_capability_router")
+
+
+def test_sdk_source_and_tests_do_not_import_aitest():
+    offenders: list[str] = []
+    for root in (SDK_PACKAGE_ROOT, SDK_TEST_ROOT):
+        for path in root.rglob("*.py"):
+            if "__pycache__" in path.parts:
+                continue
+            imports = _first_party_imports(path)
+            if any(name == "aitest" or name.startswith("aitest.") for name in imports):
+                offenders.append(str(path.relative_to(SDK_TEST_ROOT.parent)))
+
+    assert offenders == []
 
 
 def test_platform_bridge_can_use_explicit_ports():

@@ -1,3 +1,8 @@
+"""Deprecated provider implementation.
+
+Retained only for backward compatibility with older CLI/runtime paths.
+"""
+
 from typing import Optional, Literal
 from collections.abc import Generator
 from pathlib import Path
@@ -29,10 +34,10 @@ class DeepSeekProvider(LLMProvider):
     def __init__(self, model: str = "deepseek-v4-flash", api_key: str = "", base_url: str = ""):
         api_key = api_key or _get_config().deepseek_api_key
         if not api_key:
-            raise ValueError(
-                "DEEPSEEK_API_KEY 未设置。请在 .env 文件或环境变量中配置。\n"
-                "获取 API Key: https://platform.deepseek.com/api_keys"
-            )
+            self.client = None
+            self.model = model
+            self._supports_tools = self._detect_tool_support(model)
+            return
 
         try:
             from openai import OpenAI
@@ -62,6 +67,8 @@ class DeepSeekProvider(LLMProvider):
         temperature: float = 0.7,
         max_tokens: int = 8192,
     ) -> LLMResponse:
+        if self.client is None:
+            return LLMResponse(content="DEEPSEEK_API_KEY 未设置", model=self.model, finish_reason="error")
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -238,4 +245,3 @@ class DeepSeekProvider(LLMProvider):
 
     def supports_tools(self) -> bool:
         return self._supports_tools
-

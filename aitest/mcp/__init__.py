@@ -21,22 +21,44 @@ P3-0: 模块化架构 — 从 1369 行单体拆分为 aitest/mcp/ 包。
 """
 
 import asyncio as _asyncio
-
-from mcp.server import Server
-from mcp.server.stdio import stdio_server
-
-from aitest.mcp.sampling import set_server as _set_sampling_server
-from aitest.mcp.protocol import build_list_tools_handler, build_call_tool_handler
-from aitest.mcp.prompts import build_list_prompts_handler, build_get_prompt_handler
-
-
-
 import logging
 
 logger = logging.getLogger(__name__)
 
-def create_server() -> Server:
+# MCP Python SDK 是可选依赖：aitest.mcp.mcp_client（MCP client 侧，PH8-PR-8.5）
+# 需要能在 SDK 缺失时降级导入 aitest.mcp 包下的模块。以前这里在包顶层无条件
+# `from mcp.server import Server`，导致哪怕只是 `import aitest.mcp.mcp_client`
+# 也会因为 aitest/mcp/__init__.py 先跑就 ImportError，client 侧自己的降级逻辑
+# 根本没机会触发。因此这里改为 try/except，SDK 缺失时 Server 相关符号降级为 None，
+# 只有真正调用 create_server()/run_stdio() 等 MCP Server 功能时才会报错。
+try:
+    from mcp.server import Server
+    from mcp.server.stdio import stdio_server
+
+    from aitest.mcp.sampling import set_server as _set_sampling_server
+    from aitest.mcp.protocol import build_list_tools_handler, build_call_tool_handler
+    from aitest.mcp.prompts import build_list_prompts_handler, build_get_prompt_handler
+
+    _MCP_SDK_AVAILABLE = True
+except ImportError as _exc:
+    logger.debug("MCP SDK not available — aitest.mcp server functionality disabled: %s", _exc)
+    Server = None  # type: ignore[assignment,misc]
+    stdio_server = None  # type: ignore[assignment]
+    _set_sampling_server = None
+    build_list_tools_handler = None
+    build_call_tool_handler = None
+    build_list_prompts_handler = None
+    build_get_prompt_handler = None
+    _MCP_SDK_AVAILABLE = False
+
+
+def create_server() -> "Server":
     """工厂函数：创建并配置 MCP Server 实例。"""
+    if not _MCP_SDK_AVAILABLE:
+        raise RuntimeError(
+            "MCP Python SDK not installed — cannot create MCP Server. "
+            "Install with: pip install mcp"
+        )
     server = Server("aitest-tools")
 
     # 注册协议处理器

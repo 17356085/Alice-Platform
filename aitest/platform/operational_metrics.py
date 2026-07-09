@@ -58,7 +58,7 @@ class _Histogram:
         self.counts = [0] * len(self.buckets)
         self.total = 0
         self.sum_values = 0.0
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
 
     def observe(self, value: float):
         with self._lock:
@@ -277,6 +277,8 @@ class MetricsCollector:
                 calls = v["calls"]
                 capability[cap] = {
                     "calls": calls,
+                    "tokens": v["tokens"],
+                    "duration_ms": v["duration_ms"],
                     "tokens_total": v["tokens"],
                     "tokens_avg": round(v["tokens"] / calls, 0) if calls > 0 else 0,
                     "duration_avg_ms": round(v["duration_ms"] / calls, 1) if calls > 0 else 0,

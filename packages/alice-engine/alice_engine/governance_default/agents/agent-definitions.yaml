@@ -9,6 +9,10 @@ agents:
     name: "Project Agent"
     phase: "Project Init"
     description: "初始化项目上下文，发现模块和页面"
+    capabilities:
+      - project
+      - knowledge
+    model_tier: balanced
     skills:
       - project/project-context-manager
       - project/context-sync
@@ -19,6 +23,10 @@ agents:
     name: "Requirement Agent"
     phase: "Requirement"
     description: "分析需求，建模模块结构"
+    capabilities:
+      - analyze
+      - knowledge
+    model_tier: balanced
     skills:
       - requirements/module-modeling
       - requirements/requirement-analysis
@@ -27,6 +35,10 @@ agents:
     name: "Test Design Agent"
     phase: "Test Design"
     description: "设计测试用例，评估风险"
+    capabilities:
+      - analyze
+      - knowledge
+    model_tier: max
     skills:
       - test-design/page-analysis
       - test-design/page-observe
@@ -38,6 +50,10 @@ agents:
     name: "Automation Agent"
     phase: "Automation"
     description: "分析技术栈，生成自动化代码"
+    capabilities:
+      - codegen
+      - analyze
+    model_tier: max
     skills:
       - automation/tech-analysis
       - automation/auto-strategy
@@ -49,6 +65,10 @@ agents:
     name: "Execution Agent"
     phase: "Execute & Debug"
     description: "执行测试，收集证据"
+    capabilities:
+      - execute
+      - analyze
+    model_tier: econ
     skills:
       - execution/env-checker
       - execution/data-preparer
@@ -61,6 +81,10 @@ agents:
     name: "Bug Analysis Agent"
     phase: "Bug Analysis"
     description: "分析失败用例，定位根因"
+    capabilities:
+      - analyze
+      - knowledge
+    model_tier: max
     skills:
       - diagnosis/bug-analysis
       - diagnosis/root-cause-analyzer
@@ -69,6 +93,9 @@ agents:
     name: "Report Agent"
     phase: "Report"
     description: "生成测试报告"
+    capabilities:
+      - report
+    model_tier: econ
     skills:
       - reporting/report-generator
 
@@ -76,6 +103,10 @@ agents:
     name: "Knowledge Agent"
     phase: "Knowledge"
     description: "沉淀知识，更新知识库"
+    capabilities:
+      - knowledge
+      - analyze
+    model_tier: balanced
     skills:
       - knowledge/knowledge-manager
       - knowledge/completeness-check

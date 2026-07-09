@@ -10,15 +10,15 @@ Future extensions can copy these patterns and reuse the shared assertions.
 
 from __future__ import annotations
 
-from alice_engine.providers.base import LLMProvider, LLMResponse
-from alice_engine.workflow import get_graph_contract, register_graph
-from aitest.platform.capability_router import (
+from alice_engine.capabilities import (
     CapabilityProvider,
-    CapabilityRouter,
     ToolCall,
     ToolDef,
     ToolResult,
+    capability_contract,
 )
+from alice_engine.providers.base import LLMProvider, LLMResponse
+from alice_engine.workflow import get_graph_contract, register_graph
 
 from .contract_support import (
     assert_capability_contract_shape,
@@ -40,7 +40,7 @@ class SampleProvider(LLMProvider):
         return True
 
 
-class SampleCapabilityProvider(CapabilityProvider):
+class SampleCapabilityProvider:
     capability = "sample.capability"
     provider_name = "sample-capability"
     priority = 10
@@ -80,11 +80,10 @@ def test_extension_contract_template_reuses_shared_assertions():
     assert_provider_contract_shape(provider_contract, expected_name="sample-provider")
     assert provider_contract.supports_tools is True
 
-    router = CapabilityRouter(load_plugins=False)
-    router.register(SampleCapabilityProvider())
-    capability_contract = router.get_capability_contracts("sample.capability")[0]
+    sample_capability: CapabilityProvider = SampleCapabilityProvider()
+    capability_contract_ = capability_contract(sample_capability)
     assert_capability_contract_shape(
-        capability_contract,
+        capability_contract_,
         expected_capability="sample.capability",
         expected_tool_name="sample__echo",
     )

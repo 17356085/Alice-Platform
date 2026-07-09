@@ -102,6 +102,8 @@ class QueueLease:
 
     def heartbeat(self, now: datetime | None = None) -> None:
         current = now or datetime.now(timezone.utc)
+        if self.heartbeat_at == current.isoformat():
+            current = current.replace(microsecond=min(current.microsecond + 1, 999999))
         self.heartbeat_at = current.isoformat()
 
 

@@ -35,11 +35,6 @@ def run_command(
     from aitest.cli.handlers.cli_pause_handler import get_cli_pause_handler
     from aitest.engine.event_bus import get_event_bus
 
-    # 设置环境变量
-    if mock_llm:
-        import os
-        os.environ["MOCK_LLM"] = "1"
-
     # 显示执行信息
     print_header(project_path, module, pages, mode)
 
@@ -77,6 +72,7 @@ def run_command(
             workstudy=str(project_dir),
             governance=str(project_dir / "governance") if (project_dir / "governance").exists() else None,
             llm_provider=llm_provider,
+            mock_llm=mock_llm if mock_llm else None,
             event_bus=bus,
         )
 

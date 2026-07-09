@@ -8,7 +8,6 @@
 """
 
 import ast
-import pytest
 from pathlib import Path
 
 
@@ -39,8 +38,6 @@ class TestEngineBoundary:
         engine_file = SDK_ROOT / "engine.py"
         imports = get_imports(engine_file)
 
-        # Engine 可以导入 workflow 包
-        allowed = {"alice_engine.workflow"}
         # 但不能导入 workflow 内部模块
         for imp in imports:
             if imp.startswith("alice_engine.workflow.") and imp != "alice_engine.workflow":
@@ -107,3 +104,43 @@ class TestNoAitestDependency:
             for imp in imports:
                 if imp.startswith("aitest"):
                     assert False, f"SDK 导入了 aitest: {file.name} -> {imp}"
+
+    def test_no_dynamic_aitest_imports(self):
+        """SDK 运行时代码不应通过字符串动态加载 aitest。"""
+        forbidden = ('import_module("aitest', "import_module('aitest", '__import__("aitest', "__import__('aitest")
+
+        for file in SDK_ROOT.rglob("*.py"):
+            if "tests" in file.parts or "__pycache__" in file.parts:
+                continue
+            text = file.read_text(encoding="utf-8")
+            for marker in forbidden:
+                if marker in text:
+                    assert False, f"SDK 动态导入了 aitest: {file.name} -> {marker}"
+
+
+class TestExecutorBoundarySlimming:
+    """New AgentLoop collaborators must not grow back-dependencies to executor."""
+
+    def test_runtime_collaborators_do_not_import_executor_module(self):
+        collaborator_files = [
+            SDK_ROOT / "core" / "runtime_context_builder.py",
+            SDK_ROOT / "core" / "runtime_lifecycle.py",
+            SDK_ROOT / "core" / "session_orchestrator.py",
+        ]
+
+        for file in collaborator_files:
+            imports = get_imports(file)
+            for imp in imports:
+                if imp == "alice_engine.core.executor" or imp.startswith("alice_engine.core.executor."):
+                    assert False, f"内部协作者反向导入了 executor: {file.name} -> {imp}"
+
+    def test_runtime_lifecycle_does_not_reference_executor_source_text(self):
+        lifecycle_file = SDK_ROOT / "core" / "runtime_lifecycle.py"
+        text = lifecycle_file.read_text(encoding="utf-8")
+
+        forbidden = (
+            "from alice_engine.core.executor import",
+            "import alice_engine.core.executor",
+        )
+        for marker in forbidden:
+            assert marker not in text, f"runtime_lifecycle.py 不应再引用 executor: {marker}"

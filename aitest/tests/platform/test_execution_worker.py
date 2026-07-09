@@ -1,7 +1,7 @@
 from alice_engine.contracts import ExecutionContext
 
 from aitest.platform.execution_service import ExecutionService
-from aitest.platform.execution_worker import ExecutionWorker
+from aitest.platform.execution_worker import ExecutionWorker, get_execution_worker
 
 
 def test_async_submit_queues_and_worker_claims_request(monkeypatch, tmp_path):
@@ -93,3 +93,15 @@ def test_worker_requeues_retryable_failure(monkeypatch, tmp_path):
     assert loaded.status == "queued"
     assert loaded.retry_count == 1
     assert loaded.next_retry_at is not None
+
+
+def test_get_execution_worker_can_reuse_shared_service(monkeypatch):
+    import aitest.platform.execution_worker as execution_worker_module
+
+    monkeypatch.setattr(execution_worker_module, "_worker", None)
+
+    service = ExecutionService()
+    worker = get_execution_worker(service=service, worker_id="worker-1", poll_interval=0.5)
+
+    assert worker._service is service
+    assert worker.worker_id == "worker-1"

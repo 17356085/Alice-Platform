@@ -35,6 +35,7 @@ from alice_engine.extension import EngineExtension
 from alice_engine.kernel import ExecutionKernel, KernelExecutionRequest, RuntimeExecutionKernel
 from alice_engine.project import Project, ValidationResult
 from alice_engine.runtime import KnowledgeStore, MemoryStore
+from alice_engine.core.runtime_environment import runtime_environment_scope
 from alice_engine.workflow import configure_behavior_pack, configure_paths
 
 logger = logging.getLogger(__name__)
@@ -119,10 +120,6 @@ class Engine:
             for ext in extensions:
                 self.add_extension(ext)
 
-        # 配置环境变量 (供内部模块使用)
-        os.environ["ENGINE_WORKSTUDY"] = str(self._project.path)
-        os.environ["LLM_PROVIDER"] = self.llm_provider
-
         # 配置行为包 + 路径（替代硬编码 governance 路径）
         self._behavior_pack = self._project.behavior_pack
         configure_behavior_pack(self._behavior_pack)
@@ -143,7 +140,6 @@ class Engine:
             external_pack=self._project.governance_path if self._project.has_governance else None,
         )
         if os.environ.get("MOCK_LLM") == "1" or llm_provider == "mock":
-            os.environ["MOCK_LLM"] = "1"
             self.llm_provider = "mock"
 
         logger.info(
@@ -256,7 +252,12 @@ class Engine:
         )
 
         try:
-            execution_result = self._kernel.execute(request)
+            with runtime_environment_scope(
+                workstudy=self._project.path,
+                llm_provider=self.llm_provider,
+                mock_llm=self.llm_provider == "mock",
+            ):
+                execution_result = self._kernel.execute(request)
         except Exception as e:
             logger.error("Engine.run failed: %s", e, exc_info=True)
             elapsed = time.time() - start_time

@@ -15,7 +15,6 @@ Usage:
 from __future__ import annotations
 
 import threading
-import uuid
 from typing import TYPE_CHECKING
 
 from aitest.infra.logging import get_logger
@@ -45,20 +44,23 @@ class GovernanceBridge:
 
         from aitest.adapters.event.interface import EVENT_ACTIONS, subscribe
         from aitest.platform.event_bus import get_bus as get_platform_bus
-        from aitest.platform.run_event import RunEvent
+        from aitest.platform.runtime_contracts import runtime_event_from_payload, runtime_event_to_run_event
 
         platform_bus = get_platform_bus()
 
         def _forward(event: Event) -> None:
             """Forward a governance event to the platform EventBus."""
             try:
-                run_event = RunEvent(
-                    event_id=str(uuid.uuid4()),
+                if not self._active:
+                    return
+                envelope = runtime_event_from_payload(
                     event_type=f"governance.{event.type}",
                     run_id=event.data.get("run_id", ""),
                     request_id="",
-                    data=event.data,
+                    module=str(event.data.get("module", "")),
+                    metadata=dict(event.data),
                 )
+                run_event = runtime_event_to_run_event(envelope)
                 platform_bus.publish(run_event)
             except Exception:
                 _log.error(f"Failed to forward governance event {event.type} to platform bus")

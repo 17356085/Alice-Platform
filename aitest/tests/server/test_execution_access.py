@@ -16,7 +16,11 @@ from aitest.server.api.execution import (
 
 
 class _FakeService:
+    def __init__(self):
+        self.calls = []
+
     def execute(self, **kwargs):
+        self.calls.append(kwargs)
         return SimpleNamespace(
             to_dict=lambda: {
                 "request_id": "req-1",
@@ -93,7 +97,8 @@ async def test_start_execution_allows_workspace_member(monkeypatch, tmp_path):
 
     monkeypatch.setattr("aitest.platform.workspace.get_ws_manager", lambda: wm)
 
-    request = _request(org_id="org-1", app_state={"execution_service": _FakeService()})
+    service = _FakeService()
+    request = _request(org_id="org-1", app_state={"execution_service": service})
     result = await start_execution(
         "ws-1",
         StartExecutionRequest(module="equipment"),
@@ -101,6 +106,8 @@ async def test_start_execution_allows_workspace_member(monkeypatch, tmp_path):
     )
 
     assert result["run_id"] == "run-1"
+    assert len(service.calls) == 1
+    assert service.calls[0]["ctx"].workspace_id == "ws-1"
 
 
 @pytest.mark.asyncio

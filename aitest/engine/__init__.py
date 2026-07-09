@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Optional, Protocol
 
 from aitest.engine.event_bus import EventBus, get_event_bus
+from alice_engine.core.runtime_environment import runtime_environment_scope
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +87,7 @@ class Engine:
         workstudy: str = None,
         governance: str = None,
         llm_provider: str = None,
+        mock_llm: Optional[bool] = None,
         event_bus=None,
     ):
         """
@@ -93,28 +95,32 @@ class Engine:
             workstudy: 工作目录路径 (默认: 环境变量 ENGINE_WORKSTUDY 或 ".")
             governance: Governance 目录路径 (默认: workstudy/governance)
             llm_provider: LLM Provider 名称 (默认: 环境变量 LLM_PROVIDER 或 "anthropic")
+            mock_llm: 是否启用 Mock LLM 模式（显式参数优先于环境变量）。
+                      推荐始终使用此参数代替 os.environ["MOCK_LLM"]。
             event_bus: 事件总线 (默认: 使用全局 EventBus)
         """
         self.workstudy = Path(workstudy or os.environ.get("ENGINE_WORKSTUDY", "."))
         self.governance = Path(governance or os.environ.get(
             "ENGINE_GOVERNANCE", self.workstudy / "governance"))
 
-        # Mock LLM 模式
-        if os.environ.get("MOCK_LLM") == "1":
+        # Mock LLM 模式解析：显式参数 > env 兼容读（已弃用，见下方警告）> False
+        if mock_llm is True or llm_provider == "mock":
             self.llm_provider = "mock"
-            logger.info("Mock LLM mode enabled")
+            logger.info("Mock LLM mode enabled (explicit)")
+        elif os.environ.get("MOCK_LLM") == "1":
+            # Deprecated: 通过 os.environ["MOCK_LLM"] 传递 mock 模式已弃用。
+            # 请改用 Engine(mock_llm=True) 显式参数。将在下一主版本移除。
+            logger.warning(
+                "Deprecated: os.environ['MOCK_LLM'] is set. "
+                "Pass mock_llm=True to Engine() explicitly instead. "
+                "Reading from env will be removed in a future release."
+            )
+            self.llm_provider = "mock"
         else:
             self.llm_provider = llm_provider or os.environ.get("LLM_PROVIDER", "anthropic")
 
         self.event_bus = event_bus or get_event_bus()
         self._extensions: list = []
-
-        # 配置路径
-        os.environ["ENGINE_WORKSTUDY"] = str(self.workstudy)
-        os.environ["ENGINE_GOVERNANCE"] = str(self.governance)
-
-        # 设置 LLM Provider 环境变量
-        os.environ["LLM_PROVIDER"] = self.llm_provider
 
         # 配置 alice_engine.workflow.state 的路径
         from alice_engine.workflow.state import configure_paths
@@ -199,10 +205,15 @@ class Engine:
 
         # 执行
         try:
-            final_state = compiled.invoke(
-                initial_state,
-                {"configurable": {"thread_id": run_id}},
-            )
+            with runtime_environment_scope(
+                workstudy=self.workstudy,
+                llm_provider=self.llm_provider,
+                mock_llm=self.llm_provider == "mock",
+            ):
+                final_state = compiled.invoke(
+                    initial_state,
+                    {"configurable": {"thread_id": run_id}},
+                )
         except Exception as e:
             logger.error("Engine.run failed: %s", e, exc_info=True)
             error_result = {

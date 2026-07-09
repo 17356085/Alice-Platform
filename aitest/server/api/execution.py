@@ -13,15 +13,17 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
 
+from aitest.server.core.dependencies import (
+    get_execution_service,
+    get_from_app_state as _shared_get_from_app_state,
+)
+
 execution_router = APIRouter(prefix="/api", tags=["Execution v2.2"])
 
 
 def _get_from_state(request: Request, attr: str, factory):
-    """DI helper: get shared instance from app.state, fallback to factory."""
-    obj = getattr(request.app.state, attr, None)
-    if obj is None:
-        obj = factory()
-    return obj
+    """Compatibility wrapper around shared server dependency resolution."""
+    return _shared_get_from_app_state(request, attr, factory)
 
 
 def _require_request_workspace_access(request: Request, *, org_id: str, workspace_id: str, required_scope: str):
@@ -149,10 +151,7 @@ async def start_execution(ws_id: str, req: StartExecutionRequest, request: Reque
             required_scope="execute",
         )
         # v3.0: Use shared ExecutionService from app.state (DI)
-        svc = getattr(request.app.state, "execution_service", None)
-        if svc is None:
-            from aitest.platform.execution_service import ExecutionService
-            svc = ExecutionService()
+        svc = get_execution_service(request)
         if req.async_mode:
             result = svc.submit_async(
                 ctx=ctx,
@@ -299,7 +298,6 @@ async def list_runs(
 async def cancel_execution(request_id: str, request: Request):
     """Cancel a pending/queued execution."""
     from aitest.platform.run_store import get_run_store
-    from aitest.platform.execution_service import ExecutionService
     store = _get_from_state(request, "run_store", get_run_store)
     runs = store.list_runs(request_id=request_id, limit=1)
     run = runs[0] if runs else None
@@ -309,7 +307,7 @@ async def cancel_execution(request_id: str, request: Request):
         _require_request_run_access(request, run, required_scope="execute")
     except PermissionError as e:
         raise HTTPException(403, str(e))
-    svc = _get_from_state(request, "execution_service", ExecutionService)
+    svc = get_execution_service(request)
     cancelled = await asyncio.to_thread(svc.cancel, request_id)
 
     if not cancelled:
@@ -324,7 +322,6 @@ async def cancel_execution(request_id: str, request: Request):
 async def timeout_run(run_id: str, request: Request):
     """Force-timeout a running execution. Sets abort + marks DB."""
     from aitest.platform.run_store import get_run_store
-    from aitest.platform.execution_service import ExecutionService
     rs = _get_from_state(request, "run_store", get_run_store)
     run = rs.load_run(run_id)
     if run is None:
@@ -333,7 +330,7 @@ async def timeout_run(run_id: str, request: Request):
         _require_request_run_access(request, run, required_scope="execute")
     except PermissionError as e:
         raise HTTPException(403, str(e))
-    svc = _get_from_state(request, "execution_service", ExecutionService)
+    svc = get_execution_service(request)
     ok = await asyncio.to_thread(svc.timeout_run, run_id)
 
     if not ok:
@@ -348,8 +345,6 @@ async def timeout_run(run_id: str, request: Request):
 async def resume_execution(request_id: str, request: Request):
     """Resume a paused or interrupted execution from its last checkpoint."""
     from aitest.platform.run_store import get_run_store
-    from aitest.platform.execution_service import ExecutionService
-
     try:
         # Resolve request_id → run_id (indexed query, no O(n) scan)
         rs = _get_from_state(request, "run_store", get_run_store)
@@ -365,7 +360,7 @@ async def resume_execution(request_id: str, request: Request):
         except PermissionError as e:
             raise HTTPException(status_code=403, detail=str(e))
 
-        svc = _get_from_state(request, "execution_service", ExecutionService)
+        svc = get_execution_service(request)
         result = await asyncio.to_thread(svc.resume, run.run_id)
         if result is None:
             raise HTTPException(status_code=400, detail=f"Cannot resume execution '{request_id}'")
