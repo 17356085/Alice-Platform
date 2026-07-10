@@ -84,15 +84,29 @@ AGENT_MCP_SERVERS: dict[str, list[str]] = {
 }
 
 
-def get_agent_mcp_servers(agent_type: str) -> list[str]:
+def get_agent_mcp_servers(agent_type: str, use_db: bool = True) -> list[str]:
     """Return MCP server IDs required for an agent type.
 
     Args:
         agent_type: Agent type name (e.g. "automation-agent").
+        use_db: 是否从数据库加载（默认 True），False 则使用硬编码配置
 
     Returns:
         List of server IDs (empty list if agent has no MCP servers).
     """
+    # P6-2: 优先从数据库加载，回退到硬编码
+    if use_db:
+        try:
+            from aitest.platform.mcp_server_store import MCPServerStore
+            store = MCPServerStore()
+            server_ids = store.get_agent_mcp_servers(agent_type)
+            if server_ids:
+                return server_ids
+        except Exception:
+            # 数据库不可用，回退到硬编码
+            pass
+
+    # 硬编码配置 (向后兼容)
     # Exact match first, then fuzzy
     if agent_type in AGENT_MCP_SERVERS:
         return AGENT_MCP_SERVERS[agent_type]
@@ -103,3 +117,28 @@ def get_agent_mcp_servers(agent_type: str) -> list[str]:
             return AGENT_MCP_SERVERS[key]
 
     return []
+
+
+def get_mcp_server_registry(use_db: bool = True) -> dict[str, McpServerConfig]:
+    """获取 MCP Server Registry (支持数据库动态加载).
+
+    Args:
+        use_db: 是否从数据库加载（默认 True），False 则使用硬编码配置
+
+    Returns:
+        {mcp_server_id: McpServerConfig}
+    """
+    # P6-2: 优先从数据库加载
+    if use_db:
+        try:
+            from aitest.platform.mcp_server_store import MCPServerStore
+            store = MCPServerStore()
+            servers = store.list_mcp_servers()
+            if servers:
+                return {s.mcp_server_id: s.to_config() for s in servers}
+        except Exception:
+            # 数据库不可用，回退到硬编码
+            pass
+
+    # 硬编码配置 (向后兼容)
+    return MCP_SERVER_REGISTRY

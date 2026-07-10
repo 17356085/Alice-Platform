@@ -5,7 +5,7 @@
  *
  * Tabs: Timeline | Artifacts | Agent Calls | Metrics | Logs | Tree
  */
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, type ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '@/api/client'
 import { Button } from '@/components/ui/button'
@@ -50,7 +50,7 @@ interface AgentCall {
 }
 
 interface ArtifactInfo {
-  event_id: string; timestamp: string; path: string; type: string
+  event_id: string; timestamp: string; path: string; name?: string; type: string
   size: number; mime_type: string; source_phase: string
 }
 
@@ -336,9 +336,9 @@ export default function RunInspectorView() {
                         <div>
                           <div className="text-xs font-semibold text-muted-foreground mb-1">Tool Calls</div>
                           {call.tool_calls.map((tc: Record<string, unknown>, j: number) => (
-                            <div key={tc.name ? `${tc.name}-${j}` : j} className="bg-muted p-2 rounded-md mb-2 text-xs font-mono">
+                            <div key={tc.name ? `${String(tc.name)}-${j}` : j} className="bg-muted p-2 rounded-md mb-2 text-xs font-mono">
                               <span className="font-semibold text-primary">{String(tc.name ?? '')}</span>
-                              {tc.args && <pre className="mt-1 text-[11px] opacity-70">{JSON.stringify(tc.args, null, 2)}</pre>}
+                              {tc.args !== undefined && tc.args !== null ? <pre className="mt-1 text-[11px] opacity-70">{JSON.stringify(tc.args, null, 2)}</pre> : null}
                               {tc.result !== undefined && (
                                 <pre className="mt-1 text-[11px] text-emerald-400">{JSON.stringify(tc.result, null, 2)}</pre>
                               )}
@@ -569,6 +569,54 @@ function ReportCard({ report }: { report: Record<string, unknown> }) {
     s === 'warning' ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' :
     'text-blue-400 bg-blue-500/10 border-blue-500/20'
 
+  const issuesBlock = issues.length > 0 ? (
+    <Card>
+      <CardHeader className="py-3"><CardTitle className="text-sm flex items-center gap-2">
+        <AlertTriangle size={14} className="text-amber-400" /> Issues ({issues.length})
+      </CardTitle></CardHeader>
+      <CardContent className="space-y-2">
+        {issues.map((issue, i) => (
+          <div key={i} className={`p-3 rounded-lg border text-sm ${severityColor(issue.severity || 'info')}`}>
+            <div className="font-medium">{String(issue.message || '')}</div>
+            {issue.suggestion && <div className="text-xs mt-1 opacity-70">{String(issue.suggestion)}</div>}
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  ) : null
+
+  const suggestionsBlock = suggestions.length > 0 ? (
+    <Card>
+      <CardHeader className="py-3"><CardTitle className="text-sm flex items-center gap-2">
+        <Zap size={14} className="text-blue-400" /> Suggestions ({suggestions.length})
+      </CardTitle></CardHeader>
+      <CardContent className="space-y-2">
+        {suggestions.map((s, i) => (
+          <div key={i} className="flex items-start gap-2 text-sm p-2">
+            <ChevronRight size={14} className="text-blue-400 mt-0.5 shrink-0" />
+            <span>{String(s.message || '')}</span>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  ) : null
+
+  const timelineSummaryBlock = report.timeline_summary && Array.isArray(report.timeline_summary) ? (
+    <Card>
+      <CardHeader className="py-3"><CardTitle className="text-sm">Recent Events</CardTitle></CardHeader>
+      <CardContent>
+        <div className="space-y-1 font-mono text-xs text-muted-foreground">
+          {(report.timeline_summary as string[]).map((msg, i) => (
+            <div key={i} className="flex gap-2">
+              <span className="text-muted-foreground/40">{i + 1}.</span>
+              <span>{msg}</span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  ) : null
+
   return (
     <div className="space-y-4">
       {/* Summary banner */}
@@ -603,63 +651,21 @@ function ReportCard({ report }: { report: Record<string, unknown> }) {
           </div>
 
           <div className="mt-3 text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
-            <span>Module: <code>{header?.module || '—'}</code></span>
-            <span>Agent: {header?.agent || '—'}</span>
+            <span>Module: <code>{String(header?.module || '—')}</code></span>
+            <span>Agent: {String(header?.agent || '—')}</span>
             <span>Pages: {Array.isArray(header?.pages) ? (header.pages as string[]).join(', ') || '—' : '—'}</span>
           </div>
         </CardContent>
       </Card>
 
       {/* Issues */}
-      {issues.length > 0 && (
-        <Card>
-          <CardHeader className="py-3"><CardTitle className="text-sm flex items-center gap-2">
-            <AlertTriangle size={14} className="text-amber-400" /> Issues ({issues.length})
-          </CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            {issues.map((issue, i) => (
-              <div key={i} className={`p-3 rounded-lg border text-sm ${severityColor(issue.severity || 'info')}`}>
-                <div className="font-medium">{issue.message}</div>
-                {issue.suggestion && <div className="text-xs mt-1 opacity-70">{issue.suggestion}</div>}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+      {issuesBlock}
 
       {/* Suggestions */}
-      {suggestions.length > 0 && (
-        <Card>
-          <CardHeader className="py-3"><CardTitle className="text-sm flex items-center gap-2">
-            <Zap size={14} className="text-blue-400" /> Suggestions ({suggestions.length})
-          </CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            {suggestions.map((s, i) => (
-              <div key={i} className="flex items-start gap-2 text-sm p-2">
-                <ChevronRight size={14} className="text-blue-400 mt-0.5 shrink-0" />
-                <span>{s.message}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+      {suggestionsBlock}
 
       {/* Timeline summary */}
-      {report.timeline_summary && Array.isArray(report.timeline_summary) && (
-        <Card>
-          <CardHeader className="py-3"><CardTitle className="text-sm">Recent Events</CardTitle></CardHeader>
-          <CardContent>
-            <div className="space-y-1 font-mono text-xs text-muted-foreground">
-              {(report.timeline_summary as string[]).map((msg, i) => (
-                <div key={i} className="flex gap-2">
-                  <span className="text-muted-foreground/40">{i + 1}.</span>
-                  <span>{msg}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {timelineSummaryBlock}
     </div>
   )
 }

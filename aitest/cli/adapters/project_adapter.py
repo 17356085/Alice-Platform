@@ -115,8 +115,22 @@ class ProjectAdapter:
             "module_count": len(modules),
         }
 
-    def set_active_project(self, project_id: str):
-        """设置活跃项目。"""
+    def set_active_project(self, project_id: str) -> str:
+        """设置活跃项目。
+
+        支持特殊别名:
+            "-": 切换到上一个活跃项目
+
+        Returns:
+            实际切换到的项目 ID
+        """
+        # 解析特殊别名: "-" 表示上一个项目
+        if project_id == "-":
+            previous = self.config.previous_project
+            if not previous:
+                raise ValueError("没有上一个项目记录，无法使用 '-' 切换")
+            project_id = previous
+
         # 验证项目存在
         projects = self.list_projects()
         project = next((p for p in projects if p["id"] == project_id), None)
@@ -127,6 +141,10 @@ class ProjectAdapter:
         self.config.active_project = project_id
         # 确保项目已注册
         self.config.register_project(project_id, project["path"], project.get("name", ""))
+        # 记录到最近使用列表
+        self.config.record_recent_project(project_id)
+
+        return project_id
 
     def register_project(self, path: str) -> dict:
         """注册新项目。

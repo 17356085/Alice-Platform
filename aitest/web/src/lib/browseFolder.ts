@@ -16,6 +16,7 @@ declare global {
   }
 }
 interface HTMLInputElement {
+  files?: FileList | null
   webkitdirectory?: boolean
 }
 

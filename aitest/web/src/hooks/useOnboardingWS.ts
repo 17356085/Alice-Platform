@@ -43,7 +43,7 @@ export function useOnboardingWS() {
 
     try {
       const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const socket = api.connectWS(`/api/onboarding/ws/${store.sessionId}`)
+      const socket = api.connectWS(`/api/v1/onboarding/ws/${store.sessionId}`)
       wsRef.current = socket
 
       socket.onopen = () => {

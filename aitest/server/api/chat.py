@@ -29,7 +29,7 @@ from aitest.chat.intent_parser import parse_intent
 from aitest.platform.ui_projection import map_agent_event, UIEventType
 from aitest.server.core.dependencies import get_execution_service
 
-chat_router = APIRouter(prefix="/api/chat", tags=["chat"])
+chat_router = APIRouter(prefix="/api/v1/chat", tags=["chat"])
 
 # ── 默认 Provider 自动检测 (delegates to aitest.config) ────────────────
 from aitest.config import config
@@ -297,7 +297,7 @@ async def send_message(session_id: str, request: Request):
     return {
         "session_id": session_id,
         "message_id": mid,
-        "stream_url": f"/api/chat/sessions/{session_id}/stream/{mid}",
+        "stream_url": f"/api/v1/chat/sessions/{session_id}/stream/{mid}",
     }
 
 

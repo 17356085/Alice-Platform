@@ -25,7 +25,7 @@ from collections import deque
 from aitest.platform.paths import get_workstudy
 from fastapi import APIRouter
 
-kpi_router = APIRouter(prefix="/api", tags=["kpi"])
+kpi_router = APIRouter(prefix="/api/v1/kpi", tags=["kpi"])
 
 SOP_PHASES = [
     "Project Init", "Requirement", "Test Design",
@@ -169,7 +169,7 @@ async def sop_status_all(project: str = ""):
 
 # ── KPI ───────────────────────────────────────────────────────────────
 
-@kpi_router.get("/kpi/summary")
+@kpi_router.get("/summary")
 async def kpi_summary(days: int = 30):
     try:
         from aitest.audit_engine.governance_kpi import KPICollector
@@ -178,7 +178,7 @@ async def kpi_summary(days: int = 30):
         return {"error": str(e)[:300]}
 
 
-@kpi_router.get("/kpi/trends")
+@kpi_router.get("/trends")
 async def kpi_trends(audit_type: str = "state", days: int = 30):
     try:
         from aitest.audit_engine.governance_kpi import KPICollector
@@ -189,7 +189,7 @@ async def kpi_trends(audit_type: str = "state", days: int = 30):
         return {"error": str(e)[:300]}
 
 
-@kpi_router.post("/kpi/audit-all")
+@kpi_router.post("/audit-all")
 async def kpi_audit_all(modules: str = None):
     try:
         from aitest.audit_engine.scheduled_audit import run_all_audits, discover_modules
@@ -199,7 +199,7 @@ async def kpi_audit_all(modules: str = None):
         return {"error": str(e)[:300]}
 
 
-@kpi_router.get("/kpi/operational")
+@kpi_router.get("/operational")
 async def operational_metrics():
     try:
         from aitest.platform.operational_metrics import get_collector
@@ -208,7 +208,7 @@ async def operational_metrics():
         return {"error": str(e)[:300]}
 
 
-@kpi_router.get("/kpi/trends/operational")
+@kpi_router.get("/trends/operational")
 async def operational_trends(days: int = 7):
     from datetime import datetime, timedelta, timezone
 
@@ -262,7 +262,7 @@ async def operational_trends(days: int = 7):
     return {"points": points[-200:], "total": len(points), "days": days}
 
 
-@kpi_router.get("/kpi/performance-baseline")
+@kpi_router.get("/performance-baseline")
 async def performance_baseline(namespace: str = "web-automation", run_id: str = "", persist: bool = True):
     try:
         from aitest.platform.performance_baseline import get_performance_baseline_service
@@ -277,7 +277,7 @@ async def performance_baseline(namespace: str = "web-automation", run_id: str = 
         return {"error": str(e)[:300]}
 
 
-@kpi_router.get("/kpi/product")
+@kpi_router.get("/product")
 async def product_kpi():
     from datetime import datetime, timedelta, timezone
 
@@ -359,7 +359,7 @@ async def product_kpi():
     }
 
 
-@kpi_router.get("/kpi/optimization-insights")
+@kpi_router.get("/optimization-insights")
 async def optimization_insights():
     try:
         from aitest.platform.operational_metrics import get_collector

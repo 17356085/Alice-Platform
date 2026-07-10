@@ -44,8 +44,16 @@ def _row_to_run(r: dict) -> Run:
         run_id=r["run_id"], request_id=r["request_id"],
         workspace_id=r["workspace_id"], org_id=r.get("org_id", ""),
         triggered_by=r.get("triggered_by", ""), capability=r.get("capability", "browser"),
+        # Legacy fields
         agent=r.get("agent", ""), module=r.get("module", ""),
-        pages=_decode_json_field(r.get("pages", []), []), mode=r.get("mode", "full"),
+        pages=_decode_json_field(r.get("pages", []), []),
+        # P7-2 Phase 2: 新字段（带向后兼容默认值）
+        target_type=r.get("target_type", "agent"),
+        target_id=r.get("target_id", r.get("agent", "")),  # fallback to agent
+        target_version=r.get("target_version", "latest"),
+        environment_id=r.get("environment_id", ""),
+        parent_run_id=r.get("parent_run_id", ""),
+        mode=r.get("mode", "full"),
         status=r.get("status", "running"),
         created_at=r.get("created_at", ""), completed_at=r.get("completed_at", "") or "",
         total_tokens=r.get("total_tokens", 0), total_cost=r.get("total_cost", 0.0),
@@ -115,9 +123,45 @@ class RunStore:
                 safe_exec("ALTER TABLE execution_requests ADD COLUMN idempotency_key TEXT NOT NULL DEFAULT ''")
             if "next_retry_at" not in columns:
                 safe_exec("ALTER TABLE execution_requests ADD COLUMN next_retry_at TEXT DEFAULT ''")
+            # P7-2 Phase 2: 新资源模型字段
+            self._ensure_runs_resource_fields()
         except Exception:
             # Best effort: legacy databases may not support schema migration here.
             pass
+
+    def _ensure_runs_resource_fields(self) -> None:
+        """P7-2 Phase 2: Add target_type/target_id/target_version/environment_id/parent_run_id to runs table."""
+        try:
+            rows = safe_query("PRAGMA table_info(runs)")
+            columns = {r.get("name", "") for r in rows}
+
+            if "target_type" not in columns:
+                safe_exec("ALTER TABLE runs ADD COLUMN target_type TEXT NOT NULL DEFAULT 'agent'")
+                logger.info("migration_runs_target_type_added")
+
+            if "target_id" not in columns:
+                safe_exec("ALTER TABLE runs ADD COLUMN target_id TEXT NOT NULL DEFAULT ''")
+                logger.info("migration_runs_target_id_added")
+
+            if "target_version" not in columns:
+                safe_exec("ALTER TABLE runs ADD COLUMN target_version TEXT NOT NULL DEFAULT 'latest'")
+                logger.info("migration_runs_target_version_added")
+
+            if "environment_id" not in columns:
+                safe_exec("ALTER TABLE runs ADD COLUMN environment_id TEXT NOT NULL DEFAULT ''")
+                logger.info("migration_runs_environment_id_added")
+
+            if "parent_run_id" not in columns:
+                safe_exec("ALTER TABLE runs ADD COLUMN parent_run_id TEXT NOT NULL DEFAULT ''")
+                logger.info("migration_runs_parent_run_id_added")
+
+            # 创建索引（如果不存在）
+            safe_exec("CREATE INDEX IF NOT EXISTS idx_runs_target ON runs(target_type, target_id)")
+            safe_exec("CREATE INDEX IF NOT EXISTS idx_runs_environment ON runs(environment_id)")
+            safe_exec("CREATE INDEX IF NOT EXISTS idx_runs_parent ON runs(parent_run_id)")
+
+        except Exception as e:
+            logger.warning("migration_runs_resource_fields_failed", error=str(e))
 
     def save_request(self, request: ExecutionRequest):
         safe_exec(
@@ -232,9 +276,10 @@ class RunStore:
         safe_exec(
             "INSERT INTO runs "
             "(run_id, request_id, workspace_id, org_id, triggered_by, capability, agent, "
-            "module, pages, mode, status, created_at, completed_at, total_tokens, total_cost, "
+            "module, pages, target_type, target_id, target_version, environment_id, parent_run_id, "
+            "mode, status, created_at, completed_at, total_tokens, total_cost, "
             "agent_runs, artifacts, error_message) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
             "ON CONFLICT (run_id) DO UPDATE SET "
             "status=EXCLUDED.status, completed_at=EXCLUDED.completed_at, "
             "total_tokens=EXCLUDED.total_tokens, total_cost=EXCLUDED.total_cost, "
@@ -242,7 +287,10 @@ class RunStore:
             "error_message=EXCLUDED.error_message",
             [run.run_id, run.request_id, run.workspace_id, run.org_id,
              run.triggered_by, run.capability, run.agent, run.module,
-             json.dumps(run.pages, ensure_ascii=False), run.mode, run.status,
+             json.dumps(run.pages, ensure_ascii=False),
+             run.target_type, run.target_id, run.target_version,
+             run.environment_id, run.parent_run_id,
+             run.mode, run.status,
              run.created_at, run.completed_at, run.total_tokens, run.total_cost,
              run.agent_runs, json.dumps(run.artifacts, ensure_ascii=False),
              run.error_message],

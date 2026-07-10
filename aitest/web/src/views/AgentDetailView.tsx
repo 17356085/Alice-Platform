@@ -1,4 +1,5 @@
 /** Agent Detail — profile, metrics, run history. */
+import type { LucideIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Bot, Zap, CheckCircle, XCircle, Clock, DollarSign, Activity, ArrowRight } from 'lucide-react'
@@ -151,7 +152,7 @@ export default function AgentDetailView() {
 }
 
 function MetricCard({ icon: Icon, value, label, color }: {
-  icon: React.ComponentType<{ className?: string }>; value: string | number; label: string; color: string
+  icon: LucideIcon; value: string | number; label: string; color: string
 }) {
   return (
     <Card className="p-4 text-center">

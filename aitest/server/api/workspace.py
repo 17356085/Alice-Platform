@@ -16,7 +16,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
 
-workspace_router = APIRouter(prefix="/api/platform/orgs/{org_id}/workspaces", tags=["Workspace v2.1"])
+workspace_router = APIRouter(prefix="/api/v1/workspaces", tags=["Workspace v2.1"])
 
 
 class CreateWorkspaceRequest(BaseModel):

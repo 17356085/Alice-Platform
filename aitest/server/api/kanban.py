@@ -16,7 +16,7 @@ from datetime import datetime
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
 from aitest.server.core.dependencies import get_execution_service
 
-kanban_router = APIRouter(tags=["kanban"])
+kanban_router = APIRouter(prefix="/api/v1/kanban", tags=["kanban"])
 
 
 # ── Kanban WS Manager ─────────────────────────────────────────────────
@@ -124,7 +124,7 @@ def get_module_phase_progress(module: str) -> dict:
 
 # ── Endpoints ─────────────────────────────────────────────────────────
 
-@kanban_router.post("/api/sop/start")
+@kanban_router.post("/sop/start")
 async def sop_start(request: Request):
     """Start SOP execution via ExecutionService (real execution, not fake)."""
     try:
@@ -169,7 +169,7 @@ async def sop_start(request: Request):
     return {"module": module, "status": "started", "message": "SOP execution started via ExecutionService"}
 
 
-@kanban_router.get("/api/kanban/phases/{module}")
+@kanban_router.get("/phases/{module}")
 async def get_phases(module: str):
     """Query phase progress for a module from run_events table."""
     return get_module_phase_progress(module)
@@ -180,7 +180,7 @@ from aitest.platform.config_registry import cfg as _cfg
 _WS_IDLE_TIMEOUT = _cfg.ws_idle_timeout_s
 
 
-@kanban_router.websocket("/ws/kanban")
+@kanban_router.websocket("/ws")
 async def kanban_websocket(ws: WebSocket):
     await _kanban_ws.connect(ws)
     try:
@@ -209,6 +209,6 @@ async def kanban_websocket(ws: WebSocket):
         _kanban_ws.disconnect(ws)
 
 
-@kanban_router.get("/api/kanban/status")
+@kanban_router.get("/status")
 async def kanban_status():
     return {"active_connections": _kanban_ws.active_connections, "timestamp": datetime.now().isoformat()}

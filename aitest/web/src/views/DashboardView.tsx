@@ -30,7 +30,7 @@ export default function DashboardView() {
   const modules = useKanbanStore(s => s.modules)
   const fetchModules = useKanbanStore(s => s.fetchModules)
   const { health, loading: healthLoading, refresh: refreshHealth } = useHealth()
-  const [productKpi, setProductKpi] = useState<{ this_week?: { runs?: number; pass_rate?: number; avg_duration_s?: number }; last_week?: { runs?: number; pass_rate?: number; avg_duration_s?: number } } | null>(null)
+  const [productKpi, setProductKpi] = useState<{ this_week?: { runs?: number; pass_rate?: number; success_rate?: number; avg_duration_s?: number; total_cost?: number }; last_week?: { runs?: number; pass_rate?: number; success_rate?: number; avg_duration_s?: number; total_cost?: number } } | null>(null)
   const [kpiError, setKpiError] = useState(false)
   const recentEvents = useTimelineStore(s => s.recent)(5)
 
@@ -38,7 +38,7 @@ export default function DashboardView() {
     fetchProjects()
     fetchModules()
     refreshHealth()
-    api.get('/api/kpi/product')
+    api.get('/api/v1/kpi/product')
       .then(data => { if (data) { setProductKpi(data); setKpiError(false) } })
       .catch(() => setKpiError(true))
   }, [fetchProjects, fetchModules, refreshHealth])
@@ -66,17 +66,17 @@ export default function DashboardView() {
               </span>
               {health.components?.llm && (
                 <span className="text-[11px] text-muted-foreground/60">
-                  {health.components.llm.resolved_provider || '?'}
-                  {(health.components.llm.circuit_breakers?.open ?? 0) > 0 && (
-                    <span className="text-destructive ml-1">{health.components.llm.circuit_breakers.open} 熔断</span>
+                  {String((health.components.llm as Record<string, unknown>).resolved_provider) || '?'}
+                  {(((health.components.llm as Record<string, unknown>).circuit_breakers as { open?: number } | undefined)?.open ?? 0) > 0 && (
+                    <span className="text-destructive ml-1">{((health.components.llm as Record<string, unknown>).circuit_breakers as { open: number }).open} 熔断</span>
                   )}
                 </span>
               )}
               {health.components?.ecosystem && (
                 <span className="text-[11px] text-muted-foreground/60">
-                  {health.components.ecosystem.project_count || 0} 项目 / {health.components.ecosystem.discovery_strategy_count || 0} 策略
-                  {health.components.ecosystem.status && health.components.ecosystem.status !== 'healthy' && (
-                    <span className="text-warning ml-1">{health.components.ecosystem.status}</span>
+                  {((health.components.ecosystem as Record<string, unknown>).project_count as number | undefined) || 0} 项目 / {((health.components.ecosystem as Record<string, unknown>).discovery_strategy_count as number | undefined) || 0} 策略
+                  {String((health.components.ecosystem as Record<string, unknown>).status) && String((health.components.ecosystem as Record<string, unknown>).status) !== 'healthy' && (
+                    <span className="text-warning ml-1">{String((health.components.ecosystem as Record<string, unknown>).status)}</span>
                   )}
                 </span>
               )}
@@ -204,15 +204,15 @@ export default function DashboardView() {
           )}
 
           {/* KPI summary — if available */}
-          {productKpi && (
+          {productKpi && productKpi.this_week && (
             <div className="mt-4 pt-4 border-t border-border">
               <div className="grid grid-cols-2 gap-2">
                 <div className="text-center p-2 rounded-lg bg-muted/30">
-                  <div className="text-lg font-bold tabular-nums">{Math.round(productKpi.this_week.success_rate * 100)}%</div>
+                  <div className="text-lg font-bold tabular-nums">{Math.round((productKpi.this_week.success_rate ?? 0) * 100)}%</div>
                   <div className="text-[10px] text-muted-foreground">成功率</div>
                 </div>
                 <div className="text-center p-2 rounded-lg bg-muted/30">
-                  <div className="text-lg font-bold tabular-nums">${productKpi.this_week.total_cost.toFixed(0)}</div>
+                  <div className="text-lg font-bold tabular-nums">${(productKpi.this_week.total_cost ?? 0).toFixed(0)}</div>
                   <div className="text-[10px] text-muted-foreground">本周成本</div>
                 </div>
               </div>
@@ -223,7 +223,7 @@ export default function DashboardView() {
             <div className="mt-4 text-center">
               <button onClick={() => {
                 setKpiError(false)
-                api.get('/api/kpi/product')
+                api.get('/api/v1/kpi/product')
                   .then(data => { if (data) { setProductKpi(data); setKpiError(false) } })
                   .catch(() => setKpiError(true))
               }}

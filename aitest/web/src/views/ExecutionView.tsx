@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useKanbanStore } from '../stores/kanban'
 import { useProjectStore } from '../stores/project'
+import { ENDPOINTS } from '@/api/endpoints'
 import { api } from '@/api/client'
 import LiveAgentGraph from '../components/LiveAgentGraph'
 import TerminalPanel from '../components/TerminalPanel'
@@ -52,7 +53,7 @@ export default function ExecutionView() {
 
   const fetchRuns = useCallback(async () => {
     try {
-      const data = await api.get<{ runs: Array<{ run_id: string; status: string; agent: string; module: string }> }>('/api/runs?limit=10')
+      const data = await api.get<{ runs: Array<{ run_id: string; status: string; agent: string; module: string }> }>(ENDPOINTS.RUNS_LIST + '?limit=10')
       setRuns(data.runs || [])
     } catch {}
   }, [])

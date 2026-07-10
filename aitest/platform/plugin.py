@@ -81,13 +81,25 @@ def _default_plugin_paths() -> list[Path]:
 
 @dataclass
 class PluginInfo:
-    """Metadata about a discovered plugin."""
+    """Metadata about a discovered plugin (v2.0 — 支持多种扩展类型)."""
     name: str
     version: str = "0.0.0"
     description: str = ""
+    author: str = ""
+    homepage: str = ""
     path: Path = None
+
+    # 扩展类型
     providers: list[dict] = field(default_factory=list)
+    skills: list[dict] = field(default_factory=list)         # P6-3: Skill 扩展
+    cli_commands: list[dict] = field(default_factory=list)   # P6-3: CLI 命令扩展
+    api_routes: list[dict] = field(default_factory=list)     # P6-3: API 路由扩展
+
+    # 元数据
     entry_point: str = ""
+    dependencies: list[str] = field(default_factory=list)
+
+    # 状态
     loaded: bool = False
     error: str = ""
 
@@ -95,12 +107,15 @@ class PluginInfo:
 # ── Plugin Manager ─────────────────────────────────────────────────────
 
 class PluginManager:
-    """Discovers, validates, and loads plugins."""
+    """Discovers, validates, and loads plugins (v2.0 — 支持多种扩展类型)."""
 
     def __init__(self, search_paths: list[Path] = None):
         self._search_paths = search_paths or _default_plugin_paths()
         self._plugins: dict[str, PluginInfo] = {}
         self._providers: dict[str, type] = {}
+        self._skills: dict[str, Path] = {}                # P6-3: Skill 注册表
+        self._cli_commands: dict[str, type] = {}          # P6-3: CLI 命令注册表
+        self._api_routes: list[tuple[str, type]] = []     # P6-3: API 路由注册表
         self._lock = threading.Lock()
 
     # ── Discovery ────────────────────────────────────────────────────
@@ -127,9 +142,15 @@ class PluginManager:
                         name=data["name"],
                         version=data.get("version", "0.0.0"),
                         description=data.get("description", ""),
+                        author=data.get("author", ""),
+                        homepage=data.get("homepage", ""),
                         path=plugin_dir,
                         providers=data.get("providers", []),
+                        skills=data.get("skills", []),
+                        cli_commands=data.get("cli_commands", []),
+                        api_routes=data.get("api_routes", []),
                         entry_point=data.get("entry_point", ""),
+                        dependencies=data.get("dependencies", []),
                     )
                     self._plugins[info.name] = info
                     discovered.append(info)
@@ -164,9 +185,9 @@ class PluginManager:
         return results
 
     def _load_one(self, info: PluginInfo) -> int:
-        """Load a single plugin: import module + register providers."""
+        """Load a single plugin: import module + register providers/skills/cli/api."""
         if info.loaded:
-            return len(info.providers)
+            return len(info.providers) + len(info.skills) + len(info.cli_commands) + len(info.api_routes)
 
         # Add plugin directory to sys.path
         plugin_root = str(info.path.parent) if info.path.parent else str(info.path)
@@ -196,6 +217,40 @@ class PluginManager:
                     self._providers[pname] = cls
                     count += 1
 
+        # P6-3: Register skills
+        for skill_def in info.skills:
+            sname = skill_def.get("name", "")
+            sfile = skill_def.get("file", "")
+            if sname and sfile and info.path:
+                skill_path = info.path / sfile
+                if skill_path.exists():
+                    self._skills[sname] = skill_path
+                    count += 1
+
+        # P6-3: Register CLI commands
+        for cli_def in info.cli_commands:
+            cname = cli_def.get("name", "")
+            cclass_path = cli_def.get("class", "")
+            if cname and cclass_path:
+                mod_path, cls_name = cclass_path.split(":")
+                mod = importlib.import_module(mod_path)
+                cls = getattr(mod, cls_name, None)
+                if cls:
+                    self._cli_commands[cname] = cls
+                    count += 1
+
+        # P6-3: Register API routes
+        for api_def in info.api_routes:
+            prefix = api_def.get("prefix", "")
+            rclass_path = api_def.get("class", "")
+            if prefix and rclass_path:
+                mod_path, cls_name = rclass_path.split(":")
+                mod = importlib.import_module(mod_path)
+                cls = getattr(mod, cls_name, None)
+                if cls:
+                    self._api_routes.append((prefix, cls))
+                    count += 1
+
         info.loaded = True
         return count
 
@@ -205,6 +260,21 @@ class PluginManager:
         """Register a capability provider. Called by plugin entry points."""
         with self._lock:
             self._providers[name] = provider_class
+
+    def register_skill(self, name: str, skill_path: Path):
+        """Register a skill. Called by plugin entry points."""
+        with self._lock:
+            self._skills[name] = skill_path
+
+    def register_cli_command(self, name: str, command_class: type):
+        """Register a CLI command. Called by plugin entry points."""
+        with self._lock:
+            self._cli_commands[name] = command_class
+
+    def register_api_route(self, prefix: str, router_class: type):
+        """Register an API route. Called by plugin entry points."""
+        with self._lock:
+            self._api_routes.append((prefix, router_class))
 
     # ── Query ────────────────────────────────────────────────────────
 
@@ -216,14 +286,39 @@ class PluginManager:
         """Get a specific provider by name."""
         return self._providers.get(name)
 
+    def get_skills(self) -> dict[str, Path]:
+        """Get all registered skills (name → path)."""
+        return dict(self._skills)
+
+    def get_skill(self, name: str) -> Optional[Path]:
+        """Get a specific skill by name."""
+        return self._skills.get(name)
+
+    def get_cli_commands(self) -> dict[str, type]:
+        """Get all registered CLI commands (name → class)."""
+        return dict(self._cli_commands)
+
+    def get_cli_command(self, name: str) -> Optional[type]:
+        """Get a specific CLI command by name."""
+        return self._cli_commands.get(name)
+
+    def get_api_routes(self) -> list[tuple[str, type]]:
+        """Get all registered API routes ([(prefix, router_class), ...])."""
+        return list(self._api_routes)
+
     def list_plugins(self) -> list[dict]:
-        """List all discovered plugins with status."""
+        """List all discovered plugins with status (v2.0 — 包含所有扩展类型)."""
         return [
             {
                 "name": p.name,
                 "version": p.version,
                 "description": p.description,
+                "author": p.author,
+                "homepage": p.homepage,
                 "providers": [pr["name"] for pr in p.providers],
+                "skills": [sk["name"] for sk in p.skills],
+                "cli_commands": [cmd["name"] for cmd in p.cli_commands],
+                "api_routes": [route["prefix"] for route in p.api_routes],
                 "loaded": p.loaded,
                 "error": p.error or None,
             }

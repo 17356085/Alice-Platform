@@ -7,6 +7,7 @@
 import { create } from 'zustand'
 import { shallow } from 'zustand/shallow'
 import { Flag, ClipboardList, FileText, Wrench, Play, Search, Brush, BarChart3, Brain } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { api } from '@/api/client'
 import { ENDPOINTS } from '@/api/endpoints'
 import { addTimelineEvent } from './timeline'
@@ -25,7 +26,7 @@ export interface ModuleInfo {
 }
 
 export interface KanbanColumn {
-  key: string; label: string; icon: React.ComponentType<{ className?: string }>; idx: number
+  key: string; label: string; icon: LucideIcon; idx: number
 }
 
 // ── Constants ──────────────────────────────────────────────────
@@ -93,7 +94,7 @@ export function useSelectColumns() {
 
 // ── Store ──────────────────────────────────────────────────────
 
-/** Paused task info from GET /api/chat/tasks/{id}/pause-status */
+/** Paused task info from GET /api/v1/chat/tasks/{id}/pause-status */
 export interface PausedTask {
   task_id: string
   reason: string

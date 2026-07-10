@@ -1,7 +1,10 @@
-# Alice V1 — Product Specification
+# Alice V1 — Product Specification ⚠️ ARCHIVED
 
-> 融合 Architecture Analysis + UX Analysis  
-> 所有后续开发以此文档为唯一产品事实源  
+> **⚠️ 此文档已归档，不再维护。唯一产品事实源：`PRODUCT.md`（项目根目录）**  
+> 归档日期：2026-07-10 | 原因：P0-3 产品定位冲突修复，决策：PRODUCT.md 为准  
+>
+> ~~融合 Architecture Analysis + UX Analysis~~  
+> ~~所有后续开发以此文档为唯一产品事实源~~  
 > 版本：V1.0 | 日期：2026-06-23
 
 ---

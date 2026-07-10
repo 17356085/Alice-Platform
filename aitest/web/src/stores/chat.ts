@@ -55,8 +55,8 @@ function makeMessage(role: 'user' | 'assistant', content: string, tools?: unknow
     role,
     content: truncated,
     timestamp: new Date().toISOString(),
-    tools: tools?.slice(0, ChatMemory.MAX_TOOLS),
-    suggestedTasks: tasks?.slice(0, ChatMemory.MAX_TASKS),
+    tools: (tools?.slice(0, ChatMemory.MAX_TOOLS) as { name: string; input: string }[] | undefined),
+    suggestedTasks: (tasks?.slice(0, ChatMemory.MAX_TASKS) as { title: string; description: string; category: string; complexity: string }[] | undefined),
   }
 }
 

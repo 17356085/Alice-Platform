@@ -1,6 +1,6 @@
 /** Test gap scanner — React port from Vue composable.
  *  Vue ref() → useState, Vue computed() → useMemo.
- *  Fetches real /api/sop-status and analyzes gaps per module.
+ *  Fetches real /api/v1/kpi/sop-status and analyzes gaps per module.
  */
 import { useState, useMemo, useCallback } from 'react'
 import { api } from '@/api/client'
@@ -62,7 +62,7 @@ export function useGapScanner() {
     setProgress('Fetching module status...')
 
     try {
-      const data = await api.get('/api/sop-status')
+      const data = await api.get<{ modules?: Record<string, unknown> }>('/api/v1/kpi/sop-status')
       const modules = data.modules || {}
       const discovered: TestGap[] = []
       const modKeys = Object.keys(modules)

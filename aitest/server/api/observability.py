@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter
 
-obs_router = APIRouter(prefix="/api/observability", tags=["observability"])
+obs_router = APIRouter(prefix="/api/v1/observability", tags=["observability"])
 
 _SNAPSHOT_CACHE: dict = {}
 _SNAPSHOT_CACHE_TIME = 0.0

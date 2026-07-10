@@ -9,7 +9,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
 
-bugs_router = APIRouter(prefix="/api/bugs", tags=["Bugs"])
+bugs_router = APIRouter(prefix="/api/v1/bugs", tags=["Bugs"])
 
 
 class BugAddRequest(BaseModel):

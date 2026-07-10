@@ -13,7 +13,7 @@ from ..session_store import (
     update_session_title,
 )
 
-router = APIRouter(prefix="/api/sessions", tags=["sessions"])
+router = APIRouter(prefix="/api/v1/sessions", tags=["sessions"])
 
 
 # ── Pydantic Schemas ─────────────────────────────────────────────────────────

@@ -106,7 +106,26 @@ class CLIConfig:
 
     @active_project.setter
     def active_project(self, value: str):
+        current = self.get("active_project")
+        if current and current != value:
+            self.set("previous_project", current)
         self.set("active_project", value)
+
+    @property
+    def previous_project(self) -> Optional[str]:
+        """上一个活跃项目 ID（用于快速切回）。"""
+        return self.get("previous_project")
+
+    @property
+    def recent_projects(self) -> list:
+        """最近使用的项目 ID 列表（最多 5 个，按最近顺序）。"""
+        return self.get("recent_projects", []) or []
+
+    def record_recent_project(self, project_id: str):
+        """记录最近使用的项目（去重，最多保留 5 个）。"""
+        recent = [p for p in self.recent_projects if p != project_id]
+        recent.insert(0, project_id)
+        self.set("recent_projects", recent[:5])
 
     @property
     def active_project_path(self) -> Optional[str]:

@@ -10,6 +10,7 @@ import {
   BarChart3, BookOpen, Settings, Plus, FolderOpen, Terminal,
   Lightbulb, Link2, Clock, Eye, ChevronDown, Moon, Zap, TreePine, Network,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
@@ -20,7 +21,7 @@ interface SidebarNavProps {
   onNavigate: (view: string) => void
 }
 
-type TierItem = { id: string; icon: React.ComponentType<{ className?: string }>; key: string }
+type TierItem = { id: string; icon: LucideIcon; key: string }
 
 const tier1Items: TierItem[] = [
   { id: 'timeline', icon: Clock, key: '时间线' },
@@ -75,7 +76,7 @@ export default function SidebarNav({ currentView, onNavigate }: SidebarNavProps)
   const projectActive = (itemId: string) => currentView === itemId
 
   const NavBtn = ({ active, onClick, icon: Icon, label }: {
-    active: boolean; onClick: () => void; icon: React.ComponentType<{ className?: string }>; label: string
+    active: boolean; onClick: () => void; icon: LucideIcon; label: string
   }) => (
     <Button
       variant="ghost"

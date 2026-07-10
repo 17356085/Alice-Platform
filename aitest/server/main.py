@@ -370,7 +370,19 @@ from aitest.server.api.kpi import kpi_router
 from aitest.server.api.kanban import kanban_router
 from aitest.server.api.terminal import terminal_router
 from aitest.server.api.observability import obs_router
+from aitest.server.api.runs import runs_router  # P7-2: 统一执行入口
+from aitest.server.api.quality import quality_router  # P5-1: Quality Loop
+from aitest.server.api.workflows_v1 import workflows_v1_router  # P8-1: Workflow 资源化
+from aitest.server.api.providers_v1 import providers_router  # P6-1: ModelProvider 资源化
+from aitest.server.api.secrets_v1 import secrets_router  # P6-5: Secret Manager
+from aitest.server.api.environments_v1 import environments_router  # P6-4: Environment 资源化
 
+app.include_router(runs_router)  # P7-2: 新端点优先注册
+app.include_router(quality_router)  # P5-1: Quality Loop
+app.include_router(workflows_v1_router)  # P8-1: Workflow 资源化
+app.include_router(providers_router)  # P6-1: ModelProvider 资源化
+app.include_router(secrets_router)  # P6-5: Secret Manager
+app.include_router(environments_router)  # P6-4: Environment 资源化
 app.include_router(platform_router)
 app.include_router(workspace_router)
 app.include_router(execution_router)

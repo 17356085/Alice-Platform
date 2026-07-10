@@ -18,6 +18,12 @@ import uuid
 
 from .database import Base
 
+# Import all models to ensure they're registered with SQLAlchemy
+from aitest.platform.workflow_models import WorkflowModel  # noqa: F401
+from aitest.platform.model_provider_models import ModelProviderModel  # noqa: F401
+from aitest.platform.secret_models import SecretModel, SecretAuditLogModel  # noqa: F401
+from aitest.platform.environment_models import EnvironmentModel  # noqa: F401
+
 
 # ── Platform: Run + Events + Requests ─────────────────────────────────
 
@@ -43,6 +49,9 @@ class RunModel(Base):
     agent_runs = Column(Integer, nullable=False, default=0)
     artifacts = Column(JSONB, nullable=False, default=list)
     error_message = Column(Text, nullable=False, default="")
+
+    # P6-1: ModelProvider 关联（可选，向后兼容）
+    provider_id = Column(String(64), nullable=True, default=None)
 
 
 class RunEventModel(Base):
@@ -190,3 +199,28 @@ class ChatSessionModel(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+
+
+# ── Quality Loop: Dataset/Evaluation/Experiment (P5-1) ────────────────
+
+from aitest.platform.quality_models import DatasetModel, EvaluationModel, ExperimentModel
+
+# ── Workflow: Graph Model (P8-1) ───────────────────────────────────────
+
+from aitest.platform.workflow_models import WorkflowModel
+
+__all__ = [
+    "Base",
+    "RunModel",
+    "RunEventModel",
+    "ExecutionRequestModel",
+    "TaskModel",
+    "AuditEntryModel",
+    "BugModel",
+    "ArtifactLineageModel",
+    "ChatSessionModel",
+    "DatasetModel",
+    "EvaluationModel",
+    "ExperimentModel",
+    "WorkflowModel",
+]

@@ -110,34 +110,49 @@ project/
 
 ```yaml
 # .tlo/project.yaml — 项目对平台的唯一声明
-
-version: 1
+# 
+# ⚠️ 实际 Schema 定义在 aitest/runtime/context.py::ProjectConfig
+#    此处文档与代码保持同步（P1-1 统一修复 2026-07-10）
 
 project:
-  id: "web-automation"
-  name: "鞍集涂源管理系统"
+  id: "web-automation"            # 项目唯一标识
+  name: "鞍集涂源管理系统"           # 显示名称
+
+application:
   type: "web"                     # web | miniapp | api
+  runtime: "browser"              # browser | miniapp-simulator
 
 connection:
   base_url: "https://..."
   login_required: true
-  login_method: "form"
+  login_method: "form"            # form | sso | api
 
-test:
-  type: "pytest-selenium"         # pytest-selenium | jest-miniprogram | playwright
-  page_objects: "page/"
-  scripts: "script/"
+discovery:
+  strategy: "browser-use"         # browser-use | static-analysis
 
-runtime:
-  engine: "langgraph"
-  provider: "claude"
+knowledge:
+  chroma_namespace: "web-automation"  # 向量数据库命名空间
 
-# 未来扩展:
-# agents:
-# knowledge:
+test_project:
+  code_path: "ZJSN_Test-master526"    # 测试代码相对路径（相对于 workstudy）
+  type: "pytest-selenium"             # pytest-selenium | playwright | jest
+  categories:                         # 测试分类（可选）
+    - smoke
+    - functional
+
+# 未来扩展字段（SDK 2.0+）:
+# version: 1                      # Schema 版本
+# runtime:
+#   engine: "langgraph"
+#   provider: "claude"
+# agents:                         # 自定义 Agent 配置
+# environments:                   # 多环境支持
 ```
 
-Schema 保持最小化。字段按需添加，不影响已有 Agent。
+**Schema 演进原则**：
+- 当前 schema 由 `aitest/runtime/context.py::ProjectConfig` 类定义（单一事实源）
+- 字段按需添加，保持向后兼容
+- 新增字段通过 `ProjectConfig.from_yaml()` 解析时提供默认值
 
 ---
 

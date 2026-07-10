@@ -118,9 +118,15 @@ class StartExecutionRequest(BaseModel):
 
 # ── POST /api/workspaces/:ws_id/executions ──────────────────────────
 
-@execution_router.post("/workspaces/{ws_id}/executions")
+@execution_router.post("/workspaces/{ws_id}/executions", deprecated=True)
 async def start_execution(ws_id: str, req: StartExecutionRequest, request: Request):
     """Start a new execution. Creates ExecutionRequest → dispatches → Run.
+
+    ⚠️ **DEPRECATED**: Use `POST /api/v1/runs` instead. This endpoint will be removed in 6 months.
+
+    Migration guide:
+    - Replace `/api/workspaces/{ws_id}/executions` with `/api/v1/runs`
+    - Map request body: `agent` → `target.id`, `module`/`pages` → `params.*`, `provider` → `runtime.provider`
 
     Returns ExecutionResult with request_id, run_id, status, summary.
     """

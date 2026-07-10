@@ -9,8 +9,9 @@
 # 修改 Agent 行为时，只修改此文件。
 # 运行 python -m aitest.check_agent_drift 检测派生文件是否过期。
 
-version: "2.2"
-last_updated: "2026-06-23"
+version: "2.5"
+last_updated: "2026-07-10"
+# v2.5: P1-2 版本号统一修复（与 main.py 对齐）
 # v2.2: + capabilities field per agent (v0.4 Capability Enforcement)
 
 # ═══════════════════════════════════════════════════════

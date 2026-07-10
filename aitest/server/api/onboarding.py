@@ -20,7 +20,7 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-onboarding_router = APIRouter(prefix="/api/onboarding", tags=["onboarding"])
+onboarding_router = APIRouter(prefix="/api/v1/onboarding", tags=["onboarding"])
 
 # ── In-memory agent store (shared with project_onboarding_agent) ─────────
 # ★ v2.9: OwnedDict — single owner, auto-lifecycle, OwnershipChecker-verifiable.

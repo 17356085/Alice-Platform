@@ -2,16 +2,23 @@
 
 解耦: governance_path 通过参数传入。
 
+P4-1: 支持 skill 版本绑定（v2.0 格式）
+- v1.0: skills: ["project/skill-name"]
+- v2.0: skills: [{id: "project/skill-name", version: "1.2.0"}]
+
 用法:
     from alice_engine.core.agent_definitions import AgentDefinitions
 
     defs = AgentDefinitions(governance_path="./governance")
-    skills = defs.get_skills("automation-agent")
+    skills = defs.get_skills("automation-agent")  # 返回 List[SkillRef]
     agent_def = defs.get_definition("automation-agent")
 """
 
 import logging
 from pathlib import Path
+from typing import List
+
+from .skill_ref import SkillRef
 
 logger = logging.getLogger(__name__)
 
@@ -61,10 +68,21 @@ class AgentDefinitions:
         self._cache: dict | None = None
         self._skill_map_cache: dict | None = None
 
-    def get_skills(self, agent_name: str) -> list[str]:
-        """获取 Agent 的 Skill 列表。"""
+    def get_skills(self, agent_name: str) -> List[SkillRef]:
+        """获取 Agent 的 Skill 列表（返回 SkillRef 对象）。
+
+        兼容 v1.0 和 v2.0 格式：
+        - v1.0: ["project/skill"] → [SkillRef(id="project/skill", version="latest")]
+        - v2.0: [{"id": "project/skill", "version": "1.2.0"}] → [SkillRef(...)]
+        """
         skill_map = self._load_skill_map()
-        return skill_map.get(agent_name, [])
+        raw_skills = skill_map.get(agent_name, [])
+        return [SkillRef.parse(s) for s in raw_skills]
+
+    def get_skills_legacy(self, agent_name: str) -> list[str]:
+        """获取 Agent 的 Skill 列表（仅返回 ID，向后兼容）。"""
+        skill_refs = self.get_skills(agent_name)
+        return [ref.id for ref in skill_refs]
 
     def get_definition(self, agent_name: str) -> dict:
         """获取 Agent 的完整定义。"""
@@ -82,7 +100,11 @@ class AgentDefinitions:
         return definition.get("model_tier", "balanced")
 
     def _load_skill_map(self) -> dict:
-        """加载 Agent → Skill 映射。"""
+        """加载 Agent → Skill 映射（保留原始格式：str 或 dict）。
+
+        返回格式：{"agent-id": [raw_skill_entry, ...]}
+        raw_skill_entry 可以是 str (v1.0) 或 dict (v2.0)
+        """
         if self._skill_map_cache is not None:
             return self._skill_map_cache
 

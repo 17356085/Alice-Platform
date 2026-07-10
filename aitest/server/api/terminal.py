@@ -12,7 +12,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-terminal_router = APIRouter(tags=["terminal"])
+terminal_router = APIRouter(prefix="/api/v1/terminal", tags=["terminal"])
 
 
 class AgentTerminalWSManager:
@@ -220,7 +220,7 @@ def get_agent_terminal_ws() -> AgentTerminalWSManager:
 _WS_IDLE_TIMEOUT = 300  # 5 minutes
 
 
-@terminal_router.websocket("/ws/agent-terminal")
+@terminal_router.websocket("/ws")
 async def agent_terminal_websocket(ws: WebSocket):
     await _agent_terminal_ws.connect(ws)
     try:

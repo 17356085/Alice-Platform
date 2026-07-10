@@ -5,9 +5,9 @@ Provides error interception, base URL management, SSE streaming helper.
 
 Usage:
   import { api } from '@/api/client'
-  const data = await api.get('/api/sop-status')
-  await api.post('/api/chat/sessions', { title: 'New Chat' })
-  const es = api.streamSSE('/api/chat/sessions/x/stream/y')
+  const data = await api.get('/api/v1/kpi/sop-status')
+  await api.post('/api/v1/chat/sessions', { title: 'New Chat' })
+  const es = api.streamSSE('/api/v1/chat/sessions/x/stream/y')
 */
 
 export class ApiError extends Error {

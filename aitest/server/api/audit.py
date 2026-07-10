@@ -16,10 +16,10 @@ from datetime import datetime
 
 from fastapi import APIRouter
 
-audit_router = APIRouter(prefix="/api", tags=["audit"])
+audit_router = APIRouter(prefix="/api/v1/audit", tags=["audit"])
 
 
-@audit_router.get("/audit/state")
+@audit_router.get("/state")
 async def audit_state(module: str = "equipment", repair: bool = False):
     try:
         from aitest.audit_engine.state_auditor import StateAuditor
@@ -28,7 +28,7 @@ async def audit_state(module: str = "equipment", repair: bool = False):
         return {"error": str(e)[:300], "overall_status": "error", "drift_count": 0, "error_count": 1}
 
 
-@audit_router.get("/audit/sop")
+@audit_router.get("/sop")
 async def audit_sop(module: str = "equipment", days: int = 7):
     try:
         from aitest.audit_engine.sop_auditor import SOPAuditor
@@ -37,7 +37,7 @@ async def audit_sop(module: str = "equipment", days: int = 7):
         return {"error": str(e)[:300], "overall_compliance": 0, "total_violations": 0}
 
 
-@audit_router.get("/audit/cost")
+@audit_router.get("/cost")
 async def audit_cost(days: int = 7):
     try:
         from aitest.audit_engine.cost_auditor import CostAuditor
@@ -46,7 +46,7 @@ async def audit_cost(days: int = 7):
         return {"error": str(e)[:300], "total_cost": 0, "alert_count": 0}
 
 
-@audit_router.get("/audit/safety")
+@audit_router.get("/safety")
 async def audit_safety(module: str = "equipment", days: int = 7):
     try:
         from aitest.audit_engine.safety_auditor import SafetyAuditor
@@ -55,7 +55,7 @@ async def audit_safety(module: str = "equipment", days: int = 7):
         return {"error": str(e)[:300], "overall_status": "error", "safety_score": 0}
 
 
-@audit_router.get("/audit/governance")
+@audit_router.get("/governance")
 async def audit_governance(module: str = "equipment", days: int = 7):
     result = {"module": module, "timestamp": datetime.now().isoformat()}
     try:

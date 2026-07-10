@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from typing import Optional
 from aitest.platform.paths import get_workstudy
 
-workflows_router = APIRouter(prefix="/api/workflow", tags=["Workflows"])
+workflows_router = APIRouter(prefix="/api/v1/workflows", tags=["Workflows"])
 
 WORKSTUDY = get_workstudy().parent
 WORKFLOW_DIR = WORKSTUDY / "governance" / "workflows"
@@ -72,7 +72,7 @@ async def trigger_workflow(req: WorkflowRunRequest):
             "mode": mode,
             "events_count": len(events),
             "completed_phases": final.values.get("completed_phases", []) if final and final.values else [],
-            "poll_url": f"/api/workflow/graph-status/{initial_state['run_id']}",
+            "poll_url": f"/api/v1/workflows/graph-status/{initial_state['run_id']}",
         }
     except Exception as e:
         import traceback

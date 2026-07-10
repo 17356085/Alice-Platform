@@ -77,7 +77,7 @@ export default function AgentTerminalView() {
   const connect = useCallback(() => {
     if (wsRef.current) wsRef.current.close()
     setConnecting(true)
-    const socket = api.connectWS('/ws/agent-terminal')
+    const socket = api.connectWS('/api/v1/terminal/ws')
     wsRef.current = socket
     socket.onopen = () => { setConnected(true); setConnecting(false) }
     socket.onclose = () => { setConnected(false); setConnecting(false) }

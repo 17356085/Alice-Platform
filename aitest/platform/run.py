@@ -54,9 +54,19 @@ class Run:
     # ── Who / What ──────────────────────────────────────────────────────
     triggered_by: str                   # user_id or api_key_id
     capability: str = "browser"         # Platform capability: browser|cli|mcp|api
+
+    # ── Legacy fields (向后兼容，Phase 2 保留) ──────────────────────────
     agent: str = ""                     # Agent name: automation-agent|execution-agent|...
     module: str = ""                    # Target module
     pages: list[str] = field(default_factory=list)
+
+    # ── P7-2 Phase 2: 新资源模型字段 ─────────────────────────────────────
+    target_type: str = "agent"          # agent|workflow|skill|evaluation
+    target_id: str = ""                 # 执行目标唯一标识
+    target_version: str = "latest"      # 版本号或 "latest"
+    environment_id: str = ""            # 环境ID（多环境部署）
+    parent_run_id: str = ""             # 父 Run ID（链式执行）
+
     mode: str = "full"                  # full|status|from_automation
 
     # ── Lifecycle ───────────────────────────────────────────────────────
@@ -135,9 +145,16 @@ class Run:
             "org_id": self.org_id,
             "triggered_by": self.triggered_by,
             "capability": self.capability,
+            # Legacy fields
             "agent": self.agent,
             "module": self.module,
             "pages": self.pages,
+            # P7-2 Phase 2: 新字段
+            "target_type": self.target_type,
+            "target_id": self.target_id,
+            "target_version": self.target_version,
+            "environment_id": self.environment_id,
+            "parent_run_id": self.parent_run_id,
             "mode": self.mode,
             "status": self.status,
             "created_at": self.created_at,

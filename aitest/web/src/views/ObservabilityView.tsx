@@ -1,6 +1,6 @@
 /** Observability — real-time resource dashboards.
  *
- *  Fetches /api/observability/snapshot every 10s.
+ *  Fetches /api/v1/observability/snapshot every 10s.
  *  Tabs: Overview | Memory | Threads&Tasks | Queue&WS | Storage
  */
 import { useState, useEffect, useCallback } from 'react'
@@ -49,7 +49,7 @@ export default function ObservabilityView() {
 
   const fetchSnapshot = useCallback(async () => {
     try {
-      const data = await api.get<Snapshot>('/api/observability/snapshot')
+      const data = await api.get<Snapshot>('/api/v1/observability/snapshot')
       setSnap(data)
       setError('')
     } catch (e: unknown) {

@@ -64,11 +64,18 @@ class McpServerConfig:
 #  Registry (lazy load from registry.py)
 # ═══════════════════════════════════════════════════════════════════════════
 
-def _get_registry() -> dict[str, McpServerConfig]:
-    """Lazy-load MCP server registry."""
+def _get_registry(use_db: bool = True) -> dict[str, McpServerConfig]:
+    """Lazy-load MCP server registry (支持数据库动态加载).
+
+    Args:
+        use_db: 是否从数据库加载（默认 True），False 则使用硬编码配置
+
+    Returns:
+        {mcp_server_id: McpServerConfig}
+    """
     try:
-        from aitest.mcp.registry import MCP_SERVER_REGISTRY
-        return MCP_SERVER_REGISTRY
+        from aitest.mcp.registry import get_mcp_server_registry
+        return get_mcp_server_registry(use_db=use_db)
     except Exception:
         return {}
 
@@ -108,6 +115,7 @@ async def create_mcp_client(config: McpServerConfig) -> McpClientResult:
 async def create_mcp_clients_for_agent(
     agent_type: str,
     env: dict[str, str] = None,
+    use_db: bool = True,
 ) -> list[McpClientResult]:
     """Create MCP clients for all servers required by an agent type.
 
@@ -118,14 +126,15 @@ async def create_mcp_clients_for_agent(
     Args:
         agent_type: Agent type name (e.g. "qa_reviewer", "automation-agent").
         env: Optional environment variables for server processes.
+        use_db: 是否从数据库加载配置（默认 True），False 则使用硬编码
 
     Returns:
         List of McpClientResult (successful connections only).
     """
     from aitest.mcp.registry import get_agent_mcp_servers
 
-    server_ids = get_agent_mcp_servers(agent_type)
-    registry = _get_registry()
+    server_ids = get_agent_mcp_servers(agent_type, use_db=use_db)
+    registry = _get_registry(use_db=use_db)
 
     clients: list[McpClientResult] = []
     for sid in server_ids:

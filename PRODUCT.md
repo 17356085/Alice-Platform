@@ -6,22 +6,51 @@ product
 
 ## Users
 
-QA 工程师 / 测试负责人。日常工作是运行自动化测试 SOP、查看测试报告、调试失败用例。不是开发者，不需要理解代码；但需要足够的技术信息来定位问题。
+**Primary User: QA Agent Builder**
 
-单一角色。无需权限分层或多租户。
+理解 Agent、Skill、Prompt、Tool 概念，能配置项目、创建 Dataset、评估失败 Run、调试 Agent 行为、改进 Prompt、提交新版本到 CI。日常工作是构建和改进测试 Agent，而非编写传统测试代码。
+
+**Secondary User: QA Operator**
+
+选择项目、运行已配置的 Workflow、查看测试报告、浏览失败截图和日志。不修改 Agent 内部配置，不理解 Prompt 细节。依赖 QA Agent Builder 提供的现成 Workflow。
+
+**明确不是目标用户**：
+- 非技术业务用户（需要零门槛拖拽式 Agent）
+- 开发者（需要通用 Agent 平台和 Marketplace）
+- 企业 IT 管理员（需要复杂权限、部署编排、审计）
+
+单租户/小团队定位。权限分层和多租户不是 MVP 范围。
 
 ## Product Purpose
 
-Alice Studio — AI Agent 编排平台。让 QA 工程师通过可视化界面管理、运行、监控自动化测试 SOP。
+**Alice = Testing-first QA Agent Builder Platform**
 
-核心任务：
-- 导入被测系统，自动发现页面结构
-- 启动 SOP 运行（8-Phase 测试流水线）
-- 实时监控 Agent 执行状态
-- 查看测试报告和产物
-- 通过时间线定位失败原因
+让 QA Agent Builder 构建、调试、改进测试 Agent 的平台。核心差异不是"能运行测试"（传统测试平台都能），而是"能改进失败的 Agent"。
 
-成功 = 用户不需要翻日志就能理解测试状态，不需要写代码就能修复定位器。
+**核心循环**：
+```
+失败 Run → 选中失败步骤 → 查看 Trace/Screenshot/DOM/Console
+          ↓
+保存为 Dataset Example
+          ↓
+修改 Agent/Prompt
+          ↓
+运行 Evaluation（对比新旧版本通过率、失败类型、Token 成本）
+          ↓
+Experiment 决策：Promote 新版本 or Reject
+```
+
+这是 Alice 与传统测试报告系统的根本区别：**失败不是终点，而是下一轮 Agent 改进的输入**。
+
+**核心任务**：
+- 初始化项目（discover 页面结构、定义测试范围）
+- 构建 Workflow（选择/配置 Agent、定义执行图）
+- 运行测试（创建 Run、实时查看 Trace）
+- 调试失败（查看 Artifact、保存为 Dataset）
+- 改进 Agent（修改 Prompt/Skill、运行 Evaluation、对比新旧版本）
+- 提交生产（Promote 到 :production alias、集成 CI）
+
+成功 = QA Agent Builder 不需要翻日志就能定位 Agent 失败原因，不需要写代码就能改进 Prompt 质量，通过 Evaluation 数据驱动地决策是否发布新版本。
 
 ## Brand Personality
 

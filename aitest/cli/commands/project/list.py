@@ -47,15 +47,31 @@ def list_command(
     table.add_column("路径")
     table.add_column("来源")
 
+    recent_ids = config.recent_projects[:5]  # 最近 5 个
+
     for project in projects:
+        pid = project.get("id", "")
         active_mark = "●" if project.get("active") else ""
-        active_style = "green" if project.get("active") else "dim"
+
+        # 最近使用的项目标记为黄色
+        if pid in recent_ids and not project.get("active"):
+            active_style = "yellow"
+            active_mark = "◆"  # 最近项目标记
+        elif project.get("active"):
+            active_style = "green"
+        else:
+            active_style = "dim"
+
         table.add_row(
             f"[{active_style}]{active_mark}[/{active_style}]",
-            project.get("id", ""),
+            pid,
             project.get("name", ""),
             project.get("path", ""),
             project.get("source", ""),
         )
 
     console.print(table)
+
+    # 显示最近使用的项目提示
+    if recent_ids:
+        console.print("\n[dim]图例: ● 活跃项目  ◆ 最近使用  使用 'aitest project set --id=-' 切换到上一个项目[/dim]")

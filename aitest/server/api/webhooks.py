@@ -77,7 +77,7 @@ async def jenkins_webhook(request: Request):
             "action": "trigger_bug_analysis",
             "module": module,
             "task_id": task_id,
-            "poll_url": f"/api/agent/task/{task_id}",
+            "poll_url": f"/api/v1/agents/task/{task_id}",
             "build_id": build_id,
         }
 
@@ -91,7 +91,7 @@ async def jenkins_webhook(request: Request):
             "action": "trigger_report",
             "module": module,
             "task_id": task_id,
-            "poll_url": f"/api/agent/task/{task_id}",
+            "poll_url": f"/api/v1/agents/task/{task_id}",
             "build_id": build_id,
         }
 

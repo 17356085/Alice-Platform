@@ -44,7 +44,7 @@ function connect() {
   }
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
   try {
-    ws = api.connectWS('/ws/kanban')
+    ws = api.connectWS('/api/v1/kanban/ws')
     ws.onopen = () => {
       connected = true
       reconnectAttempts = 0

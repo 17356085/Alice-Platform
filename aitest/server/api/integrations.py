@@ -10,7 +10,7 @@ from fastapi import APIRouter, Request, HTTPException
 
 logger = logging.getLogger(__name__)
 
-integrations_router = APIRouter(prefix="/api/integrations", tags=["integrations"])
+integrations_router = APIRouter(prefix="/api/v1/integrations", tags=["integrations"])
 
 
 @integrations_router.get("/status")

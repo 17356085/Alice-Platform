@@ -90,7 +90,7 @@ export default function StepResults() {
       setActive(projectId)
 
       // Save project config to backend
-      await api.post('/api/onboarding/config', {
+      await api.post('/api/v1/onboarding/config', {
         project_id: projectId,
         test_categories: testCategories,
         test_tech: testTech,

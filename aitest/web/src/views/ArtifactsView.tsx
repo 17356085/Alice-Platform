@@ -92,7 +92,7 @@ export default function ArtifactsView() {
   const fetchArtifacts = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await api.get<{ artifacts: ArtifactItem[] }>(`/api/artifacts/${projectId}/all`)
+      const data = await api.get<{ artifacts: ArtifactItem[] }>(`/api/v1/kpi/artifacts/${projectId}/all`)
       setArtifacts(data.artifacts || [])
     } catch { setArtifacts([]) }
     finally { setLoading(false) }
@@ -106,7 +106,7 @@ export default function ArtifactsView() {
     let cancelled = false
     setContentLoading(true)
     api.get<ArtifactContent>(
-      `/api/artifacts/${projectId}/content?module=${encodeURIComponent(selected.module)}&page=${encodeURIComponent(selected.page)}&name=${encodeURIComponent(selected.name)}`
+      `/api/v1/kpi/artifacts/${projectId}/content?module=${encodeURIComponent(selected.module)}&page=${encodeURIComponent(selected.page)}&name=${encodeURIComponent(selected.name)}`
     ).then(data => { if (!cancelled) setContent(data) })
     .catch(() => { if (!cancelled) setContent(null) })
     .finally(() => { if (!cancelled) setContentLoading(false) })
@@ -130,7 +130,7 @@ export default function ArtifactsView() {
 
   // Download handler
   const handleDownload = (item: ArtifactItem) => {
-    const url = `/api/artifacts/${projectId}/download?module=${encodeURIComponent(item.module)}&page=${encodeURIComponent(item.page)}&name=${encodeURIComponent(item.name)}`
+    const url = `/api/v1/kpi/artifacts/${projectId}/download?module=${encodeURIComponent(item.module)}&page=${encodeURIComponent(item.page)}&name=${encodeURIComponent(item.name)}`
     window.open(url, '_blank')
   }
 
@@ -395,7 +395,7 @@ function ArtifactContentRenderer({ content }: { content: ArtifactContent }) {
   if (content.mime_type === 'text/markdown' || content.name.endsWith('.md')) {
     return (
       <div className="prose prose-sm prose-invert max-w-none">
-        <Markdown text={content.content} />
+        <Markdown content={content.content} />
       </div>
     )
   }

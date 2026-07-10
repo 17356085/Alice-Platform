@@ -28,6 +28,13 @@ from aitest.adapters.llm.provider_base import LLMResponse, StreamEvent, LLMProvi
 from alice_engine.providers import list_providers as _sdk_list_providers
 from alice_engine.providers import get_provider as _sdk_get_provider
 
+# ── Provider class re-exports (P0-1 fix: aitest.llm.provider 依赖这些名称) ──
+from alice_engine.providers.claude import ClaudeProvider  # noqa: F401
+from alice_engine.providers.openai import OpenAIProvider  # noqa: F401
+from alice_engine.providers.ollama import OllamaProvider  # noqa: F401
+from alice_engine.providers.deepseek import DeepSeekProvider  # noqa: F401
+from alice_engine.providers.mimo import MiMoProvider  # noqa: F401
+
 
 PROVIDER_REGISTRY = {name: None for name in _sdk_list_providers()}
 
@@ -36,27 +43,52 @@ PROVIDER_REGISTRY = {name: None for name in _sdk_list_providers()}
 # ══════════════════════════════════════════════════════════════════════════
 
 
-def get_provider(name: str = "claude", **kwargs) -> LLMProvider:
+def get_provider(name: str = "claude", provider_id: str = None, **kwargs) -> LLMProvider:
     """
     工厂函数：根据名称创建 LLM Provider 实例。
 
     参数:
         name: Provider 名称 — "claude" | "openai" | "ollama" | "deepseek" | "mimo" | "mock"
+        provider_id: ModelProvider 资源 ID（P6-1），优先从 ModelProviderStore 加载配置
         **kwargs: 传递给 Provider __init__ 的额外参数（如 model, api_key, base_url）
 
     返回:
         LLMProvider 实例（已自动包装 tracer）
 
-    架构 (PH8-PR-8.6+):
-        委托给 alice_engine.providers.get_provider() (单一事实源)，
-        平台层仅负责：API key 注入、trace 装饰器包装。
+    架构 (P6-1+):
+        1. 如果提供 provider_id，从 ModelProviderStore 加载配置
+        2. 否则从环境变量加载（向后兼容）
+        3. 委托给 alice_engine.providers.get_provider() (单一事实源)
+        4. 平台层负责：API key 注入、trace 装饰器包装
 
     用法:
-        llm = get_provider("claude")
+        llm = get_provider("claude")  # 从环境变量
+        llm = get_provider("claude", provider_id="anthropic-prod")  # 从 ModelProviderStore
         llm = get_provider("openai", model="gpt-4o-mini")
         llm = get_provider("ollama", model="qwen3:14b", base_url="http://localhost:11434")
         llm = get_provider("deepseek", model="deepseek-v4-flash")
     """
+    # P6-1: 优先从 ModelProviderStore 加载配置
+    if provider_id:
+        try:
+            from aitest.platform.model_provider_store import get_model_provider_store
+            store = get_model_provider_store()
+            provider_config = store.get_provider(provider_id)
+
+            if provider_config and provider_config.is_active():
+                # 合并 ModelProvider 配置到 kwargs
+                provider_kwargs = provider_config.to_provider_kwargs()
+                kwargs = {**provider_kwargs, **kwargs}  # kwargs 优先级更高
+                name = provider_config.type  # 使用 provider 的 type
+            else:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"[get_provider] Provider not found or inactive: {provider_id}, falling back to env")
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"[get_provider] Failed to load provider {provider_id}: {e}, falling back to env")
+
     # 注入平台密钥（如果 kwargs 未提供 api_key）
     if "api_key" not in kwargs:
         from aitest.runtime.config import config as _cfg

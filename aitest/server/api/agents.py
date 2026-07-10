@@ -11,7 +11,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
 
-agents_router = APIRouter(prefix="/api/agent", tags=["Agents"])
+agents_router = APIRouter(prefix="/api/v1/agents", tags=["Agents"])
 
 
 class AgentRunRequest(BaseModel):
@@ -42,7 +42,7 @@ async def trigger_agent_async(req: AgentRunRequest):
         "module": req.module,
         "page": req.page or "N/A",
         "provider": req.provider,
-        "poll_url": f"/api/agent/task/{task_id}",
+        "poll_url": f"/api/v1/agents/task/{task_id}",
     }
 
 
