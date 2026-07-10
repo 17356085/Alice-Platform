@@ -46,10 +46,10 @@ class LiveEngineAdapter:
         # 加载 extensions
         extensions = kwargs.get("extensions")
         if extensions:
-            from aitest.engine.extensions import (
-                AuditExtension, ComplexityExtension,
-                KnowledgeExtension, MemoryExtension,
-            )
+            # SDK 扩展（全部从 alice_engine 导入）
+            from alice_engine import AuditExtension, ComplexityExtension
+            from alice_engine.extensions import KnowledgeExtension, MemoryExtension
+
             ext_map = {
                 "audit": AuditExtension,
                 "complexity": ComplexityExtension,

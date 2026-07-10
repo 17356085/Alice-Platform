@@ -1,19 +1,20 @@
 """
-Engine Extensions — 可插拔子引擎。
+Engine Extensions — 向后兼容层，re-export SDK Extensions。
 
-每个 Extension 实现 EngineExtension 协议，在 Engine 生命周期钩子中运行。
+推荐直接使用 SDK 导入：
+    from alice_engine import AuditExtension, ComplexityExtension
+    from alice_engine.extensions import KnowledgeExtension, MemoryExtension
 
 可用 Extensions:
   - AuditExtension:       状态漂移 + SOP 合规审计
   - ComplexityExtension:  按复杂度选择 SOP 流水线
   - KnowledgeExtension:   跨 Run 知识复用
-  - MemoryExtension:      ChromaDB 向量记忆
+  - MemoryExtension:      执行历史记忆
 """
 
-from aitest.engine.extensions.audit import AuditExtension
-from aitest.engine.extensions.complexity import ComplexityExtension
-from aitest.engine.extensions.knowledge import KnowledgeExtension
-from aitest.engine.extensions.memory import MemoryExtension
+# 从 SDK 导入（向后兼容）
+from alice_engine import AuditExtension, ComplexityExtension
+from alice_engine.extensions import KnowledgeExtension, MemoryExtension
 
 __all__ = [
     "AuditExtension",

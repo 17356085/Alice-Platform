@@ -1,0 +1,230 @@
+<mxfile host="app.diagrams.net" modified="2026-07-09T12:05:00.000Z" agent="Claude" version="21.0.0">
+  <diagram name="SDK 包架构" id="sdk-architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="AITest Platform - SDK 包架构" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="20" width="700" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Dependency Arrow -->
+        <mxCell id="main-dep-arrow" value="alice-engine → alice-governance（单向依赖）" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#FF0000;fontColor=#FF0000;fontSize=14;fontStyle=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="700" y="75" as="sourcePoint" />
+            <mxPoint x="1100" y="75" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- alice-engine Package -->
+        <mxCell id="engine-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="620" height="450" as="geometry" />
+        </mxCell>
+        <mxCell id="engine-title" value="alice-engine (运行时引擎 SDK)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="110" width="500" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="engine-path" value="packages/alice-engine/alice_engine/" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="200" y="135" width="300" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Core Module -->
+        <mxCell id="core-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="165" width="280" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="core-label" value="core/ (核心模块)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="170" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="executor" value="executor.py&#xa;AgentLoop&#xa;Perceive→Plan→Act→Observe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="75" y="195" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="planner" value="planner.py&#xa;规划器&#xa;任务分解" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="205" y="195" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="task" value="task.py&#xa;AgentState&#xa;AgentEvent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="75" y="255" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="skill-loader" value="skill_loader.py&#xa;Skill 加载" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="205" y="255" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="skill-registry" value="skill_registry.py&#xa;Skill 注册" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="75" y="315" width="120" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Workflow Module -->
+        <mxCell id="workflow-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="360" y="165" width="280" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="workflow-label" value="workflow/ (工作流)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="170" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sop-runner" value="sop_runner.py&#xa;SOP 执行器&#xa;LangGraph 编排" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="375" y="195" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="state" value="state.py&#xa;SOP 状态&#xa;状态机管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="505" y="195" width="120" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Providers Module -->
+        <mxCell id="providers-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="360" y="300" width="280" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="providers-label" value="providers/ (LLM Provider)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="305" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm-provider" value="provider.py&#xa;LLM 接口&#xa;多模型抽象" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="375" y="330" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="reliable" value="reliable_provider.py&#xa;Retry(3x)+Fallback" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="505" y="330" width="120" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Other Modules -->
+        <mxCell id="other-modules" value="adapters/ | audit/ | runtime/ | extensions/ | _internal/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=9;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="395" width="580" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Key Classes -->
+        <mxCell id="key-classes" value="关键类: AgentLoop, AgentState, AgentEvent, SOPRunner, LLMProvider" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#0066CC;" vertex="1" parent="1">
+          <mxGeometry x="60" y="435" width="580" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- alice-governance Package -->
+        <mxCell id="governance-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="700" y="100" width="660" height="450" as="geometry" />
+        </mxCell>
+        <mxCell id="governance-title" value="alice-governance (治理 SDK)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="800" y="110" width="500" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="governance-path" value="packages/alice-governance/alice_governance/" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="870" y="135" width="350" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Agents Module -->
+        <mxCell id="agents-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="720" y="165" width="300" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="agents-label" value="agents/ (Agent 定义)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="170" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="test-agents" value="8 个测试 Agent&#xa;SOP 编排" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="735" y="195" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dev-agents" value="9 个开发 Agent&#xa;Dev SOP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="875" y="195" width="130" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Skills Module -->
+        <mxCell id="skills-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="720" y="280" width="300" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="skills-label" value="skills/ (Skill 提示)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="285" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="test-skills" value="24 个测试 Skill&#xa;governance/skills/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="735" y="310" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dev-skills" value="32 个开发 Skill&#xa;governance/skills-dev/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="875" y="310" width="130" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Context & Knowledge -->
+        <mxCell id="context-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="720" y="395" width="300" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="context-label" value="context/ &amp; knowledge/" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="400" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="context-info" value="共享语言&#xa;业务术语&#xa;歧义消除" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="735" y="425" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="knowledge-info" value="知识库&#xa;RAG 引擎&#xa;向量检索" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="875" y="425" width="130" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Validators -->
+        <mxCell id="validators-box" value="validators/ (验证器) | sop_dev/ (开发 SOP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=9;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="490" width="300" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Artifacts -->
+        <mxCell id="artifacts-box" value="artifacts/ (制品管理) | context_templates/ (模板)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=9;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="165" width="300" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Key Classes -->
+        <mxCell id="governance-classes" value="关键类: AgentDefinition, SkillPrompt, Validator, KnowledgeBase" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#0066CC;" vertex="1" parent="1">
+          <mxGeometry x="720" y="530" width="500" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- alice-discovery Package -->
+        <mxCell id="discovery-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="580" width="1320" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="discovery-title" value="alice-discovery (发现 SDK) - 项目结构自动发现" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="590" width="500" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="discovery-path" value="packages/alice-discovery/alice_discovery/" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="500" y="615" width="300" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Schema Module -->
+        <mxCell id="schema-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="640" width="380" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="schema-label" value="schema/ (Schema 定义)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="645" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="schema-py" value="schema.py&#xa;数据结构定义" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="75" y="670" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="provenance" value="provenance.py&#xa;来源追踪" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="205" y="670" width="120" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Source Module -->
+        <mxCell id="source-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="460" y="640" width="880" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="source-label" value="source/ (源码分析)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="645" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pipeline" value="pipeline.py&#xa;处理管线" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="475" y="670" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="file-indexer" value="file_indexer.py&#xa;文件索引" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="605" y="670" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="framework-detector" value="framework_detector.py&#xa;框架检测" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="735" y="670" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="backend-detector" value="backend_detector.py&#xa;后端检测" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="885" y="670" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="merger" value="merger.py&#xa;数据合并" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1035" y="670" width="120" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Extractors -->
+        <mxCell id="extractors-label" value="extractors/ (提取器): Vue组件 | Vue路由 | API | 基础类" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=9;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="710" width="880" height="15" as="geometry" />
+        </mxCell>
+
+        <!-- Key Classes -->
+        <mxCell id="discovery-classes" value="关键类: Schema, Provenance, Pipeline, FileIndexer, FrameworkDetector, Extractor" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#0066CC;" vertex="1" parent="1">
+          <mxGeometry x="60" y="735" width="1200" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

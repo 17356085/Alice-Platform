@@ -78,10 +78,9 @@ def run_command(
 
         # 加载 Extensions
         if extensions:
-            from aitest.engine.extensions import (
-                AuditExtension, ComplexityExtension,
-                KnowledgeExtension, MemoryExtension,
-            )
+            from alice_engine import AuditExtension, ComplexityExtension
+            from alice_engine.extensions import KnowledgeExtension, MemoryExtension
+
             ext_map = {
                 "audit": AuditExtension,
                 "complexity": ComplexityExtension,

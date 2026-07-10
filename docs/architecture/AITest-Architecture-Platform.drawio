@@ -1,0 +1,273 @@
+<mxfile host="app.diagrams.net" modified="2026-07-09T12:10:00.000Z" agent="Claude" version="21.0.0">
+  <diagram name="平台层架构" id="platform-architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="AITest Platform - 平台层架构 (aitest/platform/)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="800" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Core Execution Group -->
+        <mxCell id="execution-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="450" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="execution-group-title" value="执行核心 (Execution Core)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="90" width="300" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="execution-svc" value="execution_service.py&#xa;ExecutionService&#xa;编排层核心&#xa;Run 生命周期管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="60" y="125" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="execution-request" value="execution_request.py&#xa;ExecutionRequest&#xa;执行请求数据结构" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="280" y="125" width="190" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="run" value="run.py&#xa;Run&#xa;执行记录数据结构" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="60" y="200" width="200" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="run-store" value="run_store.py&#xa;RunStore&#xa;PG 持久化 (11张表)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="280" y="200" width="190" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="engine-factory" value="engine_factory.py&#xa;EngineFactory&#xa;get_engine() / register_engine()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="60" y="260" width="200" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="execution-worker" value="execution_worker.py&#xa;执行工作器&#xa;异步执行" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="280" y="260" width="190" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Execution Arrows -->
+        <mxCell id="exec-arrow1" value="" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#6c8ebf;" edge="1" parent="1" source="execution-svc" target="run">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="exec-arrow2" value="" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#6c8ebf;" edge="1" parent="1" source="execution-request" target="run-store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Event System Group -->
+        <mxCell id="event-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="520" y="80" width="440" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="event-group-title" value="事件系统 (Event System)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="90" width="300" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="event-bus" value="event_bus.py&#xa;EventBus&#xa;持久化 + 去重&#xa;publish_async()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="540" y="125" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="run-event" value="run_event.py&#xa;RunEvent&#xa;EventType (10 types)&#xa;EventDataKey (16 keys)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="760" y="125" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="event-replay" value="event_replay.py&#xa;事件重放&#xa;PG 去重&#xa;崩溃恢复" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="540" y="200" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="obs-bus" value="observation_bus.py&#xa;ObservationBus&#xa;Agent 内部观测&#xa;20 种事件类型" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="760" y="200" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="event-query" value="event_query.py&#xa;事件查询" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="540" y="275" width="200" height="35" as="geometry" />
+        </mxCell>
+
+        <mxCell id="consumer" value="consumer.py&#xa;RunEventConsumer&#xa;Protocol 定义" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="760" y="275" width="180" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Event Arrows -->
+        <mxCell id="event-arrow1" value="" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#82b366;" edge="1" parent="1" source="event-bus" target="event-replay">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="event-arrow2" value="" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#82b366;dashed=1;" edge="1" parent="1" source="obs-bus" target="event-bus">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bridge-label" value="Bridge" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="event-arrow2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Intelligence Group -->
+        <mxCell id="intelligence-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="990" y="80" width="380" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="intelligence-group-title" value="智能路由 (Intelligence)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="90" width="300" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cap-router" value="capability_router/&#xa;CapabilityRouter&#xa;8 Capabilities × 8 Agents&#xa;Native Tool Calling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="125" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="complexity" value="complexity/&#xa;Complexity&#xa;18 因子评分&#xa;3 档 SOP 路由" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="125" width="150" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="testing-memory" value="testing_memory.py&#xa;TestingMemory&#xa;8 种 Memory 类型&#xa;MemoryLifecycle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="200" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="memory-store" value="testing_memory_store.py&#xa;MemoryStore&#xa;类型化 ChromaDB CRUD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="200" width="150" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="memory-observer" value="memory_observer.py&#xa;MemoryObserver&#xa;Signal 观测" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="275" width="170" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="memory-consumer" value="memory_consumer.py&#xa;MemoryConsumer&#xa;事件消费" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="275" width="150" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Intelligence Arrows -->
+        <mxCell id="intel-arrow1" value="" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#b85450;" edge="1" parent="1" source="cap-router" target="testing-memory">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="intel-arrow2" value="" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#b85450;" edge="1" parent="1" source="complexity" target="memory-store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Hooks Group -->
+        <mxCell id="hooks-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="390" width="600" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="hooks-group-title" value="事件消费者 (Event Consumers / Hooks)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="400" width="400" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="audit-log" value="audit_log.py&#xa;AuditLogger&#xa;priority=0, sync&#xa;通配符 *" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="60" y="435" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="billing" value="hooks/billing_hook.py&#xa;BillingHook&#xa;priority=10, sync&#xa;billing.jsonl" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="250" y="435" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="metrics" value="hooks/metrics_consumer.py&#xa;MetricsConsumer&#xa;priority=20, sync&#xa;PG metrics_daily" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="440" y="435" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="webhook" value="hooks/webhook.py&#xa;WebhookDispatcher&#xa;priority=30, async&#xa;ThreadPoolExecutor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="60" y="505" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="quota" value="hooks/quota_usage.py&#xa;QuotaUsage&#xa;priority=15, sync" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="250" y="505" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="report" value="hooks/report_consumer.py&#xa;ReportConsumer&#xa;priority=20, sync&#xa;AI 报告" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="440" y="505" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Governance & Bridge Group -->
+        <mxCell id="governance-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="670" y="390" width="350" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="governance-group-title" value="治理桥接 (Governance Bridge)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="400" width="280" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="governance-bridge" value="governance_bridge.py&#xa;GovernanceBridge&#xa;Governance events&#xa;→ Platform EventBus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="690" y="435" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="platform-bridge" value="PlatformBridge&#xa;ObservationBus&#xa;→ Platform EventBus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="880" y="435" width="120" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="engine-adapter" value="EngineEventBusAdapter&#xa;Engine events&#xa;→ Platform EventBus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="690" y="505" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="plugin" value="plugin.py&#xa;PluginManager&#xa;插件管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="880" y="505" width="120" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Lifecycle Group -->
+        <mxCell id="lifecycle-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="390" width="320" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="lifecycle-group-title" value="生命周期 &amp; 运维 (Lifecycle)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="400" width="260" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ownership" value="ownership.py&#xa;所有权管理&#xa;31KB 代码" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="435" width="140" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="workspace" value="workspace.py&#xa;工作空间管理&#xa;多租户" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="435" width="130" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="organization" value="organization.py&#xa;组织管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="490" width="140" height="35" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tenant" value="tenant.py&#xa;租户管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="490" width="130" height="35" as="geometry" />
+        </mxCell>
+
+        <mxCell id="scheduler" value="scheduler.py&#xa;定时任务" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="535" width="140" height="25" as="geometry" />
+        </mxCell>
+
+        <mxCell id="versioning" value="versioning.py&#xa;版本管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="535" width="130" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Other Modules Group -->
+        <mxCell id="other-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;arcSize=5;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="600" width="1330" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="other-group-title" value="其他模块 (Other Modules)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="610" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="preflight" value="preflight.py&#xa;执行前检查" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="60" y="640" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="query-layer" value="query_layer.py&#xa;统一查询 API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="230" y="640" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="replay" value="replay.py&#xa;执行回放" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="400" y="640" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="timeline" value="timeline.py&#xa;时间线" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="570" y="640" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="checkpoint" value="checkpoint.py&#xa;检查点" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="740" y="640" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="artifacts" value="artifacts.py&#xa;制品管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="910" y="640" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="knowledge" value="knowledge.py&#xa;知识库集成" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="640" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ui-projection" value="ui_projection.py&#xa;UI 投影" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="640" width="100" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Cross-cutting Concerns -->
+        <mxCell id="concerns-label" value="横切关注点: operational_metrics | performance_baseline | ttl_set | runtime_contracts | sdk_ports | config_registry" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="695" width="1330" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Key Statistics -->
+        <mxCell id="stats-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="725" width="1330" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="stats-text" value="平台层统计: 50+ Python 文件 | 11 张 PG 表 | 10 种 RunEvent | 20 种 ObservationEvent | 6 个 Event Consumer | 2 个 EventBus | 3 个 Bridge" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="50" y="730" width="1310" height="30" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

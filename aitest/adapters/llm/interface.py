@@ -24,13 +24,7 @@ LLM Provider — 统一 Claude / OpenAI / Ollama / DeepSeek 调用接口。
 # ── Backward-compatible re-exports ──────────────────────────────────
 from aitest.adapters.llm.provider_base import LLMResponse, StreamEvent, LLMProvider, _get_config  # noqa: F401
 
-# Legacy imports for backward compatibility (deprecated, will be removed in Phase 9)
-from aitest.llm.providers.claude import ClaudeProvider
-from aitest.llm.providers.openai import OpenAIProvider
-from aitest.llm.providers.ollama import OllamaProvider
-from aitest.llm.providers.deepseek import DeepSeekProvider
-from aitest.llm.providers.mimo import MiMoProvider
-from aitest.llm.providers.mock import MockProvider
+# Phase 9: Legacy aitest.llm.providers.* removed, delegating to SDK
 from alice_engine.providers import list_providers as _sdk_list_providers
 from alice_engine.providers import get_provider as _sdk_get_provider
 

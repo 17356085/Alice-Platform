@@ -1,0 +1,202 @@
+<mxfile host="app.diagrams.net" modified="2026-07-09T12:25:00.000Z" agent="Claude" version="21.0.0">
+  <diagram name="LLM Provider 架构" id="llm-provider-architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="AITest Platform - LLM Provider 架构" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="800" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Provider Layer -->
+        <mxCell id="provider-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="1320" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="provider-title" value="LLM Provider 层 (aitest/llm/ + packages/alice-engine/providers/)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="85" width="600" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Provider Interface -->
+        <mxCell id="provider-interface" value="LLMProvider&#xa;provider.py&#xa;抽象接口&#xa;stream_complete()&#xa;complete()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="120" width="150" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Reliable Provider -->
+        <mxCell id="reliable-provider" value="ReliableProvider&#xa;reliable_provider.py&#xa;Retry (3x)&#xa;Fallback Chain&#xa;错误恢复" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="120" width="150" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Concrete Providers -->
+        <mxCell id="claude-provider" value="ClaudeProvider&#xa;Anthropic API&#xa;claude-sonnet-5&#xa;主力模型" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="420" y="120" width="130" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="deepseek-provider" value="DeepSeekProvider&#xa;DeepSeek API&#xa;DeepSeek-V2&#xa;成本优化" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="570" y="120" width="130" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="openai-provider" value="OpenAIProvider&#xa;OpenAI API&#xa;GPT-4o&#xa;通用能力" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="720" y="120" width="130" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="gemini-provider" value="GeminiProvider&#xa;Google API&#xa;Gemini Pro&#xa;多模态" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="870" y="120" width="130" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mimo-provider" value="MiMoProvider&#xa;Browser-Use&#xa;小米 MiMo&#xa;Web 自动化" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="120" width="130" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Provider Base -->
+        <mxCell id="provider-base" value="provider_base.py&#xa;Provider 基类&#xa;共享逻辑" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="120" width="150" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Context Injector -->
+        <mxCell id="context-injector" value="context_injector.py&#xa;上下文注入&#xa;Prompt 增强" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="180" width="150" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Provider Arrows -->
+        <mxCell id="prov-arrow1" value="implements" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#6c8ebf;dashed=1;" edge="1" parent="1" source="provider-interface" target="reliable-provider">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="prov-arrow2" value="" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#6c8ebf;" edge="1" parent="1" source="reliable-provider" target="claude-provider">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="prov-arrow3" value="Fallback Chain" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#82b366;dashed=1;fontSize=9;" edge="1" parent="1" source="claude-provider" target="deepseek-provider">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="prov-arrow4" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#82b366;dashed=1;" edge="1" parent="1" source="deepseek-provider" target="openai-provider">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Context Window Manager -->
+        <mxCell id="context-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="310" width="1320" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="context-title" value="Context Window Manager (上下文窗口管理)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="315" width="500" height="25" as="geometry" />
+        </mxCell>
+
+        <mxCell id="context-window" value="context_window.py&#xa;ContextWindowManager&#xa;85%/90% 阈值&#xa;窗口监控" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="350" width="150" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="token-counter" value="TokenCounter&#xa;Token 计数&#xa;精确计算" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="240" y="350" width="120" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="summarizer" value="DeepSeekSummarizer&#xa;上下文摘要&#xa;DeepSeek 专用" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="390" y="350" width="130" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="truncator" value="ContextTruncator&#xa;上下文截断&#xa;智能裁剪" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="550" y="350" width="120" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="continuation" value="ContinuationHandler&#xa;续写处理&#xa;长文本分段" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="700" y="350" width="130" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="memory-injection" value="MemoryInjection&#xa;Memory 注入&#xa;上下文增强" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="860" y="350" width="130" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="context-stats" value="使用统计&#xa;Token 消耗&#xa;成本计算" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="350" width="120" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Context Arrows -->
+        <mxCell id="ctx-arrow1" value="" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#82b366;" edge="1" parent="1" source="context-window" target="token-counter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ctx-arrow2" value="> 85%" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#b85450;fontSize=9;" edge="1" parent="1" source="token-counter" target="summarizer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ctx-arrow3" value="> 90%" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#d79b00;fontSize=9;" edge="1" parent="1" source="token-counter" target="truncator">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ctx-arrow4" value="" style="endArrow=classic;html=1;strokeWidth=1;strokeColor=#82b366;" edge="1" parent="1" source="context-window" target="continuation">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Context Details -->
+        <mxCell id="context-details" value="阈值策略: 85% → DeepSeek 摘要 | 90% → 强制截断 | Memory 自动注入 | 长文本续写 | 成本优化" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="60" y="410" width="900" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Provider Features -->
+        <mxCell id="features-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="490" width="1320" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="features-title" value="Provider 特性 (Provider Features)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="495" width="400" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Retry Strategy -->
+        <mxCell id="retry-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="530" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="retry-title" value="Retry 策略 (重试策略)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="535" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="retry-list" value="• 最大重试: 3 次&#xa;• 指数退避: 1s → 2s → 4s&#xa;• 可配置超时&#xa;• 错误分类: 可重试/不可重试" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="80" y="555" width="260" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Fallback Strategy -->
+        <mxCell id="fallback-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="390" y="530" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="fallback-title" value="Fallback 策略 (降级策略)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="410" y="535" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="fallback-list" value="• Fallback Chain: Claude → DeepSeek → OpenAI&#xa;• 自动切换&#xa;• 健康检查&#xa;• 成本优先/性能优先" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="410" y="555" width="260" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Streaming -->
+        <mxCell id="streaming-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="720" y="530" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="streaming-title" value="Streaming (流式处理)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="535" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="streaming-list" value="• SSE 流式响应&#xa;• 实时 Token 输出&#xa;• 中断支持&#xa;• 进度回调" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="740" y="555" width="260" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Cost Optimization -->
+        <mxCell id="cost-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="530" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cost-title" value="成本优化 (Cost Optimization)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="535" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="cost-list" value="• 成本优先路由&#xa;• Token 限制&#xa;• 缓存复用&#xa;• cost_advisor.py" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="555" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Environment Config -->
+        <mxCell id="env-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8E8E8;strokeColor=#999999;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="660" width="1320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="env-title" value="环境配置 (.env)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="665" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="env-list" value="ANTHROPIC_API_KEY | GOOGLE_API_KEY | MIMO_API_KEY | DEEPSEEK_API_KEY | OPENAI_API_KEY&#xa;BU_LLM_PROVIDER=mimo (默认, Browser-Use) | LLM_PROVIDER=claude (默认, Agent)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="60" y="685" width="1200" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Key Classes -->
+        <mxCell id="key-classes" value="关键类: LLMProvider | ReliableProvider | ContextWindowManager | TokenCounter | DeepSeekSummarizer | CostAdvisor" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#0066CC;" vertex="1" parent="1">
+          <mxGeometry x="40" y="740" width="1320" height="25" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

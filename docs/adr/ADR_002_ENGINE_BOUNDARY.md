@@ -219,3 +219,78 @@ class Engine:
 
 - [[ADR_001_TLO_DIRECTORY]] — .tlo/ 项目目录设计
 - `packages/alice-engine/` — SDK 包实现
+
+---
+
+## 附录：架构分层澄清（2026-07-09）
+
+### Discovery 分层
+
+**决策**: `alice-discovery` (SDK) 与 `aitest/discovery/` (平台) 是**分层设计**，非重复代码。
+
+| 层次 | 包/目录 | 职责 | 示例 |
+|------|---------|------|------|
+| **SDK** | `alice-discovery` | 静态源码分析（Vue/React AST 解析） | `SourceDiscoveryPipeline`, `VueRouterExtractor` |
+| **平台** | `aitest/discovery/` | 运行时发现机制（插件管理 + BrowserUse 集成） | `DiscoveryRegistry`, `BrowserUseDiscovery` |
+
+**理由**:
+- SDK 提供通用静态分析能力（可独立使用）
+- 平台提供 AI 驱动的运行时发现（依赖 `aitest.platform.runtime`）
+- 两者配合使用：Registry 可注册 SDK 的 `SourceDiscoveryPipeline`
+
+**类对比**:
+- `BaseDiscovery` — SDK 纯抽象，平台版本扩展为集成点
+- `PageRecord`/`MenuNode` — 两者略有差异（平台版本包含 `raw_dom_snapshot`）
+- `DiscoveryRegistry` — 平台特定（插件注册表）
+- `BrowserUseDiscovery` — 平台特定（依赖 Browser Runtime）
+
+---
+
+### Runtime 归属
+
+**决策**: `aitest/runtime/` 是**实现层**，`aitest/platform/` 和 `aitest/infra/` 提供 **re-export 兼容层**。
+
+**历史演进**（v3.2）:
+```
+v3.0: aitest/platform/paths.py 包含实现
+  ↓
+v3.2: 移至 aitest/runtime/paths.py（打破 infra → platform 依赖）
+  ↓
+v3.2: platform/paths.py 变为 re-export 兼容层
+```
+
+**当前结构**:
+```
+aitest/runtime/          ← 实现层（零或最小依赖）
+  ├── _paths_core.py     (零依赖，叶子模块)
+  ├── config.py          (零依赖，环境变量)
+  ├── paths.py           (注入模式，可选依赖 platform.context)
+  ├── context.py         (依赖 _paths_core)
+  └── error_handling.py  (依赖 paths)
+
+aitest/platform/         ← 兼容层（re-export）
+  ├── _paths_core.py     (from aitest.runtime._paths_core import ...)
+  └── paths.py           (from aitest.runtime.paths import ...)
+
+aitest/infra/            ← 兼容层（re-export）
+  ├── paths.py           (from aitest.runtime._paths_core import ...)
+  └── error_logger.py    (deprecated, from aitest.runtime.error_handling import ...)
+```
+
+**理由**:
+1. **分层清晰** — `runtime/` 是底层基础设施，`platform/` 是平台层，`infra/` 是基础设施
+2. **打破循环** — `runtime/` ← `platform/` ← 上层，`runtime/` ← `infra/`（避免 infra → platform 反向依赖）
+3. **注入模式** — `runtime/paths.py` 使用 `register_project_resolver()` 注入器，避免强依赖 `platform.context`
+
+**依赖方向**:
+```
+         Platform Layer
+              ↓
+         Runtime Layer (实现)
+              ↓
+         re-export (兼容)
+           ↙   ↘
+    platform/  infra/
+```
+
+**决策依据**: 审计发现 19 处使用 `aitest.runtime`，深入分析后确认这是合理的架构分层，而非错误归属。
