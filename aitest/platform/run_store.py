@@ -296,6 +296,64 @@ class RunStore:
              run.error_message],
         )
 
+    def create_run(
+        self,
+        *,
+        run_id: str,
+        workspace_id: str,
+        org_id: str,
+        triggered_by: str,
+        agent: str = "",
+        module: str = "",
+        pages: list[str] | None = None,
+        mode: str = "full",
+        provider: str = "",
+        request_id: str = "",
+        metadata: dict | None = None,
+        **_: object,
+    ) -> Run:
+        """Create a running Run record for non-queued execution paths.
+
+        Skills and evaluations execute directly rather than through an
+        ``ExecutionRequest``.  This compatibility entry point keeps those
+        paths persisted through the same RunStore contract as queued agents.
+        """
+        metadata = metadata or {}
+        run = Run(
+            run_id=run_id,
+            request_id=request_id or f"request_{run_id}",
+            workspace_id=workspace_id,
+            org_id=org_id,
+            triggered_by=triggered_by,
+            capability=str(metadata.get("capability", "api")),
+            agent=agent,
+            module=module,
+            pages=pages or [],
+            target_type=str(metadata.get("target_type", "agent")),
+            target_id=str(metadata.get("target_id", agent)),
+            target_version=str(metadata.get("target_version", "latest")),
+            environment_id=str(metadata.get("environment_id", "")),
+            parent_run_id=str(metadata.get("parent_run_id", "")),
+            mode=mode,
+        )
+        self.save_run(run)
+        return run
+
+    def update_run_status(
+        self, run_id: str, status: str, *, error_message: str = ""
+    ) -> Optional[Run]:
+        """Update an existing run status while preserving terminal metadata."""
+        run = self.load_run(run_id)
+        if run is None:
+            return None
+        run.status = status
+        if status in {"completed", "failed", "cancelled", "timed_out"}:
+            run.completed_at = datetime.now(timezone.utc).isoformat()
+        if error_message:
+            run.error_message = error_message
+        self.save_run(run)
+        return run
+
     def load_run(self, run_id: str) -> Optional[Run]:
         rows = safe_query("SELECT * FROM runs WHERE run_id=?", [run_id])
         return _row_to_run(rows[0]) if rows else None

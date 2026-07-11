@@ -63,11 +63,12 @@ class SkillLoader:
         skills = loader.list_skills("automation")
     """
 
-    def __init__(self, governance_path: str | Path):
+    def __init__(self, governance_path: str | Path, plugin_lookup_fn: callable = None):
         self.governance = Path(governance_path)
         self.skills_dir = self.governance / "skills"
         self.skills_dev_dir = self.governance / "skills-dev"
         self._registry_cache: dict | None = None
+        self._plugin_lookup_fn = plugin_lookup_fn  # P6-3: 注入 Plugin Skill 查找函数
 
         # 默认 governance 目录 (engine 内置)
         self._default_governance = Path(__file__).parent.parent / "governance_default"
@@ -105,6 +106,11 @@ class SkillLoader:
             version_file = self._resolve_version_file(skill_id, resolved_version)
             if version_file:
                 return version_file.read_text(encoding="utf-8")
+
+        # P6-3: Plugin Skills 优先 (Plugin > 内置)
+        plugin_skill_path = self._load_from_plugin(skill_id)
+        if plugin_skill_path:
+            return plugin_skill_path.read_text(encoding="utf-8")
 
         # 格式1: "category/skill-name" → governance/skills/category/skill-name.md
         skill_path = self.skills_dir / f"{skill_id}.md"
@@ -455,6 +461,29 @@ class SkillLoader:
         raise ValueError(
             f"Variant '{variant_id}' not found for skill '{skill_id}'."
         )
+
+    def _load_from_plugin(self, skill_id: str) -> Path | None:
+        """从 Plugin 加载 Skill (P6-3)。
+
+        Args:
+            skill_id: Skill ID
+
+        Returns:
+            Plugin Skill 文件路径，如果未找到返回 None
+        """
+        if not self._plugin_lookup_fn:
+            return None
+
+        try:
+            # 调用注入的查找函数 (由平台层提供，返回 Path 或 None)
+            plugin_path = self._plugin_lookup_fn(skill_id)
+            if plugin_path and isinstance(plugin_path, Path) and plugin_path.exists():
+                logger.debug(f"[SkillLoader] Found plugin skill: {skill_id} at {plugin_path}")
+                return plugin_path
+        except Exception as e:
+            logger.warning(f"[SkillLoader] Plugin lookup failed for {skill_id}: {e}")
+
+        return None
 
 
 def _default_governance_root() -> Path:

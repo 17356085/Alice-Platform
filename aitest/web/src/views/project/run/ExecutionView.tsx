@@ -1,12 +1,13 @@
 /** Execution view — SOP control + Agent graph + Terminal + Run Inspector. */
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import { useKanbanStore } from '../stores/kanban'
-import { useProjectStore } from '../stores/project'
+import { useKanbanStore } from '@/stores/kanban'
+import { useProjectStore } from '@/stores/project'
 import { ENDPOINTS } from '@/api/endpoints'
 import { api } from '@/api/client'
-import LiveAgentGraph from '../components/LiveAgentGraph'
-import TerminalPanel from '../components/TerminalPanel'
+import LiveAgentGraph from '@/components/LiveAgentGraph'
+import TerminalPanel from '@/components/TerminalPanel'
+import HumanGatePanel from '@/components/HumanGatePanel'
 import { Play, Pause, Square, Activity, Eye, RefreshCw, ExternalLink } from 'lucide-react'
 
 interface DebugInfo {
@@ -140,6 +141,7 @@ export default function ExecutionView() {
       )}
 
       {/* ── Run Inspector (v2.6 DX) ── */}
+      {selectedRun && <HumanGatePanel runId={selectedRun.run_id} />}
       <div className="run-inspector-section">
         <div className="ri-header">
           <h3><Eye size={14} /> Run Inspector</h3>

@@ -1,7 +1,7 @@
 /** Knowledge Base — ChromaDB + memory hits. Character-branded. */
 import { BookOpen, Database } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { useSettingsStore } from '../stores/settings'
+import { useSettingsStore } from '@/stores/settings'
 
 const brand: Record<string, { hint: string }> = {
   default:   { hint: 'Knowledge blooms in moonlight.' },

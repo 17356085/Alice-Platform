@@ -1,5 +1,5 @@
 /** App Settings — shadcn/ui edition. Theme, language, provider, budget. */
-import { useSettingsStore } from '../stores/settings'
+import { useSettingsStore } from '../../stores/settings'
 import { Settings, Palette, Globe, Cpu, DollarSign } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'

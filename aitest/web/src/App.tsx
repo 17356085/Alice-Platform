@@ -16,25 +16,26 @@ import { useKanbanWS } from './hooks/useKanbanWS'
 import { useProjectStore } from './stores/project'
 
 // ── Lazy views ─────────────────────────────────────────────────
-const DashboardView = lazy(() => import('./views/DashboardView'))
-const ProjectOverviewView = lazy(() => import('./views/ProjectOverviewView'))
-const ExecutionView = lazy(() => import('./views/ExecutionView'))
-const ObservabilityView = lazy(() => import('./views/ObservabilityView'))
-const ArtifactsView = lazy(() => import('./views/ArtifactsView'))
-const KnowledgeView = lazy(() => import('./views/KnowledgeView'))
-const ReportsView = lazy(() => import('./views/ReportsView'))
-const ProjectSettingsView = lazy(() => import('./views/ProjectSettingsView'))
-const IntelligenceChatView = lazy(() => import('./views/IntelligenceChatView'))
-const GapDiscoveryView = lazy(() => import('./views/GapDiscoveryView'))
-const StrategyPlannerView = lazy(() => import('./views/StrategyPlannerView'))
-const KanbanView = lazy(() => import('./views/KanbanView'))
-const TimelineView = lazy(() => import('./views/TimelineView'))
-const AgentTerminalView = lazy(() => import('./views/AgentTerminalView'))
-const SettingsView = lazy(() => import('./views/SettingsView'))
-const AgentDetailView = lazy(() => import('./views/AgentDetailView'))
-const KnowledgeGraphView = lazy(() => import('./views/KnowledgeGraphView'))
-const OnboardingWizardView = lazy(() => import('./views/OnboardingWizardView'))
-const RunInspectorView = lazy(() => import('./views/RunInspectorView'))
+const DashboardView = lazy(() => import('./views/global/ProjectsView'))
+const ProjectOverviewView = lazy(() => import('./views/project/overview/OverviewView'))
+const ExecutionView = lazy(() => import('./views/project/run/ExecutionView'))
+const ObservabilityView = lazy(() => import('./views/cross-cutting/ObservabilityView'))
+const ArtifactsView = lazy(() => import('./views/project/assets/ArtifactsView'))
+const KnowledgeView = lazy(() => import('./views/project/assets/KnowledgeView'))
+const ReportsView = lazy(() => import('./views/project/quality/ReportsView'))
+const ProjectSettingsView = lazy(() => import('./views/project/ProjectSettingsView'))
+const IntelligenceChatView = lazy(() => import('./views/cross-cutting/IntelligenceChatView'))
+const GapDiscoveryView = lazy(() => import('./views/project/quality/GapDiscoveryView'))
+const StrategyPlannerView = lazy(() => import('./views/project/build/StrategyPlannerView'))
+const BuildView = lazy(() => import('./views/project/build/BuildView'))
+const KanbanView = lazy(() => import('./views/project/run/KanbanView'))
+const TimelineView = lazy(() => import('./views/project/overview/TimelineView'))
+const AgentTerminalView = lazy(() => import('./views/project/assets/AgentTerminalView'))
+const SettingsView = lazy(() => import('./views/global/SettingsView'))
+const AgentDetailView = lazy(() => import('./views/project/assets/AgentDetailView'))
+const KnowledgeGraphView = lazy(() => import('./views/project/assets/KnowledgeGraphView'))
+const OnboardingWizardView = lazy(() => import('./views/cross-cutting/OnboardingWizardView'))
+const RunInspectorView = lazy(() => import('./views/project/run/RunInspectorView'))
 
 // ── View title mapping ─────────────────────────────────────────
 const viewTitles: Record<string, string> = {
@@ -159,7 +160,7 @@ export default function App() {
               {/* Project resource model */}
               <Route path="/projects/:id" element={<Navigate to="overview" replace />} />
               <Route path="/projects/:id/overview" element={<ProjectOverviewView />} />
-              <Route path="/projects/:id/build" element={<StrategyPlannerView />} />
+              <Route path="/projects/:id/build" element={<BuildView />} />
               <Route path="/projects/:id/build/strategy" element={<StrategyPlannerView />} />
               <Route path="/projects/:id/run" element={<ExecutionView />} />
               <Route path="/projects/:id/run/execute" element={<ExecutionView />} />

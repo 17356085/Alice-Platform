@@ -38,5 +38,9 @@ export const ENDPOINTS = {
   // Runs (v1 API) — P7-2 Phase 3
   RUNS_CREATE:       '/api/v1/runs',
   RUNS_GET:          (runId: string) => `/api/v1/runs/${runId}`,
-  RUNS_LIST:         '/api/runs',
+  RUNS_LIST:         '/api/v1/runs',
+
+  // Global resource workbench
+  EVALUATIONS_LIST:  '/api/v1/evaluations',
+  REGISTRY:          '/api/v1/registry',
 } as const

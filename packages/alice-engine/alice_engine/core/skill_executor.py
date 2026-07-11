@@ -126,9 +126,23 @@ def run_skill(
     user_input: str,
     provider=None,
     context_vars=None,
+    plugin_lookup_fn=None,
     **kwargs,
 ):
-    loader = SkillLoader(governance_path=_get_governance_root())
+    """执行单个 Skill。
+
+    Args:
+        skill_id: Skill ID
+        user_input: 用户输入
+        provider: LLM Provider 名称
+        context_vars: 上下文变量
+        plugin_lookup_fn: Plugin Skill 查找函数 (P6-3)
+        **kwargs: 传递给 SkillExecutorImpl.execute() 的额外参数
+
+    Returns:
+        LLMResponse
+    """
+    loader = SkillLoader(governance_path=_get_governance_root(), plugin_lookup_fn=plugin_lookup_fn)
     llm = get_provider(provider or "mock")
     executor = SkillExecutorImpl(skill_loader=loader, provider=llm)
     return executor.execute(skill_id, user_input, context_vars=context_vars, **kwargs)

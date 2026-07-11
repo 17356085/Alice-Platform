@@ -1,10 +1,12 @@
 """ModelProvider ORM Model — 数据库表定义 (P6-1)"""
 
-from sqlalchemy import Column, String, Text, DateTime, Index
+from sqlalchemy import Column, String, Text, DateTime, Index, JSON
 from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime, timezone
 
 from aitest.infra.db import Base
+
+JSON_PAYLOAD = JSON().with_variant(JSONB, "postgresql")
 
 
 class ModelProviderModel(Base):
@@ -14,7 +16,7 @@ class ModelProviderModel(Base):
     provider_id = Column(String(64), primary_key=True)
     name = Column(String(128), nullable=False)
     type = Column(String(32), nullable=False, index=True)  # anthropic | openai | deepseek | ollama | mimo
-    config = Column(JSONB, nullable=False, default=dict)   # ProviderConfig JSON
+    config = Column(JSON_PAYLOAD, nullable=False, default=dict)   # ProviderConfig JSON
     status = Column(String(32), nullable=False, default="active", index=True)
     org_id = Column(String(64), nullable=False, default="", index=True)
     created_by = Column(String(128), nullable=False, default="")

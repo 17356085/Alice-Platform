@@ -58,11 +58,14 @@ async def get_health_response(app_state=None) -> dict:
 
     # Known Issues
     try:
-        from aitest.knowledge.rag_engine import _known_issues_mtime, KNOWN_ISSUES
-        yaml_mtime = KNOWN_ISSUES.stat().st_mtime if KNOWN_ISSUES.exists() else 0
+        from aitest.knowledge.rag_engine import get_chroma_client
+        from aitest.platform.paths import get_workstudy
+        known_issues = get_workstudy() / "governance" / "context" / "known-issues.yaml"
+        yaml_mtime = known_issues.stat().st_mtime if known_issues.exists() else 0
+        indexed = any(collection.name == "known_issues" for collection in get_chroma_client().list_collections())
         components["known_issues"] = {
-            "status": "synced" if _known_issues_mtime >= yaml_mtime else "stale",
-            "yaml_mtime": yaml_mtime, "index_mtime": _known_issues_mtime,
+            "status": "synced" if indexed else "stale",
+            "yaml_mtime": yaml_mtime, "indexed": indexed,
         }
     except Exception as e:
         components["known_issues"] = {"status": "error", "error": str(e)[:100]}
@@ -141,8 +144,10 @@ async def get_health_response(app_state=None) -> dict:
 
     # Session DB
     try:
-        from aitest.server.session_store import engine
-        components["session_db"] = {"status": "connected"}
+        from aitest.server.session_store import _DB_PATH, _get_conn
+        with _get_conn() as conn:
+            conn.execute("SELECT 1 FROM chat_sessions LIMIT 1")
+        components["session_db"] = {"status": "connected", "path": str(_DB_PATH)}
     except Exception as e:
         components["session_db"] = {"status": "error", "error": str(e)[:100]}
 

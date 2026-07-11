@@ -11,12 +11,14 @@ Tables (8):
   chat_sessions                          — from SessionStore (SQLAlchemy)
 """
 
-from sqlalchemy import Column, String, Integer, Float, Text, DateTime, Index
+from sqlalchemy import Column, String, Integer, Float, Text, DateTime, Index, JSON
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from datetime import datetime, timezone
 import uuid
 
 from .db import Base
+
+JSON_PAYLOAD = JSON().with_variant(JSONB, "postgresql")
 
 # Import all models to ensure they're registered with SQLAlchemy
 from aitest.platform.workflow_models import WorkflowModel  # noqa: F401
@@ -39,7 +41,7 @@ class RunModel(Base):
     capability = Column(String(32), nullable=False, default="browser")
     agent = Column(String(64), nullable=False, default="")
     module = Column(String(64), nullable=False, default="", index=True)
-    pages = Column(JSONB, nullable=False, default=list)
+    pages = Column(JSON_PAYLOAD, nullable=False, default=list)
     mode = Column(String(32), nullable=False, default="full")
     status = Column(String(32), nullable=False, default="running", index=True)
     created_at = Column(DateTime(timezone=True), nullable=False)
@@ -47,7 +49,7 @@ class RunModel(Base):
     total_tokens = Column(Integer, nullable=False, default=0)
     total_cost = Column(Float, nullable=False, default=0.0)
     agent_runs = Column(Integer, nullable=False, default=0)
-    artifacts = Column(JSONB, nullable=False, default=list)
+    artifacts = Column(JSON_PAYLOAD, nullable=False, default=list)
     error_message = Column(Text, nullable=False, default="")
 
     # P6-1: ModelProvider 关联（可选，向后兼容）
@@ -62,7 +64,7 @@ class RunEventModel(Base):
     run_id = Column(String(64), nullable=False, index=True)
     request_id = Column(String(64), nullable=False, default="")
     timestamp = Column(DateTime(timezone=True), nullable=False)
-    data = Column(JSONB, nullable=False, default=dict)
+    data = Column(JSON_PAYLOAD, nullable=False, default=dict)
     # Phase 2: correlate events across EventBus / ObservationBus / Adapter Events
     correlation_id = Column(String(64), nullable=True, index=True)
 
@@ -78,12 +80,12 @@ class ExecutionRequestModel(Base):
     agent = Column(String(64), nullable=False, default="")
     idempotency_key = Column(String(128), nullable=False, default="", index=True)
     module = Column(String(64), nullable=False, default="")
-    pages = Column(JSONB, nullable=False, default=list)
+    pages = Column(JSON_PAYLOAD, nullable=False, default=list)
     mode = Column(String(32), nullable=False, default="full")
     provider = Column(String(32), nullable=False, default="claude")
     priority = Column(Integer, nullable=False, default=0)
     status = Column(String(32), nullable=False, default="created", index=True)
-    run_ids = Column(JSONB, nullable=False, default=list)
+    run_ids = Column(JSON_PAYLOAD, nullable=False, default=list)
     created_at = Column(DateTime(timezone=True), nullable=False)
     started_at = Column(DateTime(timezone=True), nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
@@ -129,7 +131,7 @@ class AuditEntryModel(Base):
     workspace_id = Column(String(64), nullable=False, default="", index=True)
     user_id = Column(String(64), nullable=False, default="")
     timestamp = Column(DateTime(timezone=True), nullable=False)
-    data_json = Column(JSONB, nullable=False, default=dict)
+    data_json = Column(JSON_PAYLOAD, nullable=False, default=dict)
 
 
 # ── Bug History ───────────────────────────────────────────────────────
@@ -169,7 +171,7 @@ class ArtifactLineageModel(Base):
     page = Column(String(128), nullable=False, default="")
     artifact_name = Column(String(256), nullable=False)
     generated_by = Column(String(64), nullable=False)
-    depends_on = Column(JSONB, nullable=False, default=list)
+    depends_on = Column(JSON_PAYLOAD, nullable=False, default=list)
     version = Column(String(16), nullable=False, default="1")
     run_id = Column(String(64), nullable=True, index=True)
     timestamp = Column(DateTime(timezone=True), nullable=False)
@@ -187,7 +189,7 @@ class ChatSessionModel(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String(255), nullable=False, default="")
-    messages = Column(JSONB, nullable=False, default=list)
+    messages = Column(JSON_PAYLOAD, nullable=False, default=list)
     created_at = Column(
         DateTime(timezone=True),
         nullable=False,
@@ -209,6 +211,10 @@ from aitest.platform.quality_models import DatasetModel, EvaluationModel, Experi
 
 from aitest.platform.workflow_models import WorkflowModel
 
+# ── Worker Lease: Heartbeat (P3-5) ─────────────────────────────────────
+
+from aitest.platform.worker_lease_models import WorkerLeaseModel
+
 __all__ = [
     "Base",
     "RunModel",
@@ -223,4 +229,5 @@ __all__ = [
     "EvaluationModel",
     "ExperimentModel",
     "WorkflowModel",
+    "WorkerLeaseModel",
 ]

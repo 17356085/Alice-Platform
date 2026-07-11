@@ -57,7 +57,10 @@ def _resolve_project_summary(project_id: str, raw: dict[str, Any] | None = None)
         schema_version = -1
 
     discovery_strategy = discovery.get("strategy") or test_project.get("discovery_strategy") or "browser-use"
-    base_url = connection.get("base_url", "")
+    # ADR-001 projects created before the connection block stored their URL
+    # under test_project.  Read both schemas so health does not report a
+    # configured local project as incompatible.
+    base_url = connection.get("base_url") or test_project.get("base_url", "")
 
     if schema_version == SUPPORTED_PROJECT_SCHEMA_VERSION:
         compat = ProjectCompatibility("ok", "Project schema compatible")

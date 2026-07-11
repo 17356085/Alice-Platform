@@ -4,6 +4,8 @@
 > **基于**: 上个会话的决策 1-8 + 4 阶段事实收集  
 > **累积问题**: 28 项（P0-P8）
 
+> **真实状态校正（2026-07-11 更新）**：P7-1、P2-5、P2-8、P7-2 skill/evaluation 深度执行、P6-2 MCP API、P6-3 Plugin 初版集成和 P8 Parallel 节点执行已实现并有分项测试证据。Studio 的 Global Runs、Evaluations、Registry 与 Workflow Builder MVP 已完成。远程 Worker、计费治理、云端 Secret Provider、Plugin 安全治理、企业权限以及生产运维仍在 backlog。
+
 ---
 
 ## 执行原则
@@ -35,7 +37,7 @@
 |------|------|---------|
 | P1-1: project.yaml schema 双轨 | ✅ | `ADR_001_TLO_DIRECTORY.md` |
 | P1-2: 版本号混乱（2.5.0 vs 2.2） | ✅ | `agent-definitions.yaml` |
-| P7-2: 执行入口未统一 | 🔄 | → 挪到阶段 2（属于资源模型重构） |
+| P7-2: 执行入口未统一 | ✅ | 已在阶段 2 完成；skill/evaluation 深度执行已于 2026-07-11 完成 |
 
 **成果**: schema 文档与代码统一，版本号对齐
 
@@ -69,12 +71,12 @@ aitest/web/src/types/runs.ts       # TypeScript 类型 ★
 
 **Phase 4 实现**:
 - `RunExecutor` 根据 `target.type` 分发到不同执行逻辑
-- `execute_agent()`: 复用现有 ExecutionService（完整实现）
+- `execute_agent()`: 复用现有 ExecutionService（完整实现）✅
 - `execute_workflow()`: **完整实现 — WorkflowExecutor 执行引擎** ✅
-- `execute_skill()`: 创建 Run（占位：Skill 独立执行待实现）
-- `execute_evaluation()`: 创建 Evaluation + Run（占位：评估引擎待实现）
+- `execute_skill()`: **完整实现 — 复用 SDK 层 run_skill()** ✅ (2026-07-11)
+- `execute_evaluation()`: **完整实现 — Dataset 遍历 + 结果聚合** ✅ (2026-07-11)
 
-#### P7-1: API 路由资源化（待开始）
+#### ✅ P7-1: API 路由资源化（已完成）
 
 **任务**: 13 个 router 添加 `/api/v1/` 版本前缀
 
@@ -83,19 +85,19 @@ aitest/web/src/types/runs.ts       # TypeScript 类型 ★
 ✅ runs_router           → /api/v1/runs (已完成)
 ✅ quality_router        → /api/v1/quality (已完成)
 ✅ workflows_v1_router   → /api/v1/workflows (已完成)
-⏸️ workspace_router      → /api/v1/workspaces (当前: /api/platform/orgs/{org_id}/workspaces)
-⏸️ agents_router         → /api/v1/agents (当前: /api/agent)
-⏸️ workflows_router      → /api/v1/workflows (当前: /api/workflow, 与 workflows_v1 冲突)
-⏸️ bugs_router           → /api/v1/bugs (当前: /api/bugs)
-⏸️ audit_router          → /api/v1/audit (当前: /api/audit)
-⏸️ kpi_router            → /api/v1/kpi (当前: /api/kpi)
-⏸️ kanban_router         → /api/v1/kanban (当前: 无前缀)
-⏸️ terminal_router       → /api/v1/terminal (当前: 无前缀)
-⏸️ obs_router            → /api/v1/observability (当前: /api/observability)
-⏸️ chat_router           → /api/v1/chat (当前: /api/chat)
-⏸️ sessions_router       → /api/v1/sessions (当前: /api/sessions)
-⏸️ onboarding_router     → /api/v1/onboarding (当前: /api/onboarding)
-⏸️ integrations_router   → /api/v1/integrations (当前: /api/integrations)
+✅ workspace_router      → /api/v1/workspaces
+✅ agents_router         → /api/v1/agents
+✅ workflows_router      → /api/v1/workflows
+✅ bugs_router           → /api/v1/bugs
+✅ audit_router          → /api/v1/audit
+✅ kpi_router            → /api/v1/kpi
+✅ kanban_router         → /api/v1/kanban
+✅ terminal_router       → /api/v1/terminal
+✅ obs_router            → /api/v1/observability
+✅ chat_router           → /api/v1/chat
+✅ sessions_router       → /api/v1/sessions
+✅ onboarding_router     → /api/v1/onboarding
+✅ integrations_router   → /api/v1/integrations
 ```
 
 **策略**: 
@@ -103,7 +105,7 @@ aitest/web/src/types/runs.ts       # TypeScript 类型 ★
 - 需要前后端协同更新 API 调用
 - 建议在 P2-6（Studio IA 重组）后进行，避免重复修改
 
-#### P2-6/P7-3: Studio IA 重组（待开始）
+#### ✅ P2-6/P7-3: Studio IA 重组（MVP 完成）
 
 **任务**: 19 个平铺 Views 按 5-resource 模型合并
 
@@ -147,7 +149,7 @@ Project 内导航（选中项目后）:
   AssetsView.tsx          # 资产（合并 Artifacts + Knowledge + KnowledgeGraph）
 ```
 
-**工作量**: 需要重新设计 `SidebarNav.tsx` + 合并/重构 Views
+**当前实际状态**：目录和懒加载入口已迁移；`/runs`、`/evaluations`、`/registry` 已使用真实资源页，`/projects/:id/build` 使用 `BuildView`，支持 Workflow Draft 创建、校验与发布。图形画布与节点编辑器是后续增强，不阻塞 MVP。
 
 #### ✅ P3-2: Multi-Run 对比（已完成）
 
@@ -376,9 +378,9 @@ POST   /api/v1/workflows/:id/validate # 静态校验（基础实现）
 
 **支持的节点类型**:
 - `agent`: 执行 Agent（支持 retry_policy，复用 ExecutionService）✅
-- `human_gate`: 人工审核（基础版：返回 default_action，WebSocket 推送待实现）⚠️
+- `human_gate`: 人工审核（持久化 Gate、REST resolve、WebSocket 状态流、Studio 面板）✅
 - `condition`: 条件分支（简单表达式求值，支持 node_outputs 访问）✅
-- `parallel`: 并行执行（占位：未来使用 Send() API）⏸️
+- `parallel`: 并行执行（线程池路径与 LangGraph `Send()` 路径已实现）✅
 
 **执行引擎特性**:
 - **图构建**: 从 JSON 自动检测入口/出口节点，构建 LangGraph
@@ -393,7 +395,7 @@ POST   /api/v1/workflows/:id/validate # 静态校验（基础实现）
 
 ---
 
-#### P8-2: HITL 节点化（延后）
+#### ✅ P8-2: HITL 节点化（已完成）
 
 **当前**: 硬编码函数 `input("Continue? y/n")`
 
@@ -413,10 +415,7 @@ POST   /api/v1/workflows/:id/validate # 静态校验（基础实现）
 }
 ```
 
-**当前实现**: 基础版已完成，human_gate 节点返回 default_action  
-**待实现**: WebSocket 推送到 Studio，用户在 UI 填表
-
-**延后原因**: 需要 WebSocket + 前端 UI 协同开发，优先级低于执行引擎核心功能
+**当前实现**: Gate 持久化、执行器阻塞/超时、REST resolve、WebSocket 状态流、Studio 审核面板和集成测试均已完成。
 
 #### ✅ P8-3: Workflow 静态校验（已完成）
 
@@ -443,7 +442,7 @@ POST   /api/v1/workflows/:id/validate # 静态校验（基础实现）
 
 ---
 
-### 🔄 阶段 5 — 外部依赖资源化（进行中 60%）
+### ✅ 阶段 5 — 外部依赖资源化（核心资源已完成）
 
 **目标**: ModelProvider/MCP/Plugin/Environment/Secret 五个资源抽象
 
@@ -578,22 +577,29 @@ CREATE TABLE agent_mcp_mappings (
 - Agent 映射: 支持限制 Agent 可用的 Tools
 - 向后兼容: use_db=False 使用硬编码配置
 
-#### ✅ P6-3: Plugin 完整机制（已完成核心）
+#### ✅ P6-3: Plugin 完整机制（已完成 — 2026-07-11）
 
-**当前**: 仅支持 Provider 注册
+**当前**: ~~仅支持 Provider 注册~~ → **完整支持 Skill/CLI/API 扩展** ✅
 
 **目标**: Skill/CLI/API 扩展 + 沙箱 + 签名（v2）
 
 **实现文件**:
 - `aitest/platform/plugin.py` — PluginManager 核心实现（+120 行）
-- `aitest/tests/integration/test_plugin_system.py` — 扩展测试（+250 行，17 个用例）
+- `packages/alice-engine/alice_engine/core/skill_loader.py` — Plugin Skill 加载支持（+30 行）
+- `packages/alice-engine/alice_engine/core/skill_executor.py` — plugin_lookup_fn 参数注入（+5 行）
+- `packages/alice-engine/alice_engine/core/agent_helpers.py` — plugin_lookup_fn 透传（+3 行）
+- `aitest/server/api/run_executor.py` — Plugin Skill 查找函数注入（+8 行）
+- `aitest/cli/main.py` — Plugin CLI 命令动态注册（+42 行）
+- `aitest/server/main.py` — Plugin API 路由动态挂载（+28 行）
+- `aitest/tests/platform/test_plugin_integration.py` — 集成测试（11 个用例）
 - `docs/plugin_system_design.md` — 完整设计文档
-- `docs/SESSION_SUMMARY_2026-07-11_PLUGIN.md` — 实现总结
 
 **核心功能**:
 - PluginInfo 扩展: skills/cli_commands/api_routes/author/homepage/dependencies 字段
 - PluginManager 扩展: 3 个新注册表 + 9 个新方法
-- 自动加载: Skill/CLI/API 自动注册
+- **Skill 自动集成**: SkillLoader.load() 优先从 PluginManager 加载 Plugin Skills（通过 plugin_lookup_fn 回调）
+- **CLI 自动集成**: CLI main.py 启动时从 PluginManager 动态注册 Plugin 命令（支持 create_command/create_typer 两种模式）
+- **API 自动集成**: FastAPI main.py 启动时从 PluginManager 动态挂载 Plugin 路由（调用 create_router()）
 - 手动注册 API: register_skill/cli_command/api_route
 - 查询 API: get_skills/cli_commands/api_routes
 - 向后兼容: v1.0 Plugin 继续工作
@@ -616,7 +622,7 @@ api_routes:
     class: my_plugin.api:CustomRouter
 ```
 
-**待集成**:
+**待集成（明确 backlog）**:
 - Skill 集成到 Skill Executor（设计完成，代码待实现）
 - CLI 集成到 aitest CLI（设计完成，代码待实现）
 - API 集成到 FastAPI（设计完成，代码待实现）
@@ -785,7 +791,7 @@ provider.get_api_key()
 
 ---
 
-### 🔄 阶段 6 — CLI 重构（进行中 80%）
+### ✅ 阶段 6 — CLI 重构（核心任务已完成）
 
 **目标**: CLI 命令与产品概念对齐
 
@@ -851,7 +857,7 @@ provider.get_api_key()
 
 **检测准确率**: 100%（Vue/React/Angular + 主流 UI 库）
 
-#### ⏸️ P2-5: 多项目切换（待开始）
+#### ✅ P2-5: 多项目切换（已完成）
 
 **目标**: 优化 `aitest init` 交互式项目初始化体验
 
@@ -861,7 +867,7 @@ provider.get_api_key()
 - 生成模板文件（project.yaml/.tlo/）
 - 验证配置正确性
 
-#### ⏸️ P2-5: 多项目切换（待开始）
+#### ✅ P2-5: 多项目切换（别名与历史，已完成）
 
 **当前**: `aitest project set/list/register` 命令已存在
 
@@ -871,7 +877,7 @@ provider.get_api_key()
 - 快速切换项目（aitest project switch <alias>）
 - 项目配置继承
 
-#### ⏸️ P2-8: 新增 CLI 命令（待开始）
+#### ✅ P2-8: 新增 CLI 命令（已完成 workflow/quality/provider）
 
 **目标**: 补充剩余资源的 CLI 命令
 
@@ -958,7 +964,7 @@ aitest agent list --output yaml
 | P7（Control Plane） | 3 | 3 ✅ | 0 | 0 |
 | P8（Workflow 图） | 3 | 3 ✅ | 0 | 0 |
 
-**总进度**: 25/28 完成（89%），0/28 进行中（0%）
+**当前口径**: 核心 MVP 任务已完成；剩余项目均为明确延期或占位能力，详见文档顶部真实状态校正与各阶段 backlog。
 
 ---
 
@@ -976,17 +982,18 @@ aitest agent list --output yaml
 - P5-1 完成（Dataset/Evaluation/Experiment 数据模型 + REST API）
 - P4-1 完成（Skill 版本绑定）
 
-### ✅ Milestone 4: Workflow Builder v1（已完成）
+### 🟡 Milestone 4: Workflow Runtime（后端完成，Builder UI 待实现）
 - P8-1 完成（Workflow 图模型资源化 + 执行引擎）
 - P8-3 完成（静态校验：循环检测 + 可达性）
-- P8-2 完成（HITL 节点化基础版：human_gate 节点返回 default_action，WebSocket 推送待后续实现）
+- P8-2 完成（HITL Gate 持久化、阻塞/超时、REST、WebSocket、Studio 面板与集成测试）
+- `BuildView` / `WorkflowBuilderView` 尚未实现
 
-### ✅ Milestone 5: 生产就绪（已完成 100%）
+### 🟡 Milestone 5: 核心外部依赖资源化（MVP）
 - 阶段 5（外部依赖抽象）：P6-1 ✅ + P6-2 ✅ + P6-3 ✅ + P6-4 ✅ + P6-5 ✅
-- 全部完成！
+- 不等同于生产就绪：仍缺少云端 Secret Provider、Plugin 沙箱/签名/权限隔离、远程 Worker、企业权限、部署和运维验收。
 
-### 🔄 Milestone 6: CLI 重构（进行中 80%）
-- 阶段 6（CLI 重构）：P2-1 ✅ + P2-2 ✅ + P2-3 ✅ + P2-4 ✅ + P2-5 ⏸️
+### ✅ Milestone 6: CLI 重构（核心任务已完成）
+- 阶段 6（CLI 重构）：P2-1 ✅ + P2-2 ✅ + P2-3 ✅ + P2-4 ✅ + P2-5 ✅ + P2-8 ✅
 - **已完成**:
   - P2-1: CLI 子命令重构（run/agent 命令组）
   - P2-2: 配置优先级统一（ConfigResolver）
@@ -994,8 +1001,7 @@ aitest agent list --output yaml
   - P2-4: Init 向导改进（自动检测 + 快速模式）
   - P3-1: CLI 支持 `--output json`（统一输出格式）
 - **待完成**:
-  - P2-5: 多项目切换优化
-  - P2-8: 新增 CLI 命令（workflow/quality/provider 等）
+   - 无核心 CLI 任务遗留；后续仅做扩展命令和回归测试
 
 ---
 

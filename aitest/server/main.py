@@ -11,6 +11,7 @@ import time
 import uuid
 import os
 import threading
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -21,6 +22,9 @@ if sys.platform == "win32":
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from aitest.platform.plugin import get_plugin_manager
+
+logger = logging.getLogger(__name__)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -376,6 +380,11 @@ from aitest.server.api.workflows_v1 import workflows_v1_router  # P8-1: Workflow
 from aitest.server.api.providers_v1 import providers_router  # P6-1: ModelProvider 资源化
 from aitest.server.api.secrets_v1 import secrets_router  # P6-5: Secret Manager
 from aitest.server.api.environments_v1 import environments_router  # P6-4: Environment 资源化
+from aitest.server.api.workers_v1 import workers_router  # P3-5: Worker Lease/Heartbeat
+from aitest.server.api.billing_v1 import billing_router  # P3-6: Billing REST API
+from aitest.server.api.human_gates import human_gates_router
+from aitest.server.api.registry_v1 import registry_router
+from aitest.server.api.mcp_servers_v1 import mcp_servers_router
 
 app.include_router(runs_router)  # P7-2: 新端点优先注册
 app.include_router(quality_router)  # P5-1: Quality Loop
@@ -383,6 +392,11 @@ app.include_router(workflows_v1_router)  # P8-1: Workflow 资源化
 app.include_router(providers_router)  # P6-1: ModelProvider 资源化
 app.include_router(secrets_router)  # P6-5: Secret Manager
 app.include_router(environments_router)  # P6-4: Environment 资源化
+app.include_router(workers_router)  # P3-5: Worker Lease/Heartbeat
+app.include_router(billing_router)  # P3-6: Billing REST API
+app.include_router(human_gates_router)
+app.include_router(registry_router)
+app.include_router(mcp_servers_router)
 app.include_router(platform_router)
 app.include_router(workspace_router)
 app.include_router(execution_router)
@@ -400,6 +414,42 @@ app.include_router(kpi_router)
 app.include_router(kanban_router)
 app.include_router(terminal_router)
 app.include_router(obs_router)
+
+# P6-3: 动态注册 Plugin API 路由
+def _register_plugin_routes(target_app: FastAPI | None = None):
+    """从 PluginManager 动态注册 Plugin 提供的 API 路由。
+
+    Plugin API 路由类需要实现 create_router() 方法 → APIRouter。
+    """
+    target_app = target_app or app
+    try:
+        pm = get_plugin_manager()
+        pm.load_all()
+
+        for prefix, router_class in pm.get_api_routes():
+            try:
+                # 实例化 Router 类并调用 create_router() 方法
+                router_instance = router_class()
+                if hasattr(router_instance, "create_router"):
+                    router = router_instance.create_router()
+                    target_app.include_router(router, prefix=prefix)
+                    logger.info(f"[Plugin] API route registered: {prefix}")
+                else:
+                    logger.warning(
+                        f"[Plugin] API route class '{router_class.__name__}' "
+                        f"missing create_router() method, skipped"
+                    )
+            except Exception as e:
+                logger.error(
+                    f"[Plugin] API route registration failed for {prefix}: {e}"
+                )
+
+    except Exception as e:
+        # Plugin 加载失败不应中断服务启动
+        logger.warning(f"[Plugin] API route discovery failed: {e}")
+
+
+_register_plugin_routes()
 
 # Static files
 _STATIC_DIR = Path(__file__).resolve().parent / "static"

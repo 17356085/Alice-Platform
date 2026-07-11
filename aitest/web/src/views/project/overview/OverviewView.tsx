@@ -1,8 +1,8 @@
 /** Project Overview — module grid + SOP progress. shadcn/ui edition. */
 import { useEffect, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { useKanbanStore, SOP_COLS } from '../stores/kanban'
-import { useProjectStore } from '../stores/project'
+import { useKanbanStore, SOP_COLS } from '@/stores/kanban'
+import { useProjectStore } from '@/stores/project'
 import { LayoutGrid, Play } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'

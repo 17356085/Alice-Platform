@@ -19,13 +19,15 @@
 """
 
 import logging
+import operator
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Annotated, Any, Dict, List, Optional, TypedDict
 from datetime import datetime, timezone
 
 from langgraph.graph import StateGraph, END
+from langgraph.types import Send
 
 from aitest.platform.workflow import WorkflowGraph, WorkflowNode, WorkflowEdge, RetryPolicy
 from aitest.platform.workspace import ExecutionContext
@@ -47,6 +49,8 @@ class WorkflowState(TypedDict, total=False):
     completed_nodes: List[str]
     error: Optional[str]
     metadata: Dict[str, Any]
+    parallel_results: Annotated[List[Dict], operator.add]  # P8-方案2: 并行结果累积器
+    current_sub_node: str  # P8-方案2: 当前处理的子节点 ID
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -123,10 +127,18 @@ class RetryHandler:
 
 
 class NodeExecutor:
-    """节点执行器工厂"""
+    """节点执行器（P8-方案1: 重构为实例方法）"""
 
-    @staticmethod
+    def __init__(self, executor: 'WorkflowExecutor'):
+        """初始化节点执行器。
+
+        Args:
+            executor: WorkflowExecutor 实例，用于访问 workflow.nodes 和递归执行节点
+        """
+        self.executor = executor
+
     def execute_agent_node(
+        self,
         node: WorkflowNode,
         runtime: WorkflowRuntime,
         state: WorkflowState,
@@ -184,34 +196,20 @@ class NodeExecutor:
             "error_message": f"Failed after {policy.max_attempts} attempts: {last_error}",
         }
 
-    @staticmethod
     def execute_human_gate_node(
+        self,
         node: WorkflowNode,
         runtime: WorkflowRuntime,
         state: WorkflowState,
     ) -> Dict[str, Any]:
-        """执行 human_gate 节点（基础版：返回 default_action）
-
-        TODO: WebSocket 推送到 Studio，等待人工审核
-        当前实现: 直接返回 default_action
-        """
+        """Persist a gate and block this workflow thread until it is resolved."""
         logger.info(f"[WorkflowExecutor] Human gate node: {node.node_id} (prompt={node.prompt})")
-        logger.warning(f"[WorkflowExecutor] WebSocket HITL not implemented, using default_action={node.default_action}")
+        from aitest.platform.human_gates import create_gate, wait_for_gate
+        gate = create_gate(runtime.run_id, node.node_id, node.prompt or "Approval required", state.get("node_outputs", {}), ["approve", "reject", "request_changes"])
+        return wait_for_gate(gate["id"], node.timeout_seconds, node.default_action)
 
-        # TODO:
-        # 1. 通过 WebSocket 推送到 Studio: {"type": "human_gate", "node_id": ..., "prompt": ...}
-        # 2. 等待用户响应（timeout_seconds）
-        # 3. 超时则返回 default_action
-
-        # 当前占位实现
-        return {
-            "success": True,
-            "action": node.default_action,
-            "comment": "Auto-approved (WebSocket HITL not implemented)",
-        }
-
-    @staticmethod
     def execute_condition_node(
+        self,
         node: WorkflowNode,
         runtime: WorkflowRuntime,
         state: WorkflowState,
@@ -240,20 +238,98 @@ class NodeExecutor:
             logger.error(f"[WorkflowExecutor] Condition evaluation failed: {e}")
             return {"success": False, "error": str(e), "result": False}
 
-    @staticmethod
     def execute_parallel_node(
+        self,
         node: WorkflowNode,
         runtime: WorkflowRuntime,
         state: WorkflowState,
     ) -> Dict[str, Any]:
-        """执行 parallel 节点（占位：未来使用 LangGraph Send() API）"""
+        """执行 parallel 节点（方案1完整实现 — 使用线程池并行执行）
+
+        P8-方案1: NodeExecutor 现在是实例方法，可以访问 self.executor.workflow.nodes
+        来查找和执行子节点。
+        """
+        import concurrent.futures
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
         logger.info(f"[WorkflowExecutor] Parallel node: {node.node_id}")
-        logger.warning(f"[WorkflowExecutor] Parallel execution not implemented, executing sequentially")
 
-        # TODO: 使用 LangGraph Send() API 实现并行执行
-        # 参考: aitest/graphs/parallel_sop.py
+        # 1. 从 metadata 获取并行节点列表
+        parallel_nodes = node.metadata.get("parallel_nodes", [])
+        max_concurrency = node.metadata.get("max_concurrency", 3)
 
-        return {"success": True, "note": "Parallel execution not implemented"}
+        if not parallel_nodes:
+            logger.warning(f"[WorkflowExecutor] Parallel node {node.node_id} has no parallel_nodes specified")
+            return {"success": False, "error": "No parallel_nodes specified in node.metadata"}
+
+        logger.info(f"[WorkflowExecutor] Executing {len(parallel_nodes)} nodes in parallel (max_concurrency={max_concurrency})")
+
+        # 2. 并行执行所有子节点
+        results = {}
+        errors = {}
+
+        def execute_sub_node(sub_node_id: str) -> tuple[str, Dict[str, Any]]:
+            """执行单个子节点（在线程池中）"""
+            try:
+                # ✅ P8-方案1: 现在可以访问 workflow.nodes 查找子节点
+                sub_node = self.executor.find_node(sub_node_id)
+                if not sub_node:
+                    return sub_node_id, {
+                        "success": False,
+                        "error": f"Sub-node '{sub_node_id}' not found in workflow"
+                    }
+
+                logger.info(f"[WorkflowExecutor] Executing parallel sub-node: {sub_node_id} (type={sub_node.type})")
+
+                # ✅ P8-方案1: 递归执行子节点（支持任意节点类型）
+                result = self.executor.execute_single_node(sub_node, runtime, state)
+
+                return sub_node_id, result
+
+            except Exception as e:
+                logger.error(f"[WorkflowExecutor] Parallel sub-node {sub_node_id} failed: {e}")
+                return sub_node_id, {"success": False, "error": str(e)}
+
+        # 3. 使用线程池并行执行
+        with ThreadPoolExecutor(max_workers=max_concurrency) as executor:
+            # 提交所有任务
+            future_to_node = {
+                executor.submit(execute_sub_node, sub_node_id): sub_node_id
+                for sub_node_id in parallel_nodes
+            }
+
+            # 收集结果
+            for future in as_completed(future_to_node):
+                sub_node_id = future_to_node[future]
+                try:
+                    node_id, result = future.result()
+                    results[node_id] = result
+                    if not result.get("success", False):
+                        errors[node_id] = result.get("error", "Unknown error")
+                except Exception as e:
+                    logger.error(f"[WorkflowExecutor] Failed to get result for {sub_node_id}: {e}")
+                    errors[sub_node_id] = str(e)
+
+        # 4. 聚合结果
+        total_nodes = len(parallel_nodes)
+        successful_nodes = sum(1 for r in results.values() if r.get("success", False))
+        failed_nodes = len(errors)
+
+        overall_success = failed_nodes == 0
+
+        logger.info(
+            f"[WorkflowExecutor] Parallel execution completed: "
+            f"{successful_nodes}/{total_nodes} succeeded, {failed_nodes} failed"
+        )
+
+        return {
+            "success": overall_success,
+            "total_nodes": total_nodes,
+            "successful_nodes": successful_nodes,
+            "failed_nodes": failed_nodes,
+            "results": results,
+            "errors": errors if errors else None,
+        }
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -272,17 +348,69 @@ class WorkflowExecutor:
         self.workflow = workflow
         self.runtime = runtime
         self.graph: Optional[StateGraph] = None
+        self.node_executor = NodeExecutor(self)  # P8-方案1: 创建 NodeExecutor 实例
+
+    def find_node(self, node_id: str) -> Optional[WorkflowNode]:
+        """根据 node_id 查找节点（P8-方案1 新增）。
+
+        Args:
+            node_id: 节点 ID
+
+        Returns:
+            WorkflowNode 或 None
+        """
+        for node in self.workflow.nodes:
+            if node.node_id == node_id:
+                return node
+        return None
+
+    def execute_single_node(
+        self,
+        node: WorkflowNode,
+        runtime: WorkflowRuntime,
+        state: WorkflowState,
+    ) -> Dict[str, Any]:
+        """执行单个节点（P8-方案1 新增）。
+
+        Args:
+            node: 要执行的节点
+            runtime: 运行时状态
+            state: Workflow 状态
+
+        Returns:
+            节点执行结果
+        """
+        # 根据节点类型分发到对应的执行器
+        if node.type == "agent":
+            return self.node_executor.execute_agent_node(node, runtime, state)
+        elif node.type == "human_gate":
+            return self.node_executor.execute_human_gate_node(node, runtime, state)
+        elif node.type == "condition":
+            return self.node_executor.execute_condition_node(node, runtime, state)
+        elif node.type == "parallel":
+            return self.node_executor.execute_parallel_node(node, runtime, state)
+        else:
+            logger.error(f"[WorkflowExecutor] Unknown node type: {node.type}")
+            return {"success": False, "error": f"Unknown node type: {node.type}"}
 
     def build_graph(self) -> StateGraph:
-        """从 WorkflowGraph JSON 构建 LangGraph"""
+        """从 WorkflowGraph JSON 构建 LangGraph（P8-方案2: 支持 Parallel 节点的 Send() API）"""
         logger.info(f"[WorkflowExecutor] Building graph for workflow: {self.workflow.workflow_id}")
 
         builder = StateGraph(WorkflowState)
 
+        # P8-方案2: 检测 parallel 节点，构建 fan-out/fan-in 子图
+        parallel_nodes = [n for n in self.workflow.nodes if n.type == "parallel"]
+
         # 添加节点
         for node in self.workflow.nodes:
-            node_func = self._make_node_func(node)
-            builder.add_node(node.node_id, node_func)
+            if node.type == "parallel":
+                # P8-方案2: Parallel 节点需要特殊处理（fan-out + fan-in）
+                self._add_parallel_subgraph(builder, node)
+            else:
+                # 普通节点直接添加
+                node_func = self._make_node_func(node)
+                builder.add_node(node.node_id, node_func)
 
         # 添加边
         entry_nodes = self._find_entry_nodes()
@@ -292,8 +420,13 @@ class WorkflowExecutor:
         # 设置入口点（如果有多个入口，选第一个）
         builder.set_entry_point(entry_nodes[0])
 
-        # 添加边
+        # 添加边（跳过 parallel 节点的出边，由 _add_parallel_subgraph 处理）
         for edge in self.workflow.edges:
+            # P8-方案2: 如果 from_node 是 parallel 节点，由子图处理
+            from_node_obj = self.find_node(edge.from_node)
+            if from_node_obj and from_node_obj.type == "parallel":
+                continue  # 跳过，由 _add_parallel_subgraph 处理
+
             if edge.condition == "always":
                 builder.add_edge(edge.from_node, edge.to_node)
             else:
@@ -306,9 +439,12 @@ class WorkflowExecutor:
                 )
 
         # 找出没有出边的节点，连接到 END
+        # 注意: parallel 节点由 _add_parallel_subgraph 单独处理，不在此连接到 END
+        parallel_node_ids = {n.node_id for n in self.workflow.nodes if n.type == "parallel"}
         exit_nodes = self._find_exit_nodes()
         for node_id in exit_nodes:
-            builder.add_edge(node_id, END)
+            if node_id not in parallel_node_ids:
+                builder.add_edge(node_id, END)
 
         self.graph = builder
         return builder
@@ -318,18 +454,8 @@ class WorkflowExecutor:
         def node_func(state: WorkflowState) -> Dict[str, Any]:
             logger.info(f"[WorkflowExecutor] Executing node: {node.node_id} (type={node.type})")
 
-            # 根据节点类型分发
-            if node.type == "agent":
-                result = NodeExecutor.execute_agent_node(node, self.runtime, state)
-            elif node.type == "human_gate":
-                result = NodeExecutor.execute_human_gate_node(node, self.runtime, state)
-            elif node.type == "condition":
-                result = NodeExecutor.execute_condition_node(node, self.runtime, state)
-            elif node.type == "parallel":
-                result = NodeExecutor.execute_parallel_node(node, self.runtime, state)
-            else:
-                logger.error(f"[WorkflowExecutor] Unknown node type: {node.type}")
-                result = {"success": False, "error": f"Unknown node type: {node.type}"}
+            # P8-方案1: 使用 NodeExecutor 实例方法（而非静态方法）
+            result = self.execute_single_node(node, self.runtime, state)
 
             # 保存节点输出
             self.runtime.set_node_output(node.node_id, result)
@@ -389,6 +515,135 @@ class WorkflowExecutor:
         all_nodes = {node.node_id for node in self.workflow.nodes}
         nodes_with_outgoing = {edge.from_node for edge in self.workflow.edges}
         return list(all_nodes - nodes_with_outgoing)
+
+    def _add_parallel_subgraph(self, builder: StateGraph, parallel_node: WorkflowNode):
+        """为 parallel 节点添加 fan-out/fan-in 子图（P8-方案2）。
+
+        结构:
+            parallel_node → fanout (返回 list[Send])
+                              ↓
+                          sub_node_1
+                          sub_node_2  ← 并行执行
+                          sub_node_3
+                              ↓
+                           merge_node → 下游节点
+        """
+        sub_node_ids = parallel_node.metadata.get("parallel_nodes", [])
+        if not sub_node_ids:
+            logger.warning(f"[WorkflowExecutor] Parallel node {parallel_node.node_id} has no sub-nodes")
+            return
+
+        process_name = f"{parallel_node.node_id}_process"
+        merge_name = f"{parallel_node.node_id}_merge"
+
+        # 1. Fan-out 函数：为每个子节点创建一个 Send
+        def fanout(state: WorkflowState) -> list[Send]:
+            logger.info(f"[WorkflowExecutor] Fanout from {parallel_node.node_id} to {len(sub_node_ids)} sub-nodes")
+            sends = []
+            for sub_node_id in sub_node_ids:
+                # 每个子节点独立状态副本
+                sub_state = {**state, "current_sub_node": sub_node_id}
+                sends.append(Send(process_name, sub_state))
+            return sends
+
+        # 2. 处理单个子节点
+        def process_sub_node(state: WorkflowState) -> Dict[str, Any]:
+            sub_node_id = state.get("current_sub_node")
+            logger.info(f"[WorkflowExecutor] Processing sub-node: {sub_node_id}")
+
+            sub_node = self.find_node(sub_node_id)
+            if not sub_node:
+                logger.error(f"[WorkflowExecutor] Sub-node {sub_node_id} not found")
+                return {
+                    "parallel_results": [{
+                        "node_id": sub_node_id,
+                        "success": False,
+                        "error": f"Sub-node '{sub_node_id}' not found in workflow"
+                    }]
+                }
+
+            # 执行子节点
+            try:
+                result = self.execute_single_node(sub_node, self.runtime, state)
+                self.runtime.set_node_output(sub_node_id, result)
+
+                return {
+                    "parallel_results": [{
+                        "node_id": sub_node_id,
+                        "success": result.get("success", False),
+                        "result": result
+                    }]
+                }
+            except Exception as e:
+                logger.error(f"[WorkflowExecutor] Sub-node {sub_node_id} execution failed: {e}")
+                return {
+                    "parallel_results": [{
+                        "node_id": sub_node_id,
+                        "success": False,
+                        "error": str(e)
+                    }]
+                }
+
+        # 3. Merge 函数：聚合所有子节点结果
+        def merge_results(state: WorkflowState) -> Dict[str, Any]:
+            results = state.get("parallel_results", [])
+            logger.info(f"[WorkflowExecutor] Merging {len(results)} parallel results")
+
+            # 统计成功/失败
+            total = len(results)
+            successful = sum(1 for r in results if r.get("success", False))
+            failed = total - successful
+
+            # 聚合结果
+            aggregated = {
+                "success": failed == 0,
+                "total_nodes": total,
+                "successful_nodes": successful,
+                "failed_nodes": failed,
+                "results": {r["node_id"]: r.get("result", {}) for r in results},
+                "errors": {r["node_id"]: r.get("error", "Unknown error") for r in results if not r.get("success", False)} or None,
+            }
+
+            # 保存到 node_outputs
+            self.runtime.set_node_output(parallel_node.node_id, aggregated)
+
+            return {
+                "current_node": parallel_node.node_id,
+                "node_outputs": {parallel_node.node_id: aggregated},
+                "completed_nodes": [parallel_node.node_id],
+            }
+
+        # 4. 构建子图
+        builder.add_node(process_name, process_sub_node)
+        builder.add_node(merge_name, merge_results)
+
+        # 5. 连接边
+        # parallel_node → fanout → process (多个 Send)
+        builder.add_conditional_edges(
+            parallel_node.node_id,
+            fanout,
+            [process_name]
+        )
+
+        # process → merge (自动聚合)
+        builder.add_edge(process_name, merge_name)
+
+        # 6. 处理 merge 节点的出边
+        # 找到从 parallel_node 出发的边，重定向到 merge_name
+        for edge in self.workflow.edges:
+            if edge.from_node == parallel_node.node_id:
+                if edge.condition == "always":
+                    builder.add_edge(merge_name, edge.to_node)
+                else:
+                    # 条件边（如果需要）
+                    route_func = self._make_route_func(edge)
+                    builder.add_conditional_edges(
+                        merge_name,
+                        route_func,
+                        {edge.to_node: edge.to_node, END: END},
+                    )
+
+        logger.info(f"[WorkflowExecutor] Added parallel subgraph for {parallel_node.node_id} with {len(sub_node_ids)} sub-nodes")
 
     def execute(self) -> Dict[str, Any]:
         """执行 Workflow"""

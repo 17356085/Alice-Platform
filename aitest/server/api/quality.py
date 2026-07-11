@@ -152,6 +152,26 @@ async def add_examples(dataset_id: str, req: AddExamplesRequest):
 
 # ── Evaluation Endpoints ────────────────────────────────────────────────
 
+@quality_router.get("/evaluations")
+async def list_evaluations(
+    org_id: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 50,
+):
+    """列出 Evaluation，供全局质量工作台查询。"""
+    from aitest.platform.quality_store import get_quality_store
+
+    store = get_quality_store()
+    evaluations = store.list_evaluations(
+        org_id=org_id,
+        status=status,
+        limit=min(limit, 100),
+    )
+    return {
+        "evaluations": [evaluation.to_dict() for evaluation in evaluations],
+        "total": len(evaluations),
+    }
+
 @quality_router.post("/evaluations")
 async def create_evaluation(req: CreateEvaluationRequest, request: Request):
     """创建 Evaluation（评估任务）"""

@@ -3,6 +3,8 @@
 This is the execution plane for async platform jobs. The control plane only
 creates and persists requests; the worker claims queued requests and runs the
 execution flow independently.
+
+P3-5: 集成 WorkerLeaseStore 心跳机制。
 """
 
 from __future__ import annotations
@@ -10,6 +12,7 @@ from __future__ import annotations
 import threading
 import time
 import uuid
+import logging
 from dataclasses import dataclass
 from typing import Optional
 
@@ -22,6 +25,8 @@ from aitest.infra.metrics import (
 from .execution_service import ExecutionService
 from .tenant import get_tenant_manager
 from .run_store import get_run_store
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -39,7 +44,10 @@ class ExecutionWorkerStats:
 
 
 class ExecutionWorker:
-    """Polls execution_requests and processes queued jobs."""
+    """Polls execution_requests and processes queued jobs.
+
+    P3-5: 集成心跳机制——启动时注册到 WorkerLeaseStore，轮询时发送心跳，停止时注销。
+    """
 
     def __init__(
         self,
@@ -49,6 +57,8 @@ class ExecutionWorker:
         worker_id: str = "",
         poll_interval: float = 1.0,
         tenant_manager=None,
+        heartbeat_interval: float = 30.0,  # P3-5: 心跳间隔（秒）
+        enable_heartbeat: bool = True,     # P3-5: 是否启用心跳（测试时可关闭）
     ):
         self._service = service or ExecutionService()
         self._store = store or get_run_store()
@@ -61,6 +71,13 @@ class ExecutionWorker:
         self._lock = threading.Lock()
         self._stats = ExecutionWorkerStats(worker_id=self._worker_id)
 
+        # P3-5: 心跳相关
+        self._heartbeat_interval = heartbeat_interval
+        self._enable_heartbeat = enable_heartbeat
+        self._last_heartbeat_time = 0.0
+        self._heartbeat_store = None  # 懒加载（避免启动时必须有 DB）
+        self._claimed_requests: list[str] = []  # 当前持有的 request_id
+
     @property
     def worker_id(self) -> str:
         return self._worker_id
@@ -71,6 +88,11 @@ class ExecutionWorker:
         self._running = True
         self._stop_event.clear()
         self._stats.running = True
+
+        # P3-5: 注册 Worker 到 WorkerLeaseStore
+        if self._enable_heartbeat:
+            self._register_worker()
+
         self._thread = threading.Thread(target=self._loop, name=self._worker_id, daemon=True)
         self._thread.start()
 
@@ -78,6 +100,11 @@ class ExecutionWorker:
         self._running = False
         self._stop_event.set()
         self._stats.running = False
+
+        # P3-5: 注销 Worker
+        if self._enable_heartbeat:
+            self._deregister_worker()
+
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=5)
 
@@ -106,6 +133,10 @@ class ExecutionWorker:
     def _loop(self) -> None:
         while not self._stop_event.is_set():
             try:
+                # P3-5: 定期发送心跳
+                if self._enable_heartbeat:
+                    self._send_heartbeat_if_needed()
+
                 ran = self.run_once()
                 if not ran:
                     self._stop_event.wait(self._poll_interval)
@@ -140,6 +171,8 @@ class ExecutionWorker:
             self._stats.claimed += 1
             self._stats.last_claimed_request_id = request.request_id
             self._stats.last_claimed_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            # P3-5: 追踪当前持有的 request
+            self._claimed_requests.append(request.request_id)
 
         try:
             if self._tenant_manager is not None:
@@ -187,11 +220,87 @@ class ExecutionWorker:
                 self._stats.failed += 0 if is_capacity_issue else 1
                 self._stats.last_error = str(exc)[:200]
         finally:
+            # P3-5: 完成后移除 claimed_requests
+            with self._lock:
+                if request.request_id in self._claimed_requests:
+                    self._claimed_requests.remove(request.request_id)
+
             if tenant is not None and capacity_acquired:
                 try:
                     tenant.release("agent_execution")
                 except Exception:
                     pass
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # P3-5: Worker Lease / Heartbeat 方法
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _get_heartbeat_store(self):
+        """懒加载 WorkerLeaseStore（避免启动时必须有 DB）"""
+        if self._heartbeat_store is None:
+            try:
+                from aitest.platform.worker_lease_store import get_worker_lease_store
+                self._heartbeat_store = get_worker_lease_store()
+            except Exception as e:
+                logger.warning(f"[ExecutionWorker] Failed to load WorkerLeaseStore: {e}")
+        return self._heartbeat_store
+
+    def _register_worker(self):
+        """注册 Worker 到 WorkerLeaseStore"""
+        store = self._get_heartbeat_store()
+        if not store:
+            return
+        try:
+            store.register(
+                self._worker_id,
+                heartbeat_interval_seconds=int(self._heartbeat_interval),
+                metadata={"version": "2.5.0"},  # 可扩展
+            )
+            self._last_heartbeat_time = time.time()
+            logger.info(f"[ExecutionWorker] Registered worker: {self._worker_id}")
+        except Exception as e:
+            logger.error(f"[ExecutionWorker] Failed to register worker: {e}")
+
+    def _deregister_worker(self):
+        """注销 Worker"""
+        store = self._get_heartbeat_store()
+        if not store:
+            return
+        try:
+            store.deregister(self._worker_id)
+            logger.info(f"[ExecutionWorker] Deregistered worker: {self._worker_id}")
+        except Exception as e:
+            logger.error(f"[ExecutionWorker] Failed to deregister worker: {e}")
+
+    def _send_heartbeat_if_needed(self):
+        """如果距离上次心跳超过间隔，发送心跳"""
+        now = time.time()
+        if now - self._last_heartbeat_time < self._heartbeat_interval:
+            return
+
+        store = self._get_heartbeat_store()
+        if not store:
+            return
+
+        try:
+            # 收集统计信息
+            with self._lock:
+                stats_snapshot = {
+                    "claimed": self._stats.claimed,
+                    "completed": self._stats.completed,
+                    "failed": self._stats.failed,
+                    "retried": self._stats.retried,
+                    "throttled": self._stats.throttled,
+                }
+
+            store.heartbeat(
+                self._worker_id,
+                stats=stats_snapshot,
+                claimed_requests=self._claimed_requests.copy(),
+            )
+            self._last_heartbeat_time = now
+        except Exception as e:
+            logger.warning(f"[ExecutionWorker] Heartbeat failed: {e}")
 
 
 _worker: ExecutionWorker | None = None

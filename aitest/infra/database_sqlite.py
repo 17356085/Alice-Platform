@@ -104,7 +104,32 @@ def init_db():
     from pathlib import Path
     ddl_file = Path(__file__).parent.parent.parent / "create_tables_sqlite.sql"
     if ddl_file.exists():
-        pg_exec_file(str(ddl_file))
+        # Existing databases predate the P7 resource columns.  Migrate them
+        # before executing the DDL, whose indexes reference those columns.
+        with _lock:
+            conn = _get_conn()
+            try:
+                exists = conn.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='runs'"
+                ).fetchone()
+                if exists:
+                    columns = {
+                        row[1] for row in conn.execute("PRAGMA table_info(runs)").fetchall()
+                    }
+                    additions = {
+                        "target_type": "TEXT NOT NULL DEFAULT 'agent'",
+                        "target_id": "TEXT NOT NULL DEFAULT ''",
+                        "target_version": "TEXT NOT NULL DEFAULT 'latest'",
+                        "environment_id": "TEXT NOT NULL DEFAULT ''",
+                        "parent_run_id": "TEXT NOT NULL DEFAULT ''",
+                    }
+                    for name, definition in additions.items():
+                        if name not in columns:
+                            conn.execute(f"ALTER TABLE runs ADD COLUMN {name} {definition}")
+                conn.executescript(ddl_file.read_text(encoding="utf-8"))
+                conn.commit()
+            finally:
+                conn.close()
         logger.info("sqlite_database_initialized", path=str(_get_db_path()))
     else:
         logger.warning("create_tables_sqlite.sql not found, skipping init_db")

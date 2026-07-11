@@ -77,7 +77,7 @@ class QualityStore:
                 }
                 for ex in (examples or [])
             ]),
-            metadata=json.dumps(metadata or {}),
+            metadata_json=json.dumps(metadata or {}),
         )
 
         self.session.add(model)
@@ -152,7 +152,7 @@ class QualityStore:
             created_at=row.created_at.isoformat() if row.created_at else "",
             updated_at=row.updated_at.isoformat() if row.updated_at else "",
             examples=examples,
-            metadata=json.loads(row.metadata or "{}"),
+            metadata=json.loads(row.metadata_json or "{}"),
         )
 
     # ── Evaluation ──────────────────────────────────────────────────────
@@ -198,6 +198,22 @@ class QualityStore:
         if not model:
             return None
         return self._row_to_evaluation(model)
+
+    def list_evaluations(
+        self,
+        *,
+        org_id: Optional[str] = None,
+        status: Optional[str] = None,
+        limit: int = 50,
+    ) -> List[Evaluation]:
+        """列出 Evaluation，支持全局质量工作台的只读查询。"""
+        query = self.session.query(EvaluationModel)
+        if org_id:
+            query = query.filter_by(org_id=org_id)
+        if status:
+            query = query.filter_by(status=status)
+        models = query.order_by(EvaluationModel.created_at.desc()).limit(limit).all()
+        return [self._row_to_evaluation(model) for model in models]
 
     def update_evaluation_status(
         self,
@@ -294,7 +310,7 @@ class QualityStore:
             created_by=created_by,
             status="pending",
             decision="pending",
-            metadata=json.dumps(metadata or {}),
+            metadata_json=json.dumps(metadata or {}),
         )
 
         self.session.add(model)
@@ -361,7 +377,7 @@ class QualityStore:
             created_at=row.created_at.isoformat() if row.created_at else "",
             completed_at=row.completed_at.isoformat() if row.completed_at else None,
             comparison=comparison,
-            metadata=json.loads(row.metadata or "{}"),
+            metadata=json.loads(row.metadata_json or "{}"),
         )
 
 

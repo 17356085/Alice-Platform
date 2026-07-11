@@ -76,7 +76,10 @@ def run_skill(skill_id: str, user_input: str, provider=None, context_vars=None, 
     from alice_engine.core.skill_loader import SkillLoader
     from alice_engine.core.skill_executor_impl import SkillExecutorImpl
 
-    loader = SkillLoader(governance_path=_get_governance_root())
+    # P6-3: 如果 kwargs 包含 plugin_lookup_fn，传递给 SkillLoader
+    plugin_lookup_fn = kwargs.pop('plugin_lookup_fn', None)
+    loader = SkillLoader(governance_path=_get_governance_root(), plugin_lookup_fn=plugin_lookup_fn)
+
     try:
         prov = _get_provider(provider or "mock")
     except Exception:

@@ -1,6 +1,6 @@
 /** Project Settings — per-project configuration. */
 import { useParams } from 'react-router-dom'
-import { useSettingsStore } from '../stores/settings'
+import { useSettingsStore } from '@/stores/settings'
 import { Settings } from 'lucide-react'
 
 export default function ProjectSettingsView() {

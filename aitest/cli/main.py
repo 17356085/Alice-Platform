@@ -18,6 +18,7 @@ Alice CLI v2 — 资源化命令行入口。
 import typer
 from typing import Optional
 from rich.console import Console
+from aitest.platform.plugin import get_plugin_manager
 
 console = Console()
 
@@ -36,12 +37,20 @@ agent_app = typer.Typer(help="Agent 资源管理", no_args_is_help=True)
 workflow_app = typer.Typer(help="Workflow 资源管理", no_args_is_help=True)
 quality_app = typer.Typer(help="Quality 资源管理", no_args_is_help=True)
 provider_app = typer.Typer(help="ModelProvider 资源管理", no_args_is_help=True)
+mcp_app = typer.Typer(help="MCP Server 资源管理", no_args_is_help=True)
+plugin_app = typer.Typer(help="Plugin 资源管理", no_args_is_help=True)
+environment_app = typer.Typer(help="Environment 资源管理", no_args_is_help=True)
+secret_app = typer.Typer(help="Secret 资源管理（不显示明文）", no_args_is_help=True)
 
 app.add_typer(run_app, name="run")
 app.add_typer(agent_app, name="agent")
 app.add_typer(workflow_app, name="workflow")
 app.add_typer(quality_app, name="quality")
 app.add_typer(provider_app, name="provider")
+app.add_typer(mcp_app, name="mcp")
+app.add_typer(plugin_app, name="plugin")
+app.add_typer(environment_app, name="env")
+app.add_typer(secret_app, name="secret")
 
 # ── run 命令组 ──────────────────────────────────────────────
 
@@ -289,6 +298,87 @@ def provider_test(
     """测试 Provider 连通性。"""
     from aitest.cli.commands.provider.test import test_command
     test_command(provider_id)
+
+
+# ── external resource 命令组 ────────────────────────────────────────
+
+def _print_resource(data, output: str, columns: list[str], title: str):
+    from aitest.cli.utils.output import format_output
+    format_output(data, output_format=output, columns=columns, title=title)
+
+
+@mcp_app.command("list")
+def mcp_list(output: str = typer.Option("table", "--output", "-o", help="输出格式")):
+    """列出 MCP Server（不显示环境变量值）。"""
+    from aitest.platform.mcp_server_store import MCPServerStore
+    servers = MCPServerStore().list_mcp_servers()
+    rows = [{"id": s.mcp_server_id, "name": s.name, "transport": s.transport_type, "status": s.status, "tools": len(s.tools)} for s in servers]
+    _print_resource(rows, output, ["id", "name", "transport", "status", "tools"], "MCP Servers")
+
+
+@mcp_app.command("show")
+def mcp_show(mcp_server_id: str = typer.Argument(..., help="MCP Server ID"), output: str = typer.Option("table", "--output", "-o")):
+    """显示 MCP Server 安全配置摘要。"""
+    from aitest.platform.mcp_server_store import MCPServerStore
+    server = MCPServerStore().get_mcp_server(mcp_server_id)
+    if server is None:
+        raise typer.BadParameter(f"MCP Server 不存在: {mcp_server_id}")
+    _print_resource({"id": server.mcp_server_id, "name": server.name, "transport": server.transport_type, "command": server.command, "url": server.url, "status": server.status, "env_keys": sorted(server.env), "tools": server.tools}, output, ["id", "name", "transport", "command", "url", "status", "env_keys", "tools"], "MCP Server")
+
+
+@mcp_app.command("start")
+def mcp_start(mcp_server_id: str = typer.Argument(..., help="MCP Server ID")):
+    """启动已注册的 MCP Server。"""
+    import asyncio
+    from aitest.platform.mcp_server_manager import get_mcp_server_manager
+    ok = asyncio.run(get_mcp_server_manager().start_server(mcp_server_id))
+    if not ok:
+        raise typer.Exit(1)
+    console.print(f"[green]✓[/green] MCP Server started: {mcp_server_id}")
+
+
+@mcp_app.command("stop")
+def mcp_stop(mcp_server_id: str = typer.Argument(..., help="MCP Server ID")):
+    """停止运行中的 MCP Server。"""
+    import asyncio
+    from aitest.platform.mcp_server_manager import get_mcp_server_manager
+    ok = asyncio.run(get_mcp_server_manager().stop_server(mcp_server_id))
+    if not ok:
+        raise typer.Exit(1)
+    console.print(f"[green]✓[/green] MCP Server stopped: {mcp_server_id}")
+
+
+@plugin_app.command("list")
+def plugin_list(output: str = typer.Option("table", "--output", "-o", help="输出格式")):
+    """列出已发现的 Plugin 及加载状态。"""
+    manager = get_plugin_manager(); manager.load_all()
+    _print_resource(manager.list_plugins(), output, ["name", "version", "loaded", "description", "error"], "Plugins")
+
+
+@environment_app.command("list")
+def environment_list(output: str = typer.Option("table", "--output", "-o", help="输出格式")):
+    """列出 Environment。"""
+    from aitest.platform.environment_store import get_environment_store
+    rows = [environment.to_dict() for environment in get_environment_store().list_environments()]
+    _print_resource(rows, output, ["environment_id", "name", "base_url", "is_default", "tags"], "Environments")
+
+
+@environment_app.command("show")
+def environment_show(environment_id: str = typer.Argument(..., help="Environment ID"), output: str = typer.Option("table", "--output", "-o")):
+    """显示 Environment 配置（不解析 Secret 引用）。"""
+    from aitest.platform.environment_store import get_environment_store
+    environment = get_environment_store().get_environment(environment_id)
+    if environment is None:
+        raise typer.BadParameter(f"Environment 不存在: {environment_id}")
+    _print_resource(environment.to_dict(), output, ["environment_id", "name", "base_url", "variables", "tags", "is_default"], "Environment")
+
+
+@secret_app.command("list")
+def secret_list(output: str = typer.Option("table", "--output", "-o", help="输出格式")):
+    """列出 Secret 元数据，绝不显示明文值。"""
+    from aitest.platform.secret_store import get_secret_store
+    rows = [secret.to_dict(include_value=False) for secret in get_secret_store().list_secrets()]
+    _print_resource(rows, output, ["secret_id", "name", "type", "tags", "expires_at"], "Secrets")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -589,6 +679,51 @@ def view_command(
 # ══════════════════════════════════════════════════════════════
 #  入口
 # ══════════════════════════════════════════════════════════════
+
+
+def _register_plugin_commands() -> None:
+    """从 PluginManager 动态注册 Plugin 提供的 CLI 命令 (P6-3)。
+
+    Plugin CLI 命令类需要实现静态方法 create_command() → typer.Typer 或 Callable。
+    """
+    try:
+        pm = get_plugin_manager()
+        pm.load_all()
+
+        for cmd_name, cmd_class in pm.get_cli_commands().items():
+            try:
+                # 支持两种模式:
+                # 1. 类有 create_command() 静态方法 → 返回 typer.Typer 子命令组
+                # 2. 类有 create_typer() 静态方法 → 返回 typer.Typer（完整命令组）
+                if hasattr(cmd_class, "create_typer"):
+                    plugin_typer = cmd_class.create_typer()
+                    app.add_typer(plugin_typer, name=cmd_name)
+                elif hasattr(cmd_class, "create_command"):
+                    cmd = cmd_class.create_command()
+                    # Typer command decorator 包装的函数，直接注册为 app command
+                    app.command(cmd_name)(cmd)
+                else:
+                    console.print(
+                        f"[yellow]Plugin CLI command '{cmd_name}' skipped: "
+                        f"missing create_typer() or create_command() method[/yellow]"
+                    )
+                    continue
+
+                console.print(f"[dim]Plugin CLI registered: {cmd_name}[/dim]")
+
+            except Exception as e:
+                console.print(
+                    f"[yellow]Plugin CLI command '{cmd_name}' load failed: {e}[/yellow]"
+                )
+
+    except Exception as e:
+        # Plugin 加载失败不应中断 CLI 启动
+        console.print(f"[dim]Plugin CLI discovery failed: {e}[/dim]")
+
+
+# 在模块加载时注册 Plugin 命令（延迟：首次导入时执行）
+_register_plugin_commands()
+
 
 def main():
     """CLI 入口点。无参数时启动 TUI。"""

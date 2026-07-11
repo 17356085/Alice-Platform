@@ -26,7 +26,7 @@ class DatasetModel(Base):
 
     # JSONB 字段（存储为 JSON string）
     examples = Column(Text, default="[]")  # List[Example]
-    metadata = Column(Text, default="{}")  # Optional metadata
+    metadata_json = Column("metadata", Text, default="{}")  # Optional metadata
 
 
 class EvaluationModel(Base):
@@ -72,4 +72,4 @@ class ExperimentModel(Base):
 
     # JSONB 字段
     comparison = Column(Text, default="{}")  # ComparisonResult (diff, winner)
-    metadata = Column(Text, default="{}")
+    metadata_json = Column("metadata", Text, default="{}")

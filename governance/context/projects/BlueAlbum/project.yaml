@@ -8,7 +8,7 @@ application:
   runtime: "browser"
 
 connection:
-  base_url: "D:\Desktop\BlueAlbum"
+  base_url: 'D:\Desktop\BlueAlbum'
   login_required: true
   login_method: "form"
 
@@ -19,7 +19,7 @@ knowledge:
   chroma_namespace: "BlueAlbum"
 
 test_project:
-  code_path: "D:\Desktop\BlueAlbum\tests"
+  code_path: 'D:\Desktop\BlueAlbum\tests'
   type: "pytest-selenium"
   categories:
     - smoke

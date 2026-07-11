@@ -10,7 +10,7 @@ Phase 1: 支持 target.type="agent" + 旧参数映射
 Phase 2+: 支持 workflow/skill/evaluation 类型
 """
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Query
 from pydantic import BaseModel, Field
 from typing import Optional, Literal, Any
 import asyncio
@@ -116,6 +116,27 @@ class CreateRunResponse(BaseModel):
 
 
 # ── Endpoints ───────────────────────────────────────────────────────────
+
+@runs_router.get("/runs")
+async def list_runs(
+    workspace_id: str = "",
+    org_id: str = "",
+    status: str = "",
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    """列出 Run 资源，供全局 Run 历史与项目视图共用。"""
+    from aitest.platform.run_store import get_run_store
+
+    store = get_run_store()
+    runs = store.list_runs(
+        workspace_id=workspace_id,
+        org_id=org_id,
+        status=status,
+        limit=limit,
+        offset=offset,
+    )
+    return {"runs": [run.to_dict() for run in runs], "total": len(runs)}
 
 @runs_router.post("/runs", response_model=CreateRunResponse)
 async def create_run(req: CreateRunRequest, request: Request):

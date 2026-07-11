@@ -1,6 +1,6 @@
 /** Gap Discovery View — full React port with real API scanner. */
 import { useEffect } from 'react'
-import { useGapScanner, type TestGap } from '../hooks/useGapScanner'
+import { useGapScanner, type TestGap } from '@/hooks/useGapScanner'
 import { Search, AlertTriangle, RefreshCw, X } from 'lucide-react'
 
 const severityColors: Record<string, string> = {
