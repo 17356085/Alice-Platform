@@ -7,7 +7,7 @@
 
 from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Index
 from sqlalchemy.dialects.postgresql import JSONB
-from aitest.infra.models import Base
+from aitest.infra.db import Base
 import json
 
 
@@ -57,17 +57,17 @@ class SecretAuditLogModel(Base):
     actor = Column(String(128), nullable=False)
     timestamp = Column(DateTime(timezone=True), nullable=False, index=True)
     ip_address = Column(String(64), nullable=True)
-    metadata = Column(Text, default="{}")  # JSON 对象
+    metadata_json = Column("metadata", Text, default="{}")  # JSON 对象
 
     def get_metadata(self):
         """获取元数据（解析 JSON）"""
-        if not self.metadata:
+        if not self.metadata_json:
             return {}
         try:
-            return json.loads(self.metadata)
+            return json.loads(self.metadata_json)
         except Exception:
             return {}
 
     def set_metadata(self, metadata: dict):
         """设置元数据（序列化为 JSON）"""
-        self.metadata = json.dumps(metadata)
+        self.metadata_json = json.dumps(metadata)

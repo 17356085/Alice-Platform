@@ -44,7 +44,8 @@ const viewTitles: Record<string, string> = {
   onboarding: '新建项目', strategy: '策略规划',
   overview: '项目概览', observability: '可观测性', artifacts: '产物',
   timeline: '时间线', agent: 'Agent 详情', knowledgegraph: '知识图谱',
-  runs: 'Run Inspector',
+  runs: '运行记录', projects: '项目', evaluations: '质量评估', registry: '注册中心',
+  build: '构建', run: '执行', quality: '质量', assets: '资产',
 }
 
 function useCurrentViewName(): string {
@@ -148,24 +149,45 @@ export default function App() {
           <ErrorBoundary>
             <Suspense fallback={<Loading />}>
             <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/" element={<Navigate to="/projects" replace />} />
               <Route path="/dashboard" element={<DashboardView />} />
+              <Route path="/projects" element={<DashboardView />} />
+              <Route path="/runs" element={<ExecutionView />} />
+              <Route path="/evaluations" element={<ReportsView />} />
+              <Route path="/registry" element={<SettingsView />} />
 
-              {/* Project workspace */}
-              <Route path="/projects/:id" element={<ProjectOverviewView />} />
+              {/* Project resource model */}
+              <Route path="/projects/:id" element={<Navigate to="overview" replace />} />
+              <Route path="/projects/:id/overview" element={<ProjectOverviewView />} />
+              <Route path="/projects/:id/build" element={<StrategyPlannerView />} />
+              <Route path="/projects/:id/build/strategy" element={<StrategyPlannerView />} />
+              <Route path="/projects/:id/run" element={<ExecutionView />} />
+              <Route path="/projects/:id/run/execute" element={<ExecutionView />} />
+              <Route path="/projects/:id/run/kanban" element={<KanbanView />} />
+              <Route path="/projects/:id/quality" element={<ReportsView />} />
+              <Route path="/projects/:id/quality/reports" element={<ReportsView />} />
+              <Route path="/projects/:id/quality/gaps" element={<GapDiscoveryView />} />
+              <Route path="/projects/:id/assets" element={<ArtifactsView />} />
+              <Route path="/projects/:id/assets/artifacts" element={<ArtifactsView />} />
+              <Route path="/projects/:id/assets/knowledge" element={<KnowledgeView />} />
+              <Route path="/projects/:id/assets/graph" element={<KnowledgeGraphView />} />
+              <Route path="/projects/:id/assets/agents/:agentId" element={<AgentDetailView />} />
+              <Route path="/projects/:id/assets/agents/:agentId/terminal" element={<AgentTerminalView />} />
+
+              {/* Legacy project URLs */}
               <Route path="/projects/:id/timeline" element={<TimelineView />} />
               <Route path="/projects/:id/agents/:agentId" element={<AgentDetailView />} />
               <Route path="/projects/:id/knowledgegraph" element={<KnowledgeGraphView />} />
-              <Route path="/projects/:id/execution" element={<ExecutionView />} />
+              <Route path="/projects/:id/execution" element={<Navigate to="run/execute" replace />} />
               <Route path="/projects/:id/observability" element={<ObservabilityView />} />
-              <Route path="/projects/:id/artifacts" element={<ArtifactsView />} />
-              <Route path="/projects/:id/knowledge" element={<KnowledgeView />} />
-              <Route path="/projects/:id/reports" element={<ReportsView />} />
+              <Route path="/projects/:id/artifacts" element={<Navigate to="assets/artifacts" replace />} />
+              <Route path="/projects/:id/knowledge" element={<Navigate to="assets/knowledge" replace />} />
+              <Route path="/projects/:id/reports" element={<Navigate to="quality/reports" replace />} />
               <Route path="/projects/:id/settings" element={<ProjectSettingsView />} />
               <Route path="/projects/:id/chat" element={<IntelligenceChatView />} />
-              <Route path="/projects/:id/gaps" element={<GapDiscoveryView />} />
-              <Route path="/projects/:id/strategy" element={<StrategyPlannerView />} />
-              <Route path="/projects/:id/kanban" element={<KanbanView />} />
+              <Route path="/projects/:id/gaps" element={<Navigate to="quality/gaps" replace />} />
+              <Route path="/projects/:id/strategy" element={<Navigate to="build/strategy" replace />} />
+              <Route path="/projects/:id/kanban" element={<Navigate to="run/kanban" replace />} />
               <Route path="/projects/:id/terminal" element={<AgentTerminalView />} />
               <Route path="/projects/:id/runs/:runId" element={<RunInspectorView />} />
 

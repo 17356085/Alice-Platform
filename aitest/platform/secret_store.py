@@ -382,7 +382,7 @@ class SecretStore:
             actor=actor,
             timestamp=now,
             ip_address=ip_address,
-            metadata="{}",
+            metadata_json="{}",
         )
 
         if metadata:

@@ -23,29 +23,24 @@ interface SidebarNavProps {
 
 type TierItem = { id: string; icon: LucideIcon; key: string }
 
-const tier1Items: TierItem[] = [
-  { id: 'timeline', icon: Clock, key: '时间线' },
-  { id: 'execution', icon: Play, key: '执行中心' },
-  { id: 'artifacts', icon: FolderOpen, key: '产物' },
-]
-
-const tier2Items: TierItem[] = [
-  { id: 'observability', icon: Clock, key: '可观测性' },
-  { id: 'reports', icon: BarChart3, key: '报告' },
-  { id: 'knowledge', icon: BookOpen, key: '知识' },
-  { id: 'knowledgegraph', icon: Network, key: '知识图谱' },
-  { id: 'kanban', icon: LayoutGrid, key: '看板' },
-]
-
-const tier3Items: TierItem[] = [
-  { id: 'terminal', icon: Terminal, key: '终端' },
-  { id: 'gaps', icon: Search, key: '缺口' },
-  { id: 'chat', icon: MessageSquare, key: '对话' },
+const globalItems: TierItem[] = [
+  { id: 'projects', icon: LayoutDashboard, key: '项目' },
+  { id: 'runs', icon: Clock, key: '运行记录' },
+  { id: 'evaluations', icon: BarChart3, key: '质量评估' },
+  { id: 'registry', icon: BookOpen, key: '注册中心' },
   { id: 'settings', icon: Settings, key: '设置' },
 ]
 
+const projectItems: TierItem[] = [
+  { id: 'overview', icon: LayoutDashboard, key: '概览' },
+  { id: 'build', icon: Lightbulb, key: '构建' },
+  { id: 'run', icon: Play, key: '执行' },
+  { id: 'quality', icon: BarChart3, key: '质量' },
+  { id: 'assets', icon: FolderOpen, key: '资产' },
+]
+
 function currentSection(view: string): 'dashboard' | 'project' | 'bottom' {
-  if (view === 'dashboard') return 'dashboard'
+  if (['projects', 'runs', 'evaluations', 'registry'].includes(view)) return 'dashboard'
   if (view === 'onboarding') return 'bottom'
   if (view === 'settings') return 'bottom'
   return 'project'
@@ -111,13 +106,16 @@ export default function SidebarNav({ currentView, onNavigate }: SidebarNavProps)
       </div>
 
       <nav className="flex-1 p-2.5 flex flex-col overflow-y-auto gap-0.5">
-        {/* Dashboard */}
-        <NavBtn
-          active={section === 'dashboard'}
-          onClick={() => onNavigate('/dashboard')}
-          icon={LayoutDashboard}
-          label="面板"
-        />
+        <div className="px-3 py-1.5 text-[11px] font-semibold text-sidebar-foreground/50">工作台</div>
+        {globalItems.slice(0, 4).map(item => (
+          <NavBtn
+            key={item.id}
+            active={currentView === item.id || (item.id === 'projects' && currentView === 'dashboard')}
+            onClick={() => onNavigate(`/${item.id}`)}
+            icon={item.icon}
+            label={item.key}
+          />
+        ))}
 
         <div className="h-px mx-2 my-2 bg-sidebar-border opacity-60" />
 
@@ -129,7 +127,7 @@ export default function SidebarNav({ currentView, onNavigate }: SidebarNavProps)
               <span className="truncate">{activeProject?.name || activeProject?.id || 'Workspace'}</span>
             </div>
 
-            {tier1Items.map(item => (
+            {projectItems.map(item => (
               <NavBtn
                 key={item.id}
                 active={projectActive(item.id)}
@@ -139,23 +137,7 @@ export default function SidebarNav({ currentView, onNavigate }: SidebarNavProps)
               />
             ))}
 
-            {hasProjectData && (
-              <>
-                <div className="h-px mx-3 my-1 bg-sidebar-border opacity-40" />
-                {tier2Items.map(item => (
-                  <NavBtn
-                    key={item.id}
-                    active={projectActive(item.id)}
-                    onClick={() => onNavigate(`/projects/${pid}/${item.id}`)}
-                    icon={item.icon}
-                    label={item.key}
-                  />
-                ))}
-              </>
-            )}
-
-            {/* Tier 3: collapsible */}
-            <Collapsible open={toolsOpen} onOpenChange={setToolsOpen} className="mt-1">
+            <Collapsible open={toolsOpen} onOpenChange={setToolsOpen} className="mt-2">
               <CollapsibleTrigger asChild>
                 <button className={cn(
                   'flex items-center gap-1 w-full px-3 py-1 text-[10px] uppercase tracking-wider text-sidebar-foreground/40 hover:text-sidebar-foreground/70 transition-colors cursor-pointer',
@@ -166,7 +148,11 @@ export default function SidebarNav({ currentView, onNavigate }: SidebarNavProps)
                 </button>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                {tier3Items.map(item => (
+                {[
+                  { id: 'observability', icon: Eye, key: '可观测性' },
+                  { id: 'terminal', icon: Terminal, key: 'Agent 终端' },
+                  { id: 'chat', icon: MessageSquare, key: '智能对话' },
+                ].map(item => (
                   <NavBtn
                     key={item.id}
                     active={projectActive(item.id)}
@@ -197,12 +183,7 @@ export default function SidebarNav({ currentView, onNavigate }: SidebarNavProps)
           icon={Plus}
           label={t('nav.onboarding')}
         />
-        <NavBtn
-          active={currentView === 'settings'}
-          onClick={() => onNavigate('/settings')}
-          icon={Settings}
-          label={t('nav.settings')}
-        />
+        <NavBtn active={currentView === 'settings'} onClick={() => onNavigate('/settings')} icon={Settings} label={t('nav.settings')} />
       </div>
     </aside>
   )

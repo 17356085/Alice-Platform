@@ -4,7 +4,7 @@ import logging
 from typing import Optional, List
 from datetime import datetime, timezone
 
-from aitest.infra.database import get_session
+from aitest.infra.db import get_db_session
 from aitest.platform.model_provider import ModelProvider, ProviderConfig
 from aitest.platform.model_provider_models import ModelProviderModel
 
@@ -15,7 +15,7 @@ class ModelProviderStore:
     """ModelProvider 存储层"""
 
     def __init__(self, db_session=None):
-        self.session = db_session or get_session()
+        self.session = db_session or get_db_session()
 
     def create_provider(
         self,

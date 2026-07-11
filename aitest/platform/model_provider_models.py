@@ -4,7 +4,7 @@ from sqlalchemy import Column, String, Text, DateTime, Index
 from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime, timezone
 
-from aitest.infra.database import Base
+from aitest.infra.db import Base
 
 
 class ModelProviderModel(Base):

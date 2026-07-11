@@ -8,6 +8,10 @@ version = "1.6.0"
 description = "AI 自动化测试平台 — 去平台化 CLI 工具包"
 requires-python = ">=3.11"
 dependencies = [
+    # Local workspace SDKs required by the platform package at import time
+    "alice-engine",
+    "alice-governance",
+    "alice-discovery",
     # Web framework
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.27.0",
@@ -54,6 +58,11 @@ alice = "aitest.cli.main:main"
 
 [tool.uv.workspace]
 members = ["packages/*"]
+
+[tool.uv.sources]
+alice-engine = { workspace = true }
+alice-governance = { workspace = true }
+alice-discovery = { workspace = true }
 
 [dependency-groups]
 dev = [

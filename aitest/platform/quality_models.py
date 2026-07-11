@@ -8,7 +8,7 @@
 
 from sqlalchemy import Column, String, Text, Integer, DateTime
 from sqlalchemy.sql import func
-from aitest.infra.models import Base
+from aitest.infra.db import Base
 
 
 class DatasetModel(Base):

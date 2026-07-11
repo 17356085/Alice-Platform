@@ -5,7 +5,7 @@
 """
 
 from sqlalchemy import Column, String, DateTime, Text, Boolean, Index
-from aitest.infra.models import Base
+from aitest.infra.db import Base
 import json
 
 

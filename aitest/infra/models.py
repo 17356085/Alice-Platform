@@ -16,7 +16,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from datetime import datetime, timezone
 import uuid
 
-from .database import Base
+from .db import Base
 
 # Import all models to ensure they're registered with SQLAlchemy
 from aitest.platform.workflow_models import WorkflowModel  # noqa: F401

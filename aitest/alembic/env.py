@@ -7,7 +7,7 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 
 # Import Base + all models so metadata is populated
-from aitest.infra.database import Base
+from aitest.infra.db import Base
 import aitest.infra.models  # noqa: F401 — registers all models on Base.metadata
 
 config = context.config
