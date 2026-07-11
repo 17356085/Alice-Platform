@@ -355,12 +355,63 @@ def plugin_list(output: str = typer.Option("table", "--output", "-o", help="输�
     _print_resource(manager.list_plugins(), output, ["name", "version", "loaded", "description", "error"], "Plugins")
 
 
+@plugin_app.command("install")
+def plugin_install(source: str = typer.Argument(..., help="本地 Plugin 目录")):
+    """安装本地 Plugin；远程 URL 安装暂不启用。"""
+    from pathlib import Path
+    import shutil
+    import yaml
+    from aitest.platform.paths import get_workstudy
+
+    source_path = Path(source).expanduser().resolve()
+    manifest = source_path / "aitest_plugin.yaml"
+    if not source_path.is_dir() or not manifest.exists():
+        raise typer.BadParameter("source 必须是包含 aitest_plugin.yaml 的本地目录")
+    data = yaml.safe_load(manifest.read_text(encoding="utf-8")) or {}
+    name = data.get("name")
+    if not name:
+        raise typer.BadParameter("Plugin manifest 缺少 name")
+    target = get_workstudy() / "plugins" / name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if target.exists():
+        raise typer.BadParameter(f"Plugin 已存在: {name}")
+    shutil.copytree(source_path, target)
+    console.print(f"[green]✓[/green] Plugin installed: {name}")
+
+
 @environment_app.command("list")
 def environment_list(output: str = typer.Option("table", "--output", "-o", help="输出格式")):
     """列出 Environment。"""
     from aitest.platform.environment_store import get_environment_store
     rows = [environment.to_dict() for environment in get_environment_store().list_environments()]
     _print_resource(rows, output, ["environment_id", "name", "base_url", "is_default", "tags"], "Environments")
+
+
+@environment_app.command("create")
+def environment_create(
+    environment_id: str = typer.Argument(...),
+    name: str = typer.Option(..., "--name"),
+    base_url: str = typer.Option(..., "--base-url"),
+    variables: str = typer.Option("{}", "--variables", help="JSON 对象；Secret 使用 secret:<id> 引用"),
+    tags: str = typer.Option("", "--tags", help="逗号分隔标签"),
+    org_id: str = typer.Option("default-org", "--org-id"),
+    is_default: bool = typer.Option(False, "--default"),
+):
+    """创建 Environment。"""
+    import json
+    from aitest.platform.environment_store import get_environment_store
+    try:
+        values = json.loads(variables)
+        if not isinstance(values, dict):
+            raise ValueError("--variables 必须是 JSON 对象")
+        env = get_environment_store().create_environment(
+            environment_id, name, base_url, variables=values,
+            tags=[item.strip() for item in tags.split(",") if item.strip()],
+            org_id=org_id, is_default=is_default,
+        )
+    except (ValueError, json.JSONDecodeError) as exc:
+        raise typer.BadParameter(str(exc))
+    _print_resource(env.to_dict(), "table", ["environment_id", "name", "base_url", "is_default"], "Environment")
 
 
 @environment_app.command("show")
@@ -373,12 +424,61 @@ def environment_show(environment_id: str = typer.Argument(..., help="Environment
     _print_resource(environment.to_dict(), output, ["environment_id", "name", "base_url", "variables", "tags", "is_default"], "Environment")
 
 
+@environment_app.command("delete")
+def environment_delete(environment_id: str = typer.Argument(...)):
+    """删除 Environment。"""
+    from aitest.platform.environment_store import get_environment_store
+    if not get_environment_store().delete_environment(environment_id):
+        raise typer.BadParameter(f"Environment 不存在: {environment_id}")
+    console.print(f"[green]✓[/green] Environment deleted: {environment_id}")
+
+
 @secret_app.command("list")
 def secret_list(output: str = typer.Option("table", "--output", "-o", help="输出格式")):
     """列出 Secret 元数据，绝不显示明文值。"""
     from aitest.platform.secret_store import get_secret_store
     rows = [secret.to_dict(include_value=False) for secret in get_secret_store().list_secrets()]
     _print_resource(rows, output, ["secret_id", "name", "type", "tags", "expires_at"], "Secrets")
+
+
+@secret_app.command("create")
+def secret_create(
+    secret_id: str = typer.Argument(...),
+    name: str = typer.Option(..., "--name"),
+    secret_type: str = typer.Option("token", "--type"),
+    value: str = typer.Option(..., "--value", prompt=True, hide_input=True, confirmation_prompt=True),
+    org_id: str = typer.Option("default-org", "--org-id"),
+):
+    """创建 Secret；值会加密保存且不会在输出中显示。"""
+    from aitest.platform.secret_store import get_secret_store
+    try:
+        secret = get_secret_store().create_secret(secret_id, name, secret_type, value, org_id=org_id)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc))
+    _print_resource(secret.to_dict(include_value=False), "table", ["secret_id", "name", "type", "org_id"], "Secret")
+
+
+@secret_app.command("rotate")
+def secret_rotate(
+    secret_id: str = typer.Argument(...),
+    value: str = typer.Option(..., "--value", prompt=True, hide_input=True, confirmation_prompt=True),
+):
+    """轮换 Secret 值；输出只包含元数据。"""
+    from aitest.platform.secret_store import get_secret_store
+    try:
+        secret = get_secret_store().update_secret(secret_id, value=value)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc))
+    _print_resource(secret.to_dict(include_value=False), "table", ["secret_id", "name", "type", "updated_at"], "Secret")
+
+
+@secret_app.command("delete")
+def secret_delete(secret_id: str = typer.Argument(...)):
+    """删除 Secret，并记录审计事件。"""
+    from aitest.platform.secret_store import get_secret_store
+    if not get_secret_store().delete_secret(secret_id):
+        raise typer.BadParameter(f"Secret 不存在: {secret_id}")
+    console.print(f"[green]✓[/green] Secret deleted: {secret_id}")
 
 
 # ══════════════════════════════════════════════════════════════

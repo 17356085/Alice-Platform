@@ -296,9 +296,12 @@ class EnvironmentStore:
         Raises:
             ValueError: Environment 不存在
         """
-        env_model = self.session.query(EnvironmentModel).filter_by(environment_id=environment_id).first()
+        env_model = self.session.query(EnvironmentModel).filter_by(
+            environment_id=environment_id,
+            org_id=org_id,
+        ).first()
         if not env_model:
-            raise ValueError(f"Environment not found: {environment_id}")
+            raise ValueError(f"Environment not found in organization: {environment_id}")
 
         # 取消其他默认环境
         self._clear_default(org_id)

@@ -34,12 +34,20 @@ def _detect_backend() -> str:
     if explicit == "postgres":
         return "postgres"
 
-    # Auto: TCP probe to PostgreSQL (replaces docker exec pg_isready)
+    # Auto: verify an authenticated PostgreSQL connection, not just an open TCP port.
+    # A local service may occupy 5432 while the configured user/password is invalid;
+    # treating that as PostgreSQL makes local MCP/resource stores fail instead of
+    # falling back to the documented zero-dependency SQLite mode.
     try:
         with socket.create_connection(("localhost", 5432), timeout=3):
+            from aitest.infra import database_pg
+            conn = database_pg._get_conn()
+            conn.close()
             return "postgres"
     except OSError:
         pass
+    except Exception as exc:
+        logger.info("postgres_unavailable_falling_back_to_sqlite", error=str(exc))
 
     return "sqlite"
 

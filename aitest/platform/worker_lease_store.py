@@ -66,6 +66,8 @@ class WorkerLeaseStore:
 
         existing = self.session.query(WorkerLeaseModel).filter_by(worker_id=worker_id).first()
         if existing:
+            if existing.org_id != org_id:
+                raise ValueError(f"Worker belongs to another organization: {worker_id}")
             # 复活：更新已有记录
             existing.hostname = hostname
             existing.pid = pid
@@ -98,7 +100,7 @@ class WorkerLeaseStore:
 
         return self.get(worker_id)
 
-    def deregister(self, worker_id: str) -> bool:
+    def deregister(self, worker_id: str, org_id: str = None) -> bool:
         """注销 Worker（设置为 stopped）
 
         Args:
@@ -107,7 +109,10 @@ class WorkerLeaseStore:
         Returns:
             True 如果成功注销
         """
-        model = self.session.query(WorkerLeaseModel).filter_by(worker_id=worker_id).first()
+        query = self.session.query(WorkerLeaseModel).filter_by(worker_id=worker_id)
+        if org_id:
+            query = query.filter_by(org_id=org_id)
+        model = query.first()
         if not model:
             return False
 
@@ -128,6 +133,7 @@ class WorkerLeaseStore:
         *,
         stats: dict = None,
         claimed_requests: list[str] = None,
+        org_id: str = None,
     ) -> bool:
         """更新 Worker 心跳
 
@@ -139,7 +145,10 @@ class WorkerLeaseStore:
         Returns:
             True 如果更新成功，False 如果 worker 不存在
         """
-        model = self.session.query(WorkerLeaseModel).filter_by(worker_id=worker_id).first()
+        query = self.session.query(WorkerLeaseModel).filter_by(worker_id=worker_id)
+        if org_id:
+            query = query.filter_by(org_id=org_id)
+        model = query.first()
         if not model:
             logger.warning(f"[WorkerLeaseStore] Heartbeat for unknown worker: {worker_id}")
             return False
@@ -160,7 +169,7 @@ class WorkerLeaseStore:
     # Drain（优雅停止）
     # ─────────────────────────────────────────────────────────────
 
-    def drain(self, worker_id: str) -> bool:
+    def drain(self, worker_id: str, org_id: str = None) -> bool:
         """将 Worker 设置为 draining（不再 claim 新任务，等待当前任务完成）
 
         Args:
@@ -169,7 +178,10 @@ class WorkerLeaseStore:
         Returns:
             True 如果成功设置
         """
-        model = self.session.query(WorkerLeaseModel).filter_by(worker_id=worker_id).first()
+        query = self.session.query(WorkerLeaseModel).filter_by(worker_id=worker_id)
+        if org_id:
+            query = query.filter_by(org_id=org_id)
+        model = query.first()
         if not model:
             return False
         if model.status not in ("running",):
@@ -185,7 +197,7 @@ class WorkerLeaseStore:
     # 查询
     # ─────────────────────────────────────────────────────────────
 
-    def get(self, worker_id: str) -> Optional[WorkerLease]:
+    def get(self, worker_id: str, org_id: str = None) -> Optional[WorkerLease]:
         """获取单个 Worker
 
         Args:
@@ -194,7 +206,10 @@ class WorkerLeaseStore:
         Returns:
             WorkerLease 或 None
         """
-        model = self.session.query(WorkerLeaseModel).filter_by(worker_id=worker_id).first()
+        query = self.session.query(WorkerLeaseModel).filter_by(worker_id=worker_id)
+        if org_id:
+            query = query.filter_by(org_id=org_id)
+        model = query.first()
         if not model:
             return None
         return _model_to_lease(model)

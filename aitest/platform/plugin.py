@@ -32,6 +32,8 @@ import os
 import sys
 import importlib
 import threading
+import base64
+import json
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional, Callable
@@ -98,6 +100,9 @@ class PluginInfo:
     # 元数据
     entry_point: str = ""
     dependencies: list[str] = field(default_factory=list)
+    permissions: list[str] = field(default_factory=list)
+    signature: dict = field(default_factory=dict)
+    sandbox_entrypoint: str = ""
 
     # 状态
     loaded: bool = False
@@ -116,7 +121,63 @@ class PluginManager:
         self._skills: dict[str, Path] = {}                # P6-3: Skill 注册表
         self._cli_commands: dict[str, type] = {}          # P6-3: CLI 命令注册表
         self._api_routes: list[tuple[str, type]] = []     # P6-3: API 路由注册表
+        self._sandboxes: dict[str, object] = {}
         self._lock = threading.Lock()
+
+    @staticmethod
+    def _allowed_permissions() -> set[str]:
+        raw = os.environ.get("AITEST_PLUGIN_ALLOWED_PERMISSIONS", "")
+        return {item.strip() for item in raw.split(",") if item.strip()}
+
+    @staticmethod
+    def _signature_required() -> bool:
+        return os.environ.get("AITEST_PLUGIN_REQUIRE_SIGNATURE", "0").lower() in {"1", "true", "yes"}
+
+    def _validate_security(self, info: PluginInfo) -> None:
+        """Validate manifest security policy before importing plugin code."""
+        unknown = set(info.permissions) - self._allowed_permissions()
+        if unknown:
+            raise PermissionError(
+                f"Plugin permissions not allowed for {info.name}: {', '.join(sorted(unknown))}"
+            )
+
+        if info.path:
+            root = info.path.resolve()
+            for skill_def in info.skills:
+                skill_file = skill_def.get("file", "")
+                if not skill_file:
+                    continue
+                candidate = (root / skill_file).resolve()
+                if root not in candidate.parents:
+                    raise PermissionError(f"Plugin skill path escapes plugin directory: {skill_file}")
+
+        if self._signature_required() and not self._verify_signature(info):
+            raise PermissionError(f"Plugin signature verification failed: {info.name}")
+
+    @staticmethod
+    def _verify_signature(info: PluginInfo) -> bool:
+        """Verify an Ed25519 signature over the canonical manifest without signature."""
+        signature = info.signature or {}
+        public_key = signature.get("public_key")
+        signed_value = signature.get("signature")
+        if not public_key or not signed_value or not info.path:
+            return False
+        trusted = os.environ.get("AITEST_PLUGIN_TRUSTED_KEYS", "")
+        try:
+            trusted_keys = json.loads(trusted) if trusted else {}
+            if trusted_keys.get(info.name) != public_key:
+                return False
+            from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+            from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+            with (info.path / "aitest_plugin.yaml").open("r", encoding="utf-8") as handle:
+                manifest = yaml.safe_load(handle) or {}
+            manifest.pop("signature", None)
+            payload = yaml.safe_dump(manifest, sort_keys=True).encode("utf-8")
+            key = Ed25519PublicKey.from_public_bytes(base64.b64decode(public_key))
+            key.verify(base64.b64decode(signed_value), payload)
+            return key.public_bytes(Encoding.Raw, PublicFormat.Raw) == base64.b64decode(public_key)
+        except Exception:
+            return False
 
     # ── Discovery ────────────────────────────────────────────────────
 
@@ -151,7 +212,11 @@ class PluginManager:
                         api_routes=data.get("api_routes", []),
                         entry_point=data.get("entry_point", ""),
                         dependencies=data.get("dependencies", []),
+                        permissions=data.get("permissions", []),
+                        signature=data.get("signature", {}),
+                        sandbox_entrypoint=data.get("sandbox_entrypoint", ""),
                     )
+                    self._validate_security(info)
                     self._plugins[info.name] = info
                     discovered.append(info)
                 except Exception as e:
@@ -184,10 +249,30 @@ class PluginManager:
                 )
         return results
 
+    def start_sandbox(self, plugin_name: str):
+        """Start a manifest-declared process-isolated plugin command contract."""
+        info = self._plugins.get(plugin_name)
+        if not info:
+            raise ValueError(f"Plugin not found: {plugin_name}")
+        if not info.sandbox_entrypoint:
+            raise ValueError(f"Plugin has no sandbox_entrypoint: {plugin_name}")
+        from aitest.platform.plugin_sandbox import PluginSandbox
+        sandbox = PluginSandbox(info.path, info.sandbox_entrypoint)
+        sandbox.start()
+        self._sandboxes[plugin_name] = sandbox
+        return sandbox
+
+    def stop_sandbox(self, plugin_name: str) -> None:
+        sandbox = self._sandboxes.pop(plugin_name, None)
+        if sandbox:
+            sandbox.stop()
+
     def _load_one(self, info: PluginInfo) -> int:
         """Load a single plugin: import module + register providers/skills/cli/api."""
         if info.loaded:
             return len(info.providers) + len(info.skills) + len(info.cli_commands) + len(info.api_routes)
+
+        self._validate_security(info)
 
         # Add plugin directory to sys.path
         plugin_root = str(info.path.parent) if info.path.parent else str(info.path)
@@ -319,6 +404,8 @@ class PluginManager:
                 "skills": [sk["name"] for sk in p.skills],
                 "cli_commands": [cmd["name"] for cmd in p.cli_commands],
                 "api_routes": [route["prefix"] for route in p.api_routes],
+                "permissions": p.permissions,
+                "signature_present": bool(p.signature),
                 "loaded": p.loaded,
                 "error": p.error or None,
             }

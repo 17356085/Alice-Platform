@@ -31,6 +31,22 @@ class TaskQueue:
             _sqlite._DB_PATH = self._db_path
             _sqlite._DB_PATH.parent.mkdir(parents=True, exist_ok=True)
             safe_exec("SELECT 1")
+        self._ensure_claimed_by_column()
+
+    def _ensure_claimed_by_column(self):
+        """Add the remote-worker lease column to older local task databases."""
+        from aitest.infra.database import get_backend
+        if get_backend() == "sqlite":
+            from aitest.infra.database_sqlite import _get_conn, _lock
+            with _lock:
+                conn = _get_conn()
+                try:
+                    columns = {row[1] for row in conn.execute("PRAGMA table_info(tasks)").fetchall()}
+                    if "claimed_by" not in columns:
+                        conn.execute("ALTER TABLE tasks ADD COLUMN claimed_by TEXT DEFAULT ''")
+                        conn.commit()
+                finally:
+                    conn.close()
 
     def _get_conn(self):
         if self._db_path is None:
@@ -61,6 +77,53 @@ class TaskQueue:
         task = rows[0]
         safe_exec("UPDATE tasks SET status='running', started_at=? WHERE id=?", [now, task['id']])
         return task
+
+    def claim_for_worker(self, worker_id: str) -> Optional[dict]:
+        """Atomically claim the next queued task for a remote Worker."""
+        from aitest.infra.database import get_backend
+        if get_backend() != "sqlite":
+            task = self.dequeue()
+            if task:
+                safe_exec("UPDATE tasks SET claimed_by=? WHERE id=?", [worker_id, task["id"]])
+            return task
+        from aitest.infra.database_sqlite import _get_conn, _lock
+        now = time.time()
+        with _lock:
+            conn = _get_conn()
+            try:
+                conn.execute("BEGIN IMMEDIATE")
+                row = conn.execute(
+                    "SELECT * FROM tasks WHERE status='queued' AND (retry_at IS NULL OR retry_at <= ?) "
+                    "ORDER BY created_at LIMIT 1", (now,)
+                ).fetchone()
+                if row is None:
+                    conn.rollback()
+                    return None
+                conn.execute(
+                    "UPDATE tasks SET status='running', started_at=?, claimed_by=? WHERE id=?",
+                    (now, worker_id, row["id"]),
+                )
+                conn.commit()
+                return dict(conn.execute("SELECT * FROM tasks WHERE id=?", (row["id"],)).fetchone())
+            except Exception:
+                conn.rollback()
+                raise
+            finally:
+                conn.close()
+
+    def complete_for_worker(self, task_id: str, worker_id: str, result: dict) -> bool:
+        row = self.get(task_id)
+        if not row or row.get("status") != "running" or row.get("claimed_by") != worker_id:
+            return False
+        self.mark_completed(task_id, result)
+        return True
+
+    def fail_for_worker(self, task_id: str, worker_id: str, error: str) -> bool:
+        row = self.get(task_id)
+        if not row or row.get("status") != "running" or row.get("claimed_by") != worker_id:
+            return False
+        self.mark_failed(task_id, error)
+        return True
 
     def mark_completed(self, task_id: str, result: dict):
         now = time.time()
