@@ -14,6 +14,7 @@ v1.0 (2026-06-23): 集成 ReliableProvider + ContextWindowMonitor + PromptInject
     state = agent.run()
 """
 import os
+import json
 import re
 import sys
 import time
@@ -150,6 +151,8 @@ class AgentLoop:
         self.provider = provider
         self.verbose = verbose
         self.context = context
+        self.page_configs = context.get("page_configs", [])
+        self.mode = str(context.get("mode", "full"))
         self._skill_subset = skill_subset
         self.deep_review = deep_review
         self._focused_context = focused_context
@@ -211,6 +214,7 @@ class AgentLoop:
         provider = provider_runtime["provider"]
         model = provider_runtime["model"]
         self.provider = provider
+        self.model = model or ""
         self._model_tier = provider_runtime["model_tier"]
         self._reliable_provider = provider_runtime["reliable_provider"]
         self._window_monitor = provider_runtime["window_monitor"]
@@ -244,6 +248,7 @@ class AgentLoop:
             provider=provider,
             max_steps=context.get("max_steps", len(self.skills) * 2),
         )
+        self.state.memory["mode"] = self.mode
         self._runtime_context_builder = RuntimeContextBuilder(
             state=self.state,
             module=module,
@@ -409,6 +414,41 @@ class AgentLoop:
         if self.state.memory.get("task_description"):
             parts.append(f"任务: {self.state.memory['task_description']}")
 
+        page_config = next(
+            (item for item in self.page_configs if item.get("page_id") == self.page),
+            None,
+        ) if isinstance(self.page_configs, list) else None
+        if page_config:
+            execution = page_config.get("execution", {})
+            safe_execution = {}
+            if isinstance(execution, dict):
+                safe_execution = {
+                    "wait_for": execution.get("wait_for", []),
+                    "navigation_timeout_ms": execution.get("navigation_timeout_ms", 30000),
+                    "action_timeout_ms": execution.get("action_timeout_ms", 30000),
+                    "retry": execution.get("retry", 0),
+                    "actions": [
+                        {
+                            "action": action.get("action"),
+                            "target": action.get("target"),
+                            "timeout_ms": action.get("timeout_ms", 30000),
+                        }
+                        for action in execution.get("actions", [])
+                        if isinstance(action, dict)
+                    ],
+                }
+            parts.append(
+                "\n## 页面执行配置\n"
+                + json.dumps(
+                    {
+                        "url": page_config.get("url", ""),
+                        "locators": page_config.get("locators", {}),
+                        "execution": safe_execution,
+                    },
+                    ensure_ascii=False,
+                )
+            )
+
         # ── 无-PRD 模式: 注入代码内容到 user prompt ──
         # requirement + test-design + automation 都需要真实代码上下文
         # v3.1: 从 FALLBACK_AGENT_SKILL_MAP 动态获取，而非硬编码
@@ -561,6 +601,7 @@ class AgentLoop:
                 skill_id=skill_id,
                 user_input=user_input,
                 provider=self.provider,
+                model=self.model,
                 context_vars=context_vars,
                 reliable_provider=self._reliable_provider,
                 capability_router=router,          # ★ v2.0
@@ -573,6 +614,7 @@ class AgentLoop:
                 skill_id=skill_id,
                 user_input=user_input,
                 provider=self.provider,
+                model=self.model,
                 context_vars=context_vars,
                 capability_router=router,          # ★ v2.0
                 agent_name=self.agent_name,        # ★ v2.0
@@ -1116,9 +1158,10 @@ def run_agent(
 
     内部委托给 AgentLoop.run()。
     """
+    mode = kwargs.pop("mode", "full")
     if provider is None:
         provider = config.resolve_llm_provider()
-    agent = AgentLoop(agent_name, provider=provider, verbose=verbose, **kwargs)
+    agent = AgentLoop(agent_name, provider=provider, verbose=verbose, mode=mode, **kwargs)
     state = agent.run()
     return state.to_dict()
 

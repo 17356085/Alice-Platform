@@ -143,7 +143,15 @@
     "menu_confirm_desc": "检查发现的导航结构是否正确",
     "results": "发现完成",
     "results_desc": "项目已准备好进行测试",
-    "goto_kanban": "前往看板"
+    "goto_kanban": "前往看板",
+    "wizard_title": "新建项目接入",
+    "wizard_desc": "选择 URL 或本地项目，让 TLO 自动发现项目结构",
+    "step_source": "来源", "step_discovery": "发现", "step_review": "检查", "step_results": "结果",
+    "cancel": "取消", "open_project": "打开项目", "try_again": "重试",
+    "onboarding_failed": "项目接入失败", "onboarding_cancelled": "项目接入已取消",
+    "no_partial_results": "没有可恢复的部分结果。", "resume_progress": "恢复上次进度", "restart": "重新开始",
+    "api_key_error": "当前 AI 服务商不可用。请检查后端 .env 中的服务商密钥，并重启后端。",
+    "api_spec": "导入 API 规范", "api_spec_desc": "OpenAPI/Swagger —— 即将支持", "application_url": "应用 URL", "project_path": "项目路径", "validating_path": "正在验证项目路径…", "frameworks_hint": "支持 Vue 3/2、React、Next.js、Nuxt 和 Angular", "network_url_required": "网络地址（必填）", "network_url_hint": "被测应用必须以 http:// 或 https:// 开头，不支持本地文件路径。", "project_name_optional": "项目名称（可选）", "project_name_hint": "留空则根据 URL 自动生成项目标识。", "username": "用户名", "password": "密码", "output_path_required": "测试项目存放路径（必填）", "output_path_hint": "平台生成的测试脚本、Page Object 和治理文档将存放在此目录。", "connecting": "连接中…", "start_discovery": "开始发现", "observing_pages": "正在观察页面：{{current}}（{{completed}}/{{total}}）", "menu_expanding": "已发现菜单，正在展开页面…", "scanning_menu": "正在扫描侧边栏菜单…", "discovered_menu": "已发现菜单（{{count}} 个分组）", "pages": "{{count}} 个页面", "more_groups": "…还有 {{count}} 个分组", "review_menu": "检查已发现的菜单结构", "review_desc": "TLO 从侧边栏发现了 {{count}} 个菜单分组。继续前可编辑标签或移除项目。", "no_menu": "暂未发现菜单项目，等待扫描完成…", "review_note": "你可以编辑上方标签，点击“继续”开始发现页面。", "continue_groups": "继续处理 {{count}} 个分组"
   },
   "toast": {
     "gap_discovered": "发现 {n} 个测试缺口",
@@ -152,5 +160,23 @@
     "card_moved": "{mod}: {from} → {to}",
     "ws_connected": "WebSocket 已连接",
     "ws_disconnected": "已断开 — 3秒后重连..."
+  },
+  "projectSelector": { "choose": "选择项目", "search": "搜索项目…", "empty": "暂无项目", "modules": "个模块", "new": "打开或接入项目" },
+  "studio": {
+    "brand_subtitle": "有珠 Studio", "runningAgents": "{{count}} 个 Agent 运行中",
+    "nav": {
+      "core": "核心", "run": "运行", "quality": "质量", "knowledge": "知识", "intelligence": "智能", "monitor": "监控",
+      "dashboard": "仪表盘", "workflow": "工作流", "execution": "执行中心", "kanban": "看板", "inspector": "运行检查", "reports": "报告", "gaps": "缺口发现", "memory": "记忆", "knowledgeBase": "知识库", "graph": "知识图谱", "artifacts": "产物", "chat": "智能对话", "observability": "可观测性", "history": "运行历史", "settings": "设置"
+    },
+    "titles": { "dashboard": "仪表盘", "workflow": "工作流构建器", "execution": "执行中心", "kanban": "看板", "inspector": "运行检查", "reports": "报告", "gaps": "缺口发现", "memory": "记忆浏览器", "knowledge": "知识库", "graph": "知识图谱", "artifacts": "产物", "chat": "智能对话", "observability": "可观测性", "history": "运行历史", "settings": "设置", "agent": "Agent 详情" },
+    "theme": { "mahotsukai": "Mahotsukai", "alice": "Alice", "aoko": "Aoko", "soujuurou": "Soujuurou", "mahotsukaiSub": "午夜蓝", "aliceSub": "午夜鸢尾", "aokoSub": "晴空蓝", "soujuurouSub": "山林木色" },
+    "settings": { "appearance": "外观", "appearanceDesc": "选择主题与明暗模式", "darkMode": "暗色模式", "lightMode": "亮色模式", "language": "语言", "provider": "AI 服务商", "providerDesc": "选择并配置 AI 模型服务商", "apiKey": "API Key", "budget": "预算", "backendManaged": "由后端管理", "costThisRun": "本次运行成本", "themeHint": "无需离开当前页面即可切换主题", "description": "描述", "configuration": "配置", "capabilities": "能力", "capabilityToolInvocation": "工具调用", "capabilityMemory": "记忆读写", "capabilityParallel": "并行执行", "capabilityDispatch": "工作流调度", "capabilitySynthesis": "结果汇总", "model": "模型", "agentId": "Agent ID", "type": "类型", "lastActive": "最近活动", "memoryScope": "记忆范围", "maxTokens": "最大 Token", "toolReady": "工具 · 就绪", "totalRuns": "运行次数", "memoryNodes": "记忆节点", "successRate": "成功率", "tools": "工具" },
+    "common": { "viewAll": "查看全部", "saveDraft": "保存草稿", "publish": "发布", "replay": "重放", "inspect": "检查", "copyId": "复制 ID", "export": "导出", "search": "搜索…", "searchMemory": "搜索记忆…", "searchArtifacts": "搜索产物…", "download": "下载", "copyPath": "复制路径", "artifactsCount": "个产物", "fromBackend": "来自后端", "online": "在线", "tokensLabel": "Token", "age": "年龄", "associations": "关联", "nodesCount": "个节点", "moduleCount": "模块（{{count}}）", "issueCount": "问题（{{count}}）", "patternCount": "模式（{{count}}）", "autoRefresh": "每 10 秒刷新", "healthy": "正常", "unavailable": "不可用", "loading": "加载中…", "noData": "暂无数据", "noTimeline": "该运行暂无时间线数据。", "phaseBreakdown": "阶段分解", "executionSummary": "执行摘要", "keyFindings": "关键发现", "reset": "重置", "previous": "上一页", "next": "下一页", "backDashboard": "返回仪表盘", "run": "运行", "restart": "重启", "ignore": "忽略", "archive": "归档", "resolve": "解决", "saving": "保存中…", "tags": "标签", "nodes": "节点", "relationships": "关系", "empty": "空", "kanbanBoard": "看板", "sopPhaseOverview": "SOP 阶段概览", "modules": "个模块", "addModule": "添加模块", "tabsTimeline": "时间线", "tabsArtifacts": "产物", "tabsAgentCalls": "Agent 调用", "tabsMetrics": "指标", "tabsLogs": "日志", "tabsReport": "报告", "duration": "耗时", "agent": "Agent", "tokens": "Token", "cost": "成本", "pages": "页面", "started": "开始时间", "avgDuration": "平均耗时", "noReport": "该运行暂无报告数据。", "passRate": "通过率", "openDefects": "未关闭缺陷", "fromProductKpi": "来自产品 KPI", "thisWeek": "本周", "fromBugHistory": "来自缺陷历史", "recentTestRuns": "最近测试运行", "module": "模块", "status": "状态", "tests": "测试", "coverage": "覆盖率", "date": "日期", "topFailingTests": "失败最多的测试", "gapDiscovery": "缺口发现", "gapsIdentified": "个缺口已发现", "rescan": "重新扫描", "justNow": "刚刚", "knowledgeGraph": "知识图谱", "gcGenerations": "GC 代际", "totalThreads": "线程总数", "pendingTasks": "待处理任务", "thread": "线程", "task": "任务", "noThread": "暂无线程数据。", "queueDepth": "队列深度", "wsActive": "WS 活跃连接", "running": "运行中", "completed": "已完成", "queueItems": "队列项目", "noQueue": "暂无队列项目。", "searchRuns": "搜索运行记录…", "all": "全部", "showing": "显示", "totalRuns": "总运行数", "prev": "上一页", "overview": "概览", "tools": "工具", "runs": "运行记录", "memoryTypes": { "episodic": "情景记忆", "semantic": "语义记忆", "procedural": "程序记忆" }, "phases": { "projectInit": "项目初始化", "requirements": "需求分析", "planning": "规划", "design": "设计", "development": "开发", "testing": "测试", "integration": "集成", "review": "评审", "knowledge": "知识" } },
+    "dashboard": { "registeredAgents": "已注册 Agent", "agentRegistry": "Agent 注册表", "workflowsToday": "今日工作流", "successRate": "成功率", "memoryCollections": "记忆集合", "recentRuns": "最近运行", "systemHealth": "系统健康", "agentRegistrySub": "Agent 注册中心", "kpiSub": "实时 KPI 读模型", "last7Days": "最近 7 天", "memoryStore": "记忆存储", "executionInProgress": "执行进行中", "agents": "个 Agent", "memory": "记忆", "taskQueue": "任务队列", "modelProviders": "模型服务商", "configured": "已配置", "nodes": "节点", "saved": "已保存。", "saveFailed": "保存失败。", "registeredAgent": "已注册 Agent", "registeredByBackend": "由后端 Agent 注册中心登记。", "runs": "次运行" },
+    "workflow": { "newWorkflow": "新建工作流", "name": "名称", "description": "描述", "agents": "Agent", "existingWorkflows": "已有工作流", "workflowName": "工作流名称", "describe": "描述这个工作流…", "nodes": "节点", "module": "模块", "mode": "模式", "fullSop": "完整 SOP", "cancel": "取消", "sopProgress": "SOP 进度", "noActiveRun": "暂无运行任务", "liveGraph": "实时 Agent 图谱", "agentTerminal": "Agent 终端" },
+    "observability": { "overview": "概览", "memory": "内存与 GC", "threads": "线程与任务", "queue": "队列与 WS", "rss": "RSS 内存", "threadsCount": "线程数", "activeTasks": "活动任务", "wsConns": "WS 连接", "processResident": "进程常驻", "daemon": "守护线程", "queued": "排队中", "activeConnections": "活动连接", "autoRefresh": "自动刷新 10 秒", "healthy": "正常", "gcGenerations": "GC 代际", "collections": "个集合" },
+    "chat": { "newChat": "+ 新建对话", "placeholder": "询问 Alice 关于测试、覆盖率或 Agent 的问题…", "showFailing": "查看失败测试", "summarizeRun": "总结最近一次运行", "coverageGaps": "查找覆盖率缺口", "explainError": "解释错误", "recent": "最近" },
+    "knowledgeBase": { "collections": "集合", "documents": "文档", "chroma": "ChromaDB", "recentAdditions": "最近添加", "totalIndexed": "已索引总数", "fromKnowledgeStore": "来自知识库", "name": "名称", "lastUpdated": "最近更新", "status": "状态", "noIndexed": "暂无已索引集合。" },
+    "status": { "idle": "空闲", "running": "运行中", "success": "成功", "failed": "失败", "warning": "警告" }
   }
 }

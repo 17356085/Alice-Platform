@@ -267,6 +267,14 @@ class PluginManager:
         if sandbox:
             sandbox.stop()
 
+    def provider_rpc(self, plugin_name: str, provider: str, method: str, payload: dict | None = None) -> dict:
+        """Call a provider through the plugin's isolated Provider RPC process."""
+        sandbox = self._sandboxes.get(plugin_name)
+        if sandbox is None:
+            self.start_sandbox(plugin_name)
+            sandbox = self._sandboxes[plugin_name]
+        return sandbox.call_provider(provider, method, payload)
+
     def _load_one(self, info: PluginInfo) -> int:
         """Load a single plugin: import module + register providers/skills/cli/api."""
         if info.loaded:

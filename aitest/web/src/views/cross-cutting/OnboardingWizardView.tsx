@@ -1,6 +1,7 @@
 /** Onboarding Wizard — multi-step project discovery. shadcn/ui edition. */
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useOnboardingStore, selectIsComplete, selectIsMenuReady, selectIsFailed, getStoredSession } from '@/stores/onboarding'
 import { useOnboardingWS } from '@/hooks/useOnboardingWS'
 import StepChooseSource from '@/components/onboarding/StepChooseSource'
@@ -13,15 +14,9 @@ import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import { Globe, Wifi, ListTree, FileSearch, CheckCircle2, AlertTriangle, ArrowRight, FolderOpen } from 'lucide-react'
 
-const STEPS = [
-  { key: 'source', label: 'Source', icon: FolderOpen },
-  { key: 'discovery', label: 'Discovery', icon: Wifi },
-  { key: 'confirm', label: 'Review', icon: ListTree },
-  { key: 'results', label: 'Results', icon: CheckCircle2 },
-]
-
 export default function OnboardingWizardView() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const store = useOnboardingStore
   const isRunning = useOnboardingStore(s => s.isRunning)
   const isComplete = useOnboardingStore(selectIsComplete)
@@ -40,6 +35,12 @@ export default function OnboardingWizardView() {
   const restore = useOnboardingStore(s => s.restore)
   const pollStatus = useOnboardingStore(s => s.pollStatus)
   const { disconnect, wsError } = useOnboardingWS()
+  const steps = [
+    { key: 'source', label: t('onboarding.step_source'), icon: FolderOpen },
+    { key: 'discovery', label: t('onboarding.step_discovery'), icon: Wifi },
+    { key: 'confirm', label: t('onboarding.step_review'), icon: ListTree },
+    { key: 'results', label: t('onboarding.step_results'), icon: CheckCircle2 },
+  ]
 
   const [sourceChosen, setSourceChosen] = useState(false)
   const [restored, setRestored] = useState(false)
@@ -98,15 +99,15 @@ export default function OnboardingWizardView() {
   return (
     <div className="max-w-[720px] mx-auto py-8 px-6 animate-[fade-in_0.3s_ease-out]">
       <header className="mb-8 text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-2">New Project Onboarding</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-2">{t('onboarding.wizard_title')}</h2>
         <p className="text-sm text-muted-foreground m-0">
-          Enter a URL — TLO auto-discovers the application structure
+          {t('onboarding.wizard_desc')}
         </p>
       </header>
 
       {/* Step indicators */}
       <nav className="flex justify-center gap-10 mb-6">
-        {STEPS.map((step, i) => (
+        {steps.map((step, i) => (
           <div key={step.key}
             className={cn(
               'flex flex-col items-center gap-1.5 transition-colors',
@@ -138,7 +139,7 @@ export default function OnboardingWizardView() {
       {wsError && (
         <div className="flex items-center gap-2 bg-warning-light text-warning px-4 py-2 rounded-lg mb-4 text-sm">
           <AlertTriangle size={16} />
-          <span>{wsError}</span>
+          <span>{/api[_ -]?key|api key/i.test(wsError) ? t('onboarding.api_key_error') : wsError}</span>
         </div>
       )}
 
@@ -155,25 +156,25 @@ export default function OnboardingWizardView() {
         {isFailed && (
           <div className="text-center py-12">
             <AlertTriangle size={48} className="text-destructive mb-4 mx-auto" />
-            <h3 className="text-destructive mb-4">Onboarding failed</h3>
+            <h3 className="text-destructive mb-4">{t('onboarding.onboarding_failed')}</h3>
             {errors.length > 0 && (
               <ul className="list-none p-0 text-muted-foreground text-sm">
                 {errors.map((err, i) => <li key={i} className="py-1">{err}</li>)}
               </ul>
             )}
             <div className="flex gap-3 justify-center mt-4">
-              <Button variant="secondary" onClick={() => reset()}>Try Again</Button>
+              <Button variant="secondary" onClick={() => reset()}>{t('onboarding.try_again')}</Button>
             </div>
           </div>
         )}
         {isCancelled && (
           <div className="text-center py-12">
             <FolderOpen size={48} className="text-warning mb-4 mx-auto" />
-            <h3 className="text-warning mb-2">Onboarding cancelled</h3>
+            <h3 className="text-warning mb-2">{t('onboarding.onboarding_cancelled')}</h3>
             <p className="text-muted-foreground text-sm mb-4">
               {checkpoint
                 ? `Partial results saved — ${checkpoint.pages?.length || 0} pages discovered. You can resume from where you left off.`
-                : 'No partial results to recover.'}
+                : t('onboarding.no_partial_results')}
             </p>
             <div className="flex gap-3 justify-center mt-4">
               {checkpoint && (
@@ -181,10 +182,10 @@ export default function OnboardingWizardView() {
                   start(baseUrl, projectId, '', '', '', true)
                   setSourceChosen(true)
                 }}>
-                  恢复上次进度 <ArrowRight size={16} />
+                  {t('onboarding.resume_progress')} <ArrowRight size={16} />
                 </Button>
               )}
-              <Button variant="secondary" onClick={() => reset()}>重新开始</Button>
+              <Button variant="secondary" onClick={() => reset()}>{t('onboarding.restart')}</Button>
             </div>
           </div>
         )}
@@ -198,10 +199,10 @@ export default function OnboardingWizardView() {
           )}
         </div>
         <div className="flex gap-3">
-        {(isRunning || isMenuReady) && <Button variant="outline" onClick={() => cancel()}>Cancel</Button>}
+        {(isRunning || isMenuReady) && <Button variant="outline" onClick={() => cancel()}>{t('onboarding.cancel')}</Button>}
         {isComplete && (
           <Button variant="gradient" onClick={openProject}>
-            Open Project <ArrowRight size={16} />
+            {t('onboarding.open_project')} <ArrowRight size={16} />
           </Button>
         )}
         </div>

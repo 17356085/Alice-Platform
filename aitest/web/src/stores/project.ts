@@ -77,7 +77,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         modules: [],
         status: p.module_count > 0 ? 'discovered' : 'new',
       }))
-      set({ projects: projectList, loading: false })
+      const persistedId = get().activeId
+      const nextActiveId = projectList.some(p => p.id === persistedId)
+        ? persistedId
+        : (projectList[0]?.id || '')
+      if (nextActiveId && nextActiveId !== persistedId) saveProjectId(nextActiveId)
+      set({ projects: projectList, activeId: nextActiveId, loading: false })
     } catch (e: unknown) {
       set({ error: e instanceof Error ? e.message : String(e), loading: false })
     }
@@ -104,7 +109,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   init() {
     if (!_initialized) {
       _initialized = true
-      get().fetchProjects(get().activeId || undefined)
+      // The picker needs the complete registry. The active project is used by
+      // page-level read models after the list has been loaded.
+      get().fetchProjects()
     }
   },
 }))

@@ -4,11 +4,13 @@
  *     Local file paths rejected. Clear validation errors.
  */
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useOnboardingStore } from '@/stores/onboarding'
 import { Globe, Lock, Play, Loader2, AlertTriangle, FolderOpen } from 'lucide-react'
 import { pickFolder } from '@/lib/browseFolder'
 
 export default function StepUrlInput() {
+  const { t } = useTranslation()
   const store = useOnboardingStore
   const start = useOnboardingStore(s => s.start)
   const baseUrl = useOnboardingStore(s => s.baseUrl)
@@ -65,7 +67,14 @@ export default function StepUrlInput() {
     }
     setOutputError('')
 
-    const pid = projectId.trim() || url.replace(/https?:\/\//, '').replace(/[.\/]/g, '-').replace(/-+$/, '').substring(0, 40)
+    const pid = projectId.trim() || (() => {
+      const parsed = new URL(url.trim())
+      return `${parsed.host}${parsed.pathname}`
+        .replace(/[^a-zA-Z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .toLowerCase()
+        .slice(0, 40) || 'project'
+    })()
     setValidating(true)
     await start(url.trim(), pid, username, password, outputPath.trim())
     setValidating(false)
@@ -74,7 +83,7 @@ export default function StepUrlInput() {
   return (
     <div className="step-url">
       <div className="form-group">
-        <label><Globe size={16} /><span>网络地址 (必填)</span></label>
+        <label><Globe size={16} /><span>{t('onboarding.network_url_required')}</span></label>
         <input
           value={url}
           onChange={e => { setUrl(e.target.value); setUrlError('') }}
@@ -89,25 +98,25 @@ export default function StepUrlInput() {
             {urlError}
           </p>
         )}
-        <p className="hint">被测应用的网络地址。必须以 http:// 或 https:// 开头。本地文件路径不支持。</p>
+        <p className="hint">{t('onboarding.network_url_hint')}</p>
       </div>
       <div className="form-group">
-        <label><span>项目名称 (可选)</span></label>
+        <label><span>{t('onboarding.project_name_optional')}</span></label>
         <input value={projectId} onChange={e => setProjectId(e.target.value)} type="text" placeholder="从 URL 自动生成" />
-        <p className="hint">简短标识符。留空则从 URL 自动提取。</p>
+        <p className="hint">{t('onboarding.project_name_hint')}</p>
       </div>
       <div className="credentials-row">
         <div className="form-group">
-          <label><Lock size={16} /><span>用户名</span></label>
+          <label><Lock size={16} /><span>{t('onboarding.username')}</span></label>
           <input value={username} onChange={e => setUsername(e.target.value)} type="text" placeholder="admin" />
         </div>
         <div className="form-group">
-          <label><Lock size={16} /><span>密码</span></label>
+          <label><Lock size={16} /><span>{t('onboarding.password')}</span></label>
           <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="(如需登录)" />
         </div>
       </div>
       <div className="form-group">
-        <label><FolderOpen size={16} /><span>测试项目存放路径 (必填)</span></label>
+        <label><FolderOpen size={16} /><span>{t('onboarding.output_path_required')}</span></label>
         <div className="path-row">
           <input
             value={outputPath}
@@ -125,11 +134,11 @@ export default function StepUrlInput() {
             {outputError}
           </p>
         )}
-        <p className="hint">平台生成的测试脚本、Page Object、治理文档将存放在此目录</p>
+        <p className="hint">{t('onboarding.output_path_hint')}</p>
       </div>
       <button className="btn-start" disabled={validating || url.length < 8} onClick={handleStart}>
         {validating ? <Loader2 size={18} className="spin" /> : <Play size={18} />}
-        <span>{validating ? '连接中...' : '开始发现'}</span>
+        <span>{validating ? t('onboarding.connecting') : t('onboarding.start_discovery')}</span>
       </button>
       <style>{`
         .step-url { padding: 16px 0; }

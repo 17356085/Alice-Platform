@@ -12,6 +12,8 @@ Endpoints:
   PUT    /api/platform/orgs/:orgId/workspaces/:wsId/quotas    — Set quota
   POST   /api/platform/orgs/:orgId/workspaces/:wsId/context   — Get ExecutionContext
 """
+import os
+
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
@@ -44,6 +46,8 @@ def _require_workspace_access(request: Request, *, org_id: str, ws_id: str, requ
     from aitest.platform.ownership import resolve_request_identity, require_workspace_access
 
     user_id, request_org_id, scopes = resolve_request_identity(request)
+    if not _rbac_required(request) and not request_org_id and not scopes:
+        return
     if request_org_id and request_org_id != org_id:
         raise HTTPException(403, f"Request org '{request_org_id}' cannot access org '{org_id}'")
     try:
@@ -60,10 +64,38 @@ def _require_workspace_access(request: Request, *, org_id: str, ws_id: str, requ
         raise HTTPException(404, str(e))
 
 
+def _rbac_required(request: Request) -> bool:
+    """Enable strict RBAC explicitly for production while preserving local mode."""
+    if os.environ.get("AITEST_RBAC_REQUIRED", "0").lower() in {"1", "true", "yes"}:
+        return True
+    return bool(getattr(request.state, "org_id", None) or getattr(request.state, "scopes", None))
+
+
+def _require_org_scope(request: Request, org_id: str, required_scope: str) -> None:
+    if not _rbac_required(request) and not request.headers.get("X-Org-Id"):
+        return
+    from aitest.platform.ownership import resolve_request_identity
+    from aitest.platform.organization import ROLE_DEFAULT_SCOPES, get_org_manager
+
+    user_id, request_org_id, request_scopes = resolve_request_identity(request)
+    if request_org_id and request_org_id not in {org_id, "*"}:
+        raise HTTPException(403, f"Request org '{request_org_id}' cannot access org '{org_id}'")
+    scopes = list(request_scopes)
+    if request_org_id != "*":
+        try:
+            role = get_org_manager().get_role(org_id, user_id)
+            scopes = ROLE_DEFAULT_SCOPES.get(role, scopes)
+        except Exception:
+            pass
+    if required_scope not in scopes and "admin" not in scopes:
+        raise HTTPException(403, f"User '{user_id}' lacks scope '{required_scope}' in org '{org_id}'")
+
+
 # ── CRUD ───────────────────────────────────────────────────────────────
 
 @workspace_router.post("")
-async def create_workspace(org_id: str, req: CreateWorkspaceRequest):
+async def create_workspace(org_id: str, req: CreateWorkspaceRequest, request: Request):
+    _require_org_scope(request, org_id, "admin")
     try:
         ws = _get_ws_manager().create(org_id, req.id, req.name, req.description)
         return {"status": "created", "workspace": ws.__dict__}
@@ -72,7 +104,8 @@ async def create_workspace(org_id: str, req: CreateWorkspaceRequest):
 
 
 @workspace_router.get("")
-async def list_workspaces(org_id: str):
+async def list_workspaces(org_id: str, request: Request):
+    _require_org_scope(request, org_id, "read")
     workspaces = _get_ws_manager().list(org_id)
     return {"org_id": org_id, "workspaces": [
         {"id": w.id, "name": w.name, "description": w.description,
@@ -82,7 +115,8 @@ async def list_workspaces(org_id: str):
 
 
 @workspace_router.get("/{ws_id}")
-async def get_workspace(org_id: str, ws_id: str):
+async def get_workspace(org_id: str, ws_id: str, request: Request):
+    _require_workspace_access(request, org_id=org_id, ws_id=ws_id, required_scope="read")
     ws = _get_ws_manager().get(org_id, ws_id)
     if not ws:
         raise HTTPException(404, f"Workspace '{ws_id}' not found")
@@ -90,7 +124,8 @@ async def get_workspace(org_id: str, ws_id: str):
 
 
 @workspace_router.delete("/{ws_id}")
-async def delete_workspace(org_id: str, ws_id: str):
+async def delete_workspace(org_id: str, ws_id: str, request: Request):
+    _require_workspace_access(request, org_id=org_id, ws_id=ws_id, required_scope="admin")
     _get_ws_manager().delete(org_id, ws_id)
     return {"status": "deleted"}
 
@@ -98,7 +133,8 @@ async def delete_workspace(org_id: str, ws_id: str):
 # ── Members ────────────────────────────────────────────────────────────
 
 @workspace_router.post("/{ws_id}/members")
-async def add_member(org_id: str, ws_id: str, req: AddMemberRequest):
+async def add_member(org_id: str, ws_id: str, req: AddMemberRequest, request: Request):
+    _require_workspace_access(request, org_id=org_id, ws_id=ws_id, required_scope="admin")
     try:
         _get_ws_manager().add_member(org_id, ws_id, req.user_id, req.role)
         return {"status": "added"}
@@ -107,7 +143,8 @@ async def add_member(org_id: str, ws_id: str, req: AddMemberRequest):
 
 
 @workspace_router.get("/{ws_id}/members")
-async def list_members(org_id: str, ws_id: str):
+async def list_members(org_id: str, ws_id: str, request: Request):
+    _require_workspace_access(request, org_id=org_id, ws_id=ws_id, required_scope="read")
     try:
         members = _get_ws_manager().list_members(org_id, ws_id)
         return {"members": members}
@@ -116,7 +153,8 @@ async def list_members(org_id: str, ws_id: str):
 
 
 @workspace_router.delete("/{ws_id}/members/{user_id}")
-async def remove_member(org_id: str, ws_id: str, user_id: str):
+async def remove_member(org_id: str, ws_id: str, user_id: str, request: Request):
+    _require_workspace_access(request, org_id=org_id, ws_id=ws_id, required_scope="admin")
     try:
         _get_ws_manager().remove_member(org_id, ws_id, user_id)
         return {"status": "removed"}
@@ -127,7 +165,8 @@ async def remove_member(org_id: str, ws_id: str, user_id: str):
 # ── Quotas ─────────────────────────────────────────────────────────────
 
 @workspace_router.get("/{ws_id}/quotas")
-async def get_quotas(org_id: str, ws_id: str):
+async def get_quotas(org_id: str, ws_id: str, request: Request):
+    _require_workspace_access(request, org_id=org_id, ws_id=ws_id, required_scope="read")
     try:
         return {"quotas": _get_ws_manager().get_quotas(org_id, ws_id)}
     except ValueError as e:
@@ -135,7 +174,8 @@ async def get_quotas(org_id: str, ws_id: str):
 
 
 @workspace_router.put("/{ws_id}/quotas")
-async def set_quota(org_id: str, ws_id: str, req: SetQuotaRequest):
+async def set_quota(org_id: str, ws_id: str, req: SetQuotaRequest, request: Request):
+    _require_workspace_access(request, org_id=org_id, ws_id=ws_id, required_scope="admin")
     try:
         _get_ws_manager().set_quota(org_id, ws_id, req.key, req.value)
         return {"status": "updated"}

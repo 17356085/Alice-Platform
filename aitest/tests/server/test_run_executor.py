@@ -7,6 +7,7 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from aitest.server.api.run_executor import RunExecutor
 from aitest.platform.workspace import ExecutionContext
+from alice_engine.providers.base import LLMResponse
 
 
 @pytest.fixture
@@ -88,6 +89,29 @@ async def test_execute_skill_success(mock_ctx, mock_run_store):
     mock_run_store.create_run.assert_called_once()
     mock_run_store.update_run_status.assert_called_once()
     assert mock_run_store.update_run_status.call_args[0][1] == "completed"
+
+
+@pytest.mark.asyncio
+async def test_execute_skill_accepts_sdk_llm_response_usage(mock_ctx, mock_run_store):
+    """The SDK response exposes usage while the platform reads token_usage."""
+    response = LLMResponse(
+        content="provider-backed output",
+        usage={"input": 12, "output": 8},
+        model="mock",
+    )
+
+    with patch("aitest.server.api.run_executor.run_skill", return_value=response):
+        result = await RunExecutor.execute_skill(
+            ctx=mock_ctx,
+            target_id="automation/page-observe",
+            target_version="latest",
+            params={"prompt": "Test"},
+            runtime={"provider": "mock"},
+            execution={},
+        )
+
+    assert result["status"] == "completed"
+    assert result["metrics"]["tokens_used"] == 20
 
 
 @pytest.mark.asyncio

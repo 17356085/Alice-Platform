@@ -185,16 +185,16 @@ class ArtifactStore:
     def list_modules(self) -> list[str]:
         """Discover modules from directory structure."""
         pages_data = self._load_discovery_pages()
-        if pages_data:
-            menus = set()
-            for p in pages_data:
-                if p.get("menu_path"):
-                    menus.add(p["menu_path"][0])
-            if menus:
-                return sorted(menus)
+        # Discovery is a cache, not the source of truth.  Merge it with the
+        # persisted module directories so newly-created modules remain visible
+        # even when an older discovery snapshot is present.
+        modules = set()
+        for p in pages_data or []:
+            menu = p.get("menu_path", [])
+            if menu:
+                modules.add(menu[0])
 
         # Scan .tlo/knowledge/modules/ first, then legacy
-        modules = set()
         for mod_dir in self._get_module_search_dirs():
             if mod_dir.exists():
                 for d in mod_dir.iterdir():
@@ -205,16 +205,16 @@ class ArtifactStore:
     def list_pages(self, module: str) -> list[str]:
         """Discover pages for a module."""
         pages_data = self._load_discovery_pages()
-        if pages_data:
-            result = []
-            for p in pages_data:
-                menu = p.get("menu_path", [])
-                if menu and menu[0] == module:
-                    result.append(p.get("id", ""))
-            return result
+        # As with modules, discovery pages are only a cache.  Include both
+        # cached pages and pages persisted through the module CRUD API.
+        pages = set()
+        for p in pages_data or []:
+            menu = p.get("menu_path", [])
+            page_id = p.get("id", "")
+            if menu and menu[0] == module and page_id:
+                pages.add(page_id)
 
         # Scan pages/ subdirectories
-        pages = set()
         for mod_dir in self._get_module_search_dirs():
             pages_dir = mod_dir / module / "pages"
             if pages_dir.exists():

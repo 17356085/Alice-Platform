@@ -10,7 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 const themes = [
-  { value: 'alice', label: 'Alice — Winter Mansion' },
+  { value: 'mahotsukai', label: 'Mahotsukai — Midnight Blue' },
+  { value: 'alice', label: 'Alice — Midnight Iris' },
   { value: 'aoko', label: 'Aoko — Clear Sky' },
   { value: 'soujuurou', label: 'Soujuurou — Mountain Wood' },
 ]

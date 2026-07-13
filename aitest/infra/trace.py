@@ -41,6 +41,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Optional
 import functools
+import inspect
 from aitest.infra.paths import get_workstudy
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
@@ -679,40 +680,64 @@ def _trace_llm_call(fn):
         # Accept *args for positional compat (tools, temperature, max_tokens
         # may be passed positionally from reliable_provider._call_with_timeout)
         response = fn(system_prompt, user_prompt, *args, **kwargs)
-        elapsed_ms = int((time.time() - start_ns) * 1000)
 
-        token_usage = response.token_usage or {}
-        inp = token_usage.get("input", 0)
-        out = token_usage.get("output", 0)
-        model = response.model or instance_model
+        def record_response(response):
+            """Record a completed response, including the final stream result."""
+            elapsed_ms = int((time.time() - start_ns) * 1000)
+            token_usage = getattr(response, "token_usage", {}) or {}
+            inp = token_usage.get("input", 0)
+            out = token_usage.get("output", 0)
+            model = getattr(response, "model", "") or instance_model
 
-        # P0-1: 从 TraceContext 获取 skill_version
-        skill_ver = TraceContext.get_skill_version()
+            # P0-1: 从 TraceContext 获取 skill_version
+            skill_ver = TraceContext.get_skill_version()
+            finish_reason = getattr(response, "finish_reason", "")
+            content = getattr(response, "content", "") or ""
+            event = TraceEvent.create(
+                event_type="llm_call",
+                provider=provider_name,
+                model=model,
+                latency_ms=elapsed_ms,
+                token_input=inp,
+                token_output=out,
+                status="success" if (finish_reason and finish_reason != "error") else "error",
+                prompt_preview=(system_prompt or ""),
+                response_preview=content,
+                error_message=content[:300] if finish_reason == "error" else "",
+                metadata={
+                    "temperature": kwargs.get("temperature"),
+                    "max_tokens": kwargs.get("max_tokens"),
+                    "finish_reason": finish_reason,
+                    "skill_version": skill_ver,           # P0-1: Prompt 版本跟踪
+                },
+            )
+            write_trace_event(event)
 
-        event = TraceEvent.create(
-            event_type="llm_call",
-            provider=provider_name,
-            model=model,
-            latency_ms=elapsed_ms,
-            token_input=inp,
-            token_output=out,
-            status="success" if (response.finish_reason and response.finish_reason != "error") else "error",
-            prompt_preview=(system_prompt or ""),
-            response_preview=(response.content or ""),
-            error_message=(response.content or "")[:300] if response.finish_reason == "error" else "",
-            metadata={
-                "temperature": kwargs.get("temperature"),
-                "max_tokens": kwargs.get("max_tokens"),
-                "finish_reason": response.finish_reason,
-                "skill_version": skill_ver,           # P0-1: Prompt 版本跟踪
-            },
-        )
-        write_trace_event(event)
+            # 动态附加 trace 元数据到响应对象
+            response.trace_event_id = event.event_id
+            response.latency_ms = elapsed_ms
+            return response
 
-        # 动态附加 trace 元数据到响应对象
-        response.trace_event_id = event.event_id
-        response.latency_ms = elapsed_ms
+        # stream() is a generator function.  Defer trace recording until the
+        # generator has been fully consumed so the final LLMResponse (and its
+        # token_usage) is available, while preserving streaming events.
+        if inspect.isgenerator(response):
+            def traced_stream():
+                final_response = None
+                try:
+                    while True:
+                        try:
+                            yield next(response)
+                        except StopIteration as stop:
+                            final_response = stop.value
+                            break
+                finally:
+                    if final_response is not None:
+                        record_response(final_response)
+                return final_response
 
-        return response
+            return traced_stream()
+
+        return record_response(response)
 
     return wrapper

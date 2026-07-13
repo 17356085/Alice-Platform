@@ -1,19 +1,21 @@
 /** Step: Scanning/progress during onboarding. React port. */
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useOnboardingStore } from '@/stores/onboarding'
 import { Loader2, Wifi, Globe, Eye } from 'lucide-react'
 
 export default function StepScanning() {
+  const { t } = useTranslation()
   const totalPages = useOnboardingStore(s => s.totalPages)
   const currentPage = useOnboardingStore(s => s.currentPage)
   const completedPages = useOnboardingStore(s => s.completedPages)
   const menuTree = useOnboardingStore(s => s.menuTree)
 
   const scanningLabel = useMemo(() => {
-    if (totalPages > 0) return `Observing pages: ${currentPage} (${completedPages}/${totalPages})`
-    if (menuTree.length > 0) return 'Menu discovered — expanding to pages...'
-    return 'Scanning sidebar menu...'
-  }, [totalPages, currentPage, completedPages, menuTree])
+    if (totalPages > 0) return t('onboarding.observing_pages', { current: currentPage, completed: completedPages, total: totalPages })
+    if (menuTree.length > 0) return t('onboarding.menu_expanding')
+    return t('onboarding.scanning_menu')
+  }, [totalPages, currentPage, completedPages, menuTree, t])
 
   return (
     <div className="step-scanning">
@@ -21,24 +23,24 @@ export default function StepScanning() {
         <Globe size={64} className="globe" />
         <Wifi size={24} className="wave" />
       </div>
-      <h3 className="scan-title">Discovering application structure</h3>
+      <h3 className="scan-title">{t('onboarding.wizard_desc')}</h3>
       <p className="scan-subtitle">{scanningLabel}</p>
       {totalPages > 0 && (
         <div className="page-progress">
           <div className="progress-bar"><div className="progress-fill" style={{ width: totalPages ? (completedPages / totalPages * 100) + '%' : '0%' }} /></div>
-          <div className="page-counter"><Loader2 size={14} className="spin" /><span>{completedPages} / {totalPages} pages</span></div>
+          <div className="page-counter"><Loader2 size={14} className="spin" /><span>{t('onboarding.pages', { count: totalPages })}（{completedPages}）</span></div>
         </div>
       )}
       {menuTree.length > 0 && (
         <div className="menu-preview">
-          <h4><Eye size={14} /> Discovered menu ({menuTree.length} groups)</h4>
+          <h4><Eye size={14} /> {t('onboarding.discovered_menu', { count: menuTree.length })}</h4>
           <ul>
             {menuTree.slice(0, 6).map(item => (
               <li key={item.label}><span className="menu-label">{item.label}</span>
-                {item.children?.length ? <span className="child-count">{item.children.length} pages</span> : null}
+                {item.children?.length ? <span className="child-count">{t('onboarding.pages', { count: item.children.length })}</span> : null}
               </li>
             ))}
-            {menuTree.length > 6 && <li className="more">...and {menuTree.length - 6} more groups</li>}
+            {menuTree.length > 6 && <li className="more">{t('onboarding.more_groups', { count: menuTree.length - 6 })}</li>}
           </ul>
         </div>
       )}

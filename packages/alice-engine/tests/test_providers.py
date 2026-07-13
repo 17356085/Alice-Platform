@@ -30,6 +30,13 @@ class TestMockProvider:
         assert response.content != ""
         assert response.model == "mock"
         assert response.finish_reason == "stop"
+        assert response.token_usage == {
+            "prompt_tokens": 100,
+            "completion_tokens": 200,
+            "input": 100,
+            "output": 200,
+            "total": 300,
+        }
 
 
 class TestProviderRegistry:

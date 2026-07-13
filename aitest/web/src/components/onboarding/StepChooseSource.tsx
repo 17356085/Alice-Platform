@@ -83,25 +83,25 @@ export default function StepChooseSource({ onChoose }: StepChooseSourceProps) {
           <FolderOpen size={32} /><div className="card-text"><strong>{t('onboarding.local_option')}</strong><span className="desc">{t('onboarding.local_desc')}</span></div>
         </button>
         <button className="source-card disabled" disabled>
-          <FileCode size={32} /><div className="card-text"><strong>Import API spec</strong><span className="desc">OpenAPI/Swagger — coming soon</span></div>
+          <FileCode size={32} /><div className="card-text"><strong>{t('onboarding.api_spec')}</strong><span className="desc">{t('onboarding.api_spec_desc')}</span></div>
         </button>
       </div>
 
       {selected === 'url' && (
         <div className="input-area">
-          <label><Globe size={14} /> Application URL</label>
+          <label><Globe size={14} /> {t('onboarding.application_url')}</label>
           <input value={urlValue} onChange={e => setUrlValue(e.target.value)} type="url" placeholder={t('onboarding.url_placeholder')} onKeyUp={e => e.key === 'Enter' && handleContinue()} />
         </div>
       )}
 
       {selected === 'local' && (
         <div className="input-area">
-          <label><FolderOpen size={14} /> Project path</label>
+          <label><FolderOpen size={14} /> {t('onboarding.project_path')}</label>
           <div className="path-row">
             <input value={projectPath} onChange={e => { setProjectPath(e.target.value); setPathResult(null); setPathError('') }} type="text" placeholder={t('onboarding.path_placeholder')} onKeyUp={e => e.key === 'Enter' && handleContinue()} />
             <button className="btn-browse" onClick={browseFolder}>{t('onboarding.browse')}</button>
           </div>
-          {pathValidating && <div className="status-row validating"><Loader2 size={14} className="spin" /> 正在验证项目路径...</div>}
+          {pathValidating && <div className="status-row validating"><Loader2 size={14} className="spin" /> {t('onboarding.validating_path')}</div>}
           {!pathValidating && pathResult?.valid && <div className="status-row success"><CheckCircle size={14} /> {frameworkLabel}</div>}
           {!pathValidating && pathResult && !pathResult.has_package_json && (
             <div className="status-row warning">
@@ -109,7 +109,7 @@ export default function StepChooseSource({ onChoose }: StepChooseSourceProps) {
               {pathResult.suggestions.length > 0 && <div className="suggestions">{pathResult.suggestions.map((s, i) => <p key={i}>{s}</p>)}</div>}
             </div>
           )}
-          <p className="hint">支持: Vue 3/2, React, Next.js, Nuxt, Angular</p>
+          <p className="hint">{t('onboarding.frameworks_hint')}</p>
         </div>
       )}
 

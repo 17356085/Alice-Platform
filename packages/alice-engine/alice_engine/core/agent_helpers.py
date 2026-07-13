@@ -67,7 +67,14 @@ def get_agent_definition(agent_name: str) -> dict:
 # ══════════════════════════════════════════════════════════════════════════
 
 
-def run_skill(skill_id: str, user_input: str, provider=None, context_vars=None, **kwargs):
+def run_skill(
+    skill_id: str,
+    user_input: str,
+    provider=None,
+    context_vars=None,
+    model: str | None = None,
+    **kwargs,
+):
     """执行单个 skill。
 
     这是一个便利包装器，内部构建 SkillExecutorImpl。
@@ -81,7 +88,8 @@ def run_skill(skill_id: str, user_input: str, provider=None, context_vars=None, 
     loader = SkillLoader(governance_path=_get_governance_root(), plugin_lookup_fn=plugin_lookup_fn)
 
     try:
-        prov = _get_provider(provider or "mock")
+        provider_kwargs = {"model": model} if model else {}
+        prov = _get_provider(provider or "mock", **provider_kwargs)
     except Exception:
         prov = _get_provider("mock")
     executor = SkillExecutorImpl(skill_loader=loader, provider=prov)

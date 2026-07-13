@@ -45,6 +45,22 @@ def test_enqueue_then_dequeue(queue):
     assert queue.get(tid)["status"] == "running"
 
 
+def test_enqueue_persists_execution_mode(queue):
+    tid = queue.enqueue("automation-agent", "equipment", mode="resume")
+    assert queue.get(tid)["mode"] == "resume"
+    assert queue.dequeue()["mode"] == "resume"
+
+
+def test_runner_consumes_execution_mode(queue):
+    seen = []
+    runner = __import__("aitest.infra.task_queue", fromlist=["TaskRunner"]).TaskRunner(
+        queue, executor=lambda task: seen.append(task["mode"]) or {"ok": True}
+    )
+    queue.enqueue("automation-agent", "equipment", mode="resume")
+    runner._execute(queue.dequeue())
+    assert seen == ["resume"]
+
+
 def test_dequeue_empty_returns_none(queue):
     assert queue.dequeue() is None
 

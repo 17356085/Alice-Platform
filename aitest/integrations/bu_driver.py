@@ -369,7 +369,7 @@ class BrowserUseDriver:
         """
         cfg = self._PROVIDER_DEFAULTS[self._provider_name]
         provider_cfg = config.get_provider_config(self._provider_name)
-        key = provider_cfg["api_key"]
+        key = provider_cfg.get("api_key")
         if not key:
             raise RuntimeError(
                 f"{cfg['api_key_env']} not set. "

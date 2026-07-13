@@ -74,18 +74,24 @@ class RQTaskQueue:
     # ── Enqueue / Dequeue ──────────────────────────────────────────────
 
     def enqueue(self, agent: str, module: str, page: str = "",
-                provider: str = "claude", max_retries: int = 3) -> str:
+                provider: str = "claude", max_retries: int = 3,
+                org_id: str = "default-org", mode: str = "full") -> str:
         """Enqueue an agent task. Returns job ID."""
         task_id = f"task-{uuid.uuid4().hex[:12]}"
 
+        retry_policy = (
+            rq.Retry(max=max_retries, interval=[10, 30, 60])
+            if max_retries > 0 else None
+        )
         job = self._queue.enqueue(
             _run_agent_task,
             agent_name=agent,
             provider=provider,
             module=module,
             page=page,
+            mode=mode,
             job_id=task_id,
-            retry=rq.Retry(max=max_retries, interval=[10, 30, 60]),
+            retry=retry_policy,
             result_ttl=self._default_ttl,
             failure_ttl=86400 * 7,  # Keep failed jobs for 7 days
             job_timeout=self._default_timeout,
@@ -185,11 +191,22 @@ class RQTaskQueue:
         return result
 
     def _job_to_dict(self, job: Job) -> dict:
+        raw_status = job.get_status(refresh=False)
+        status = {
+            "queued": "queued",
+            "started": "running",
+            "deferred": "queued",
+            "scheduled": "queued",
+            "finished": "completed",
+            "failed": "failed",
+            "canceled": "failed",
+        }.get(raw_status, raw_status)
         return {
             "id": job.id,
-            "status": job.get_status(refresh=False),
+            "status": status,
             "agent": job.kwargs.get("agent_name", "") if job.kwargs else "",
             "module": job.kwargs.get("module", "") if job.kwargs else "",
+            "result": job.result,
             "error_msg": str(job.exc_info) if job.exc_info else "",
             "retry_count": job.meta.get("failures", 0) if job.meta else 0,
             "created_at": job.created_at.timestamp() if job.created_at else 0,
@@ -259,7 +276,7 @@ class RQTaskQueue:
 # triggers in the worker process, not in the main server process.
 
 def _run_agent_task(agent_name: str, provider: str = "claude",
-                    module: str = "", page: str = "") -> dict:
+                    module: str = "", page: str = "", mode: str = "full") -> dict:
     """RQ worker entry point — called in a separate process."""
     from alice_engine.core.executor import run_agent  # noqa: E402
     return run_agent(
@@ -267,6 +284,7 @@ def _run_agent_task(agent_name: str, provider: str = "claude",
         provider=provider,
         module=module,
         page=page,
+        mode=mode,
         verbose=False,
     )
 

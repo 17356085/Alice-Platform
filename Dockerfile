@@ -3,7 +3,7 @@
 
 # AITest Platform v1.0
 
-FROM python:3.12-slim
+FROM python:3.12-slim-bookworm
 
 LABEL org.aitest.version="1.0.0"
 LABEL org.aitest.description="AI Test Automation Platform"
@@ -27,7 +27,7 @@ RUN pip install --no-cache-dir --upgrade pip \
         ./packages/alice-governance \
         ./packages/alice-discovery \
         ./packages/alice-engine \
-        . \
+        ".[queue]" \
     && python -c "import aitest, alice_discovery, alice_engine, alice_governance; from alice_governance import get_pack_path; print(get_pack_path())"
 
 # Runtime config

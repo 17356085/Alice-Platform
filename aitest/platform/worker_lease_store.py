@@ -229,7 +229,7 @@ class WorkerLeaseStore:
         q = q.order_by(WorkerLeaseModel.started_at.desc())
         return [_model_to_lease(m) for m in q.all()]
 
-    def list_alive(self, timeout_seconds: int = DEFAULT_HEARTBEAT_TIMEOUT_SECONDS) -> List[WorkerLease]:
+    def list_alive(self, timeout_seconds: int = DEFAULT_HEARTBEAT_TIMEOUT_SECONDS, org_id: str = None) -> List[WorkerLease]:
         """列出存活的 Worker（心跳在超时阈值内）
 
         Args:
@@ -245,6 +245,8 @@ class WorkerLeaseStore:
             .filter(WorkerLeaseModel.last_heartbeat_at >= threshold)
             .order_by(WorkerLeaseModel.started_at.desc())
         )
+        if org_id:
+            q = q.filter(WorkerLeaseModel.org_id == org_id)
         return [_model_to_lease(m) for m in q.all()]
 
     # ─────────────────────────────────────────────────────────────

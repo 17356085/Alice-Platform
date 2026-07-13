@@ -18,6 +18,30 @@ class LLMResponse:
     finish_reason: str = "stop"
     latency_ms: int = 0
 
+    @property
+    def token_usage(self) -> dict:
+        """Backward-compatible normalized token usage.
+
+        The SDK stores provider usage in ``usage`` while the platform API
+        historically consumed ``token_usage``.  Keep both contracts usable
+        at the boundary so a real provider response cannot fail after the
+        model call has already succeeded.
+        """
+        usage = self.usage or {}
+        input_tokens = usage.get("input", usage.get("prompt_tokens", usage.get("input_tokens", 0)))
+        output_tokens = usage.get("output", usage.get("completion_tokens", usage.get("output_tokens", 0)))
+        total_tokens = usage.get("total", usage.get("total_tokens", input_tokens + output_tokens))
+        return {
+            **usage,
+            "input": input_tokens,
+            "output": output_tokens,
+            "total": total_tokens,
+        }
+
+    @token_usage.setter
+    def token_usage(self, value: dict) -> None:
+        self.usage = dict(value or {})
+
 
 # ── 流式事件类型 ──
 StreamEventType = Literal[

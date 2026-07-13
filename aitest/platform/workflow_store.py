@@ -52,9 +52,14 @@ class WorkflowStore:
         org_id: str = "",
         created_by: str = "",
         status: str = "draft",
+        workflow_id: Optional[str] = None,
     ) -> Workflow:
         """创建工作流"""
-        workflow_id = f"wf_{uuid.uuid4().hex[:16]}"
+        workflow_id = workflow_id or f"wf_{uuid.uuid4().hex[:16]}"
+        # Keep the graph identity aligned with the persisted resource.  The
+        # API accepts a compact graph from the web UI, but once it is stored
+        # both IDs must remain stable for later validate/debug calls.
+        graph.workflow_id = workflow_id
 
         model = WorkflowModel(
             workflow_id=workflow_id,
@@ -109,16 +114,25 @@ class WorkflowStore:
         if not model:
             return False
 
-        if name:
+        if name is not None:
             model.name = name
-        if description:
+        if description is not None:
             model.description = description
-        if status:
+        if status is not None:
             model.status = status
         if graph:
             model.graph_json = json.dumps(graph.to_dict())
 
         model.updated_at = datetime.now(timezone.utc)
+        self.session.commit()
+        return True
+
+    def delete_workflow(self, workflow_id: str) -> bool:
+        """Delete a workflow definition by ID."""
+        model = self.session.query(WorkflowModel).filter_by(workflow_id=workflow_id).first()
+        if not model:
+            return False
+        self.session.delete(model)
         self.session.commit()
         return True
 

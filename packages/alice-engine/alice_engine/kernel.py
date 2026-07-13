@@ -207,6 +207,7 @@ class RuntimeExecutionKernel:
                 pages=list(ctx.pages),
                 verbose=bool(metadata.get("verbose", False)),
                 replay_recorder=metadata.get("replay_recorder"),
+                page_configs=metadata.get("page_configs", []),
             )
         raise ValueError(f"Unsupported kernel kind: {request.kind!r}")
 

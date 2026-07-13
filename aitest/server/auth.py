@@ -29,7 +29,7 @@ from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 
 # ── Exempt paths (no auth required) ───────────────────────────────────
-_EXEMPT_PREFIXES = ("/health", "/docs", "/openapi.json", "/static", "/ws/")
+_EXEMPT_PREFIXES = ("/health", "/ready", "/docs", "/openapi.json", "/static", "/ws/")
 _EXEMPT_EXACT = {"/", ""}
 
 
@@ -47,6 +47,26 @@ def _get_api_key() -> str:
     """Get configured API key. Returns empty string if auth is disabled."""
     from aitest.config import config
     return config.get_env("AITEST_API_KEY", "")
+
+
+def _rbac_required() -> bool:
+    return os.environ.get("AITEST_RBAC_REQUIRED", "0").lower() in {"1", "true", "yes"}
+
+
+def _enforce_global_scope(request: Request) -> None:
+    """Apply a baseline scope to every authenticated platform API call.
+
+    Resource handlers add stricter org/workspace checks where needed; this
+    prevents an unscoped authenticated key from reaching an unguarded route.
+    """
+    if not _rbac_required() or not request.url.path.startswith("/api"):
+        return
+    scopes = set(getattr(request.state, "scopes", []) or [])
+    if "admin" in scopes:
+        return
+    required = "read" if request.method.upper() in {"GET", "HEAD", "OPTIONS"} else "write"
+    if required not in scopes and not (required == "write" and "execute" in scopes):
+        raise HTTPException(403, f"Request lacks baseline scope '{required}'")
 
 
 # ── Constant-time comparison ──────────────────────────────────────────
@@ -92,6 +112,8 @@ async def auth_middleware(request: Request, call_next):
     if not auth_header.startswith("Bearer "):
         api_key = _get_api_key()
         if not api_key:
+            if _rbac_required():
+                return JSONResponse(status_code=401, content={"detail": "Authentication required"}, headers={"WWW-Authenticate": "Bearer"})
             # Auth disabled — allow all requests
             return await call_next(request)
         return JSONResponse(
@@ -109,6 +131,7 @@ async def auth_middleware(request: Request, call_next):
         request.state.org_id = "*"
         request.state.scopes = ["read", "write", "execute", "admin"]
         request.state.auth_method = "static"
+        _enforce_global_scope(request)
         return await call_next(request)
 
     # 2. Fall through to Organization API keys
@@ -121,6 +144,7 @@ async def auth_middleware(request: Request, call_next):
             request.state.org_id = result["org_id"]
             request.state.scopes = result.get("scopes", ["read", "execute"])
             request.state.auth_method = "org_key"
+            _enforce_global_scope(request)
             return await call_next(request)
     except Exception:
         pass  # OrgManager unavailable → fall through to 401

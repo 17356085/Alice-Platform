@@ -7,8 +7,19 @@ import App from './App'
 import { initMemoryDebug } from './utils/memoryDebug'
 import './styles/tokens.css'
 import './styles/themes/all.css'
+import './styles/figma-theme.css'
 
 initMemoryDebug()
+
+// Apply persisted visual preferences before React paints to avoid a light-theme
+// flash and to keep every route on the same four-theme/mode contract.
+try {
+  const saved = JSON.parse(localStorage.getItem('tlo-settings') || '{}') as { theme?: string; darkMode?: boolean; language?: string }
+  const theme = saved.theme === 'default' || !saved.theme ? 'mahotsukai' : saved.theme
+  document.documentElement.setAttribute('data-theme', theme)
+  document.documentElement.classList.toggle('dark', saved.darkMode ?? true)
+  if (saved.language) void i18n.changeLanguage(saved.language)
+} catch { /* use defaults */ }
 
 const isDebug = new URLSearchParams(location.search).has('debug')
 if (isDebug) console.log('[boot] React createRoot')

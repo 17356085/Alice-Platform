@@ -1,9 +1,11 @@
 /** Step: Review and confirm discovered menu structure. React port. */
 import { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useOnboardingStore, type MenuNode } from '@/stores/onboarding'
 import { Check, Pencil, X } from 'lucide-react'
 
 export default function StepConfirmMenu() {
+  const { t } = useTranslation()
   const menuTree = useOnboardingStore(s => s.menuTree)
   const confirmMenu = useOnboardingStore(s => s.confirmMenu)
   const step = useOnboardingStore(s => s.step)
@@ -30,20 +32,19 @@ export default function StepConfirmMenu() {
 
   return (
     <div className="step-confirm">
-      <h3>Review discovered menu structure</h3>
+      <h3>{t('onboarding.review_menu')}</h3>
       <p className="subtitle">
-        TLO discovered {menuTree.length} menu groups from the sidebar.
-        Edit labels or remove items before continuing.
+        {t('onboarding.review_desc', { count: menuTree.length })}
       </p>
       {!menuTree.length ? (
-        <div className="empty"><p>No menu items discovered yet. Waiting for scan to complete...</p></div>
+        <div className="empty"><p>{t('onboarding.no_menu')}</p></div>
       ) : (
         <div className="menu-tree">
           {menuTree.map(group => (
             <div key={group.label} className="menu-group">
               <div className="group-header">
                 <span className="group-label">{group.label}</span>
-                {group.children?.length ? <span className="badge">{group.children.length} pages</span> : null}
+                {group.children?.length ? <span className="badge">{t('onboarding.pages', { count: group.children.length })}</span> : null}
               </div>
               {group.children?.length ? (
                 <ul className="page-list">
@@ -71,9 +72,9 @@ export default function StepConfirmMenu() {
         </div>
       )}
       <div className="actions">
-        <p className="note">You can edit labels above. Click "Continue" to proceed with page discovery.</p>
+        <p className="note">{t('onboarding.review_note')}</p>
         <button className="btn-confirm" disabled={step !== 'confirm_menu'} onClick={handleConfirm}>
-          <Check size={16} /> Continue with {menuTree.length} groups
+          <Check size={16} /> {t('onboarding.continue_groups', { count: menuTree.length })}
         </button>
       </div>
       <style>{`

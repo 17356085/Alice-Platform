@@ -122,10 +122,12 @@ class TestDeepSeekProviderComplete:
         provider = DeepSeekProvider(api_key="sk-test", model="deepseek-v4-flash")
         assert provider.supports_tools() is True
 
-    def test_complete_api_key_missing_returns_error_response(self):
+    def test_complete_api_key_missing_returns_error_response(self, monkeypatch, tmp_path):
         """complete() returns error LLMResponse when API key is missing."""
         from alice_engine.providers.deepseek import DeepSeekProvider
 
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
         provider = DeepSeekProvider(api_key="")
         result = provider.complete("system", "user")
 

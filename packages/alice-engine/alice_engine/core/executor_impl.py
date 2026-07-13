@@ -359,13 +359,14 @@ class SkillExecutor:
         return True
 
 
-def _default_run_skill(skill_id, user_input, provider=None, context_vars=None, **kwargs):
+def _default_run_skill(skill_id, user_input, provider=None, context_vars=None, model=None, **kwargs):
     """默认 run_skill 实现（与 executor.py 保持一致）。"""
     from alice_engine.providers import get_provider as _get_provider
     from alice_engine.core.skill_loader import SkillLoader
     from alice_engine.core.skill_executor_impl import SkillExecutorImpl
 
     loader = SkillLoader(governance_path=_GOVERNANCE)
-    prov = _get_provider(provider or "mock")
+    provider_kwargs = {"model": model} if model else {}
+    prov = _get_provider(provider or "mock", **provider_kwargs)
     executor = SkillExecutorImpl(skill_loader=loader, provider=prov)
     return executor.execute(skill_id, user_input, context_vars=context_vars)

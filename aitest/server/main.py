@@ -19,7 +19,7 @@ from pathlib import Path
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from aitest.platform.plugin import get_plugin_manager
@@ -59,7 +59,8 @@ async def lifespan(app: FastAPI):
             from alice_engine.core.executor import run_agent
             return run_agent(
                 agent_name=task["agent"], provider=task.get("provider", "claude"),
-                module=task["module"], page=task.get("page", ""), verbose=False,
+                module=task["module"], page=task.get("page", ""),
+                mode=task.get("mode", "full"), verbose=False,
             )
         runner._executor = _agent_executor
         runner.start()
@@ -237,8 +238,13 @@ async def request_id_middleware(request: Request, call_next):
 _rate_state: dict[str, list[float]] = {}
 _rate_lock = threading.Lock()
 _RATE_WINDOW = 60
-_RATE_MAX_REQUESTS = 60
-_RATE_EXEMPT_PATHS = {"/health", "/docs", "/openapi.json", "/"}
+_RATE_MAX_REQUESTS = int(os.getenv("AITEST_RATE_MAX_REQUESTS", "60"))
+_RATE_EXEMPT_PATHS = {
+    "/health", "/ready", "/docs", "/openapi.json", "/",
+    # The response is sampled and cached internally; dashboard polling should
+    # not consume the general API request budget.
+    "/api/v1/observability/snapshot",
+}
 
 
 @app.middleware("http")
@@ -268,6 +274,28 @@ async def rate_limit_middleware(request: Request, call_next):
             timestamps.append(now)
             _rate_state[client_ip] = timestamps
     return await call_next(request)
+
+
+@app.middleware("http")
+async def control_audit_middleware(request: Request, call_next):
+    """Audit state-changing API requests with resolved identity context."""
+    response = await call_next(request)
+    if request.method in {"POST", "PUT", "PATCH", "DELETE"} and request.url.path.startswith("/api/"):
+        try:
+            from aitest.platform.audit_log import get_audit_logger
+            get_audit_logger().record_action(
+                action=f"http.{request.method.lower()}",
+                actor=getattr(request.state, "user_id", "anonymous"),
+                org_id=getattr(request.state, "org_id", "") or request.headers.get("X-Org-Id", ""),
+                resource_type="http",
+                resource_id=request.url.path,
+                request_id=getattr(request.state, "request_id", ""),
+                outcome="success" if response.status_code < 400 else "error",
+                metadata={"status_code": response.status_code},
+            )
+        except Exception:
+            pass
+    return response
 
 
 # ── Auth Middleware ──────────────────────────────────────────────────────
@@ -353,6 +381,14 @@ async def health(request: Request):
     return await get_health_response(app_state=request.app.state)
 
 
+@app.get("/ready")
+async def ready():
+    from aitest.platform.deployment_preflight import run_deployment_preflight
+    from fastapi.responses import JSONResponse
+    result = run_deployment_preflight()
+    return JSONResponse(result.to_dict(), status_code=200 if result.status != "blocked" else 503)
+
+
 # ══════════════════════════════════════════════════════════════════════════
 #  Router Mounting
 # ══════════════════════════════════════════════════════════════════════════
@@ -374,6 +410,7 @@ from aitest.server.api.kpi import kpi_router
 from aitest.server.api.kanban import kanban_router
 from aitest.server.api.terminal import terminal_router
 from aitest.server.api.observability import obs_router
+from aitest.server.api.insights import insights_router
 from aitest.server.api.runs import runs_router  # P7-2: 统一执行入口
 from aitest.server.api.quality import quality_router  # P5-1: Quality Loop
 from aitest.server.api.workflows_v1 import workflows_v1_router  # P8-1: Workflow 资源化
@@ -385,6 +422,8 @@ from aitest.server.api.billing_v1 import billing_router  # P3-6: Billing REST AP
 from aitest.server.api.human_gates import human_gates_router
 from aitest.server.api.registry_v1 import registry_router
 from aitest.server.api.mcp_servers_v1 import mcp_servers_router
+from aitest.server.api.notifications_v1 import notifications_router
+from aitest.server.api.modules_v1 import modules_router
 
 app.include_router(runs_router)  # P7-2: 新端点优先注册
 app.include_router(quality_router)  # P5-1: Quality Loop
@@ -397,6 +436,8 @@ app.include_router(billing_router)  # P3-6: Billing REST API
 app.include_router(human_gates_router)
 app.include_router(registry_router)
 app.include_router(mcp_servers_router)
+app.include_router(notifications_router)
+app.include_router(modules_router)
 app.include_router(platform_router)
 app.include_router(workspace_router)
 app.include_router(execution_router)
@@ -414,6 +455,7 @@ app.include_router(kpi_router)
 app.include_router(kanban_router)
 app.include_router(terminal_router)
 app.include_router(obs_router)
+app.include_router(insights_router)
 
 # P6-3: 动态注册 Plugin API 路由
 def _register_plugin_routes(target_app: FastAPI | None = None):

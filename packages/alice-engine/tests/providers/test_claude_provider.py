@@ -90,10 +90,12 @@ class TestClaudeProviderComplete:
         assert result.tool_calls[0]["input"] == {"city": "NYC"}
         assert result.finish_reason == "tool_use"
 
-    def test_complete_api_key_missing_returns_error_response(self):
+    def test_complete_api_key_missing_returns_error_response(self, monkeypatch, tmp_path):
         """complete() returns error LLMResponse when API key is missing (no exception)."""
         from alice_engine.providers.claude import ClaudeProvider
 
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         provider = ClaudeProvider(api_key="")  # empty key
         result = provider.complete("system", "user")
 
@@ -165,10 +167,12 @@ class TestClaudeProviderStream:
         assert events[4].token_usage["input"] == 10
         assert events[4].token_usage["output"] == 5
 
-    def test_stream_api_key_missing_yields_error(self):
+    def test_stream_api_key_missing_yields_error(self, monkeypatch, tmp_path):
         """stream() yields error event when API key is missing."""
         from alice_engine.providers.claude import ClaudeProvider
 
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         provider = ClaudeProvider(api_key="")
         events = list(provider.stream("system", "user"))
 

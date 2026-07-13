@@ -41,6 +41,7 @@ class WorkflowNode:
     # 通用配置
     retry_policy: Optional[RetryPolicy] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
+    position: Optional[Dict[str, float]] = None
 
     def to_dict(self) -> dict:
         result = {
@@ -48,6 +49,8 @@ class WorkflowNode:
             "type": self.type,
             "metadata": self.metadata,
         }
+        if self.position is not None:
+            result["position"] = self.position
         if self.agent_id:
             result["agent_id"] = self.agent_id
             result["agent_version"] = self.agent_version
@@ -143,13 +146,14 @@ class WorkflowGraph:
                 condition_expr=node_data.get("condition_expr"),
                 retry_policy=retry_policy,
                 metadata=node_data.get("metadata", {}),
+                position=node_data.get("position"),
             ))
 
         edges = []
         for edge_data in data.get("edges", []):
             edges.append(WorkflowEdge(
-                from_node=edge_data["from"],
-                to_node=edge_data["to"],
+                from_node=edge_data.get("from", edge_data.get("from_node")),
+                to_node=edge_data.get("to", edge_data.get("to_node")),
                 condition=edge_data.get("condition", "always"),
             ))
 

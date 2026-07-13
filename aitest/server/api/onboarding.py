@@ -350,6 +350,12 @@ async def list_sessions():
     return {"sessions": result, "total": len(result)}
 
 
+@onboarding_router.get("/{session_id}")
+async def get_onboarding_status_legacy(session_id: str):
+    """Backward-compatible status endpoint for older frontend bundles."""
+    return await get_onboarding_status(session_id)
+
+
 # ── WebSocket ────────────────────────────────────────────────────────────
 
 @onboarding_router.websocket("/ws/{session_id}")

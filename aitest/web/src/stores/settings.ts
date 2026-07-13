@@ -18,7 +18,7 @@ export interface ProviderAccount {
 }
 
 export interface AppSettings {
-  theme: string           // default | dusk | lime | ocean | retro | neo | forest
+  theme: string           // mahotsukai | alice | aoko | soujuurou
   darkMode: boolean
   language: string        // zh | en
   uiScale: number         // 75-200, default 100
@@ -52,8 +52,8 @@ export interface ProjectSettings {
 // ── Defaults ───────────────────────────────────────────────────
 
 const defaults: AppSettings = {
-  theme: 'default',
-  darkMode: false,
+  theme: 'mahotsukai',
+  darkMode: true,
   language: 'zh',
   uiScale: 100,
   provider: 'claude',
@@ -70,7 +70,11 @@ const defaults: AppSettings = {
 function load(): AppSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? { ...defaults, ...JSON.parse(raw) } : { ...defaults }
+    const app = raw ? { ...defaults, ...JSON.parse(raw) } : { ...defaults }
+    const needsLegacyMigration = localStorage.getItem('tlo-theme-v2') !== '1'
+    const theme = app.theme === 'default' || (needsLegacyMigration && app.theme === 'alice') ? 'mahotsukai' : app.theme
+    localStorage.setItem('tlo-theme-v2', '1')
+    return { ...app, theme }
   } catch { return { ...defaults } }
 }
 
@@ -103,8 +107,18 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   updateApp(patch: Partial<AppSettings>) {
     set(state => {
-      const app = { ...state.app, ...patch }
+      const app = { ...state.app, ...patch, theme: patch.theme === 'default' ? 'mahotsukai' : (patch.theme ?? state.app.theme) }
       persist(app)
+      // Sync darkMode to DOM and localStorage for App.tsx compatibility
+      if ('darkMode' in patch) {
+        document.documentElement.classList.toggle('dark', patch.darkMode!)
+        localStorage.setItem('tlo-theme', patch.darkMode ? 'dark' : 'light')
+      }
+      // Sync theme to DOM
+      if ('theme' in patch) {
+        document.documentElement.setAttribute('data-theme', app.theme)
+        localStorage.setItem('tlo-theme-name', app.theme)
+      }
       return { app }
     })
   },

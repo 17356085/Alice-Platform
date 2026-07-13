@@ -15,6 +15,8 @@ def validate_workflow_graph(graph, node_ids):
     # 2. 检查边引用的节点存在
     node_id_set = set(node_ids)
     for edge in graph.edges:
+        if not edge.condition:
+            errors.append(f"Edge {edge.from_node}->{edge.to_node} has an empty condition")
         if edge.from_node not in node_id_set:
             errors.append(f"Edge references non-existent node: {edge.from_node}")
         if edge.to_node not in node_id_set:
@@ -24,6 +26,16 @@ def validate_workflow_graph(graph, node_ids):
     for node in graph.nodes:
         if node.type == "agent" and not node.agent_id:
             errors.append(f"Agent node {node.node_id} missing agent_id")
+        if node.type == "condition" and not node.condition_expr:
+            errors.append(f"Condition node {node.node_id} missing condition_expr")
+        if node.type == "parallel":
+            children = node.metadata.get("parallel_nodes", [])
+            if not children:
+                errors.append(f"Parallel node {node.node_id} has no parallel_nodes")
+            elif any(child not in node_id_set for child in children):
+                errors.append(f"Parallel node {node.node_id} references an unknown sub-node")
+            if int(node.metadata.get("max_concurrency", 1) or 0) < 1:
+                errors.append(f"Parallel node {node.node_id} max_concurrency must be positive")
 
     # 4. 检查孤立节点（无入边且无出边）
     nodes_with_edges = set()

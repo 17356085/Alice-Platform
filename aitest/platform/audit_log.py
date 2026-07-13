@@ -9,7 +9,9 @@ v3.2: Synchronous PG writes — eliminates 2s flush window data loss risk.
 __all__ = ["AuditLogger", "get_audit_logger", "set_audit_logger", "reset_audit_logger"]
 
 import json
+import hashlib
 import threading
+import uuid
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from .event_bus import get_bus
@@ -50,6 +52,7 @@ class AuditLogger:
 
     def __init__(self, bus=None, db_path: str | Path | None = None):
         self._active = False
+        self._append_lock = threading.Lock()
         self._bus = bus  # injected EventBus (None = lazy singleton)
         if db_path is not None:
             from aitest.infra import database as _db
@@ -58,6 +61,23 @@ class AuditLogger:
             _sqlite._DB_PATH = Path(db_path)
             _sqlite._DB_PATH.parent.mkdir(parents=True, exist_ok=True)
             safe_exec("SELECT 1")
+        self._ensure_integrity_columns()
+
+    def _ensure_integrity_columns(self) -> None:
+        """Migrate older audit tables to the hash-chain contract."""
+        try:
+            from aitest.infra.database import get_backend
+            if get_backend() == "sqlite":
+                columns = {row["name"] for row in safe_query("PRAGMA table_info(audit_entries)")}
+                for name in ("prev_hash", "entry_hash"):
+                    if name not in columns:
+                        safe_exec(f"ALTER TABLE audit_entries ADD COLUMN {name} TEXT NOT NULL DEFAULT ''")
+            else:
+                safe_exec("ALTER TABLE audit_entries ADD COLUMN IF NOT EXISTS prev_hash TEXT NOT NULL DEFAULT ''")
+                safe_exec("ALTER TABLE audit_entries ADD COLUMN IF NOT EXISTS entry_hash TEXT NOT NULL DEFAULT ''")
+        except Exception:
+            # The main schema initializer may run after logger construction.
+            pass
 
     def start(self):
         if self._active: return
@@ -78,17 +98,118 @@ class AuditLogger:
     def _on_event(self, event: RunEvent):
         """Write audit entry synchronously to PG. No buffering, no data loss."""
         try:
-            safe_exec(
-                "INSERT INTO audit_entries "
-                "(event_id, event_type, run_id, request_id, org_id, workspace_id, user_id, timestamp, data_json) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                [event.event_id, event.event_type, event.run_id, event.request_id,
-                 event.data.get(K.ORG_ID, ""), event.data.get(K.WORKSPACE_ID, ""),
-                 event.data.get(K.TRIGGERED_BY, ""), event.timestamp,
-                 json.dumps(event.data, ensure_ascii=False)],
-            )
+            self._append_entry({
+                "event_id": event.event_id,
+                "event_type": event.event_type,
+                "run_id": event.run_id,
+                "request_id": event.request_id,
+                "org_id": event.data.get(K.ORG_ID, ""),
+                "workspace_id": event.data.get(K.WORKSPACE_ID, ""),
+                "user_id": event.data.get(K.TRIGGERED_BY, ""),
+                "timestamp": event.timestamp,
+                "data_json": json.dumps(event.data, ensure_ascii=False),
+            })
         except Exception:
             pass  # Audit failure must not break execution
+
+    def record_action(
+        self,
+        *,
+        action: str,
+        actor: str = "anonymous",
+        org_id: str = "",
+        resource_type: str = "",
+        resource_id: str = "",
+        request_id: str = "",
+        outcome: str = "success",
+        metadata: dict | None = None,
+    ) -> None:
+        """Persist a control-plane action in the same append-only audit table."""
+        data = {
+            "action": action,
+            "resource_type": resource_type,
+            "resource_id": resource_id,
+            "outcome": outcome,
+            **(metadata or {}),
+        }
+        try:
+            self._append_entry({
+                "event_id": f"control_{uuid.uuid4().hex}",
+                "event_type": "control.action",
+                "run_id": "",
+                "request_id": request_id,
+                "org_id": org_id,
+                "workspace_id": "",
+                "user_id": actor,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "data_json": json.dumps(data, ensure_ascii=False),
+            })
+        except Exception:
+            # Audit must not make a control-plane request fail.
+            pass
+
+    def _append_entry(self, fields: dict) -> None:
+        """Append an entry with a tamper-evident previous/current hash pair."""
+        with self._append_lock:
+            try:
+                previous = safe_query("SELECT entry_hash FROM audit_entries ORDER BY id DESC LIMIT 1")
+            except Exception:
+                # Keeps audit recording observable even while the schema is being initialized.
+                previous = []
+            prev_hash = (previous[0].get("entry_hash") or "") if previous else ""
+            canonical = json.dumps({**fields, "prev_hash": prev_hash}, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+            entry_hash = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+            if fields["event_type"] == "control.action":
+                # Keep the established control-audit parameter contract; run/workspace
+                # remain empty via schema defaults while still participating in the hash.
+                safe_exec(
+                    "INSERT INTO audit_entries "
+                    "(event_id, event_type, request_id, org_id, user_id, timestamp, data_json, prev_hash, entry_hash) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    [fields["event_id"], fields["event_type"], fields["request_id"], fields["org_id"],
+                     fields["user_id"], fields["timestamp"], fields["data_json"], prev_hash, entry_hash],
+                )
+            else:
+                safe_exec(
+                    "INSERT INTO audit_entries "
+                    "(event_id, event_type, run_id, request_id, org_id, workspace_id, user_id, timestamp, data_json, prev_hash, entry_hash) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    [fields["event_id"], fields["event_type"], fields["run_id"], fields["request_id"],
+                     fields["org_id"], fields["workspace_id"], fields["user_id"], fields["timestamp"],
+                     fields["data_json"], prev_hash, entry_hash],
+                )
+
+    def verify_integrity(self) -> dict:
+        """Verify the append-only hash chain, returning an auditable result."""
+        rows = safe_query("SELECT * FROM audit_entries ORDER BY id ASC")
+        previous = ""
+        for row in rows:
+            if not row.get("entry_hash"):
+                return {"valid": False, "checked": row.get("id", 0), "error": "legacy entry has no hash"}
+            fields = {key: row.get(key, "") for key in (
+                "event_id", "event_type", "run_id", "request_id", "org_id", "workspace_id",
+                "user_id", "timestamp", "data_json",
+            )}
+            expected = hashlib.sha256(json.dumps({**fields, "prev_hash": previous}, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
+            if row.get("prev_hash", "") != previous or row.get("entry_hash") != expected:
+                return {"valid": False, "checked": row.get("id", 0), "error": "audit hash chain mismatch"}
+            previous = row["entry_hash"]
+        return {"valid": True, "checked": len(rows), "last_hash": previous}
+
+    def archive_old_entries(self, destination: str | Path, max_age_days: int = 30) -> int:
+        """Write old entries to an integrity-stamped JSONL archive, then delete them."""
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=max_age_days)).isoformat()
+        rows = safe_query("SELECT * FROM audit_entries WHERE timestamp < ? ORDER BY id ASC", [cutoff])
+        if not rows:
+            return 0
+        destination = Path(destination)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        payload = "".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows)
+        archive_hash = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+        destination.write_text(payload, encoding="utf-8")
+        destination.with_suffix(destination.suffix + ".sha256").write_text(archive_hash, encoding="ascii")
+        safe_exec("DELETE FROM audit_entries WHERE timestamp < ?", [cutoff])
+        return len(rows)
 
     def query(self, *, org_id: str = "", workspace_id: str = "", event_type: str = "",
               run_id: str = "", replay_session_id: str = "", limit: int = 50, offset: int = 0,

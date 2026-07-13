@@ -14,9 +14,40 @@ Routes:
 from __future__ import annotations
 from datetime import datetime
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel
 
 audit_router = APIRouter(prefix="/api/v1/audit", tags=["audit"])
+
+
+class ArchiveRequest(BaseModel):
+    destination: str
+    max_age_days: int = 30
+
+
+def _require_audit_admin(request: Request) -> None:
+    import os
+    strict = os.environ.get("AITEST_RBAC_REQUIRED", "0").lower() in {"1", "true", "yes"}
+    if not strict and not getattr(request.state, "user_id", None):
+        return
+    scopes = list(getattr(request.state, "scopes", []) or [])
+    if "admin" not in scopes:
+        raise HTTPException(403, "Audit administration requires admin scope")
+
+
+@audit_router.get("/integrity")
+async def audit_integrity():
+    from aitest.platform.audit_log import get_audit_logger
+    return get_audit_logger().verify_integrity()
+
+
+@audit_router.post("/archive")
+async def archive_audit(request: Request, req: ArchiveRequest):
+    _require_audit_admin(request)
+    if req.max_age_days < 1:
+        raise HTTPException(400, "max_age_days must be at least 1")
+    from aitest.platform.audit_log import get_audit_logger
+    return {"archived": get_audit_logger().archive_old_entries(req.destination, req.max_age_days)}
 
 
 @audit_router.get("/state")

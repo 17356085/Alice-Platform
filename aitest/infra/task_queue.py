@@ -31,10 +31,10 @@ class TaskQueue:
             _sqlite._DB_PATH = self._db_path
             _sqlite._DB_PATH.parent.mkdir(parents=True, exist_ok=True)
             safe_exec("SELECT 1")
-        self._ensure_claimed_by_column()
+        self._ensure_task_lease_columns()
 
-    def _ensure_claimed_by_column(self):
-        """Add the remote-worker lease column to older local task databases."""
+    def _ensure_task_lease_columns(self):
+        """Add remote-worker lease and tenant columns to older task databases."""
         from aitest.infra.database import get_backend
         if get_backend() == "sqlite":
             from aitest.infra.database_sqlite import _get_conn, _lock
@@ -44,9 +44,17 @@ class TaskQueue:
                     columns = {row[1] for row in conn.execute("PRAGMA table_info(tasks)").fetchall()}
                     if "claimed_by" not in columns:
                         conn.execute("ALTER TABLE tasks ADD COLUMN claimed_by TEXT DEFAULT ''")
-                        conn.commit()
+                    if "org_id" not in columns:
+                        conn.execute("ALTER TABLE tasks ADD COLUMN org_id TEXT NOT NULL DEFAULT 'default-org'")
+                    if "mode" not in columns:
+                        conn.execute("ALTER TABLE tasks ADD COLUMN mode TEXT NOT NULL DEFAULT 'full'")
+                    conn.commit()
                 finally:
                     conn.close()
+        else:
+            safe_exec("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS claimed_by TEXT DEFAULT ''")
+            safe_exec("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS org_id TEXT NOT NULL DEFAULT 'default-org'")
+            safe_exec("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS mode TEXT NOT NULL DEFAULT 'full'")
 
     def _get_conn(self):
         if self._db_path is None:
@@ -56,13 +64,14 @@ class TaskQueue:
         return conn
 
     def enqueue(self, agent: str, module: str, page: str = "",
-                provider: str = "claude", max_retries: int = DEFAULT_MAX_RETRIES) -> str:
+                provider: str = "claude", max_retries: int = DEFAULT_MAX_RETRIES,
+                org_id: str = "default-org", mode: str = "full") -> str:
         task_id = f"task-{uuid.uuid4().hex[:12]}"
         now = time.time()
         safe_exec(
-            "INSERT INTO tasks (id, agent, module, page, provider, status, max_retries, created_at) "
-            "VALUES (?, ?, ?, ?, ?, 'queued', ?, ?)",
-            [task_id, agent, module, page, provider, max_retries, now],
+            "INSERT INTO tasks (id, agent, module, page, provider, mode, status, max_retries, org_id, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, 'queued', ?, ?, ?)",
+            [task_id, agent, module, page, provider, mode, max_retries, org_id, now],
         )
         return task_id
 
@@ -78,14 +87,21 @@ class TaskQueue:
         safe_exec("UPDATE tasks SET status='running', started_at=? WHERE id=?", [now, task['id']])
         return task
 
-    def claim_for_worker(self, worker_id: str) -> Optional[dict]:
+    def claim_for_worker(self, worker_id: str, org_id: str = "default-org") -> Optional[dict]:
         """Atomically claim the next queued task for a remote Worker."""
         from aitest.infra.database import get_backend
         if get_backend() != "sqlite":
-            task = self.dequeue()
-            if task:
-                safe_exec("UPDATE tasks SET claimed_by=? WHERE id=?", [worker_id, task["id"]])
-            return task
+            now = time.time()
+            rows = safe_query(
+                "WITH candidate AS ("
+                "SELECT id FROM tasks WHERE status='queued' AND org_id=? "
+                "AND (retry_at IS NULL OR retry_at <= ?) "
+                "ORDER BY created_at, id FOR UPDATE SKIP LOCKED LIMIT 1) "
+                "UPDATE tasks SET status='running', started_at=?, claimed_by=? "
+                "FROM candidate WHERE tasks.id=candidate.id RETURNING tasks.*",
+                [org_id, now, now, worker_id],
+            )
+            return rows[0] if rows else None
         from aitest.infra.database_sqlite import _get_conn, _lock
         now = time.time()
         with _lock:
@@ -93,8 +109,8 @@ class TaskQueue:
             try:
                 conn.execute("BEGIN IMMEDIATE")
                 row = conn.execute(
-                    "SELECT * FROM tasks WHERE status='queued' AND (retry_at IS NULL OR retry_at <= ?) "
-                    "ORDER BY created_at LIMIT 1", (now,)
+                    "SELECT * FROM tasks WHERE status='queued' AND org_id=? "
+                    "AND (retry_at IS NULL OR retry_at <= ?) ORDER BY created_at LIMIT 1", (org_id, now)
                 ).fetchone()
                 if row is None:
                     conn.rollback()
@@ -125,11 +141,45 @@ class TaskQueue:
         self.mark_failed(task_id, error)
         return True
 
+    def recover_worker_tasks(self, worker_id: str, *, requeue: bool = True) -> int:
+        """Recover tasks held by a disconnected Worker.
+
+        A lost Worker lease must not strand running tasks. Requeue is the safe
+        default; callers may choose terminal failure during an incident drill.
+        """
+        rows = safe_query(
+            "SELECT id, retry_count, max_retries FROM tasks "
+            "WHERE status='running' AND claimed_by=?",
+            [worker_id],
+        )
+        now = time.time()
+        recovered = 0
+        for row in rows:
+            task_id = row["id"]
+            retry_count = row.get("retry_count") if row.get("retry_count") is not None else 0
+            max_retries = row.get("max_retries") if row.get("max_retries") is not None else DEFAULT_MAX_RETRIES
+            if requeue and retry_count < max_retries:
+                safe_exec(
+                    "UPDATE tasks SET status='queued', started_at=NULL, retry_at=?, "
+                    "error_msg=?, claimed_by='' WHERE id=? AND status='running' AND claimed_by=?",
+                    [now, f"worker disconnected: {worker_id}", task_id, worker_id],
+                )
+            else:
+                safe_exec(
+                    "UPDATE tasks SET status='failed', completed_at=?, "
+                    "error_msg=?, claimed_by='' WHERE id=? AND status='running' AND claimed_by=?",
+                    [now, f"worker disconnected: {worker_id}", task_id, worker_id],
+                )
+            recovered += 1
+        if recovered:
+            logger.warning("worker_tasks_recovered", worker_id=worker_id, count=recovered, requeued=requeue)
+        return recovered
+
     def mark_completed(self, task_id: str, result: dict):
         now = time.time()
         result_json = json.dumps(result, ensure_ascii=False)
         safe_exec(
-            "UPDATE tasks SET status='completed', result_json=?, completed_at=? WHERE id=?",
+            "UPDATE tasks SET status='completed', result_json=?, completed_at=?, claimed_by='' WHERE id=?",
             [result_json, now, task_id],
         )
 
@@ -147,7 +197,7 @@ class TaskQueue:
             retry_at = now + delay
             error_msg = f"[retry {retry_count + 1}/{max_retries}] {error}"
             safe_exec(
-                "UPDATE tasks SET status='queued', error_msg=?, retry_count=?, retry_at=?, completed_at=? WHERE id=?",
+                "UPDATE tasks SET status='queued', error_msg=?, retry_count=?, retry_at=?, completed_at=?, claimed_by='' WHERE id=?",
                 [error_msg, retry_count + 1, retry_at, now, task_id],
             )
             logger.info("task_retry_queued", task_id=task_id,
@@ -155,7 +205,7 @@ class TaskQueue:
             return
         error_msg = f"[exhausted after {retry_count} retries] {error}"
         safe_exec(
-            "UPDATE tasks SET status='failed', error_msg=?, completed_at=? WHERE id=?",
+            "UPDATE tasks SET status='failed', error_msg=?, completed_at=?, claimed_by='' WHERE id=?",
             [error_msg, now, task_id],
         )
         logger.error("task_exhausted", task_id=task_id, retries=retry_count)
@@ -163,7 +213,7 @@ class TaskQueue:
     def mark_failed_no_retry(self, task_id: str, error: str):
         now = time.time()
         safe_exec(
-            "UPDATE tasks SET status='failed', error_msg=?, completed_at=? WHERE id=?",
+            "UPDATE tasks SET status='failed', error_msg=?, completed_at=?, claimed_by='' WHERE id=?",
             [error, now, task_id],
         )
 
@@ -189,7 +239,7 @@ class TaskQueue:
         if not rows:
             return False
         safe_exec(
-            "UPDATE tasks SET status='queued', error_msg='', started_at=NULL, completed_at=NULL WHERE id=?",
+            "UPDATE tasks SET status='queued', error_msg='', started_at=NULL, completed_at=NULL, claimed_by='' WHERE id=?",
             [task_id],
         )
         return True

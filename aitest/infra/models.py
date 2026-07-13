@@ -105,6 +105,7 @@ class TaskModel(Base):
     module = Column(String(64), nullable=False)
     page = Column(String(128), nullable=False, default="")
     provider = Column(String(32), nullable=False, default="claude")
+    mode = Column(String(32), nullable=False, default="full")
     status = Column(String(32), nullable=False, default="queued", index=True)
     result_json = Column(Text, nullable=False, default="")
     error_msg = Column(Text, nullable=False, default="")
@@ -114,6 +115,16 @@ class TaskModel(Base):
     created_at = Column(Float, nullable=True)
     started_at = Column(Float, nullable=True)
     completed_at = Column(Float, nullable=True)
+
+
+class NotificationReadModel(Base):
+    """Shared notification read markers, scoped per workspace/project."""
+
+    __tablename__ = "notification_read_state"
+
+    scope = Column(String(200), primary_key=True)
+    notification_id = Column(String(256), primary_key=True)
+    read_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
 
 
 # ── Audit Log ─────────────────────────────────────────────────────────
@@ -221,6 +232,7 @@ __all__ = [
     "RunEventModel",
     "ExecutionRequestModel",
     "TaskModel",
+    "NotificationReadModel",
     "AuditEntryModel",
     "BugModel",
     "ArtifactLineageModel",

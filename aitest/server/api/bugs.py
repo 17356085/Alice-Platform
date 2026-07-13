@@ -22,6 +22,13 @@ class BugAddRequest(BaseModel):
     matched_issue: str = ""        # 关联的 known-issue ID
 
 
+class BugUpdateRequest(BaseModel):
+    status: Optional[str] = None
+    severity: Optional[str] = None
+    fix_description: Optional[str] = None
+    fix_files: Optional[str] = None
+
+
 @bugs_router.get("/list")
 async def list_bugs(
     module: str = "",
@@ -62,6 +69,19 @@ async def add_bug(req: BugAddRequest):
         return {"status": "added", "bug_id": bug_id}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+@bugs_router.patch("/{bug_id}")
+async def update_bug_record(bug_id: str, req: BugUpdateRequest):
+    """Update a bug lifecycle field for Gap Discovery actions."""
+    try:
+        from aitest.testing.bug_history import update_bug
+
+        values = {key: value for key, value in req.model_dump().items() if value is not None}
+        updated = update_bug(bug_id, **values)
+        return {"status": "updated" if updated else "not_found", "bug_id": bug_id}
+    except Exception as exc:
+        return {"status": "error", "message": str(exc)}
 
 
 @bugs_router.get("/trends")

@@ -11,13 +11,101 @@
 - events 数据来自 BillingHookConsumer（billing.jsonl）
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from typing import Optional, List
+from datetime import date
 from aitest.platform.hooks.billing_hook import get_billing_hook
 from aitest.platform.hooks.quota_usage import get_quota_usage
 
 billing_router = APIRouter(prefix="/api/v1/billing", tags=["billing"])
+
+
+class InvoiceRequest(BaseModel):
+    org_id: str
+    plan_id: str = "pro"
+    usage: dict = Field(default_factory=dict)
+    period_start: Optional[date] = None
+    period_end: Optional[date] = None
+
+
+class PaymentRequest(BaseModel):
+    amount: str
+    gateway_reference: str = Field(..., min_length=1)
+    currency: str = "USD"
+
+
+def _require_billing_scope(request: Request, org_id: str, required: str = "read") -> None:
+    import os
+    strict = os.environ.get("AITEST_RBAC_REQUIRED", "0").lower() in {"1", "true", "yes"}
+    if not strict and not getattr(request.state, "user_id", None):
+        return
+    request_org = getattr(request.state, "org_id", None)
+    scopes = list(getattr(request.state, "scopes", []) or [])
+    if request_org and request_org not in {org_id, "*"}:
+        raise HTTPException(403, "Billing organization scope mismatch")
+    if required not in scopes and "admin" not in scopes:
+        raise HTTPException(403, f"Billing requires {required} scope")
+
+
+@billing_router.get("/plans")
+async def list_billing_plans():
+    from aitest.platform.billing import PricingCatalog
+    return {"plans": PricingCatalog().list()}
+
+
+@billing_router.post("/invoices")
+async def create_invoice(req: InvoiceRequest, request: Request):
+    _require_billing_scope(request, req.org_id, "admin")
+    from aitest.platform.billing import get_billing_ledger
+    try:
+        invoice = get_billing_ledger().create_invoice(req.org_id, req.plan_id, req.usage, req.period_start, req.period_end)
+        return invoice
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@billing_router.get("/invoices/{invoice_id}")
+async def get_invoice(invoice_id: str, request: Request):
+    from aitest.platform.billing import get_billing_ledger
+    invoice = get_billing_ledger().get(invoice_id)
+    if not invoice:
+        raise HTTPException(404, "Invoice not found")
+    _require_billing_scope(request, invoice["org_id"], "read")
+    return invoice
+
+
+@billing_router.post("/invoices/{invoice_id}/issue")
+async def issue_invoice(invoice_id: str, request: Request):
+    from aitest.platform.billing import get_billing_ledger
+    invoice = get_billing_ledger().get(invoice_id)
+    if not invoice:
+        raise HTTPException(404, "Invoice not found")
+    _require_billing_scope(request, invoice["org_id"], "admin")
+    return get_billing_ledger().issue(invoice_id)
+
+
+@billing_router.post("/invoices/{invoice_id}/payments")
+async def record_invoice_payment(invoice_id: str, req: PaymentRequest, request: Request):
+    from aitest.platform.billing import get_billing_ledger
+    invoice = get_billing_ledger().get(invoice_id)
+    if not invoice:
+        raise HTTPException(404, "Invoice not found")
+    _require_billing_scope(request, invoice["org_id"], "admin")
+    try:
+        return get_billing_ledger().record_payment(invoice_id, req.amount, req.gateway_reference, req.currency)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@billing_router.post("/invoices/{invoice_id}/reconcile")
+async def reconcile_invoice(invoice_id: str, request: Request):
+    from aitest.platform.billing import get_billing_ledger
+    invoice = get_billing_ledger().get(invoice_id)
+    if not invoice:
+        raise HTTPException(404, "Invoice not found")
+    _require_billing_scope(request, invoice["org_id"], "admin")
+    return get_billing_ledger().reconcile(invoice_id)
 
 
 # ============================================================================

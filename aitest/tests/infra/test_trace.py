@@ -12,9 +12,10 @@ from datetime import datetime, timedelta
 
 from aitest.infra.trace import (
     TraceContext, TraceEvent, MODEL_PRICING,
-    write_trace_event, query_trace_events, get_trace_summary,
+    _trace_llm_call, write_trace_event, query_trace_events, get_trace_summary,
     cleanup_old_traces, TRACE_DIR, TRACE_LOG,
 )
+from alice_engine.providers.base import LLMResponse, StreamEvent
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -292,3 +293,62 @@ class TestThreadSafety:
         assert len(errors) == 0
         events = query_trace_events(limit=100)
         assert len(events) == 50
+
+
+class TestLLMTraceDecorator:
+    def test_traces_sync_response_token_usage(self, temp_dir, monkeypatch):
+        monkeypatch.setattr("aitest.infra.trace.TRACE_DIR", temp_dir)
+        monkeypatch.setattr("aitest.infra.trace.TRACE_LOG", temp_dir / "trace.jsonl")
+
+        class FakeProvider:
+            model = "fake-model"
+
+            def complete(self, system_prompt, user_prompt, **kwargs):
+                return LLMResponse(
+                    content="SYNC_OK",
+                    usage={"input": 3, "output": 2},
+                    model=self.model,
+                    finish_reason="stop",
+                )
+
+        response = _trace_llm_call(FakeProvider().complete)("system", "user")
+
+        assert response.token_usage["total"] == 5
+        events = query_trace_events(event_type="llm_call")
+        assert len(events) == 1
+        assert events[0]["token_input"] == 3
+        assert events[0]["token_output"] == 2
+
+    def test_traces_stream_after_generator_is_consumed(self, temp_dir, monkeypatch):
+        monkeypatch.setattr("aitest.infra.trace.TRACE_DIR", temp_dir)
+        monkeypatch.setattr("aitest.infra.trace.TRACE_LOG", temp_dir / "trace.jsonl")
+
+        class FakeProvider:
+            model = "fake-stream-model"
+
+            def stream(self, system_prompt, user_prompt, **kwargs):
+                yield StreamEvent(type="content_start")
+                yield StreamEvent(type="content_chunk", content="STREAM_OK")
+                yield StreamEvent(type="done", finish_reason="stop", token_usage={"input": 4, "output": 1})
+                return LLMResponse(
+                    content="STREAM_OK",
+                    usage={"input": 4, "output": 1},
+                    model=self.model,
+                    finish_reason="stop",
+                )
+
+        stream = _trace_llm_call(FakeProvider().stream)("system", "user")
+        events = []
+        while True:
+            try:
+                events.append(next(stream))
+            except StopIteration as stop:
+                final_response = stop.value
+                break
+
+        assert [event.type for event in events] == ["content_start", "content_chunk", "done"]
+        assert final_response.token_usage["total"] == 5
+        trace_events = query_trace_events(event_type="llm_call")
+        assert len(trace_events) == 1
+        assert trace_events[0]["token_input"] == 4
+        assert trace_events[0]["token_output"] == 1

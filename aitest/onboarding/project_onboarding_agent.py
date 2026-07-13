@@ -204,7 +204,8 @@ class ProjectOnboardingAgent:
         if resume and output_path:
             checkpoint = self.load_checkpoint(output_path)
 
-        session_id = f"onboard-{project_id}-{uuid.uuid4().hex[:8]}"
+        safe_project_id = re.sub(r"[^a-zA-Z0-9_-]+", "-", project_id).strip("-")[:80] or "project"
+        session_id = f"onboard-{safe_project_id}-{uuid.uuid4().hex[:8]}"
         initial_step = OnboardingStep.INIT
         initial_progress = 0.0
 

@@ -126,6 +126,15 @@ def init_db():
                     for name, definition in additions.items():
                         if name not in columns:
                             conn.execute(f"ALTER TABLE runs ADD COLUMN {name} {definition}")
+                task_exists = conn.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='tasks'"
+                ).fetchone()
+                if task_exists:
+                    task_columns = {
+                        row[1] for row in conn.execute("PRAGMA table_info(tasks)").fetchall()
+                    }
+                    if "mode" not in task_columns:
+                        conn.execute("ALTER TABLE tasks ADD COLUMN mode TEXT DEFAULT 'full'")
                 conn.executescript(ddl_file.read_text(encoding="utf-8"))
                 conn.commit()
             finally:

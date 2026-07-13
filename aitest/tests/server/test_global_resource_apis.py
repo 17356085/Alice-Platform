@@ -20,6 +20,21 @@ def test_list_runs_returns_persisted_resources(monkeypatch):
     assert response.json() == {"runs": [{"run_id": "run-1", "status": "completed"}], "total": 1}
 
 
+def test_list_runs_returns_store_total_for_pagination(monkeypatch):
+    from aitest.server.api.runs import runs_router
+    import aitest.platform.run_store as run_store
+
+    run = SimpleNamespace(to_dict=lambda: {"run_id": "run-11", "status": "completed"})
+    store = SimpleNamespace(list_runs=lambda **_: [run], count_runs=lambda **kwargs: 11)
+    monkeypatch.setattr(run_store, "get_run_store", lambda: store)
+    app = FastAPI(); app.include_router(runs_router)
+
+    response = TestClient(app).get("/api/v1/runs?limit=1&offset=10")
+
+    assert response.status_code == 200
+    assert response.json()["total"] == 11
+
+
 def test_list_evaluations_returns_quality_resources(monkeypatch):
     from aitest.server.api.quality import quality_router
     import aitest.platform.quality_store as quality_store

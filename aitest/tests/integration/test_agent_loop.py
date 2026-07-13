@@ -33,6 +33,39 @@ class TestAgentLoopInit:
         assert agent.provider == "claude"
         assert agent.state.module == "test-module"
 
+    def test_page_config_is_available_to_skill_prompt(self):
+        """Persisted page URL/locators reach the skill without leaking config secrets."""
+        from alice_engine.core.executor import AgentLoop
+
+        agent = AgentLoop(
+            "automation-agent",
+            module="catalog",
+            page="products",
+            provider="mock",
+            page_configs=[{
+                "page_id": "products",
+                 "url": "https://example.test/products",
+                 "locators": {"search": "#search"},
+                 "config": {"api_token": "should-not-be-in-prompt"},
+                 "execution": {
+                     "wait_for": ["search"],
+                     "actions": [{"action": "fill", "target": "search", "value": "secret-value"}],
+                 },
+            }],
+            verbose=False,
+            use_reliable_provider=False,
+            use_window_monitor=False,
+        )
+
+        prompt = agent._build_user_input("automation/tech-analysis")
+
+        assert "https://example.test/products" in prompt
+        assert '"search": "#search"' in prompt
+        assert '"action": "fill"' in prompt
+        assert '"target": "search"' in prompt
+        assert "should-not-be-in-prompt" not in prompt
+        assert "secret-value" not in prompt
+
     def test_init_unknown_agent_raises(self):
         """AgentLoop raises ValueError for unknown agent name."""
         from alice_engine.core.executor import AgentLoop

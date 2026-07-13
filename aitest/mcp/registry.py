@@ -99,7 +99,10 @@ def get_agent_mcp_servers(agent_type: str, use_db: bool = True) -> list[str]:
         try:
             from aitest.platform.mcp_server_store import MCPServerStore
             store = MCPServerStore()
-            server_ids = store.get_agent_mcp_servers(agent_type)
+            try:
+                server_ids = store.get_agent_mcp_servers(agent_type)
+            finally:
+                store.close()
             if server_ids:
                 return server_ids
         except Exception:
@@ -133,7 +136,10 @@ def get_mcp_server_registry(use_db: bool = True) -> dict[str, McpServerConfig]:
         try:
             from aitest.platform.mcp_server_store import MCPServerStore
             store = MCPServerStore()
-            servers = store.list_mcp_servers()
+            try:
+                servers = store.list_mcp_servers()
+            finally:
+                store.close()
             if servers:
                 return {s.mcp_server_id: s.to_config() for s in servers}
         except Exception:

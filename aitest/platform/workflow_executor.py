@@ -51,6 +51,7 @@ class WorkflowState(TypedDict, total=False):
     metadata: Dict[str, Any]
     parallel_results: Annotated[List[Dict], operator.add]  # P8-方案2: 并行结果累积器
     current_sub_node: str  # P8-方案2: 当前处理的子节点 ID
+    debug_events: List[Dict[str, Any]]
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -68,6 +69,8 @@ class WorkflowRuntime:
     runtime_config: Dict[str, Any]
     node_outputs: Dict[str, Any] = field(default_factory=dict)
     completed_nodes: List[str] = field(default_factory=list)
+    debug_events: List[Dict[str, Any]] = field(default_factory=list)
+    debug_queue: List[str] = field(default_factory=list)
 
     def get_node_output(self, node_id: str) -> Optional[Any]:
         """获取节点输出"""
@@ -79,6 +82,9 @@ class WorkflowRuntime:
         if node_id not in self.completed_nodes:
             self.completed_nodes.append(node_id)
 
+    def record_event(self, node_id: str, event: str, **data) -> None:
+        self.debug_events.append({"node_id": node_id, "event": event, "timestamp": datetime.now(timezone.utc).isoformat(), **data})
+
     def to_state(self) -> WorkflowState:
         """转换为 WorkflowState"""
         return {
@@ -89,6 +95,8 @@ class WorkflowRuntime:
             "completed_nodes": self.completed_nodes.copy(),
             "error": None,
             "metadata": {},
+            "debug_events": list(self.debug_events),
+            "debug_queue": list(self.debug_queue),
         }
 
 
@@ -679,3 +687,64 @@ class WorkflowExecutor:
                 "error": str(e),
                 "state": initial_state,
             }
+
+    def execute_debug(self, *, breakpoints: set[str] | None = None, max_steps: int | None = None) -> Dict[str, Any]:
+        """Run a deterministic, inspectable graph session for Studio debugging.
+
+        This path preserves arbitrary edges and branch conditions while allowing
+        pause/resume at node boundaries. Production runs continue to use LangGraph.
+        """
+        breakpoints = breakpoints or set()
+        queue = list(self.runtime.debug_queue or self._find_entry_nodes())
+        completed = set(self.runtime.completed_nodes)
+        steps = 0
+        self.runtime.record_event("", "debug.started", queued=list(queue))
+        while queue:
+            node_id = queue.pop(0)
+            if node_id in completed:
+                continue
+            if node_id in breakpoints:
+                self.runtime.record_event(node_id, "debug.paused", reason="breakpoint")
+                queue.insert(0, node_id)
+                self.runtime.debug_queue = list(queue)
+                return self._debug_result("paused", queue, steps)
+            node = self.find_node(node_id)
+            if node is None:
+                self.runtime.record_event(node_id, "debug.failed", error="node not found")
+                self.runtime.debug_queue = list(queue)
+                return self._debug_result("failed", queue, steps, "node not found")
+            self.runtime.record_event(node_id, "node.started", type=node.type)
+            try:
+                result = self.execute_single_node(node, self.runtime, self.runtime.to_state())
+            except Exception as exc:
+                self.runtime.record_event(node_id, "node.failed", error=str(exc))
+                self.runtime.debug_queue = list(queue)
+                return self._debug_result("failed", queue, steps, str(exc))
+            self.runtime.set_node_output(node_id, result)
+            completed.add(node_id)
+            steps += 1
+            self.runtime.record_event(node_id, "node.completed", result=result)
+            for edge in self.workflow.edges:
+                if edge.from_node == node_id and self._debug_edge_matches(edge, result):
+                    if edge.to_node not in completed and edge.to_node not in queue:
+                        queue.append(edge.to_node)
+            if max_steps is not None and steps >= max_steps and queue:
+                self.runtime.record_event(node_id, "debug.paused", reason="max_steps")
+                self.runtime.debug_queue = list(queue)
+                return self._debug_result("paused", queue, steps)
+        self.runtime.record_event("", "debug.completed", steps=steps)
+        self.runtime.debug_queue = []
+        return self._debug_result("completed", queue, steps)
+
+    def _debug_edge_matches(self, edge: WorkflowEdge, output: dict) -> bool:
+        if edge.condition in ("always", ""):
+            return True
+        if edge.condition in ("approved", "rejected"):
+            return output.get("action") == edge.condition
+        try:
+            return bool(eval(edge.condition, {"__builtins__": {}, "upstream": output, "node_outputs": self.runtime.node_outputs}, {}))
+        except Exception:
+            return False
+
+    def _debug_result(self, status: str, queued: list[str], steps: int, error: str = "") -> dict:
+        return {"success": status == "completed", "status": status, "steps": steps, "next_nodes": list(queued), "completed_nodes": list(self.runtime.completed_nodes), "node_outputs": dict(self.runtime.node_outputs), "events": list(self.runtime.debug_events), **({"error": error} if error else {})}

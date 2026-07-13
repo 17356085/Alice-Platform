@@ -86,7 +86,21 @@ class MCPServerStore:
         Args:
             session: 数据库 session，如果为 None 则自动获取
         """
+        self._owns_session = session is None
         self.session = session or get_session()
+
+    def close(self) -> None:
+        """Close an internally-created DB connection; leave injected sessions alone."""
+        if self._owns_session and self.session is not None:
+            self.session.close()
+            self.session = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self.close()
+        return False
 
     # ── Create ──────────────────────────────────────────────────────────────
 

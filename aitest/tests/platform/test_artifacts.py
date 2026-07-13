@@ -128,3 +128,23 @@ class TestDiscovery:
     def test_list_pages_empty(self, store):
         pages = store.list_pages("nonexistent")
         assert isinstance(pages, list)
+
+    def test_list_modules_merges_discovery_cache_and_persisted_dirs(self, store):
+        store.discovery_path("pages.json").parent.mkdir(parents=True, exist_ok=True)
+        store.discovery_path("pages.json").write_text(
+            '[{"id": "cached-page", "menu_path": ["cached-module"]}]',
+            encoding="utf-8",
+        )
+        store.write("page", "persisted-module", "pages", "page-a", "PAGE_CONTEXT.md")
+
+        assert store.list_modules() == ["cached-module", "persisted-module"]
+
+    def test_list_pages_merges_discovery_cache_and_persisted_dirs(self, store):
+        store.discovery_path("pages.json").parent.mkdir(parents=True, exist_ok=True)
+        store.discovery_path("pages.json").write_text(
+            '[{"id": "cached-page", "menu_path": ["module"]}]',
+            encoding="utf-8",
+        )
+        store.write("page", "module", "pages", "persisted-page", "PAGE_CONTEXT.md")
+
+        assert store.list_pages("module") == ["cached-page", "persisted-page"]

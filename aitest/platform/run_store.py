@@ -379,7 +379,7 @@ class RunStore:
         rows = safe_query(sql, params)
         return [_row_to_run(r) for r in rows]
 
-    def count_runs(self, workspace_id: str = "", org_id: str = "") -> int:
+    def count_runs(self, workspace_id: str = "", org_id: str = "", status: str = "") -> int:
         sql = "SELECT COUNT(*) as cnt FROM runs WHERE 1=1"
         params: list = []
         if workspace_id:
@@ -388,6 +388,9 @@ class RunStore:
         if org_id:
             sql += " AND org_id=?"
             params.append(org_id)
+        if status:
+            sql += " AND status=?"
+            params.append(status)
         rows = safe_query(sql, params)
         return rows[0]["cnt"] if rows else 0
 

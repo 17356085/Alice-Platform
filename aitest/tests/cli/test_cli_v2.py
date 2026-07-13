@@ -16,6 +16,7 @@ from aitest.cli.utils.config import ConfigResolver
 from pathlib import Path
 import tempfile
 import os
+from types import SimpleNamespace
 
 
 runner = CliRunner()
@@ -32,6 +33,27 @@ def test_run_create_help():
     assert "创建新的 Run" in result.stdout
     assert "--target" in result.stdout
     assert "--module" in result.stdout
+
+
+def test_legacy_graph_run_reaches_resource_command_without_run_module_collision(monkeypatch, tmp_path):
+    captured = {}
+
+    def fake_post(url, **kwargs):
+        captured.update(url=url, **kwargs)
+        return SimpleNamespace(
+            raise_for_status=lambda: None,
+            json=lambda: {"run_id": "run-cli", "status": "completed", "created_at": "now"},
+        )
+
+    monkeypatch.setattr("httpx.post", fake_post)
+    result = runner.invoke(app, [
+        "graph", "run", "--module", "equipment", "--project-path", str(tmp_path),
+        "--mock-llm", "--output", "json",
+    ])
+
+    assert result.exit_code == 0, result.stdout
+    assert captured["json"]["target"]["version"] == "latest"
+    assert captured["json"]["target"]["type"] == "agent"
 
 
 def test_run_list_help():

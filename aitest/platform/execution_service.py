@@ -62,6 +62,11 @@ class ExecutionService:
         if idempotency_key:
             merged_metadata["idempotency_key"] = idempotency_key
         merged_metadata["max_retries"] = max_retries
+        if module and pages:
+            from .page_config import load_page_configs
+
+            project_id = str(merged_metadata.get("project_id") or ctx.workspace_id or "web-automation")
+            merged_metadata["page_configs"] = load_page_configs(project_id, module, list(pages))
         return ctx.with_execution(
             module=module or ctx.module,
             pages=pages if pages is not None else ctx.pages,
@@ -495,6 +500,7 @@ class ExecutionService:
                 "page": ctx.page,
                 "verbose": verbose,
                 "replay_recorder": replay_recorder,
+                "page_configs": ctx.metadata.get("page_configs", []),
             },
         )
         provider = ctx.provider or ""

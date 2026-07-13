@@ -20,6 +20,8 @@ class AgentRunRequest(BaseModel):
     page: Optional[str] = None     # 页面名（页面级 Agent 必填）
     provider: str = "claude"       # claude | openai | ollama
     mode: str = "full"             # full | resume | status
+    org_id: str = "default-org"
+    workspace_id: str = ""
 
 
 @agents_router.post("/run")
@@ -27,12 +29,30 @@ async def trigger_agent_async(req: AgentRunRequest):
     """触发 Agent 执行（异步）。任务入队后立即返回 task_id，后台消费线程执行。"""
     from aitest.infra.task_queue import get_queue
 
+    if req.workspace_id:
+        from aitest.platform.quota_enforcer import check_workspace_quota
+        from aitest.platform.hooks.quota_usage import get_quota_usage
+        from aitest.platform.workspace import get_ws_manager
+        from fastapi import HTTPException
+        workspace = get_ws_manager().get(req.org_id, req.workspace_id)
+        if workspace is None:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+        try:
+            check_workspace_quota(
+                quotas=workspace.quotas,
+                usage=get_quota_usage().get_usage(req.workspace_id),
+            )
+        except PermissionError as exc:
+            raise HTTPException(status_code=429, detail=str(exc)) from exc
+
     queue = get_queue()
     task_id = queue.enqueue(
         agent=req.agent,
         module=req.module,
         page=req.page or "",
         provider=req.provider,
+        org_id=req.org_id,
+        mode=req.mode,
     )
 
     return {
@@ -42,6 +62,7 @@ async def trigger_agent_async(req: AgentRunRequest):
         "module": req.module,
         "page": req.page or "N/A",
         "provider": req.provider,
+        "mode": req.mode,
         "poll_url": f"/api/v1/agents/task/{task_id}",
     }
 
@@ -71,6 +92,7 @@ async def get_task_status(task_id: str):
         "module": task["module"],
         "page": task["page"],
         "provider": task["provider"],
+        "mode": task.get("mode", "full"),
         "created_at": task["created_at"],
     }
 
@@ -111,16 +133,6 @@ async def get_queue_stats():
     }
 
 
-@agents_router.get("/status/{module}")
-async def module_sop_status(module: str):
-    """查询模块 SOP 进度（调用 agent_scheduler）。"""
-    try:
-        from aitest.agents.agent_scheduler import check_preconditions
-        return check_preconditions(module)
-    except Exception as e:
-        return {"status": "error", "module": module, "message": str(e)}
-
-
 @agents_router.get("/status/all")
 async def all_modules_status():
     """返回所有已知模块及其页面列表（供侧边栏树使用）。"""
@@ -152,6 +164,16 @@ async def all_modules_status():
         }
 
     return {"modules": result}
+
+
+@agents_router.get("/status/{module}")
+async def module_sop_status(module: str):
+    """查询模块 SOP 进度（调用 agent_scheduler）。"""
+    try:
+        from aitest.agents.agent_scheduler import check_preconditions
+        return check_preconditions(module)
+    except Exception as e:
+        return {"status": "error", "module": module, "message": str(e)}
 
 
 @agents_router.get("/list")

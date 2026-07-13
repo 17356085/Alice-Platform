@@ -8,8 +8,11 @@ Endpoints:
   POST   /api/executions/:request_id/cancel  — Cancel pending execution
 """
 import asyncio
+import mimetypes
+from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional
 
@@ -46,6 +49,13 @@ def _require_request_run_access(request: Request, run, *, required_scope: str):
     from aitest.platform.ownership import resolve_request_identity, require_run_access
 
     user_id, request_org_id, scopes = resolve_request_identity(request)
+    # SQLite/local mode intentionally runs without auth.  Historical runs can
+    # outlive the in-memory workspace registry, so do not turn a read of the
+    # local user's own data into a 500 merely because that registry was rebuilt.
+    # Authenticated or explicitly scoped requests still take the full RBAC path.
+    from aitest.server.auth import _rbac_required
+    if not _rbac_required() and not request_org_id and not scopes:
+        return user_id, scopes
     run_org_id = getattr(run, "org_id", "")
     if request_org_id and run_org_id and request_org_id != run_org_id:
         raise PermissionError(f"Request org '{request_org_id}' cannot access org '{run_org_id}'")
@@ -556,11 +566,13 @@ async def get_run_inspector(run_id: str, request: Request):
     artifacts = []
     for e in artifact_events:
         d = e.data if isinstance(e.data, dict) else {}
+        artifact_path = d.get("path") or d.get(K.ARTIFACT_PATH, "")
         artifacts.append({
             "event_id": e.event_id,
             "timestamp": e.timestamp,
-            "path": d.get("path", ""),
-            "type": d.get("type", "unknown"),
+            "path": artifact_path,
+            "download_url": f"/api/runs/{run_id}/artifacts/{e.event_id}/download",
+            "type": d.get("type") or d.get(K.ARTIFACT_TYPE, "unknown"),
             "size": d.get("size", 0),
             "mime_type": d.get("mime_type", ""),
             "source_phase": d.get("phase", ""),
@@ -595,6 +607,51 @@ async def get_run_inspector(run_id: str, request: Request):
     }
 
 
+def _resolve_run_artifact_file(raw_path: object) -> Path | None:
+    """Resolve an event artifact without allowing arbitrary filesystem reads."""
+    if not isinstance(raw_path, str) or not raw_path.strip():
+        return None
+    from aitest.platform.paths import get_workstudy
+
+    root = Path(get_workstudy()).resolve()
+    candidate = Path(raw_path)
+    if not candidate.is_absolute():
+        candidate = root / candidate
+    try:
+        resolved = candidate.resolve()
+        resolved.relative_to(root)
+    except (OSError, ValueError):
+        return None
+    return resolved if resolved.is_file() else None
+
+
+@execution_router.get("/runs/{run_id}/artifacts/{event_id}/download")
+async def download_run_artifact(run_id: str, event_id: str, request: Request):
+    """Download an artifact referenced by a Run Inspector artifact event."""
+    from aitest.platform.run_store import get_run_store
+    from aitest.platform.run_event import EventType, EventDataKey as K
+
+    rs = _get_from_state(request, "run_store", get_run_store)
+    run = rs.load_run(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
+    try:
+        _require_request_run_access(request, run, required_scope="read")
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+    event = next((item for item in rs.list_events(run_id, limit=500)
+                  if item.event_id == event_id and item.event_type == EventType.ARTIFACT_CREATED), None)
+    if event is None:
+        raise HTTPException(status_code=404, detail="Artifact event not found")
+    data = event.data if isinstance(event.data, dict) else {}
+    path = _resolve_run_artifact_file(data.get("path") or data.get(K.ARTIFACT_PATH))
+    if path is None:
+        raise HTTPException(status_code=404, detail="Artifact file not found")
+    media_type = data.get("mime_type") or mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+    return FileResponse(path, media_type=media_type, filename=path.name)
+
+
 def _build_execution_tree(events: list, phases: list[dict]) -> list[dict]:
     """Build nested execution tree: Phase → Step → Action."""
     from aitest.platform.run_event import EventType, EventDataKey as K
@@ -620,7 +677,7 @@ def _build_execution_tree(events: list, phases: list[dict]) -> list[dict]:
             d = e.data if isinstance(e.data, dict) else {}
             current_phase["children"].append({
                 "type": "artifact",
-                "name": d.get("path", "unknown"),
+                "name": d.get("path") or d.get(K.ARTIFACT_PATH, "unknown"),
                 "timestamp": e.timestamp,
                 "status": "created",
             })

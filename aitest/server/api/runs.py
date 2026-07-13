@@ -136,7 +136,9 @@ async def list_runs(
         limit=limit,
         offset=offset,
     )
-    return {"runs": [run.to_dict() for run in runs], "total": len(runs)}
+    count_runs = getattr(store, "count_runs", None)
+    total = count_runs(workspace_id=workspace_id, org_id=org_id, status=status) if callable(count_runs) else len(runs)
+    return {"runs": [run.to_dict() for run in runs], "total": total}
 
 @runs_router.post("/runs", response_model=CreateRunResponse)
 async def create_run(req: CreateRunRequest, request: Request):

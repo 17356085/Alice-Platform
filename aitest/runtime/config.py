@@ -4,6 +4,48 @@ import os
 from pathlib import Path
 
 
+# The platform is normally started from the repository root, but the desktop
+# launcher and test runner may use a different cwd. Load the project-level
+# .env once, without overriding explicit process environment variables.
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _load_project_env() -> None:
+    """Load the project .env without replacing explicit process variables.
+
+    python-dotenv is used when available. The small fallback keeps the
+    launcher usable in minimal environments where optional dependencies are
+    not installed yet.
+    """
+    env_path = _PROJECT_ROOT / ".env"
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        load_dotenv = None
+
+    if load_dotenv is not None:
+        load_dotenv(env_path, override=False)
+        return
+    if not env_path.is_file():
+        return
+
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if not key or key in os.environ:
+            continue
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+            value = value[1:-1]
+        os.environ[key] = value
+
+
+_load_project_env()
+
+
 def _env(key: str, default: str = "") -> str:
     """读取环境变量，不存在返回默认值。"""
     return os.environ.get(key, default)
@@ -79,10 +121,37 @@ class RuntimeConfig:
     def get_provider_config(self, provider: str) -> dict:
         """获取 Provider 配置。"""
         configs = {
-            "claude": {"model": "claude-sonnet-4-6", "provider": "claude"},
-            "deepseek": {"model": "deepseek-chat", "provider": "deepseek"},
-            "openai": {"model": "gpt-4o", "provider": "openai"},
-            "mimo": {"model": "mimo-latest", "provider": "mimo"},
+            "claude": {
+                "model": self.get_env("ANTHROPIC_MODEL", "claude-sonnet-4-6"),
+                "provider": "claude",
+                "api_key": self.get_env("ANTHROPIC_API_KEY"),
+            },
+            "anthropic": {
+                "model": self.get_env("ANTHROPIC_MODEL", "claude-sonnet-4-6"),
+                "provider": "claude",
+                "api_key": self.get_env("ANTHROPIC_API_KEY"),
+            },
+            "deepseek": {
+                "model": self.get_env("DEEPSEEK_MODEL", "deepseek-chat"),
+                "provider": "deepseek",
+                "api_key": self.get_env("DEEPSEEK_API_KEY"),
+            },
+            "openai": {
+                "model": self.get_env("OPENAI_MODEL", "gpt-4o"),
+                "provider": "openai",
+                "api_key": self.get_env("OPENAI_API_KEY"),
+            },
+            "mimo": {
+                "model": self.get_env("MIMO_MODEL", "mimo-latest"),
+                "provider": "mimo",
+                "api_key": self.get_env("MIMO_API_KEY"),
+                "base_url": self.get_env("MIMO_BASE_URL"),
+            },
+            "gemini": {
+                "model": self.get_env("GOOGLE_MODEL", "gemini-2.5-flash"),
+                "provider": "gemini",
+                "api_key": self.get_env("GOOGLE_API_KEY"),
+            },
         }
         return configs.get(provider, configs["claude"])
 

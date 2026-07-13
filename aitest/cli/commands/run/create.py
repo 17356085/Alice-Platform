@@ -113,7 +113,7 @@ def run_create(
         "target": {
             "type": target_type,
             "id": target_id,
-            "version": None,  # 使用最新版本
+            "version": "latest",  # API schema requires a string; latest is resolved server-side
         },
         "config": {
             "module": module,

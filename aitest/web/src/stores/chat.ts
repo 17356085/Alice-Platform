@@ -142,6 +142,16 @@ let _es: EventSource | null = null
 let _accumulated: string[] = []
 let _sseCallbacks: SSECallbacks | null = null
 let _activeSid: string | null = null
+let _sseTimeout: ReturnType<typeof setTimeout> | null = null
+
+const CHAT_STREAM_TIMEOUT_MS = 30_000
+
+function clearSseTimeout() {
+  if (_sseTimeout !== null) {
+    clearTimeout(_sseTimeout)
+    _sseTimeout = null
+  }
+}
 
 // HMR safety — Vite hot reload closes stale EventSource
 // @ts-ignore — import.meta.hot provided by Vite at build time
@@ -157,6 +167,13 @@ function sseStart(sid: string, streamUrl: string, callbacks: SSECallbacks) {
 
   const es = api.streamSSE(streamUrl)
   _es = es
+
+  _sseTimeout = setTimeout(() => {
+    if (!guard()) return
+    es.close()
+    _es = null; _activeSid = null
+    callbacks.onError(`SSE stream timed out after ${CHAT_STREAM_TIMEOUT_MS}ms`)
+  }, CHAT_STREAM_TIMEOUT_MS)
 
   const guard = () => _activeSid === sid
 
@@ -224,12 +241,14 @@ function sseStart(sid: string, streamUrl: string, callbacks: SSECallbacks) {
 
   listen(SSE_EVENTS.DONE, (data) => {
     callbacks.onDone(_accumulated.join(''))
+    clearSseTimeout()
     es.close()
     _es = null; _activeSid = null
   })
 
   listen(SSE_EVENTS.ERROR, (data) => {
     callbacks.onError((data.message as string) || 'Stream error')
+    clearSseTimeout()
     es.close()
     _es = null; _activeSid = null
   })
@@ -261,6 +280,7 @@ function sseStart(sid: string, streamUrl: string, callbacks: SSECallbacks) {
 
   es.onerror = () => {
     if (!guard()) { es.close(); return }
+    clearSseTimeout()
     es.close()
     _es = null; _activeSid = null
     const full = _accumulated.join('')
@@ -270,6 +290,7 @@ function sseStart(sid: string, streamUrl: string, callbacks: SSECallbacks) {
 }
 
 function sseCancel() {
+  clearSseTimeout()
   if (_es) { _es.close(); _es = null }
   _activeSid = null
   _accumulated = []
@@ -295,6 +316,7 @@ export interface ChatState {
   error: string
 
   newSession: () => void
+  selectSession: (id: string) => void
   deleteSession: (id: string) => void
   renameSession: (id: string, name: string) => void
   addMessage: (role: 'user' | 'assistant', content: string, tools?: unknown[], tasks?: unknown[]) => void
@@ -362,6 +384,12 @@ export const useChatStore = create<ChatState>((set, get) => {
         activeId: s.id,
       }))
       persist(get().sessions)
+    },
+
+    selectSession(id: string) {
+      if (!get().sessions.some(session => session.id === id)) return
+      get().cancelStream()
+      set({ activeId: id, error: '' })
     },
 
     deleteSession(id: string) {

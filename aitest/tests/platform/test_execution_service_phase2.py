@@ -178,3 +178,25 @@ def test_execution_service_scopes_runtime_environment_for_kernel(monkeypatch, tm
     assert seen["mock_llm"] is True
     assert current_llm_provider() == "outer-provider"
     assert current_workstudy().name == "outer-workstudy"
+
+
+def test_execution_service_injects_resolved_page_configs(monkeypatch):
+    expected = [{
+        "page_id": "alarm",
+        "url": "https://example.test/alarm",
+        "config": {"tenant": "demo"},
+        "locators": {"submit": {"strategy": "role", "value": "button"}},
+        "enabled": True,
+    }]
+    monkeypatch.setattr(
+        "aitest.platform.page_config.load_page_configs",
+        lambda project_id, module, pages: expected,
+    )
+
+    context = ExecutionService().normalize_context(
+        ExecutionContext(workspace_id="workspace-a", scopes=["execute"]),
+        module="equipment",
+        pages=["alarm"],
+    )
+
+    assert context.metadata["page_configs"] == expected

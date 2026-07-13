@@ -12,6 +12,7 @@ import logging
 from collections.abc import Generator
 from typing import Optional
 
+from alice_engine.env import load_environment
 from alice_engine.providers.base import LLMProvider, LLMResponse, StreamEvent
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,7 @@ class MiMoProvider(LLMProvider):
     BASE_URL = "https://token-plan-cn.xiaomimimo.com/v1"
 
     def __init__(self, model: str = "mimo-v2.5-pro", api_key: str = "", base_url: str = ""):
+        load_environment()
         api_key = api_key or os.environ.get("MIMO_API_KEY", "")
         if not api_key:
             self.client = None
@@ -166,14 +168,17 @@ class MiMoProvider(LLMProvider):
         content_started = False
 
         for chunk in stream:
+            # OpenAI-compatible streaming APIs may send a final usage-only
+            # chunk with ``choices=[]``.  Capture usage before skipping such
+            # chunks, otherwise the UI/trace layer reports zero tokens.
+            if hasattr(chunk, "usage") and chunk.usage:
+                final_usage["input"] = chunk.usage.prompt_tokens
+                final_usage["output"] = chunk.usage.completion_tokens
+
             if not chunk.choices:
                 continue
             delta = chunk.choices[0].delta
             chunk_finish = chunk.choices[0].finish_reason
-
-            if hasattr(chunk, "usage") and chunk.usage:
-                final_usage["input"] = chunk.usage.prompt_tokens
-                final_usage["output"] = chunk.usage.completion_tokens
 
             if delta.content:
                 if not content_started:

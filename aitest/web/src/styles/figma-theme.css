@@ -1,0 +1,255 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-size: 14px;
+  --background: 216 64% 8%;
+  --foreground: 212 57% 91%;
+  --card: 214 54% 10%;
+  --card-foreground: 212 57% 91%;
+  --popover: 214 54% 16%;
+  --popover-foreground: 212 57% 91%;
+  --primary: 224 91% 63%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 221 58% 16%;
+  --secondary-foreground: 213 39% 67%;
+  --muted: 216 59% 9%;
+  --muted-foreground: 215 30% 44%;
+  --accent: 187 81% 53%;
+  --accent-foreground: 216 64% 8%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  /* Tailwind consumes these values as hsl(var(--token)); keep channel values here. */
+  --border: 215 25% 18%;
+  --input: 215 25% 15%;
+  --input-background: #0a1526;
+  --switch-background: #1e3a6b;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: 224 91% 63% / 0.4;
+  --chart-1: #4a7cf7;
+  --chart-2: #22d3ee;
+  --chart-3: #34d399;
+  --chart-4: #a78bfa;
+  --chart-5: #fbbf24;
+  --radius: 0.375rem;
+  --sidebar: 217 67% 6%;
+  --sidebar-foreground: 212 57% 91%;
+  --sidebar-primary: 224 91% 63%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 214 54% 10%;
+  --sidebar-accent-foreground: 213 39% 67%;
+  --sidebar-border: 215 25% 16%;
+  --sidebar-ring: 224 91% 63% / 0.4;
+}
+
+.dark {
+  --background: 216 64% 8%;
+  --foreground: 212 57% 91%;
+  --card: 214 54% 10%;
+  --card-foreground: 212 57% 91%;
+  --popover: 214 54% 16%;
+  --popover-foreground: 212 57% 91%;
+  --primary: 224 91% 63%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 221 58% 16%;
+  --secondary-foreground: 213 39% 67%;
+  --muted: 216 59% 9%;
+  --muted-foreground: 215 30% 44%;
+  --accent: 187 81% 53%;
+  --accent-foreground: 216 64% 8%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 215 25% 18%;
+  --input: 215 25% 15%;
+  --ring: 224 91% 63% / 0.4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: #4a7cf7;
+  --chart-2: #22d3ee;
+  --chart-3: #34d399;
+  --chart-4: #a78bfa;
+  --chart-5: #fbbf24;
+  --sidebar: 217 67% 6%;
+  --sidebar-foreground: 212 57% 91%;
+  --sidebar-primary: 224 91% 63%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 214 54% 10%;
+  --sidebar-accent-foreground: 213 39% 67%;
+  --sidebar-border: 215 25% 16%;
+  --sidebar-ring: 224 91% 63% / 0.4;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /**
+  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
+  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
+  */
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
+
+/* Keep the application shell flush with the browser viewport on every route. */
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 100%;
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+}
+
+html,
+body {
+  overflow: hidden;
+  background-color: hsl(var(--background)) !important;
+  background-image: none;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+#root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background-color: hsl(var(--background)) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Four product themes. Every token stays in HSL-channel form because the
+   Tailwind palette consumes them through hsl(var(--token)). */
+html[data-theme="mahotsukai"] {
+  --background: 220 20% 97%; --foreground: 220 30% 15%; --card: 0 0% 100%; --card-foreground: 220 30% 15%;
+  --popover: 0 0% 100%; --popover-foreground: 220 30% 15%; --primary: 240 32% 50%; --primary-foreground: 0 0% 100%;
+  --secondary: 220 18% 92%; --secondary-foreground: 220 25% 28%; --muted: 220 18% 94%; --muted-foreground: 220 14% 42%;
+  --accent: 185 70% 36%; --accent-foreground: 0 0% 100%; --border: 220 14% 84%; --input: 220 14% 84%; --ring: 240 32% 50% / .4;
+  --sidebar: 220 22% 94%; --sidebar-foreground: 220 18% 38%; --sidebar-primary: 240 32% 50%; --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 18% 90%; --sidebar-accent-foreground: 220 30% 15%; --sidebar-border: 220 14% 86%; --sidebar-ring: 240 32% 50% / .4;
+}
+html.dark[data-theme="mahotsukai"] {
+  --background: 216 64% 8%; --foreground: 212 57% 91%; --card: 214 54% 10%; --card-foreground: 212 57% 91%;
+  --popover: 214 54% 16%; --popover-foreground: 212 57% 91%; --primary: 224 91% 63%; --primary-foreground: 0 0% 100%;
+  --secondary: 221 58% 16%; --secondary-foreground: 213 39% 67%; --muted: 216 59% 9%; --muted-foreground: 215 30% 58%;
+  --accent: 187 81% 53%; --accent-foreground: 216 64% 8%; --border: 215 25% 18%; --input: 215 25% 15%; --ring: 224 91% 63% / .4;
+  --sidebar: 217 67% 6%; --sidebar-foreground: 212 57% 72%; --sidebar-primary: 224 91% 63%; --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 214 54% 10%; --sidebar-accent-foreground: 212 57% 91%; --sidebar-border: 215 25% 16%; --sidebar-ring: 224 91% 63% / .4;
+}
+
+html[data-theme="alice"] {
+  --background: 250 20% 97%; --foreground: 250 25% 15%; --card: 0 0% 100%; --card-foreground: 250 25% 15%;
+  --popover: 0 0% 100%; --popover-foreground: 250 25% 15%; --primary: 260 40% 48%; --primary-foreground: 0 0% 100%;
+  --secondary: 250 18% 92%; --secondary-foreground: 250 20% 28%; --muted: 250 18% 94%; --muted-foreground: 250 12% 42%;
+  --accent: 42 65% 45%; --accent-foreground: 0 0% 100%; --border: 250 15% 84%; --input: 250 15% 84%; --ring: 260 40% 48% / .4;
+  --sidebar: 250 25% 94%; --sidebar-foreground: 250 18% 38%; --sidebar-primary: 260 40% 48%; --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 250 20% 90%; --sidebar-accent-foreground: 250 25% 15%; --sidebar-border: 250 15% 86%; --sidebar-ring: 260 40% 48% / .4;
+}
+html.dark[data-theme="alice"] {
+  --background: 248 28% 8%; --foreground: 250 30% 91%; --card: 248 25% 11%; --card-foreground: 250 30% 91%;
+  --popover: 248 25% 16%; --popover-foreground: 250 30% 91%; --primary: 270 50% 68%; --primary-foreground: 248 28% 8%;
+  --secondary: 248 22% 16%; --secondary-foreground: 250 22% 70%; --muted: 248 20% 10%; --muted-foreground: 250 14% 58%;
+  --accent: 42 70% 58%; --accent-foreground: 248 28% 8%; --border: 250 14% 15%; --input: 250 14% 14%; --ring: 270 50% 68% / .4;
+  --sidebar: 250 25% 6%; --sidebar-foreground: 250 20% 72%; --sidebar-primary: 270 50% 68%; --sidebar-primary-foreground: 248 28% 8%;
+  --sidebar-accent: 248 22% 13%; --sidebar-accent-foreground: 250 30% 91%; --sidebar-border: 250 14% 13%; --sidebar-ring: 270 50% 68% / .4;
+}
+
+/* Alice dark uses quiet panel boundaries instead of bright frames. */
+html.dark[data-theme="alice"] .rounded-lg,
+html.dark[data-theme="alice"] .card {
+  border-color: hsl(250 14% 17% / .78);
+}
+
+html[data-theme="aoko"] {
+  --background: 210 30% 97%; --foreground: 215 30% 15%; --card: 0 0% 100%; --card-foreground: 215 30% 15%;
+  --popover: 0 0% 100%; --popover-foreground: 215 30% 15%; --primary: 210 90% 45%; --primary-foreground: 0 0% 100%;
+  --secondary: 210 20% 92%; --secondary-foreground: 215 25% 28%; --muted: 210 20% 94%; --muted-foreground: 215 14% 42%;
+  --accent: 35 90% 46%; --accent-foreground: 215 30% 15%; --border: 210 20% 84%; --input: 210 20% 84%; --ring: 210 90% 45% / .4;
+  --sidebar: 210 25% 94%; --sidebar-foreground: 215 18% 38%; --sidebar-primary: 210 90% 45%; --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 210 22% 90%; --sidebar-accent-foreground: 215 30% 15%; --sidebar-border: 210 20% 86%; --sidebar-ring: 210 90% 45% / .4;
+}
+html.dark[data-theme="aoko"] {
+  --background: 210 50% 7%; --foreground: 210 30% 91%; --card: 210 40% 10%; --card-foreground: 210 30% 91%;
+  --popover: 210 40% 15%; --popover-foreground: 210 30% 91%; --primary: 210 100% 60%; --primary-foreground: 210 50% 7%;
+  --secondary: 210 32% 15%; --secondary-foreground: 210 25% 70%; --muted: 210 30% 10%; --muted-foreground: 210 18% 58%;
+  --accent: 35 95% 55%; --accent-foreground: 210 50% 7%; --border: 210 35% 20%; --input: 210 35% 16%; --ring: 210 100% 60% / .4;
+  --sidebar: 215 45% 6%; --sidebar-foreground: 210 22% 72%; --sidebar-primary: 210 100% 60%; --sidebar-primary-foreground: 210 50% 7%;
+  --sidebar-accent: 210 35% 12%; --sidebar-accent-foreground: 210 30% 91%; --sidebar-border: 210 35% 16%; --sidebar-ring: 210 100% 60% / .4;
+}
+
+html[data-theme="soujuurou"] {
+  --background: 35 25% 96%; --foreground: 30 20% 15%; --card: 35 20% 99%; --card-foreground: 30 20% 15%;
+  --popover: 35 20% 99%; --popover-foreground: 30 20% 15%; --primary: 140 28% 38%; --primary-foreground: 0 0% 100%;
+  --secondary: 35 18% 90%; --secondary-foreground: 30 18% 28%; --muted: 35 16% 92%; --muted-foreground: 30 12% 42%;
+  --accent: 35 70% 44%; --accent-foreground: 0 0% 100%; --border: 35 16% 82%; --input: 35 16% 82%; --ring: 140 28% 38% / .4;
+  --sidebar: 35 25% 92%; --sidebar-foreground: 30 15% 38%; --sidebar-primary: 140 28% 38%; --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 35 20% 88%; --sidebar-accent-foreground: 30 20% 15%; --sidebar-border: 35 16% 84%; --sidebar-ring: 140 28% 38% / .4;
+}
+html.dark[data-theme="soujuurou"] {
+  --background: 30 24% 8%; --foreground: 30 18% 88%; --card: 30 20% 11%; --card-foreground: 30 18% 88%;
+  --popover: 30 20% 16%; --popover-foreground: 30 18% 88%; --primary: 140 30% 50%; --primary-foreground: 30 24% 8%;
+  --secondary: 30 18% 16%; --secondary-foreground: 30 16% 70%; --muted: 30 16% 11%; --muted-foreground: 30 12% 56%;
+  --accent: 35 75% 58%; --accent-foreground: 30 24% 8%; --border: 30 18% 22%; --input: 30 18% 17%; --ring: 140 30% 50% / .4;
+  --sidebar: 30 25% 7%; --sidebar-foreground: 30 14% 70%; --sidebar-primary: 140 30% 50%; --sidebar-primary-foreground: 30 24% 8%;
+  --sidebar-accent: 30 20% 13%; --sidebar-accent-foreground: 30 18% 88%; --sidebar-border: 30 18% 18%; --sidebar-ring: 140 30% 50% / .4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

@@ -36,10 +36,13 @@ def test_logger():
     assert logger.name == "test"
 
 
-def test_config_stub():
+def test_config_stub(monkeypatch, tmp_path):
     """Verify config stub methods."""
     from alice_engine.core.executor_utils import config
 
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("AITEST_PROVIDER", raising=False)
     provider = config.resolve_llm_provider()
     assert provider == "anthropic"
 
@@ -124,3 +127,27 @@ def test_run_skill_mock():
     )
     # Mock provider should return some response
     assert result is not None
+
+
+def test_run_skill_passes_requested_model_to_provider(monkeypatch):
+    """Agent skill execution must preserve the selected provider model."""
+    from alice_engine.core.agent_helpers import run_skill
+    from alice_engine.providers import MockProvider
+
+    captured = {}
+
+    def fake_get_provider(name, **kwargs):
+        captured["name"] = name
+        captured["kwargs"] = kwargs
+        return MockProvider()
+
+    monkeypatch.setattr("alice_engine.providers.get_provider", fake_get_provider)
+    result = run_skill(
+        skill_id="automation/tech-analysis",
+        user_input="test input",
+        provider="mimo",
+        model="mimo-v2.5",
+    )
+
+    assert result is not None
+    assert captured == {"name": "mimo", "kwargs": {"model": "mimo-v2.5"}}

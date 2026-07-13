@@ -11,6 +11,8 @@ Endpoints:
   GET    /api/platform/orgs/:id/keys     — List API keys
   DELETE /api/platform/orgs/:id/keys/:kid — Revoke API key
 """
+import os
+
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
@@ -54,6 +56,31 @@ def _get_current_user(request: Request) -> str:
     raise HTTPException(401, "Authentication required")
 
 
+def _require_org_scope(request: Request, org_id: str, required_scope: str) -> None:
+    """Enforce org RBAC for every organization control-plane endpoint."""
+    strict = os.environ.get("AITEST_RBAC_REQUIRED", "0").lower() in {"1", "true", "yes"}
+    user_id = getattr(request.state, "user_id", None)
+    request_org = getattr(request.state, "org_id", None)
+    scopes = list(getattr(request.state, "scopes", []) or [])
+    if not strict and not user_id and not request.headers.get("X-Org-Id"):
+        return
+    if request_org and request_org not in {org_id, "*"}:
+        raise HTTPException(403, f"Request org '{request_org}' cannot access org '{org_id}'")
+    if request_org == "*":
+        scopes = ["read", "write", "execute", "admin"]
+    if required_scope not in scopes and "admin" not in scopes:
+        raise HTTPException(403, f"User '{user_id or 'anonymous'}' lacks scope '{required_scope}' in org '{org_id}'")
+
+
+def _require_global_admin(request: Request) -> None:
+    strict = os.environ.get("AITEST_RBAC_REQUIRED", "0").lower() in {"1", "true", "yes"}
+    if not strict and not getattr(request.state, "user_id", None):
+        return
+    scopes = list(getattr(request.state, "scopes", []) or [])
+    if "admin" not in scopes:
+        raise HTTPException(403, "Global admin scope is required")
+
+
 @platform_router.get("/ecosystem")
 async def ecosystem_snapshot():
     from aitest.platform.ecosystem import collect_ecosystem_snapshot
@@ -64,7 +91,8 @@ async def ecosystem_snapshot():
 # ── Organization CRUD ──────────────────────────────────────────────────
 
 @platform_router.post("/orgs")
-async def create_org(req: CreateOrgRequest):
+async def create_org(req: CreateOrgRequest, request: Request):
+    _require_global_admin(request)
     try:
         org = _get_org_manager().create(req.id, req.name, req.owner)
         return {"status": "created", "org": org.__dict__}
@@ -73,7 +101,8 @@ async def create_org(req: CreateOrgRequest):
 
 
 @platform_router.get("/orgs")
-async def list_orgs():
+async def list_orgs(request: Request):
+    _require_global_admin(request)
     orgs = _get_org_manager().list()
     return {"orgs": [{"id": o.id, "name": o.name, "owner": o.owner,
                        "members": len(o.members), "keys": len(o.api_keys),
@@ -81,7 +110,8 @@ async def list_orgs():
 
 
 @platform_router.get("/orgs/{org_id}")
-async def get_org(org_id: str):
+async def get_org(org_id: str, request: Request):
+    _require_org_scope(request, org_id, "read")
     org = _get_org_manager().get(org_id)
     if not org:
         raise HTTPException(404, f"Organization '{org_id}' not found")
@@ -89,7 +119,8 @@ async def get_org(org_id: str):
 
 
 @platform_router.delete("/orgs/{org_id}")
-async def delete_org(org_id: str):
+async def delete_org(org_id: str, request: Request):
+    _require_org_scope(request, org_id, "admin")
     _get_org_manager().delete(org_id)
     return {"status": "deleted"}
 
@@ -97,16 +128,19 @@ async def delete_org(org_id: str):
 # ── Members ────────────────────────────────────────────────────────────
 
 @platform_router.post("/orgs/{org_id}/members")
-async def add_member(org_id: str, req: AddMemberRequest):
+async def add_member(org_id: str, req: AddMemberRequest, request: Request):
+    _require_org_scope(request, org_id, "admin")
     try:
-        org = _get_org_manager().add_member(org_id, req.user_id, req.role)
+        _get_org_manager().add_member(org_id, req.user_id, req.role)
+        org = _get_org_manager().get(org_id)
         return {"status": "added", "members": org.members}
     except ValueError as e:
         raise HTTPException(400, str(e))
 
 
 @platform_router.delete("/orgs/{org_id}/members/{user_id}")
-async def remove_member(org_id: str, user_id: str):
+async def remove_member(org_id: str, user_id: str, request: Request):
+    _require_org_scope(request, org_id, "admin")
     try:
         _get_org_manager().remove_member(org_id, user_id)
         return {"status": "removed"}
@@ -118,6 +152,7 @@ async def remove_member(org_id: str, user_id: str):
 
 @platform_router.post("/orgs/{org_id}/keys")
 async def create_key(org_id: str, req: CreateKeyRequest, request: Request):
+    _require_org_scope(request, org_id, "admin")
     try:
         user = _get_current_user(request)
         key_id, raw_key = _get_org_manager().create_api_key(org_id, user, req.scopes)
@@ -128,7 +163,8 @@ async def create_key(org_id: str, req: CreateKeyRequest, request: Request):
 
 
 @platform_router.get("/orgs/{org_id}/keys")
-async def list_keys(org_id: str):
+async def list_keys(org_id: str, request: Request):
+    _require_org_scope(request, org_id, "read")
     try:
         keys = _get_org_manager().list_api_keys(org_id)
         return {"keys": keys}
@@ -137,7 +173,8 @@ async def list_keys(org_id: str):
 
 
 @platform_router.delete("/orgs/{org_id}/keys/{key_id}")
-async def revoke_key(org_id: str, key_id: str):
+async def revoke_key(org_id: str, key_id: str, request: Request):
+    _require_org_scope(request, org_id, "admin")
     try:
         _get_org_manager().revoke_api_key(org_id, key_id)
         return {"status": "revoked"}

@@ -12,6 +12,7 @@ import logging
 from collections.abc import Generator
 from typing import Optional
 
+from alice_engine.env import load_environment
 from alice_engine.providers.base import LLMProvider, LLMResponse, StreamEvent
 
 logger = logging.getLogger(__name__)
@@ -41,6 +42,7 @@ class OpenAIProvider(LLMProvider):
     provider_supports_streaming = True
 
     def __init__(self, model: str = "gpt-4o-mini", api_key: str = "", base_url: str = ""):
+        load_environment()
         api_key = api_key or os.environ.get("OPENAI_API_KEY", "")
         if not api_key:
             self.client = None

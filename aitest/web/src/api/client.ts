@@ -95,6 +95,10 @@ class ApiClient {
     return this.request<T>('PUT', path, body, options)
   }
 
+  patch<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
+    return this.request<T>('PATCH', path, body, options)
+  }
+
   delete<T = unknown>(path: string, options?: RequestOptions): Promise<T> {
     return this.request<T>('DELETE', path, undefined, options)
   }
@@ -149,8 +153,11 @@ class ApiClient {
 
   /** Connect WebSocket (relative or absolute URL). */
   connectWS(pathOrUrl: string): WebSocket {
-    const url = pathOrUrl.startsWith('ws') ? pathOrUrl : `${location.origin.replace('http', 'ws')}${pathOrUrl}`
-    return new WebSocket(url)
+    const base = location.origin.replace(/^http/, 'ws')
+    const parsed = new URL(pathOrUrl, base)
+    // Never let a project URL hash become a WebSocket fragment.
+    parsed.hash = ''
+    return new WebSocket(parsed.toString())
   }
 }
 

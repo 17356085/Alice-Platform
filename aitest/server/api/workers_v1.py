@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from aitest.infra import db
 from aitest.platform.worker_lease_store import WorkerLeaseStore
 from aitest.platform.worker_auth import WorkerAuthError, validate_request_token
+from aitest.platform.worker_scheduler import WorkerScheduler
 
 workers_router = APIRouter(prefix="/api/v1/workers", tags=["workers"])
 
@@ -72,6 +73,12 @@ class HeartbeatRequest(BaseModel):
 
 
 class WorkerTaskResponse(BaseModel):
+    task: Optional[dict] = None
+
+
+class DispatchResponse(BaseModel):
+    worker_id: Optional[str] = None
+    org_id: str
     task: Optional[dict] = None
 
 
@@ -242,7 +249,21 @@ async def claim_worker_task(
     """Atomically claim one queued task for an authenticated Worker."""
     _authorize(worker_id, org_id, authorization)
     from aitest.infra.task_queue import get_queue
-    return WorkerTaskResponse(task=get_queue().claim_for_worker(worker_id))
+    return WorkerTaskResponse(task=get_queue().claim_for_worker(worker_id, org_id=org_id))
+
+
+@workers_router.post("/dispatch", response_model=DispatchResponse)
+async def dispatch_worker_task(
+    org_id: str = Query("default-org", description="组织 ID"),
+    capability: Optional[str] = Query(None, description="Worker capability"),
+    session: Session = Depends(db.get_session),
+):
+    """Central scheduler dispatch: select a healthy Worker and atomically claim."""
+    from aitest.infra.task_queue import get_queue
+    result = WorkerScheduler(WorkerLeaseStore(session), get_queue()).dispatch_once(org_id, capability)
+    if result is None:
+        return DispatchResponse(org_id=org_id)
+    return DispatchResponse(**result)
 
 
 @workers_router.post("/{worker_id}/tasks/{task_id}/complete")
@@ -287,7 +308,9 @@ async def cleanup_dead_workers(
         timeout_seconds: 心跳超时阈值（默认 90 秒 = 3 倍默认心跳间隔）
     """
     store = WorkerLeaseStore(session)
-    dead_ids = store.mark_dead_workers(timeout_seconds=timeout_seconds)
+    # Task queue recovery is optional; WorkerScheduler handles an unavailable
+    # queue while still marking leases dead.
+    dead_ids = WorkerScheduler(store).recover_dead_workers(timeout_seconds=timeout_seconds)
 
     return CleanupResponse(
         dead_workers=dead_ids,

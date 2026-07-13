@@ -1,7 +1,7 @@
 # Dependency Governance Baseline
 
 > Phase 8 / PH8-PR-8.1  
-> Last refreshed: 2026-07-08
+> Last refreshed: 2026-07-13
 
 ## Goal
 
@@ -18,14 +18,14 @@ PRs reduce the historical clusters.
 
 ## Current Baseline
 
-- First-level nodes: `48`
-- First-level edges: `152`
+- First-level nodes: `50`
+- First-level edges: `167`
 - Multi-node SCC count: `3`
-- Largest SCC size: `17`
+- Largest SCC size: `20`
 
 Reviewed SCC sets:
 
-1. `aitest.adapters`, `aitest.agents`, `aitest.audit_engine`, `aitest.bu_adapter`, `aitest.config`, `aitest.discovery`, `aitest.engine`, `aitest.graphs`, `aitest.graphs_dev`, `aitest.infra`, `aitest.integrations`, `aitest.knowledge`, `aitest.llm`, `aitest.mcp`, `aitest.platform`, `aitest.runtime`, `aitest.testing`
+1. `aitest.adapters`, `aitest.agents`, `aitest.audit_engine`, `aitest.bu_adapter`, `aitest.chat`, `aitest.config`, `aitest.discovery`, `aitest.engine`, `aitest.graphs`, `aitest.graphs_dev`, `aitest.infra`, `aitest.integrations`, `aitest.knowledge`, `aitest.llm`, `aitest.mcp`, `aitest.onboarding`, `aitest.platform`, `aitest.runtime`, `aitest.server`, `aitest.testing`
 2. `alice_engine.core`, `alice_engine.workflow`
 3. `alice_engine.engine`, `alice_engine.extension`
 
@@ -37,6 +37,12 @@ Reviewed SCC sets:
 - New first-level SCCs are blocked.
 - Existing SCC count must not grow above the reviewed baseline.
 - Existing largest SCC size must not grow above the reviewed baseline.
+
+The 2026-07-13 audit reported `51` nodes and `168` edges after adding the
+page-configuration execution seam. It still reported exactly `3` SCCs with a
+largest size of `20`, and no `alice_engine -> aitest` boundary violation. The
+extra node/edge is recorded as an implementation delta; no architecture split
+is claimed by this change.
 
 ## Allowed Compatibility Layers
 
