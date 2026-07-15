@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PageHeader } from '@/components/shared'
 
 const themes = [
   { value: 'mahotsukai', label: 'Mahotsukai — Midnight Blue' },
@@ -39,12 +40,10 @@ export default function SettingsView() {
   }
 
   return (
-    <div className="p-6 max-w-2xl">
-      <h1 className="text-xl font-bold mb-6 flex items-center gap-2">
-        <Settings size={20} /> {t('settings.title')}
-      </h1>
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 p-4 sm:p-6">
+      <PageHeader eyebrow="Workspace preferences" title={t('settings.title')} description="管理主题、语言、模型提供方和成本预算。设置会保存在本地工作区。" />
 
-      <div className="space-y-6">
+      <div className="flex flex-col gap-4">
         {/* Appearance */}
         <Card>
           <CardHeader>
@@ -52,9 +51,9 @@ export default function SettingsView() {
               <Palette size={16} className="text-primary" /> 外观
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="flex flex-col gap-4">
             <ToggleGroup type="single" value={app.theme} onValueChange={v => v && applyTheme(v)}
-              className="grid grid-cols-3 gap-2">
+              className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {themes.map(t => (
                 <ToggleGroupItem key={t.value} value={t.value} className="text-xs h-8">
                   {t.label}

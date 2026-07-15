@@ -19,14 +19,13 @@ PRs reduce the historical clusters.
 ## Current Baseline
 
 - First-level nodes: `51`
-- First-level edges: `161`
-- Multi-node SCC count: `2`
-- Largest SCC size: `2`
+- First-level edges: `159`
+- Multi-node SCC count: `0`
+- Largest SCC size: `0`
 
 Reviewed SCC sets:
 
-1. `alice_engine.core`, `alice_engine.workflow`
-2. `alice_engine.engine`, `alice_engine.extension`
+- None — no multi-node SCC remains.
 
 ## Hard Gates
 
@@ -37,7 +36,7 @@ Reviewed SCC sets:
 - Existing SCC count must not grow above the reviewed baseline.
 - Existing largest SCC size must not grow above the reviewed baseline.
 
-The 2026-07-15 audit reports `51` nodes and `161` edges after moving the
+The 2026-07-15 audit reports `51` nodes and `159` edges after moving the
 runtime contract into `aitest.runtime.base`, registering page execution and
 capability adapters from the platform composition root, and retaining
 `aitest.platform.runtime` as a compatibility facade. Discovery persistence now
@@ -47,10 +46,12 @@ ports registered by the `aitest` package root, so `aitest.testing` no longer
 imports concrete LLM or audit implementations. MCP persistence now receives
 secret/environment resolvers through a platform composition port, so
 `aitest.mcp` no longer imports platform implementations. It reports exactly
-`2` SCCs with a largest size of `2`, and no `alice_engine -> aitest` boundary
+`0` SCCs with a largest size of `0`, and no `alice_engine -> aitest` boundary
 violation. The complexity classifier now receives its LLM provider through the
 same composition-root port, so `aitest.platform` no longer points back to
-`aitest.llm`.
+`aitest.llm`. The SDK core/workflow cycle now shares test-project context
+through `alice_engine.core.runtime_environment`, and the extension protocol no
+longer imports the concrete Engine type even under `TYPE_CHECKING`.
 The edge count is a reviewed snapshot of the current package inventory; the
 governing regression is that SCC count and size do not grow. These are
 intentionally small dependency seams, not a broad architecture rewrite.
@@ -96,6 +97,11 @@ intentionally small dependency seams, not a broad architecture rewrite.
 - `aitest.adapters.audit` receives KPI recording through a narrow port wired by
   the `aitest` package composition root, so audit adapters no longer import the
   `audit_engine` implementation package.
+- `alice_engine.core.path_utils` and `alice_engine.core.planner` consume the
+  test-project root from `core.runtime_environment`; `workflow.state` remains
+  the compatibility configurator without a reverse Core -> Workflow import.
+- `alice_engine.extension` keeps the extension contract structural and does not
+  import `alice_engine.engine`, so Engine -> Extension remains one-way.
 
 ## Pending Reduction Targets
 
@@ -103,10 +109,9 @@ intentionally small dependency seams, not a broad architecture rewrite.
   AgentLoop boundary reduction work in `PH8-PR-8.3`.
 - Remove the `alice_engine.engine <-> alice_engine.extension` SCC after the
   extension contract is simplified or inverted.
-- The first-level `aitest.*` SCCs are now eliminated. Keep the package-root
-  composition ports explicit and block reintroduction of platform ↔ adapter
-  cycles while the two SDK-internal SCCs are reduced under the separate
-  `alice-engine` governance plan.
+- All reviewed first-level SCCs are now eliminated. Keep the composition ports
+  and shared runtime context explicit, and block reintroduction of platform,
+  adapter, Core/Workflow, or Engine/Extension cycles.
 
 ## How To Refresh
 

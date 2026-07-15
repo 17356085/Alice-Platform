@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import SwimlaneTimeline from '@/components/SwimlaneTimeline'
 import type { SwimlaneEntry } from '@/components/SwimlaneTimeline'
+import { ErrorState, LoadingState, PageHeader } from '@/components/shared'
 import {
   ArrowLeft, Clock, Box, MessageSquare, BarChart3, FileText, GitBranch,
   CheckCircle2, XCircle, AlertTriangle, Circle, Timer, DollarSign, Zap,
@@ -77,12 +78,12 @@ interface InspectorData {
 // ── Helpers ─────────────────────────────────────────────────────────────
 
 const STATUS_COLOR: Record<string, string> = {
-  completed: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  failed: 'bg-red-500/10 text-red-400 border-red-500/20',
-  running: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  cancelled: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  timed_out: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
-  pending: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
+  completed: 'bg-success/10 text-success border-success/20',
+  failed: 'bg-destructive/10 text-destructive border-destructive/20',
+  running: 'bg-info/10 text-info border-info/20',
+  cancelled: 'bg-warning/10 text-warning border-warning/20',
+  timed_out: 'bg-warning/10 text-warning border-warning/20',
+  pending: 'bg-muted text-muted-foreground border-border',
 }
 
 const STATUS_ICON: Record<string, typeof CheckCircle2> = {
@@ -94,9 +95,9 @@ const STATUS_ICON: Record<string, typeof CheckCircle2> = {
 }
 
 const LOG_COLOR: Record<string, string> = {
-  error: 'text-red-400',
-  warn: 'text-amber-400',
-  info: 'text-slate-400',
+  error: 'text-destructive',
+  warn: 'text-warning',
+  info: 'text-muted-foreground',
 }
 
 function formatDuration(ms: number): string {
@@ -160,12 +161,12 @@ export default function RunInspectorView() {
   // ── Loading ──
   if (loading) {
     return (
-      <div className="p-6 max-w-7xl mx-auto space-y-4">
-        <Skeleton className="h-12 w-64" />
-        <div className="grid grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-24" />)}
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 p-4 sm:p-6">
+        <Skeleton className="h-16 w-full" />
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
+          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-20" />)}
         </div>
-        <Skeleton className="h-96" />
+        <LoadingState rows={6} />
       </div>
     )
   }
@@ -173,11 +174,11 @@ export default function RunInspectorView() {
   // ── Error ──
   if (error || !data) {
     return (
-      <div className="p-6 max-w-7xl mx-auto text-center">
-        <XCircle size={48} className="mx-auto text-red-400 mb-4" />
-        <p className="text-lg text-red-400">{error || 'Run not found'}</p>
-        <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
-          <ArrowLeft size={14} /> Back
+      <div className="mx-auto flex max-w-3xl flex-col gap-5 p-4 sm:p-6">
+        <PageHeader title="Run Inspector" description="无法读取这次运行的执行证据。" />
+        <ErrorState message={error || 'Run not found'} action={<Button variant="outline" size="sm" onClick={() => void fetchData()}>重试</Button>} />
+        <Button variant="ghost" className="self-start" onClick={() => navigate(-1)}>
+          <ArrowLeft data-icon="inline-start" />返回
         </Button>
       </div>
     )
@@ -188,15 +189,15 @@ export default function RunInspectorView() {
 
   // ── Render ──
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="mx-auto flex max-w-7xl flex-col gap-5 p-4 sm:p-6">
       {/* Back + Title */}
-      <div className="flex items-center gap-3 mb-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-          <ArrowLeft size={16} />
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="返回">
+          <ArrowLeft />
         </Button>
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold">Run {header.run_id.slice(0, 12)}</h1>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="truncate text-xl font-semibold tracking-tight">Run {header.run_id.slice(0, 12)}</h1>
             <Badge variant="outline" className={STATUS_COLOR[header.status]}>
               <StatusIcon size={12} className="mr-1" />
               {header.status}
@@ -206,7 +207,7 @@ export default function RunInspectorView() {
       </div>
 
       {/* ── Header KPI cards ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
         <KpiCard icon={Timer} label="Duration" value={formatDuration(header.duration_ms)} />
         <KpiCard icon={Zap} label="Module" value={header.module || '—'} />
         <KpiCard icon={Box} label="Agent" value={header.agent || '—'} />
@@ -219,13 +220,13 @@ export default function RunInspectorView() {
 
       {/* Error banner */}
       {header.error_message && (
-        <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-mono">
+        <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 font-mono text-sm text-destructive">
           {header.error_message}
         </div>
       )}
 
       {/* ── Meta row ── */}
-      <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground mb-6">
+      <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
         <span>Request: <code>{header.request_id?.slice(0, 12)}</code></span>
         <span>Workspace: <code>{header.workspace_id}</code></span>
         <span>Triggered by: {header.triggered_by}</span>
@@ -235,11 +236,11 @@ export default function RunInspectorView() {
         {header.completed_at && <span>Completed: {tsFull(header.completed_at)}</span>}
       </div>
 
-      <Separator className="mb-6" />
+      <Separator />
 
       {/* ── Tabs ── */}
       <Tabs defaultValue="timeline" className="w-full">
-        <TabsList className="mb-6">
+        <TabsList className="mb-5 max-w-full justify-start overflow-x-auto">
           <TabsTrigger value="timeline"><Clock size={14} className="mr-1" /> Timeline</TabsTrigger>
           <TabsTrigger value="artifacts"><Box size={14} className="mr-1" /> Artifacts ({artifacts.length})</TabsTrigger>
           <TabsTrigger value="agent-calls"><MessageSquare size={14} className="mr-1" /> Agent Calls ({agent_calls.length})</TabsTrigger>

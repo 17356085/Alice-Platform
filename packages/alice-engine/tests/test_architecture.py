@@ -59,6 +59,39 @@ class TestWorkflowBoundary:
                     assert False, f"Workflow 导入了 engine: {file.name} -> {imp}"
 
 
+class TestSharedRuntimeContext:
+    """Core and Workflow share path context without Core importing Workflow."""
+
+    def test_core_path_helpers_do_not_import_workflow(self):
+        for relative in ("core/path_utils.py", "core/planner.py"):
+            imports = get_imports(SDK_ROOT / relative)
+            assert not any(imp.startswith("alice_engine.workflow") for imp in imports)
+
+    def test_configure_paths_updates_core_runtime_project_root(self, tmp_path, monkeypatch):
+        from alice_engine.core import runtime_environment
+        from alice_engine.workflow import state
+
+        # Restore module-level compatibility state after this test; configure_paths
+        # intentionally retains the legacy process-wide behavior.
+        monkeypatch.setattr(runtime_environment, "_TEST_PROJECT_ROOT", runtime_environment._TEST_PROJECT_ROOT)
+        monkeypatch.setattr(state, "_PATH_BASE", state._PATH_BASE)
+        monkeypatch.setattr(state, "_CONTEXT_MODULES", state._CONTEXT_MODULES)
+
+        project_root = tmp_path / "test-project"
+        state.configure_paths(tmp_path, test_project_root=project_root)
+
+        assert runtime_environment.current_test_project_root() == project_root
+        assert state.get_test_project_root() == project_root
+
+
+class TestExtensionBoundary:
+    """The extension protocol must not point back to the Engine implementation."""
+
+    def test_extension_protocol_does_not_import_engine(self):
+        imports = get_imports(SDK_ROOT / "extension.py")
+        assert "alice_engine.engine" not in imports
+
+
 class TestRuntimeBoundary:
     """Runtime 不能 import workflow。"""
 

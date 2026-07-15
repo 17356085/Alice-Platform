@@ -145,7 +145,7 @@ export default function KanbanBoard({ columns, running, onCardMove, onCardClick,
                         width: isRunning && info.progress
                           ? `${info.progress}%`
                           : `${info.phases_done / info.phases_total * 100}%`,
-                        background: isRunning ? 'var(--primary-gradient)' : '',
+                        background: isRunning ? 'hsl(var(--primary))' : '',
                       }}
                     />
                   </div>
@@ -168,7 +168,7 @@ export default function KanbanBoard({ columns, running, onCardMove, onCardClick,
                       <button
                         onClick={e => { e.stopPropagation(); onCardRun(mod) }}
                         className="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold cursor-pointer transition-all border-none"
-                        style={{ background: 'var(--primary-gradient)', color: 'var(--primary-foreground)' }}
+                        style={{ background: 'hsl(var(--primary))', color: 'hsl(var(--primary-foreground))' }}
                       >
                         <Play size={12} strokeWidth={3} /> Run SOP
                       </button>

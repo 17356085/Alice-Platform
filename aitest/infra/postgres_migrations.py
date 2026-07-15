@@ -66,7 +66,10 @@ def apply_postgres_migrations(
         # Importing models registers every SQLAlchemy table on Base.metadata.
         # This is deliberately separate from the versioned raw SQL below so
         # future revisions can add ALTER statements without hiding drift.
-        from aitest.infra.models import Base
+        # Base lives in the database facade; importing the models package
+        # separately registers every ORM model on that metadata collection.
+        from aitest.infra.db import Base
+        import aitest.infra.models  # noqa: F401
 
         Base.metadata.create_all(engine)
 

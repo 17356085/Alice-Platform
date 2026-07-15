@@ -83,8 +83,7 @@ export default function SidebarNav({ currentView, onNavigate }: SidebarNavProps)
     <aside className="w-[240px] flex flex-col shrink-0 select-none border-r border-sidebar-border bg-sidebar">
       {/* ── Logo区域 ── */}
       <div className="px-5 py-4 flex items-center gap-2.5 border-b border-sidebar-border">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ background: 'var(--primary-gradient, linear-gradient(135deg, var(--primary), var(--primary-foreground)))' }}>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary">
           <LogoIcon size={16} className="text-white" strokeWidth={2.5} />
         </div>
         <div className="flex flex-col">

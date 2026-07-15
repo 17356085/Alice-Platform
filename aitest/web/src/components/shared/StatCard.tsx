@@ -19,8 +19,8 @@ interface StatCardProps {
   detail: string
   /** Lucide 图标组件 */
   icon: LucideIcon
-  /** 色调：cyan/blue/green/violet/yellow/red */
-  tone?: 'cyan' | 'blue' | 'green' | 'violet' | 'yellow' | 'red'
+  /** 语义色调 */
+  tone?: 'primary' | 'info' | 'success' | 'warning' | 'destructive' | 'neutral'
   /** 自定义类名 */
   className?: string
   /** 点击回调 */
@@ -28,12 +28,12 @@ interface StatCardProps {
 }
 
 const toneClasses = {
-  cyan: 'text-cyan-400',
-  blue: 'text-blue-400',
-  green: 'text-emerald-400',
-  violet: 'text-violet-400',
-  yellow: 'text-amber-400',
-  red: 'text-red-400',
+  primary: 'text-primary',
+  info: 'text-info',
+  success: 'text-success',
+  warning: 'text-warning',
+  destructive: 'text-destructive',
+  neutral: 'text-foreground',
 }
 
 export function StatCard({
@@ -41,7 +41,7 @@ export function StatCard({
   value,
   detail,
   icon: Icon,
-  tone = 'cyan',
+  tone = 'primary',
   className,
   onClick,
 }: StatCardProps) {

@@ -30,8 +30,8 @@ interface AgentCardProps {
 }
 
 const statusConfig = {
-  running: { label: 'Running', className: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
-  success: { label: 'Success', className: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+  running: { label: 'Running', className: 'bg-info/10 text-info border-info/20' },
+  success: { label: 'Success', className: 'bg-success/10 text-success border-success/20' },
   idle: { label: 'Idle', className: 'bg-muted text-muted-foreground border-border' },
 }
 

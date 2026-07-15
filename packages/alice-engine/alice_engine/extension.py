@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
-
-if TYPE_CHECKING:
-    from alice_engine.engine import Engine
-    from alice_engine.engine import RunResult
+from typing import Any, Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -30,7 +26,7 @@ class EngineExtension(Protocol):
                 print(f"All done: {result.status}")
     """
 
-    def on_init(self, engine: Engine) -> None:
+    def on_init(self, engine: Any) -> None:
         """Engine 初始化后调用。"""
         ...
 
@@ -38,6 +34,6 @@ class EngineExtension(Protocol):
         """每个 Phase 完成后调用。"""
         ...
 
-    def on_cycle_end(self, module: str, result: RunResult) -> None:
+    def on_cycle_end(self, module: str, result: Any) -> None:
         """整个 SOP 流水线完成后调用。"""
         ...

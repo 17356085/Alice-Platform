@@ -6,7 +6,7 @@ import {
   AlertTriangle, ChevronDown, Circle, Server, Tag,
   Terminal, Eye, Bot, Filter, Play, RotateCcw, Copy,
   ChevronLeft, Database, Hash, Layers, ArrowRight,
-  ChevronRight, MessageSquare, FileText, BarChart2,
+  ChevronRight, MessageSquare, FileText, BarChart2, Menu,
   Gauge, Box, Send, Download, File, Image, Code2,
   FileJson, X, RefreshCw, ZoomIn, ZoomOut, Pencil, Trash2,
 } from "lucide-react";
@@ -1942,11 +1942,11 @@ const NAV_GROUPS = [
   ]},
 ];
 
-function Sidebar({ view, onNav, snapshot }: { view: View; onNav: (v: View) => void; snapshot: StudioSnapshot | null }) {
+function Sidebar({ view, onNav, snapshot, open, onClose }: { view: View; onNav: (v: View) => void; snapshot: StudioSnapshot | null; open: boolean; onClose: () => void }) {
   const { t, i18n } = useTranslation();
   const runningCount = snapshot?.runs.filter((run) => normalizeRunStatus(run.status) === "running").length ?? 0;
   return (
-    <aside className="w-52 flex-shrink-0 bg-sidebar border-r border-sidebar-border flex flex-col">
+    <aside className={`fixed inset-y-0 left-0 z-40 w-52 flex-shrink-0 bg-sidebar border-r border-sidebar-border flex flex-col transition-transform duration-200 md:relative md:z-auto md:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
       <div className="px-4 py-5 border-b border-sidebar-border">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-md bg-primary/15 border border-primary/25 flex items-center justify-center"><Layers size={14} className="text-primary"/></div>
@@ -1972,7 +1972,7 @@ function Sidebar({ view, onNav, snapshot }: { view: View; onNav: (v: View) => vo
               {group.items.map(({ id, label, icon: Icon }) => {
                 const isActive = view===id;
                 return (
-                  <button key={id} onClick={() => onNav(id as View)} className={`flex items-center gap-2.5 w-full px-3 py-2 rounded text-[13px] transition-all text-left ${isActive?"bg-primary/10 text-primary border-l-2 border-primary pl-[10px]":"text-muted-foreground hover:text-foreground hover:bg-white/4"}`}>
+                   <button key={id} onClick={() => { onNav(id as View); onClose(); }} className={`flex items-center gap-2.5 w-full px-3 py-2 rounded text-[13px] transition-all text-left ${isActive?"bg-primary/10 text-primary border-l-2 border-primary pl-[10px]":"text-muted-foreground hover:text-foreground hover:bg-white/4"}`}>
                     <Icon size={13} className="flex-shrink-0"/>
                     <span className="truncate">{t(`studio.nav.${id}`, label)}</span>
                   </button>
@@ -1983,7 +1983,7 @@ function Sidebar({ view, onNav, snapshot }: { view: View; onNav: (v: View) => vo
         ))}
       </nav>
       <div className="px-2 pb-3 border-t border-sidebar-border pt-2 space-y-0.5">
-        <button onClick={() => onNav("settings")} className={`flex items-center gap-2.5 w-full px-3 py-2 rounded text-[13px] transition-all text-left ${view==="settings"?"bg-primary/10 text-primary border-l-2 border-primary pl-[10px]":"text-muted-foreground hover:text-foreground hover:bg-white/4"}`}>
+        <button onClick={() => { onNav("settings"); onClose(); }} className={`flex items-center gap-2.5 w-full px-3 py-2 rounded text-[13px] transition-all text-left ${view==="settings"?"bg-primary/10 text-primary border-l-2 border-primary pl-[10px]":"text-muted-foreground hover:text-foreground hover:bg-white/4"}`}>
           <Settings size={13} className="flex-shrink-0"/><span>{t("studio.nav.settings", "Settings")}</span>
         </button>
         <div className="flex items-center gap-2.5 px-3 py-2 mt-1">
@@ -2004,15 +2004,16 @@ const VIEW_TITLES: Record<string,string> = {
    observability:"Observability", history:"Run History", settings:"Settings", agent:"Agent Detail", onboarding:"New Project",
 };
 
-function TopBar({ view, onCreateProject, notifications, notificationsUnread, notificationsLoading, notificationsError, onMarkNotificationRead }: { view: View; onCreateProject: () => void; notifications: StudioNotification[]; notificationsUnread: number; notificationsLoading: boolean; notificationsError: string; onMarkNotificationRead: (id: string) => void }) {
+function TopBar({ view, onCreateProject, onMenuOpen, notifications, notificationsUnread, notificationsLoading, notificationsError, onMarkNotificationRead }: { view: View; onCreateProject: () => void; onMenuOpen: () => void; notifications: StudioNotification[]; notificationsUnread: number; notificationsLoading: boolean; notificationsError: string; onMarkNotificationRead: (id: string) => void }) {
   const { t } = useTranslation();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   return (
-    <header className="relative h-12 flex-shrink-0 flex items-center px-5 gap-4 border-b border-border bg-background/80 backdrop-blur-sm">
-         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-           <span className="text-muted-foreground/50">Alice</span><ChevronRight size={11}/><ProjectSelector onCreateProject={onCreateProject}/><ChevronRight size={11}/><span className="text-foreground/70">{view === 'onboarding' ? t('onboarding.wizard_title') : t(`studio.titles.${view}`, VIEW_TITLES[view] ?? view)}</span>
-      </div>
-      <div className="flex items-center gap-2 bg-muted rounded px-3 py-1.5 ml-4 w-52">
+    <header className="relative h-12 flex-shrink-0 flex items-center px-3 sm:px-5 gap-2 sm:gap-4 border-b border-border bg-background/80 backdrop-blur-sm">
+         <button type="button" aria-label="打开导航" onClick={onMenuOpen} className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground md:hidden"><Menu size={16}/></button>
+         <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+           <span className="hidden sm:inline text-muted-foreground/50">Alice</span><ChevronRight className="hidden sm:block" size={11}/><ProjectSelector onCreateProject={onCreateProject}/><ChevronRight size={11}/><span className="truncate text-foreground/70">{view === 'onboarding' ? t('onboarding.wizard_title') : t(`studio.titles.${view}`, VIEW_TITLES[view] ?? view)}</span>
+       </div>
+       <div className="hidden items-center gap-2 bg-muted rounded px-3 py-1.5 ml-4 w-52 md:flex">
         <Search size={11} className="text-muted-foreground/60 flex-shrink-0"/>
         <input placeholder={t("studio.common.search", "Search…")} className="bg-transparent text-xs text-foreground placeholder:text-muted-foreground/50 outline-none w-full"/>
         <kbd className="text-xs text-muted-foreground/40 font-mono">⌘K</kbd>
@@ -2039,6 +2040,7 @@ function TopBar({ view, onCreateProject, notifications, notificationsUnread, not
 // ─── App Root ─────────────────────────────────────────────────────────────────
 export default function DesignStudioApp() {
   const [view, setView] = useState<View>("dashboard");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<AgentData|null>(null);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [snapshotRefreshToken, setSnapshotRefreshToken] = useState(0);
@@ -2096,13 +2098,15 @@ export default function DesignStudioApp() {
   function handleNav(v: View) {
     if (v!=="agent") setSelectedAgent(null);
     setView(v);
+    setMobileNavOpen(false);
   }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground" style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
-      <Sidebar view={view} onNav={handleNav} snapshot={studioSnapshot}/>
+      <Sidebar view={view} onNav={handleNav} snapshot={studioSnapshot} open={mobileNavOpen} onClose={() => setMobileNavOpen(false)}/>
+      {mobileNavOpen && <button type="button" aria-label="关闭导航" onClick={() => setMobileNavOpen(false)} className="fixed inset-0 z-30 bg-black/40 md:hidden" />}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <TopBar view={view} onCreateProject={() => setView("onboarding")} notifications={notifications} notificationsUnread={notificationsUnread} notificationsLoading={notificationsLoading} notificationsError={notificationsError} onMarkNotificationRead={handleMarkNotificationRead}/>
+        <TopBar view={view} onCreateProject={() => setView("onboarding")} onMenuOpen={() => setMobileNavOpen(true)} notifications={notifications} notificationsUnread={notificationsUnread} notificationsLoading={notificationsLoading} notificationsError={notificationsError} onMarkNotificationRead={handleMarkNotificationRead}/>
         <main className="flex-1 overflow-hidden">
           <div className="h-full">
                {view==="onboarding"  && <OnboardingWizardView/>}

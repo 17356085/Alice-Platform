@@ -75,11 +75,11 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 15173,
+    port: Number(process.env.VITE_DEV_PORT || 15173),
     proxy: {
-      '/api': { target: 'http://localhost:8000', ws: true },
+      '/api': { target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:8000', ws: true },
       '/ws': {
-        target: 'http://localhost:8000',
+        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:8000',
         ws: true,
         changeOrigin: true,
       },

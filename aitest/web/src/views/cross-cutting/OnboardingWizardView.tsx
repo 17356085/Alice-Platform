@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import { Globe, Wifi, ListTree, FileSearch, CheckCircle2, AlertTriangle, ArrowRight, FolderOpen } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { PageHeader } from '@/components/shared'
 
 export default function OnboardingWizardView() {
   const navigate = useNavigate()
@@ -97,20 +99,15 @@ export default function OnboardingWizardView() {
   }, [disconnect])
 
   return (
-    <div className="max-w-[720px] mx-auto py-8 px-6 animate-[fade-in_0.3s_ease-out]">
-      <header className="mb-8 text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-2">{t('onboarding.wizard_title')}</h2>
-        <p className="text-sm text-muted-foreground m-0">
-          {t('onboarding.wizard_desc')}
-        </p>
-      </header>
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 p-4 sm:p-6">
+      <PageHeader title={t('onboarding.wizard_title')} description={t('onboarding.wizard_desc')} />
 
       {/* Step indicators */}
-      <nav className="flex justify-center gap-10 mb-6">
+      <nav className="grid grid-cols-4 gap-2" aria-label="初始化步骤">
         {steps.map((step, i) => (
           <div key={step.key}
             className={cn(
-              'flex flex-col items-center gap-1.5 transition-colors',
+              'flex flex-col items-center gap-1.5 rounded-md px-2 py-2 text-center transition-colors',
               i === currentStepIndex ? 'text-primary' :
               i < currentStepIndex ? 'text-success' :
               'text-muted-foreground',
@@ -136,12 +133,7 @@ export default function OnboardingWizardView() {
         </div>
       )}
 
-      {wsError && (
-        <div className="flex items-center gap-2 bg-warning-light text-warning px-4 py-2 rounded-lg mb-4 text-sm">
-          <AlertTriangle size={16} />
-          <span>{/api[_ -]?key|api key/i.test(wsError) ? t('onboarding.api_key_error') : wsError}</span>
-        </div>
-      )}
+      {wsError && <Alert className="border-warning/30 bg-warning/10 text-warning"><AlertTriangle className="size-4" /><AlertDescription>{/api[_ -]?key|api key/i.test(wsError) ? t('onboarding.api_key_error') : wsError}</AlertDescription></Alert>}
 
       <main className="min-h-[300px]">
         {!isCancelled && (
@@ -154,7 +146,7 @@ export default function OnboardingWizardView() {
           </>
         )}
         {isFailed && (
-          <div className="text-center py-12">
+          <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-6 py-12 text-center">
             <AlertTriangle size={48} className="text-destructive mb-4 mx-auto" />
             <h3 className="text-destructive mb-4">{t('onboarding.onboarding_failed')}</h3>
             {errors.length > 0 && (
@@ -168,7 +160,7 @@ export default function OnboardingWizardView() {
           </div>
         )}
         {isCancelled && (
-          <div className="text-center py-12">
+          <div className="rounded-lg border border-warning/20 bg-warning/5 px-6 py-12 text-center">
             <FolderOpen size={48} className="text-warning mb-4 mx-auto" />
             <h3 className="text-warning mb-2">{t('onboarding.onboarding_cancelled')}</h3>
             <p className="text-muted-foreground text-sm mb-4">
@@ -191,7 +183,7 @@ export default function OnboardingWizardView() {
         )}
       </main>
 
-      <footer className="flex justify-between gap-3 mt-6 pt-4 border-t border-border">
+      <footer className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           {/* Back button: only from URL input → source selection */}
           {currentStepIndex === 1 && !isRunning && sourceType === 'url' && (

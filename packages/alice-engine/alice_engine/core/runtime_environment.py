@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Iterator
 
 _STATE = threading.local()
+_TEST_PROJECT_ROOT: Path | None = None
 
 
 def _state_dict() -> dict[str, object]:
@@ -30,6 +31,20 @@ def current_context_modules() -> Path:
     workstudy = current_workstudy()
     tlo_modules = workstudy / ".tlo" / "knowledge" / "modules"
     return tlo_modules if tlo_modules.exists() else workstudy / "context"
+
+
+def configure_test_project_root(root: str | Path | None) -> None:
+    """Set the project root used when resolving external test artifacts."""
+    global _TEST_PROJECT_ROOT
+    _TEST_PROJECT_ROOT = Path(root) if root is not None else None
+
+
+def current_test_project_root() -> Path | None:
+    """Return the configured external test project root, if any."""
+    override = _state_dict().get("test_project_root")
+    if override is not None:
+        return Path(override)
+    return _TEST_PROJECT_ROOT
 
 
 def current_llm_provider(default: str = "anthropic") -> str:

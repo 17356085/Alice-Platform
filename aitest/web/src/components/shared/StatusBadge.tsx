@@ -26,28 +26,28 @@ interface StatusBadgeProps {
 const statusConfig: Record<Status, { label: string; className: string; dotClass: string }> = {
   success: {
     label: 'Success',
-    className: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    dotClass: 'bg-emerald-400',
+    className: 'bg-success/10 text-success border-success/20',
+    dotClass: 'bg-success',
   },
   running: {
     label: 'Running',
-    className: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-    dotClass: 'bg-cyan-400 animate-pulse',
+    className: 'bg-info/10 text-info border-info/20',
+    dotClass: 'bg-info animate-pulse',
   },
   pending: {
     label: 'Pending',
-    className: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    dotClass: 'bg-amber-400',
+    className: 'bg-warning/10 text-warning border-warning/20',
+    dotClass: 'bg-warning',
   },
   failed: {
     label: 'Failed',
-    className: 'bg-red-500/10 text-red-400 border-red-500/20',
-    dotClass: 'bg-red-400',
+    className: 'bg-destructive/10 text-destructive border-destructive/20',
+    dotClass: 'bg-destructive',
   },
   error: {
     label: 'Error',
-    className: 'bg-red-500/10 text-red-400 border-red-500/20',
-    dotClass: 'bg-red-400',
+    className: 'bg-destructive/10 text-destructive border-destructive/20',
+    dotClass: 'bg-destructive',
   },
   idle: {
     label: 'Idle',
@@ -56,13 +56,13 @@ const statusConfig: Record<Status, { label: string; className: string; dotClass:
   },
   warning: {
     label: 'Warning',
-    className: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    dotClass: 'bg-amber-400',
+    className: 'bg-warning/10 text-warning border-warning/20',
+    dotClass: 'bg-warning',
   },
   info: {
     label: 'Info',
-    className: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    dotClass: 'bg-blue-400',
+    className: 'bg-info/10 text-info border-info/20',
+    dotClass: 'bg-info',
   },
 }
 

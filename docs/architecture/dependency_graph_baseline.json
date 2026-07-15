@@ -1323,14 +1323,6 @@
       "target": "alice_engine.runtime"
     },
     {
-      "source": "alice_engine.core",
-      "sources": [
-        "alice_engine.core.path_utils",
-        "alice_engine.core.planner"
-      ],
-      "target": "alice_engine.workflow"
-    },
-    {
       "source": "alice_engine.drift_detector",
       "sources": [
         "alice_engine.drift_detector"
@@ -1406,13 +1398,6 @@
         "alice_engine.engine"
       ],
       "target": "alice_engine.workflow"
-    },
-    {
-      "source": "alice_engine.extension",
-      "sources": [
-        "alice_engine.extension"
-      ],
-      "target": "alice_engine.engine"
     },
     {
       "source": "alice_engine.extensions",
@@ -1510,7 +1495,8 @@
         "alice_engine.workflow.execution_graph",
         "alice_engine.workflow.nodes",
         "alice_engine.workflow.parallel",
-        "alice_engine.workflow.sop_runner"
+        "alice_engine.workflow.sop_runner",
+        "alice_engine.workflow.state"
       ],
       "target": "alice_engine.core"
     },
@@ -1577,20 +1563,11 @@
     "alice_engine.runtime_contracts",
     "alice_engine.workflow"
   ],
-  "sccs": [
-    [
-      "alice_engine.core",
-      "alice_engine.workflow"
-    ],
-    [
-      "alice_engine.engine",
-      "alice_engine.extension"
-    ]
-  ],
+  "sccs": [],
   "summary": {
-    "edge_count": 161,
-    "largest_scc_size": 2,
+    "edge_count": 159,
+    "largest_scc_size": 0,
     "node_count": 51,
-    "scc_count": 2
+    "scc_count": 0
   }
 }

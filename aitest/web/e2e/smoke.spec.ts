@@ -193,7 +193,7 @@ test.describe('Alice Studio real user paths', () => {
     const download = page.waitForEvent('download')
     await downloadLink.click()
     await expect((await download).suggestedFilename()).toBe('result.md')
-    await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: 'http://127.0.0.1:15173' })
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(page.url()).origin })
     await page.locator('main').getByRole('button', { name: 'Copy result.md path', exact: true }).click()
     await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('reports/result.md')
   })

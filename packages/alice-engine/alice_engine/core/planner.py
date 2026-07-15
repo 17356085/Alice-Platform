@@ -380,8 +380,8 @@ def build_user_input(
         page_name = slug_to_page_name(page)
         page_underscore = page_slug_to_underscore(page)
 
-        from alice_engine.workflow.state import get_test_project_root
-        zjsn = get_test_project_root()
+        from alice_engine.core.runtime_environment import current_test_project_root
+        zjsn = current_test_project_root()
 
         if zjsn:
             po_path = zjsn / "page" / f"{module}_page" / f"{page_name}Page.py"

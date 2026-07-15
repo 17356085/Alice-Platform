@@ -4,6 +4,7 @@ import { Network, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/shared'
 
 interface GraphNode {
   id: string; label: string; group: string; x: number; y: number; r: number
@@ -42,7 +43,7 @@ const EDGES: GraphEdge[] = [
 ]
 
 const GROUP_COLORS: Record<string, string> = {
-  module: '#7360E8', issue: '#E05050', pattern: '#2EA868',
+  module: 'hsl(var(--primary))', issue: 'hsl(var(--destructive))', pattern: 'hsl(var(--success))',
 }
 
 export default function KnowledgeGraphView() {
@@ -53,13 +54,9 @@ export default function KnowledgeGraphView() {
   }), [])
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold flex items-center gap-2">
-          <Network size={20} /> 知识图谱
-        </h1>
-        <div className="flex items-center gap-2">
-          <div className="flex gap-2 mr-4">
+    <div className="mx-auto flex max-w-6xl flex-col gap-5 p-4 sm:p-6">
+      <PageHeader title="知识图谱" description="查看模块、已知问题与定位器模式之间的关联。" actions={<div className="flex items-center gap-2">
+          <div className="hidden gap-2 mr-4 sm:flex">
             {Object.entries(GROUP_COLORS).map(([k, c]) => (
               <div key={k} className="flex items-center gap-1 text-[10px] text-muted-foreground">
                 <span className="w-2 h-2 rounded-full" style={{ background: c }} />
@@ -67,21 +64,19 @@ export default function KnowledgeGraphView() {
               </div>
             ))}
           </div>
-          <Button variant="outline" size="sm" className="text-xs gap-1">
-            <ZoomIn size={13} />
+          <Button variant="outline" size="icon" aria-label="放大">
+            <ZoomIn />
           </Button>
-          <Button variant="outline" size="sm" className="text-xs gap-1">
-            <ZoomOut size={13} />
+          <Button variant="outline" size="icon" aria-label="缩小">
+            <ZoomOut />
           </Button>
-          <Button variant="outline" size="sm" className="text-xs gap-1">
-            <RotateCcw size={13} /> Reset
+          <Button variant="outline" size="sm" className="gap-1"><RotateCcw data-icon="inline-start" />重置
           </Button>
-        </div>
-      </div>
+        </div>} />
 
       <Card className="overflow-hidden">
         <CardContent className="p-0">
-          <svg viewBox="0 0 800 400" className="w-full h-[500px] bg-card">
+          <svg viewBox="0 0 800 400" className="h-[360px] w-full bg-card sm:h-[500px]">
             {/* Edge lines */}
             {edges.map((e, i) => (
               <line key={i} x1={e.from.x} y1={e.from.y} x2={e.to.x} y2={e.to.y}
@@ -112,7 +107,7 @@ export default function KnowledgeGraphView() {
       </Card>
 
       {/* Legend card */}
-      <div className="mt-4 grid grid-cols-3 gap-3">
+      <div className="grid gap-3 sm:grid-cols-3">
         <Card className="p-3 text-center">
           <div className="text-xs text-muted-foreground mb-1">模块节点</div>
           <div className="text-sm font-semibold">{NODES.filter(n => n.group === 'module').length}</div>

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils'
+import { EmptyState, PageHeader } from '@/components/shared'
 
 const COLOR_VARIANTS: Record<string, string> = {
   success: 'success', warning: 'warning', destructive: 'destructive',
@@ -43,28 +44,29 @@ export default function TimelineView() {
   }
 
   return (
-    <div className="p-6 max-w-[960px]">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold flex items-center gap-2"><Clock size={20} /> 时间线</h1>
-        {events.length > 0 && (
-          <Button variant="ghost" size="sm" onClick={clear} className="text-muted-foreground text-xs gap-1">
-            <Trash2 size={12} /> Clear
-          </Button>
-        )}
+    <div className="mx-auto flex max-w-5xl flex-col gap-5 p-4 sm:p-6">
+      <PageHeader
+        eyebrow="Execution evidence"
+        title="时间线"
+        description="按阶段、Artifact 和异常事件回看 Agent 的执行过程。"
+        actions={events.length > 0 ? <Button variant="outline" size="sm" onClick={clear}><Trash2 data-icon="inline-start" />清空</Button> : undefined}
+      />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground"><Clock className="size-4" />筛选</div>
       </div>
 
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex flex-col gap-3 rounded-lg border border-border bg-card/50 p-3 sm:flex-row sm:items-center">
         <Select value={modFilter} onValueChange={setModFilter}>
-          <SelectTrigger className="w-[180px] h-8 text-xs"><SelectValue placeholder="All Modules" /></SelectTrigger>
+          <SelectTrigger className="h-9 w-full text-xs sm:w-[180px]"><SelectValue placeholder="All Modules" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Modules</SelectItem>
             {moduleList.slice(1).map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
           </SelectContent>
         </Select>
-        <div className="flex gap-1 flex-wrap">
+        <div className="flex flex-wrap gap-1">
           {(['all', 'phase_start', 'phase_complete', 'error', 'warning', 'artifact_created'] as const).map(t => (
             <Badge key={t} variant={typeFilter === t ? (COLOR_VARIANTS[t] as BadgeVariant) || 'secondary' : 'outline'}
-              className="cursor-pointer text-[10px]" onClick={() => setTypeFilter(typeFilter === t ? 'all' : t)}>
+              className="cursor-pointer text-[10px]" onClick={() => setTypeFilter(typeFilter === t ? 'all' : t)} role="button" tabIndex={0} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') setTypeFilter(typeFilter === t ? 'all' : t) }}>
               {t === 'all' ? 'All' : TYPE_LABELS[t]}
             </Badge>
           ))}
@@ -72,14 +74,7 @@ export default function TimelineView() {
       </div>
 
       {filtered.length === 0 ? (
-        <Card className="text-center py-16">
-          <CardContent>
-            <Clock size={48} className="mx-auto mb-4 opacity-15" />
-            <p className="text-sm text-muted-foreground">
-              {events.length === 0 ? '暂无事件 — 运行 SOP 后此处将显示 Agent 活动时间线' : '无匹配事件'}
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState icon={Clock} title={events.length === 0 ? '暂无执行事件' : '没有匹配的事件'} description={events.length === 0 ? '运行 SOP 后，这里会显示 Agent 的阶段、Artifact 和异常活动。' : '尝试调整模块或事件类型筛选。'} />
       ) : (
         <div className="relative pl-8">
           <div className="absolute left-[15px] top-2 bottom-2 w-px bg-border" />

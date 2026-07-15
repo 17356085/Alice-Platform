@@ -6,6 +6,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '@/api/client'
 import { Clock, Cpu, Database, Activity, Wifi, HardDrive, RefreshCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { PageHeader, ErrorState, LoadingState } from '@/components/shared'
 
 interface Snapshot {
   timestamp: string
@@ -28,7 +31,7 @@ const TAB_LABELS: Record<string, string> = {
 
 function StatCard({ label, value, unit, sub }: { label: string; value: string | number; unit?: string; sub?: string }) {
   return (
-    <div className="bg-card border border-border rounded-lg p-4">
+    <div className="rounded-lg border border-border bg-card p-4">
       <div className="text-xs text-muted-foreground mb-1">{label}</div>
       <div className="text-2xl font-bold font-mono">
         {value}<span className="text-sm font-normal text-muted-foreground ml-1">{unit ?? ''}</span>
@@ -66,9 +69,8 @@ export default function ObservabilityView() {
 
   if (!snap) {
     return (
-      <div className="p-6 text-center text-muted-foreground">
-        <Activity size={48} className="mx-auto mb-4 opacity-20" />
-        {error ? `Error: ${error}` : 'Loading...'}
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 p-4 sm:p-6">
+        {error ? <ErrorState message={error} action={<Button variant="outline" size="sm" onClick={() => void fetchSnapshot()}>重试</Button>} /> : <LoadingState rows={6} />}
       </div>
     )
   }
@@ -76,30 +78,16 @@ export default function ObservabilityView() {
   const { memory, threads, tasks, queue, gc, websocket, sqlite } = snap
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="mx-auto flex max-w-7xl flex-col gap-5 p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold flex items-center gap-2">
-          <Activity size={20} /> Observability
-        </h1>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <label className="flex items-center gap-1 cursor-pointer">
-            <input type="checkbox" checked={autoRefresh} onChange={e => setAutoRefresh(e.target.checked)} />
-            Auto-refresh
-          </label>
-          <button onClick={fetchSnapshot} className="p-1 hover:text-white transition-colors" title="Refresh now">
-            <RefreshCw size={14} />
-          </button>
-          <span className="font-mono">{new Date(snap.timestamp).toLocaleTimeString()}</span>
-        </div>
-      </div>
+      <PageHeader title="Observability" description="查看内存、任务、队列和 WebSocket 的实时运行状态。" actions={<div className="flex items-center gap-3 text-xs text-muted-foreground"><label className="flex items-center gap-2"><Checkbox checked={autoRefresh} onCheckedChange={value => setAutoRefresh(value === true)} />自动刷新</label><Button variant="outline" size="icon" onClick={() => void fetchSnapshot()} aria-label="刷新"><RefreshCw /></Button><span className="font-mono">{new Date(snap.timestamp).toLocaleTimeString()}</span></div>} />
 
       {/* Tabs */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {TABS.map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center gap-2 ${
-              tab === t ? 'bg-primary text-primary-foreground border-primary' : 'bg-card border-border hover:bg-accent'
+            className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+              tab === t ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card hover:bg-accent'
             }`}>
             {TAB_ICONS[t]}{TAB_LABELS[t]}
           </button>
@@ -150,7 +138,7 @@ export default function ObservabilityView() {
                     <span className="text-muted-foreground">{g.value} / {g.threshold}</span>
                   </div>
                   <div className="h-2 bg-sidebar rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full transition-all ${g.pct > 80 ? 'bg-destructive' : g.pct > 50 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                    <div className={`h-full rounded-full transition-all ${g.pct > 80 ? 'bg-destructive' : g.pct > 50 ? 'bg-warning' : 'bg-success'}`}
                       style={{ width: `${Math.min(g.pct, 100)}%` }} />
                   </div>
                 </div>
@@ -175,8 +163,8 @@ export default function ObservabilityView() {
             <h3 className="text-sm font-semibold mb-3">Task Breakdown</h3>
             <div className="space-y-3">
               {[
-                { label: 'Pending', value: tasks.pending, color: 'bg-amber-500' },
-                { label: 'Done', value: tasks.done, color: 'bg-emerald-500' },
+                { label: 'Pending', value: tasks.pending, color: 'bg-warning' },
+                { label: 'Done', value: tasks.done, color: 'bg-success' },
               ].map(t => (
                 <div key={t.label} className="flex items-center gap-3">
                   <span className="text-xs w-16">{t.label}</span>

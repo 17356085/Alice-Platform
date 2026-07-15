@@ -42,7 +42,7 @@ def test_dependency_graph_keeps_platform_seams_one_way():
     assert ("aitest.testing", "aitest.audit_engine") not in edges
     assert ("aitest.mcp", "aitest.platform") not in edges
     assert ("aitest.platform", "aitest.llm") not in edges
-    assert report["summary"]["largest_scc_size"] == 2
+    assert report["summary"]["largest_scc_size"] == 0
 
 
 def test_runtime_contract_is_composed_by_platform_without_reverse_imports():

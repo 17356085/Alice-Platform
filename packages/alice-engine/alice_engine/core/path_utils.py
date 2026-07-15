@@ -7,8 +7,11 @@
 import os
 from pathlib import Path
 
-from alice_engine.core.runtime_environment import current_context_modules, current_workstudy
-from alice_engine.workflow.state import get_test_project_root
+from alice_engine.core.runtime_environment import (
+    current_context_modules,
+    current_test_project_root,
+    current_workstudy,
+)
 
 # 向后兼容：executor_impl.py / runtime_context_builder.py 仍以模块级常量方式导入。
 # 这些值在模块加载时求值一次（与旧版行为一致），线程局部覆盖 (runtime_environment_scope)
@@ -16,6 +19,11 @@ from alice_engine.workflow.state import get_test_project_root
 _WORKSTUDY: Path = current_workstudy()
 _CONTEXT_MODULES: Path = current_context_modules()
 _GOVERNANCE: Path = _WORKSTUDY / "governance"
+
+
+def get_test_project_root() -> Path | None:
+    """Compatibility export backed by the shared runtime context."""
+    return current_test_project_root()
 
 
 def _get_project_dir() -> Path:
@@ -53,7 +61,7 @@ def resolve_artifact_path(
     resolved = resolved.replace("{page}", page_slug)
     resolved = resolved.replace("{PageName}", page_name)
     resolved = resolved.replace("{page_underscore}", page_slug_to_underscore(page_slug))
-    zjsn = get_test_project_root()
+    zjsn = current_test_project_root()
     if zjsn:
         resolved = resolved.replace("{test_project_root}", str(zjsn))
     return resolved

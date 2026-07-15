@@ -2,12 +2,16 @@
 import { useEffect } from 'react'
 import { useGapScanner, type TestGap } from '@/hooks/useGapScanner'
 import { Search, AlertTriangle, RefreshCw, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
+import { EmptyState, PageHeader } from '@/components/shared'
 
 const severityColors: Record<string, string> = {
-  critical: 'bg-red-100 text-red-800 border-red-300',
-  high: 'bg-orange-100 text-orange-800 border-orange-300',
-  medium: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  low: 'bg-blue-100 text-blue-800 border-blue-300',
+  critical: 'bg-destructive/10 text-destructive border-destructive/20',
+  high: 'bg-warning/10 text-warning border-warning/20',
+  medium: 'bg-warning/10 text-warning border-warning/20',
+  low: 'bg-info/10 text-info border-info/20',
 }
 
 const typeIcons: Record<string, string> = {
@@ -28,35 +32,28 @@ export default function GapDiscoveryView() {
   }, []) // auto-scan on mount
 
   return (
-    <div className="p-6 max-w-1200">
+    <div className="mx-auto flex max-w-6xl flex-col gap-5 p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold flex items-center gap-2">
-          <Search size={20} /> 缺口发现
-        </h1>
-        <button onClick={scan} disabled={scanning} className="btn-outline text-xs flex items-center gap-1.5">
-          <RefreshCw size={13} className={scanning ? 'animate-spin' : ''} /> {scanning ? '扫描中...' : '重新扫描'}
-        </button>
-      </div>
+      <PageHeader title="缺口发现" description="扫描模块覆盖与失败模式，优先处理最影响质量闭环的测试缺口。" actions={<Button variant="outline" size="sm" onClick={() => void scan()} disabled={scanning}><RefreshCw data-icon="inline-start" className={scanning ? 'animate-spin' : ''} />{scanning ? '扫描中…' : '重新扫描'}</Button>} />
 
       {/* Stats */}
       {allGaps.length > 0 && (
         <div className="flex gap-4 mb-4 text-xs text-muted-foreground">
           <span>{stats.total} 个缺口</span>
-          <span className="text-red-500 font-semibold">{stats.critical} 严重</span>
-          <span className="text-orange-500 font-semibold">{stats.high} 高</span>
+          <span className="font-semibold text-destructive">{stats.critical} 严重</span>
+          <span className="font-semibold text-warning">{stats.high} 高</span>
         </div>
       )}
 
       {/* Progress */}
       {scanning && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+        <div className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
           <RefreshCw size={14} className="animate-spin" /> {progress}
         </div>
       )}
 
       {/* Filters */}
-      <div className="flex gap-2 mb-4 flex-wrap">
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card/50 p-3">
         <button onClick={() => setSelectedType('all')} className={`filter-chip ${selectedType === 'all' ? 'active' : ''}`}>全部</button>
         <button onClick={() => setSelectedType('missing_test')} className={`filter-chip ${selectedType === 'missing_test' ? 'active' : ''}`}>❌ 缺失测试</button>
         <button onClick={() => setSelectedType('missing_type')} className={`filter-chip ${selectedType === 'missing_type' ? 'active' : ''}`}>⚠️ 缺失类型</button>
@@ -64,20 +61,16 @@ export default function GapDiscoveryView() {
         <button onClick={() => setSelectedType('flaky_test')} className={`filter-chip ${selectedType === 'flaky_test' ? 'active' : ''}`}>🔄 不稳定</button>
         <button onClick={() => setSelectedType('untested_component')} className={`filter-chip ${selectedType === 'untested_component' ? 'active' : ''}`}>🧩 未测组件</button>
         <div className="flex-1" />
-        <label className="flex items-center gap-1 text-xs cursor-pointer">
-          <input type="checkbox" checked={showDismissed} onChange={e => setShowDismissed(e.target.checked)} />
+          <label className="flex items-center gap-2 text-xs">
+          <Checkbox checked={showDismissed} onCheckedChange={value => setShowDismissed(value === true)} />
           显示已忽略
         </label>
-        <button onClick={dismissAll} className="text-xs text-muted-foreground hover:text-destructive">全部忽略</button>
+          <Button variant="ghost" size="sm" onClick={dismissAll} className="text-xs text-muted-foreground hover:text-destructive">全部忽略</Button>
       </div>
 
       {/* Gap list */}
       {gaps.length === 0 && !scanning ? (
-        <div className="text-center py-16 text-muted-foreground text-sm">
-          <AlertTriangle size={48} className="mx-auto mb-4 opacity-20" />
-          <p>未发现缺口</p>
-          <span className="text-xs">所有模块测试覆盖充足。</span>
-        </div>
+        <EmptyState icon={AlertTriangle} title="未发现缺口" description="所有模块测试覆盖充足，或当前筛选条件没有结果。" />
       ) : (
         <div className="space-y-3">
           {gaps.map(gap => (
@@ -105,14 +98,14 @@ function GapCard({ gap, onDismiss, onConvert, onArchive }: {
   const icon = typeIcons[gap.type] || '📌'
 
   return (
-    <div className="glass-card !rounded-xl p-4">
+    <div className="rounded-lg border border-border bg-card p-4">
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-lg">{icon}</span>
           <div>
             <div className="font-semibold text-sm">{gap.title}</div>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-semibold ${sev}`}>{gap.severity.toUpperCase()}</span>
+              <Badge variant="outline" className={`text-[10px] ${sev}`}>{gap.severity.toUpperCase()}</Badge>
               <span className="text-[11px] text-muted-foreground">{gap.module}</span>
               <span className="text-[11px] text-muted-foreground">⏱ {gap.estimatedEffort}</span>
             </div>

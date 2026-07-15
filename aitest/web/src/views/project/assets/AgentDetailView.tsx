@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import { EmptyState, PageHeader } from '@/components/shared'
 
 const AGENT_META: Record<string, { label: string; desc: string; caps: string[] }> = {
   'project-agent':       { label: 'Project Agent',      desc: 'Initializes project context and validates module structure.', caps: ['Context','Validation'] },
@@ -56,24 +57,9 @@ export default function AgentDetailView() {
   const successRate = stats.total > 0 ? Math.round(stats.completed / stats.total * 100) : 0
 
   return (
-    <div className="p-6 max-w-[1000px]">
+    <div className="mx-auto flex max-w-5xl flex-col gap-5 p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center',
-          `bg-${agentColor[agent] || 'secondary'}`)}>
-          <Bot size={20} className="text-white" />
-        </div>
-        <div>
-          <h1 className="text-xl font-bold">{meta.label}</h1>
-          <p className="text-xs text-muted-foreground">{meta.desc}</p>
-        </div>
-        <div className="flex-1" />
-        <Link to={`/projects/${pid || 'default'}/timeline`}>
-          <Button variant="outline" size="sm" className="gap-1 text-xs">
-            <Clock size={13} /> 查看时间线
-          </Button>
-        </Link>
-      </div>
+      <PageHeader title={meta.label} description={meta.desc} actions={<Link to={`/projects/${pid || 'default'}/timeline`}><Button variant="outline" size="sm"><Clock data-icon="inline-start" />查看时间线</Button></Link>} />
 
       {/* Capability tags */}
       <div className="flex gap-1.5 mb-6">
@@ -83,7 +69,7 @@ export default function AgentDetailView() {
       </div>
 
       {/* Metrics grid */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard icon={CheckCircle} value={`${successRate}%`} label="成功率" color="text-success" />
         <MetricCard icon={Activity} value={stats.total} label="执行次数" color="text-info" />
         <MetricCard icon={Zap} value={(stats.totalTokens).toLocaleString()} label="Tokens" color="text-warning" />
@@ -97,7 +83,7 @@ export default function AgentDetailView() {
           <CardHeader><CardTitle className="text-sm">最近执行</CardTitle></CardHeader>
           <CardContent>
             {agentEvents.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-8">暂无执行记录</p>
+              <EmptyState title="暂无执行记录" description="当该 Agent 参与运行后，事件会显示在这里。" />
             ) : (
               <div className="space-y-2">
                 {agentEvents.slice(0, 10).map(e => (

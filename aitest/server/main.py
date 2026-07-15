@@ -15,8 +15,10 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-# Windows: SelectorEventLoop avoids SSE disconnect errors on ProactorEventLoop
-if sys.platform == "win32":
+# Windows: SelectorEventLoop avoids SSE disconnect errors on older Python
+# versions. Python 3.14 deprecates the policy API, so keep the platform
+# default there and let uvicorn manage the event loop.
+if sys.platform == "win32" and sys.version_info < (3, 14):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 from fastapi import FastAPI, HTTPException, Request
@@ -542,4 +544,9 @@ if _DIST_DIR.is_dir():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    host = os.environ.get("AITEST_SERVER_HOST", "0.0.0.0")
+    try:
+        port = int(os.environ.get("AITEST_SERVER_PORT", "8000"))
+    except ValueError as exc:
+        raise SystemExit("AITEST_SERVER_PORT must be an integer") from exc
+    uvicorn.run(app, host=host, port=port)

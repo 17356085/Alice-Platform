@@ -14,6 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from '@/components/ui/sheet'
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Markdown from '@/components/Markdown'
+import { EmptyState, ErrorState, LoadingState, PageHeader } from '@/components/shared'
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -52,12 +54,12 @@ const TYPE_ICON: Record<string, typeof FileText> = {
 }
 
 const TYPE_COLOR: Record<string, string> = {
-  'text/markdown': 'text-blue-400',
-  'text/x-python': 'text-emerald-400',
-  'application/json': 'text-amber-400',
-  'text/html': 'text-orange-400',
-  'image/png': 'text-purple-400',
-  'image/jpeg': 'text-purple-400',
+  'text/markdown': 'text-info',
+  'text/x-python': 'text-success',
+  'application/json': 'text-warning',
+  'text/html': 'text-primary',
+  'image/png': 'text-primary',
+  'image/jpeg': 'text-primary',
 }
 
 function fileIcon(mime: string) {
@@ -81,6 +83,7 @@ export default function ArtifactsView() {
 
   const [artifacts, setArtifacts] = useState<ArtifactItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'file' | 'run_artifact'>('all')
   const [selected, setSelected] = useState<ArtifactItem | null>(null)
@@ -91,10 +94,11 @@ export default function ArtifactsView() {
   // Fetch artifact list
   const fetchArtifacts = useCallback(async () => {
     setLoading(true)
+    setError('')
     try {
       const data = await api.get<{ artifacts: ArtifactItem[] }>(`/api/v1/kpi/artifacts/${projectId}/all`)
       setArtifacts(data.artifacts || [])
-    } catch { setArtifacts([]) }
+    } catch (e: unknown) { setArtifacts([]); setError(e instanceof Error ? e.message : '无法加载产物列表') }
     finally { setLoading(false) }
   }, [projectId])
 
@@ -141,11 +145,9 @@ export default function ArtifactsView() {
   // ── Loading ──
   if (loading) {
     return (
-      <div className="p-6 h-full flex flex-col">
-        <div className="flex items-center gap-2 mb-6"><Skeleton className="h-7 w-32" /></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {Array.from({ length: 9 }).map((_, i) => <Skeleton key={i} className="h-20" />)}
-        </div>
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 p-4 sm:p-6">
+        <Skeleton className="h-16 w-full" />
+        <LoadingState rows={8} />
       </div>
     )
   }
@@ -153,28 +155,19 @@ export default function ArtifactsView() {
   // ── Empty ──
   if (artifacts.length === 0) {
     return (
-      <div className="p-6 h-full flex flex-col">
-        <h1 className="text-xl font-bold mb-6 flex items-center gap-2"><FolderOpen size={20} /> 产物</h1>
-        <Card className="text-center py-16 flex-1">
-          <CardContent>
-            <FolderOpen size={48} className="mx-auto mb-4 opacity-20" />
-            <p className="text-sm text-muted-foreground">No artifacts yet. Run SOP to generate.</p>
-          </CardContent>
-        </Card>
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 p-4 sm:p-6">
+        <PageHeader title="产物中心" description="浏览 SOP 文档与运行过程中生成的截图、报告和结构化证据。" actions={<Button variant="outline" size="sm" onClick={() => void fetchArtifacts()}><Clock data-icon="inline-start" />刷新</Button>} />
+        {error ? <ErrorState message={error} action={<Button variant="outline" size="sm" onClick={() => void fetchArtifacts()}>重试</Button>} /> : <EmptyState icon={FolderOpen} title="还没有产物" description="运行 SOP 后，生成的文档、截图和报告会出现在这里。" />}
       </div>
     )
   }
 
   // ── Main ──
   return (
-    <div className="p-6 h-[calc(100vh-100px)] flex flex-col">
+    <div className="mx-auto flex h-full max-w-7xl flex-col gap-5 p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-4 shrink-0">
-        <h1 className="text-xl font-bold flex items-center gap-2"><FolderOpen size={20} /> 产物</h1>
-        <Badge variant="secondary" className="text-[10px]">{artifacts.length} items</Badge>
-        <div className="flex-1" />
-        <Button variant="ghost" size="icon" onClick={fetchArtifacts} title="Refresh"><Clock size={14} /></Button>
-      </div>
+      <PageHeader title="产物中心" description="按模块、来源和文件名定位测试证据。" actions={<><Badge variant="secondary">{artifacts.length} 项</Badge><Button variant="outline" size="sm" onClick={() => void fetchArtifacts()}><Clock data-icon="inline-start" />刷新</Button></>} />
+      {error ? <ErrorState message={error} action={<Button variant="outline" size="sm" onClick={() => void fetchArtifacts()}>重试</Button>} /> : null}
 
       {/* Filters */}
       <div className="flex items-center gap-3 mb-4 shrink-0 flex-wrap">
@@ -193,11 +186,10 @@ export default function ArtifactsView() {
           )}
         </div>
 
-        <select value={moduleFilter} onChange={e => setModuleFilter(e.target.value)}
-          className="h-8 text-xs border border-border rounded-md bg-background px-2">
-          <option value="">All Modules</option>
-          {modules.map(m => <option key={m} value={m}>{m}</option>)}
-        </select>
+        <Select value={moduleFilter || 'all'} onValueChange={value => setModuleFilter(value === 'all' ? '' : value)}>
+          <SelectTrigger className="h-8 w-full text-xs sm:w-[180px]"><SelectValue placeholder="All Modules" /></SelectTrigger>
+          <SelectContent><SelectItem value="all">All Modules</SelectItem>{modules.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+        </Select>
 
         <div className="flex gap-1">
           {(['all', 'file', 'run_artifact'] as const).map(t => (
@@ -216,7 +208,7 @@ export default function ArtifactsView() {
           </button>
         )}
 
-        <span className="text-[11px] text-muted-foreground ml-auto">{filtered.length} results</span>
+        <span className="text-[11px] text-muted-foreground sm:ml-auto">{filtered.length} results</span>
       </div>
 
       {/* Artifact grid */}
@@ -275,9 +267,7 @@ export default function ArtifactsView() {
           ))}
         </div>
 
-        {filtered.length === 0 && (
-          <div className="text-center py-16 text-muted-foreground text-sm">No artifacts match filters.</div>
-        )}
+        {filtered.length === 0 && <EmptyState className="mt-3" icon={Search} title="没有匹配的产物" description="尝试清除搜索词或调整来源、模块筛选。" />}
       </ScrollArea>
 
       {/* Detail Sheet */}

@@ -3,6 +3,60 @@
 > Architecture Freeze v1.0 已结束。Alice 从 Architecture Builder 切换为 Product Engineer。
 > 目标：从"能运行"变成"好用、好看、好理解"。
 
+## UI 改造基线（2026-07-15）
+
+Alice 是 Testing-first QA Agent Builder Platform：核心工作不是单纯查看测试结果，而是从失败 Run 中定位原因、保存样本、改进 Agent，并用 Evaluation 数据决定是否发布。
+
+### 四主题系统
+
+产品保留四个来自《魔法使之夜》参考系的主题：
+
+| Theme | 角色/气质 | 使用规则 |
+|---|---|---|
+| Mahotsukai | 冬夜基底、克制、知性 | 默认主题，承担平台整体基线 |
+| Alice | 静谧、冷静、仪式感 | 低饱和紫与月光金，强调观察与分析 |
+| Aoko | 明快、直率、动能 | 蓝色作为主操作色，橙色只用于重要状态 |
+| Soujuurou | 素直、温厚、自然 | 森林绿与土色作为低刺激状态色 |
+
+四个主题共享同一套布局、组件、状态语义和交互行为。主题只改变 token、色温、圆角和动效节奏，不改变信息架构。
+
+### 页面设计规范
+
+- 每个页面只有一个首要任务和一个主操作；危险操作必须降级并明确确认。
+- Dashboard 使用高密度分区布局；详情页优先时间线、证据和可追溯关系；表单页保持单列阅读流。
+- 优先使用 `bg-background`、`bg-card`、`text-foreground`、`text-muted-foreground`、`bg-primary`、`border-border` 等语义 token。
+- 禁止在页面中直接堆叠 `bg-blue-*`、`text-gray-*` 等状态颜色；状态颜色集中由 Badge/StatusBadge 管理。
+- 卡片只用于有边界的内容组，不嵌套 Card，不将每个统计值都包装成相同的大卡片。
+- 使用 `gap-*` 管理间距；禁止用重复的 `space-y-*` 拼装复杂布局。
+- 字体采用单一 UI sans；代码、Run ID、Token、时间等技术信息使用等宽字体。
+- 标题层级固定：页面标题、区块标题、字段标签、辅助说明四级，不使用无意义的全大写 eyebrow。
+- 动效只表达加载、状态变化、反馈和导航；必须支持 `prefers-reduced-motion`。
+
+### 统一状态规范
+
+- Loading：使用 Skeleton，保持布局尺寸稳定；不使用内容区域中孤立的旋转图标代替结构占位。
+- Empty：说明当前没有什么、为什么为空、下一步可以做什么；避免只显示“暂无数据”。
+- Error：使用 Alert/role=alert，说明影响、原因和可执行的重试动作。
+- Success：优先使用 inline 状态或 Toast；Toast 只用于短暂反馈，不承载关键内容。
+- Disabled：保留可读性，并通过辅助说明解释不可用原因。
+- 表单校验同时提供字段级错误、`aria-invalid` 和提交级错误。
+
+### 响应式规则
+
+- 桌面端侧栏可收缩；窄屏侧栏变为 Sheet/Drawer。
+- 表格在窄屏允许横向滚动，但首列与关键状态必须优先可见。
+- 两列详情布局在移动端按“主要内容 → 状态/元数据 → 次要操作”顺序堆叠。
+- 任何长标题、Run ID、路径、错误信息都必须截断或换行，不允许撑破视口。
+- Dialog、Popover、Dropdown 必须通过 portal 渲染，不能被滚动容器裁剪。
+
+### 禁止事项
+
+- 不滥用渐变、玻璃拟态、霓虹 glow 或大面积高饱和色。
+- 不嵌套 Card，不把所有内容都放进 Card，不制作相同尺寸的无意义卡片矩阵。
+- 不手写重复的 Button、Badge、Dialog、Toast、Empty、Skeleton、表格状态组件。
+- 不修改 Frozen Core、后端接口契约或已有 API/Store 数据流来换取视觉效果。
+- 不为装饰添加页面加载编排动画，不让动效阻塞内容出现。
+
 ---
 
 ## 总原则

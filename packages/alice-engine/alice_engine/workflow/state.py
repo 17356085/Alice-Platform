@@ -17,10 +17,14 @@ import operator
 # ══════════════════════════════════════════════════════════════════════════
 
 import os
+from alice_engine.core.runtime_environment import (
+    configure_test_project_root,
+    current_test_project_root,
+)
+
 # v3.1: 使用环境变量，避免 CWD 依赖
 _PATH_BASE: Path = Path(os.environ.get("AITEST_WORKSTUDY", "."))
 _CONTEXT_MODULES: Path = _PATH_BASE / "context"
-_TEST_PROJECT_ROOT: Path | None = None
 _BEHAVIOR_PACK = None  # alice_engine.behavior.BehaviorPack
 
 
@@ -34,10 +38,10 @@ def resolve_default_provider() -> str:
 def configure_paths(workstudy: Path, context_modules: Path = None,
                     test_project_root: Path = None):
     """配置路径（由 Engine 初始化时调用）。"""
-    global _PATH_BASE, _CONTEXT_MODULES, _TEST_PROJECT_ROOT
+    global _PATH_BASE, _CONTEXT_MODULES
     _PATH_BASE = workstudy
     _CONTEXT_MODULES = context_modules or workstudy / "context"
-    _TEST_PROJECT_ROOT = test_project_root
+    configure_test_project_root(test_project_root)
 
 
 def configure_behavior_pack(pack):
@@ -53,7 +57,7 @@ def get_behavior_pack():
 
 def get_test_project_root() -> Path | None:
     """获取测试项目根目录。"""
-    return _TEST_PROJECT_ROOT
+    return current_test_project_root()
 
 
 def get_module_dir(module: str, project_id: str = None) -> Path:
