@@ -487,13 +487,6 @@
     {
       "source": "aitest.mcp",
       "sources": [
-        "aitest.mcp.database"
-      ],
-      "target": "aitest.platform"
-    },
-    {
-      "source": "aitest.mcp",
-      "sources": [
         "aitest.mcp.browser_server",
         "aitest.mcp.config",
         "aitest.mcp.tools.gate_checker",
@@ -612,13 +605,6 @@
         "aitest.platform.sdk_ports"
       ],
       "target": "aitest.knowledge"
-    },
-    {
-      "source": "aitest.platform",
-      "sources": [
-        "aitest.platform.complexity.classifier"
-      ],
-      "target": "aitest.llm"
     },
     {
       "source": "aitest.platform",
@@ -916,24 +902,10 @@
     {
       "source": "aitest.testing",
       "sources": [
-        "aitest.testing.regression"
-      ],
-      "target": "aitest.audit_engine"
-    },
-    {
-      "source": "aitest.testing",
-      "sources": [
         "aitest.testing.bug_history",
         "aitest.testing.regression"
       ],
       "target": "aitest.infra"
-    },
-    {
-      "source": "aitest.testing",
-      "sources": [
-        "aitest.testing.evaluator_judge"
-      ],
-      "target": "aitest.llm"
     },
     {
       "source": "aitest.testing",
@@ -974,6 +946,7 @@
     {
       "source": "aitest.tests",
       "sources": [
+        "aitest.tests.platform.test_dependency_seams",
         "aitest.tests.test_daily_report",
         "aitest.tests.test_sop_optimizer"
       ],
@@ -1076,6 +1049,7 @@
         "aitest.tests.agents.test_agent_runner_loop",
         "aitest.tests.agents.test_skill_executor",
         "aitest.tests.conftest",
+        "aitest.tests.platform.test_dependency_seams",
         "aitest.tests.platform.test_provider_adapter",
         "aitest.tests.test_provider_base"
       ],
@@ -1086,7 +1060,8 @@
       "sources": [
         "aitest.tests.mcp.test_mcp_client_degradation",
         "aitest.tests.mcp.test_mcp_core",
-        "aitest.tests.mcp.test_mcp_server_resource"
+        "aitest.tests.mcp.test_mcp_server_resource",
+        "aitest.tests.platform.test_dependency_seams"
       ],
       "target": "aitest.mcp"
     },
@@ -1194,6 +1169,7 @@
     {
       "source": "aitest.tests",
       "sources": [
+        "aitest.tests.platform.test_dependency_seams",
         "aitest.tests.server.test_run_executor"
       ],
       "target": "aitest.testing"
@@ -1611,11 +1587,7 @@
   "sccs": [
     [
       "aitest.adapters",
-      "aitest.audit_engine",
-      "aitest.llm",
-      "aitest.mcp",
-      "aitest.platform",
-      "aitest.testing"
+      "aitest.audit_engine"
     ],
     [
       "alice_engine.core",
@@ -1627,8 +1599,8 @@
     ]
   ],
   "summary": {
-    "edge_count": 166,
-    "largest_scc_size": 6,
+    "edge_count": 162,
+    "largest_scc_size": 2,
     "node_count": 51,
     "scc_count": 3
   }

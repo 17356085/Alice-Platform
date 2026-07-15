@@ -28,3 +28,15 @@ def test_explicit_postgres_is_not_silently_changed(monkeypatch):
 
     monkeypatch.setenv("AITEST_DB_BACKEND", "postgres")
     assert database._detect_backend() == "postgres"
+
+
+def test_sqlite_recomputes_removed_cached_path(tmp_path, monkeypatch):
+    import aitest.infra.database_sqlite as database_sqlite
+
+    stale_path = tmp_path / "removed" / "aitest.db"
+    monkeypatch.setattr(database_sqlite, "_DB_PATH", stale_path)
+
+    resolved = database_sqlite._get_db_path()
+
+    assert resolved != stale_path
+    assert resolved.parent.exists()

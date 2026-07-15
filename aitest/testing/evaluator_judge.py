@@ -6,9 +6,24 @@ Extracted from evaluator.py for single-responsibility.
 import json
 import logging
 from dataclasses import dataclass, field
+from collections.abc import Callable
 from typing import Optional
 
 logger = logging.getLogger(__name__)
+
+_provider_factory: Callable | None = None
+
+
+def register_provider_factory(factory: Callable) -> None:
+    """Inject the LLM provider factory from the package composition root."""
+    global _provider_factory
+    _provider_factory = factory
+
+
+def _get_provider(provider: str):
+    if _provider_factory is None:
+        raise RuntimeError("LLM judge provider factory is not registered")
+    return _provider_factory(provider)
 
 
 class JudgeResult:
@@ -90,8 +105,7 @@ Respond in JSON format:
             judge_prompt += f"\n\nADDITIONAL RUBRIC:\n{rubric}"
 
         try:
-            from aitest.llm.provider import get_provider
-            llm = get_provider(self.provider)
+            llm = _get_provider(self.provider)
             response = llm.complete(
                 system_prompt=judge_prompt,
                 user_prompt="Evaluate the output. Respond with JSON only.",
@@ -436,15 +450,13 @@ Respond in JSON:
     def _judge_with_model(self, model: str, output: str, golden: str,
                           dims_text: str) -> dict:
         """用指定模型执行单次判断。"""
-        from aitest.llm.provider import get_provider
-
         prompt = self.ADVERSARIAL_PROMPT.format(
             dimensions=dims_text,
             output=output[:8000],
             golden=golden[:4000] if golden else "(no golden reference)",
         )
 
-        llm = get_provider(self.provider)
+        llm = _get_provider(self.provider)
         response = llm.complete(
             system_prompt=prompt,
             user_prompt="Evaluate and determine if the output should be refuted. Respond with JSON only.",

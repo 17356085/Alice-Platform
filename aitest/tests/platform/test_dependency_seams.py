@@ -38,7 +38,11 @@ def test_dependency_graph_keeps_platform_seams_one_way():
     assert ("aitest.runtime", "aitest.platform") not in edges
     assert ("aitest.runtime", "aitest.infra") not in edges
     assert ("aitest.discovery", "aitest.platform") not in edges
-    assert report["summary"]["largest_scc_size"] == 6
+    assert ("aitest.testing", "aitest.llm") not in edges
+    assert ("aitest.testing", "aitest.audit_engine") not in edges
+    assert ("aitest.mcp", "aitest.platform") not in edges
+    assert ("aitest.platform", "aitest.llm") not in edges
+    assert report["summary"]["largest_scc_size"] == 2
 
 
 def test_runtime_contract_is_composed_by_platform_without_reverse_imports():
@@ -73,3 +77,27 @@ def test_discovery_artifacts_use_injected_store_port(monkeypatch):
     assert calls[0][0] == "pages"
     assert calls[0][1][0]["id"] == "home"
     assert calls[1] == ("menu", [{"label": "Home", "route": "/home", "type": "page"}])
+
+
+def test_testing_ports_are_registered_at_package_composition_root():
+    from aitest.audit_engine.event_bus import emit
+    from aitest.llm.provider import get_provider
+    from aitest.testing import evaluator_judge, regression
+
+    assert evaluator_judge._provider_factory is get_provider
+    assert regression._event_sink is emit
+
+
+def test_mcp_resolvers_are_registered_by_platform_facade():
+    from aitest.mcp import database
+    from aitest.platform.mcp_server_store import _resolve_environment, _resolve_secret
+
+    assert database._secret_resolver is _resolve_secret
+    assert database._environment_resolver is _resolve_environment
+
+
+def test_complexity_provider_is_registered_at_package_composition_root():
+    from aitest.llm.provider import get_provider
+    from aitest.platform.complexity import classifier
+
+    assert classifier._provider_factory is get_provider

@@ -245,7 +245,10 @@ class TestClassifyFull:
         c = ComplexityClassifier()
         # ~15 fields + 2 components → ~30 score (borderline)
         fake_llm.set_response("STANDARD")
-        with patch("aitest.llm.provider.get_provider", return_value=fake_llm):
+        with patch(
+            "aitest.platform.complexity.classifier._provider_factory",
+            return_value=fake_llm,
+        ):
             result = c.classify(
                 page_title="中等页面",
                 discovery_data={
@@ -260,7 +263,10 @@ class TestClassifyFull:
         c = ComplexityClassifier()
         fake_llm = MagicMock()
         fake_llm.complete.side_effect = RuntimeError("API down")
-        with patch("aitest.llm.provider.get_provider", return_value=fake_llm):
+        with patch(
+            "aitest.platform.complexity.classifier._provider_factory",
+            return_value=fake_llm,
+        ):
             result = c.classify(
                 page_title="边界页面",
                 discovery_data={"fields": [f"f{i}" for i in range(15)]},

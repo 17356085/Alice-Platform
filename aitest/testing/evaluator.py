@@ -504,4 +504,5 @@ class EvalRunner:
 from aitest.testing.evaluator_judge import (
     JudgeResult, LLMJudge, CompositeJudge,
     classify_failure_type, AdversarialResult, AdversarialJudge,
+    register_provider_factory,
 )

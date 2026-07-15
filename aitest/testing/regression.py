@@ -27,9 +27,23 @@ import sys
 import time
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Callable, Optional
 from aitest.runtime.paths import get_workstudy
-from aitest.audit_engine.event_bus import emit
+
+
+_event_sink: Callable | None = None
+
+
+def register_event_sink(sink: Callable) -> None:
+    """Inject the audit event sink from the package composition root."""
+    global _event_sink
+    _event_sink = sink
+
+
+def _emit(*args, **kwargs):
+    if _event_sink is None:
+        return None
+    return _event_sink(*args, **kwargs)
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
 WORKSTUDY = get_workstudy()
@@ -610,7 +624,7 @@ def promote_skill_version(skill_id: str, new_version: str, provider: str = "clau
 
         # 发射 PromptChanged 事件
         try:
-            emit("PromptChanged",
+            _emit("PromptChanged",
                  skill_id=skill_id,
                  old_version=old_version,
                  new_version=new_version,
@@ -629,7 +643,7 @@ def promote_skill_version(skill_id: str, new_version: str, provider: str = "clau
         # 失败 → 发射 EvalRegressed 事件
         try:
             for failure in gate.failures:
-                emit("EvalRegressed",
+                _emit("EvalRegressed",
                      skill_id=skill_id,
                      case_id=failure.get("case_id", "?"),
                      old_score="baseline",

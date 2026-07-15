@@ -19,13 +19,13 @@ PRs reduce the historical clusters.
 ## Current Baseline
 
 - First-level nodes: `51`
-- First-level edges: `166`
+- First-level edges: `162`
 - Multi-node SCC count: `3`
-- Largest SCC size: `6`
+- Largest SCC size: `2`
 
 Reviewed SCC sets:
 
-1. `aitest.adapters`, `aitest.audit_engine`, `aitest.llm`, `aitest.mcp`, `aitest.platform`, `aitest.testing`
+1. `aitest.adapters`, `aitest.audit_engine`
 2. `alice_engine.core`, `alice_engine.workflow`
 3. `alice_engine.engine`, `alice_engine.extension`
 
@@ -38,16 +38,23 @@ Reviewed SCC sets:
 - Existing SCC count must not grow above the reviewed baseline.
 - Existing largest SCC size must not grow above the reviewed baseline.
 
-The 2026-07-15 audit reports `51` nodes and `166` edges after moving the
+The 2026-07-15 audit reports `51` nodes and `162` edges after moving the
 runtime contract into `aitest.runtime.base`, registering page execution and
 capability adapters from the platform composition root, and retaining
 `aitest.platform.runtime` as a compatibility facade. Discovery persistence now
 uses an injected artifact-store port, so `aitest.discovery` no longer imports
-the platform context. It reports exactly `3` SCCs with a largest size of `6`,
-and no `alice_engine -> aitest` boundary violation. The edge count is a
-reviewed snapshot of the current package inventory; the governing regression
-is that SCC count and size do not grow. These are intentionally small
-dependency seams, not a broad architecture rewrite.
+the platform context. Testing provider and audit events now use composition
+ports registered by the `aitest` package root, so `aitest.testing` no longer
+imports concrete LLM or audit implementations. MCP persistence now receives
+secret/environment resolvers through a platform composition port, so
+`aitest.mcp` no longer imports platform implementations. It reports exactly
+`3` SCCs with a largest size of `2`, and no `alice_engine -> aitest` boundary
+violation. The complexity classifier now receives its LLM provider through the
+same composition-root port, so `aitest.platform` no longer points back to
+`aitest.llm`.
+The edge count is a reviewed snapshot of the current package inventory; the
+governing regression is that SCC count and size do not grow. These are
+intentionally small dependency seams, not a broad architecture rewrite.
 
 ## Allowed Compatibility Layers
 
@@ -77,6 +84,16 @@ dependency seams, not a broad architecture rewrite.
 - `aitest.discovery.base` owns the discovery artifact persistence port;
   `aitest.platform` registers `ArtifactStore` at composition time, while
   discovery retains a legacy filesystem fallback for standalone use.
+- `aitest.testing.evaluator_judge` receives its LLM provider factory and
+  `aitest.testing.regression` receives its audit event sink from the `aitest`
+  package composition root, preserving the default runtime behavior without
+  static testing-to-provider/audit imports.
+- `aitest.mcp.database` receives secret/environment resolvers from the
+  `aitest.platform.mcp_server_store` compatibility composition root, so MCP
+  persistence remains usable without importing platform implementations.
+- `aitest.platform.complexity.classifier` receives its LLM provider factory
+  from the `aitest` package composition root, preserving the DeepSeek boundary
+  refinement and removing the platform-to-LLM reverse edge.
 
 ## Pending Reduction Targets
 
@@ -84,11 +101,11 @@ dependency seams, not a broad architecture rewrite.
   AgentLoop boundary reduction work in `PH8-PR-8.3`.
 - Remove the `alice_engine.engine <-> alice_engine.extension` SCC after the
   extension contract is simplified or inverted.
-- Shrink the remaining `aitest.*` SCC incrementally; do not attempt a single
-  wide-scope rewrite. The runtime, infrastructure, knowledge, and graph
-  packages are now outside the largest cluster; next targets are the remaining
-  `aitest.adapters` / `audit_engine` / `llm` / `mcp` / `platform` /
-  `testing` links.
+- Shrink the remaining `aitest.adapters <-> aitest.audit_engine` SCC
+  incrementally; do not attempt a single wide-scope rewrite. The LLM and
+  platform packages are now outside this cluster, while the audit/adapter
+  implementation cycle still requires an explicit event/audit contract before
+  it can be inverted safely.
 
 ## How To Refresh
 

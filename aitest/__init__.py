@@ -37,6 +37,7 @@ from aitest.testing.evaluator import (
     EvalMetric,
     EvalRun,
     _score_response,
+    register_provider_factory,
 )
 # A/B 测试模块
 from aitest.agents.ab_test import (
@@ -47,4 +48,15 @@ from aitest.agents.ab_test import (
 from aitest.testing.regression import (
     RegressionRunner,
     RegressionResult,
+    register_event_sink,
 )
+
+# Package composition root: keep testing modules independent from concrete
+# provider/audit packages while preserving the historical default behavior.
+register_provider_factory(get_provider)
+from aitest.audit_engine.event_bus import emit as _audit_emit
+register_event_sink(_audit_emit)
+from aitest.platform.complexity.classifier import (
+    register_provider_factory as _register_complexity_provider_factory,
+)
+_register_complexity_provider_factory(get_provider)

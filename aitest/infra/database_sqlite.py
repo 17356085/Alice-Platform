@@ -21,7 +21,10 @@ _lock = threading.Lock()
 
 def _get_db_path() -> Path:
     global _DB_PATH
-    if _DB_PATH is None:
+    # Tests and local tools may override the cache for an isolated database.
+    # If that temporary parent has been removed, do not keep a stale path that
+    # makes the next request fail with ``unable to open database file``.
+    if _DB_PATH is None or not _DB_PATH.parent.exists():
         from aitest.infra.paths import get_workstudy
         _DB_PATH = get_workstudy() / "governance" / ".data" / "aitest.db"
         _DB_PATH.parent.mkdir(parents=True, exist_ok=True)

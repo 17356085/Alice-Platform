@@ -11,12 +11,26 @@ Related: P6-2 MCP Server 资源化, Step 1.1b 循环依赖拆分
 import json
 import logging
 from datetime import datetime
+from collections.abc import Callable
 from typing import Optional
 
 from aitest.mcp.types import MCPServer, AgentMCPMapping
 from aitest.infra.db_session import get_session
 
 logger = logging.getLogger(__name__)
+
+_secret_resolver: Callable | None = None
+_environment_resolver: Callable | None = None
+
+
+def register_env_resolvers(
+    secret_resolver: Callable | None = None,
+    environment_resolver: Callable | None = None,
+) -> None:
+    """Register platform-backed secret/environment resolvers."""
+    global _secret_resolver, _environment_resolver
+    _secret_resolver = secret_resolver
+    _environment_resolver = environment_resolver
 
 
 # ============================================================================
@@ -379,13 +393,8 @@ class MCPServerStore:
             Secret 值，如果不存在返回空字符串
         """
         try:
-            from aitest.platform.secret_manager import SecretManager
-
-            manager = SecretManager(self.session)
-            secret = manager.get_secret(secret_id)
-
-            if secret:
-                return secret.value
+            if _secret_resolver is not None:
+                return _secret_resolver(self.session, secret_id) or ""
         except Exception as e:
             logger.warning(f"Failed to resolve secret {secret_id}: {e}")
 
@@ -401,18 +410,8 @@ class MCPServerStore:
             变量值，如果不存在返回空字符串
         """
         try:
-            from aitest.platform.environment_store import EnvironmentStore
-            import os
-
-            store = EnvironmentStore(self.session)
-
-            # 尝试从当前 Environment 获取
-            env_id = os.getenv("AITEST_ENVIRONMENT", "dev")
-            env = store.get_environment(env_id)
-
-            if env:
-                resolved_vars = store.resolve_variables(env_id)
-                return resolved_vars.get(var_name, "")
+            if _environment_resolver is not None:
+                return _environment_resolver(self.session, var_name) or ""
         except Exception as e:
             logger.warning(f"Failed to resolve environment variable {var_name}: {e}")
 

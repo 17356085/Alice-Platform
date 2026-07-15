@@ -8,6 +8,7 @@
 """
 import json
 import logging
+from collections.abc import Callable
 from pathlib import Path
 from typing import Optional
 
@@ -17,6 +18,25 @@ from aitest.platform.complexity.factors import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+# The platform owns the classification policy, while the package composition
+# root supplies the concrete LLM provider.  Keeping this as a port prevents a
+# platform module from importing the provider implementation and closing the
+# dependency cycle with the adapters/audit cluster.
+_provider_factory: Callable | None = None
+
+
+def register_provider_factory(factory: Callable) -> None:
+    """Inject the LLM provider factory from the package composition root."""
+    global _provider_factory
+    _provider_factory = factory
+
+
+def _get_provider(provider: str):
+    if _provider_factory is None:
+        raise RuntimeError("complexity provider factory is not registered")
+    return _provider_factory(provider)
 
 
 # ── 快速路径模式 ────────────────────────────────────────────────────
@@ -140,8 +160,7 @@ class ComplexityClassifier:
         )
 
         try:
-            from aitest.llm.provider import get_provider
-            llm = get_provider("deepseek")
+            llm = _get_provider("deepseek")
             response = llm.complete(
                 "You are a test automation complexity assessor. Reply with exactly one word.",
                 prompt, max_tokens=10, temperature=0.1,
