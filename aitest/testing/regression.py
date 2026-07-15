@@ -28,7 +28,7 @@ import time
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
-from aitest.platform.paths import get_workstudy
+from aitest.runtime.paths import get_workstudy
 from aitest.audit_engine.event_bus import emit
 
 # ── 路径配置 ──────────────────────────────────────────────────────────

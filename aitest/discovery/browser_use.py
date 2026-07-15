@@ -23,8 +23,15 @@ import re
 from datetime import datetime
 from typing import Optional
 
-from .base import BaseDiscovery, PageRecord, MenuNode, DiscoveryIndex
-from aitest.platform.runtime import BrowserRuntime, PageStructure
+from .base import (
+    BaseDiscovery,
+    DiscoveryIndex,
+    MenuNode,
+    PageRecord,
+    write_discovery_artifacts,
+)
+from aitest.runtime.browser import BrowserRuntime
+from aitest.runtime.types import PageStructure
 
 logger = logging.getLogger(__name__)
 
@@ -728,31 +735,14 @@ Return ONLY this JSON:
         return index
 
     def _write_discovery_files(self, pages: list[PageRecord], menu: list[MenuNode]):
-        """Write .discovery/ output files via ArtifactStore."""
-        from aitest.platform.context import get_project
-        ctx = get_project(self.project_id)
-        artifacts = ctx.artifacts()
-
-        # pages.json
-        pages_data = []
-        for p in pages:
-            pages_data.append({
-                "id": p.id,
-                "title": p.title,
-                "route": p.route,
-                "menu_path": p.menu_path,
-                "page_object": p.page_object,
-                "discovered_at": p.discovered_at,
-                "elements": p.elements,
-            })
-        artifacts.write_discovery_pages(pages_data)
-
-        # menu_tree.json
-        from .base import _serialize_menu
-        menu_data = _serialize_menu(menu)
-        artifacts.write_discovery_menu(menu_data)
-
-        logger.info(f"Wrote .discovery/ for {self.project_id}: {len(pages_data)} pages, {len(menu_data)} menu groups")
+        """Write .discovery/ output through the injected artifact-store port."""
+        write_discovery_artifacts(self.project_id, pages, menu)
+        logger.info(
+            "Wrote .discovery/ for %s: %d pages, %d menu groups",
+            self.project_id,
+            len(pages),
+            len(menu),
+        )
 
     # ── Cleanup ──────────────────────────────────────────────────────────
 

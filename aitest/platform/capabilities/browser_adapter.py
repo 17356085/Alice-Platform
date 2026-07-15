@@ -14,7 +14,8 @@ from .abc import Navigator, Observer, Interactor, Authenticator, CapabilityRegis
 
 # Lazy import to avoid circular dependency
 def _get_runtime_types():
-    from aitest.platform.runtime import BrowserRuntime, PageStructure
+    from aitest.runtime.browser import BrowserRuntime
+    from aitest.runtime.types import PageStructure
     return BrowserRuntime, PageStructure
 
 

@@ -17,7 +17,7 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Resource, ResourceTemplate, TextResourceContents
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
-from aitest.platform.paths import get_workstudy, get_project_dir
+from aitest.runtime.paths import get_workstudy, get_project_dir
 WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 _resolved_dir = get_project_dir()

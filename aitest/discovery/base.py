@@ -11,8 +11,62 @@ Skills read pages.json, not MODULE_INDEX.md or directory structure.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional
-from aitest.platform.paths import get_workstudy
+from typing import Callable, Optional
+from aitest.runtime.paths import get_workstudy
+
+
+_artifact_store_factory: Callable[[str], object] | None = None
+
+
+def register_artifact_store_factory(factory: Callable[[str], object]) -> None:
+    """Register the platform artifact store without importing the platform."""
+    global _artifact_store_factory
+    _artifact_store_factory = factory
+
+
+def write_discovery_artifacts(
+    project_id: str,
+    pages: list["PageRecord"],
+    menu: list["MenuNode"],
+) -> None:
+    """Persist discovery output through an injected store or legacy fallback."""
+    import json
+    from pathlib import Path
+
+    pages_data = [
+        {
+            "id": page.id,
+            "title": page.title,
+            "route": page.route,
+            "menu_path": page.menu_path,
+            "page_object": page.page_object,
+            "discovered_at": page.discovered_at,
+            "elements": page.elements,
+        }
+        for page in pages
+    ]
+    menu_data = _serialize_menu(menu)
+
+    if _artifact_store_factory is not None:
+        artifacts = _artifact_store_factory(project_id)
+        artifacts.write_discovery_pages(pages_data)
+        artifacts.write_discovery_menu(menu_data)
+        return
+
+    discovery_dir = (
+        get_workstudy()
+        / "governance" / "context" / "projects"
+        / project_id / ".discovery"
+    )
+    discovery_dir.mkdir(parents=True, exist_ok=True)
+    (discovery_dir / "pages.json").write_text(
+        json.dumps(pages_data, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    (discovery_dir / "menu_tree.json").write_text(
+        json.dumps(menu_data, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
 
 
 @dataclass

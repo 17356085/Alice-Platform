@@ -1,7 +1,7 @@
 # Dependency Governance Baseline
 
 > Phase 8 / PH8-PR-8.1  
-> Last refreshed: 2026-07-13
+> Last refreshed: 2026-07-15
 
 ## Goal
 
@@ -18,14 +18,14 @@ PRs reduce the historical clusters.
 
 ## Current Baseline
 
-- First-level nodes: `50`
-- First-level edges: `167`
+- First-level nodes: `51`
+- First-level edges: `166`
 - Multi-node SCC count: `3`
-- Largest SCC size: `20`
+- Largest SCC size: `6`
 
 Reviewed SCC sets:
 
-1. `aitest.adapters`, `aitest.agents`, `aitest.audit_engine`, `aitest.bu_adapter`, `aitest.chat`, `aitest.config`, `aitest.discovery`, `aitest.engine`, `aitest.graphs`, `aitest.graphs_dev`, `aitest.infra`, `aitest.integrations`, `aitest.knowledge`, `aitest.llm`, `aitest.mcp`, `aitest.onboarding`, `aitest.platform`, `aitest.runtime`, `aitest.server`, `aitest.testing`
+1. `aitest.adapters`, `aitest.audit_engine`, `aitest.llm`, `aitest.mcp`, `aitest.platform`, `aitest.testing`
 2. `alice_engine.core`, `alice_engine.workflow`
 3. `alice_engine.engine`, `alice_engine.extension`
 
@@ -38,11 +38,16 @@ Reviewed SCC sets:
 - Existing SCC count must not grow above the reviewed baseline.
 - Existing largest SCC size must not grow above the reviewed baseline.
 
-The 2026-07-13 audit reported `51` nodes and `168` edges after adding the
-page-configuration execution seam. It still reported exactly `3` SCCs with a
-largest size of `20`, and no `alice_engine -> aitest` boundary violation. The
-extra node/edge is recorded as an implementation delta; no architecture split
-is claimed by this change.
+The 2026-07-15 audit reports `51` nodes and `166` edges after moving the
+runtime contract into `aitest.runtime.base`, registering page execution and
+capability adapters from the platform composition root, and retaining
+`aitest.platform.runtime` as a compatibility facade. Discovery persistence now
+uses an injected artifact-store port, so `aitest.discovery` no longer imports
+the platform context. It reports exactly `3` SCCs with a largest size of `6`,
+and no `alice_engine -> aitest` boundary violation. The edge count is a
+reviewed snapshot of the current package inventory; the governing regression
+is that SCC count and size do not grow. These are intentionally small
+dependency seams, not a broad architecture rewrite.
 
 ## Allowed Compatibility Layers
 
@@ -53,15 +58,37 @@ is claimed by this change.
 - Platform facades such as `ExecutionService` and `EngineFactory` may depend on
   `alice_engine`, because the dependency direction is Platform -> SDK.
 
+## Completed Seams
+
+- `aitest.platform.governance_bridge` receives the adapter event bus through
+  `register_governance_source()` from the server composition root.
+- Codegen capability providers receive `run_skill` through
+  `register_skill_runner()` or an execution context instead of importing
+  `aitest.agents`.
+- `aitest.config` owns configuration; `aitest.runtime.config` is a compatibility
+  re-export, so the runtime layer no longer points back through the config
+  compatibility shell.
+- `aitest.runtime.context` receives Artifact/Knowledge/BrowserRuntime factories
+  from `aitest.platform` at initialization instead of importing platform
+  implementations.
+- `aitest.runtime.base` owns the runtime contract and explicit page-executor /
+  capability-factory ports; `aitest.platform.runtime` is the composition root
+  that registers platform implementations and preserves the public import path.
+- `aitest.discovery.base` owns the discovery artifact persistence port;
+  `aitest.platform` registers `ArtifactStore` at composition time, while
+  discovery retains a legacy filesystem fallback for standalone use.
+
 ## Pending Reduction Targets
 
 - Break the `alice_engine.core <-> alice_engine.workflow` SCC during the
   AgentLoop boundary reduction work in `PH8-PR-8.3`.
 - Remove the `alice_engine.engine <-> alice_engine.extension` SCC after the
   extension contract is simplified or inverted.
-- Shrink the large `aitest.*` SCC incrementally; do not attempt a single
-  wide-scope rewrite. Prioritize `aitest.platform`, `aitest.runtime`,
-  `aitest.graphs`, and `aitest.infra` seams.
+- Shrink the remaining `aitest.*` SCC incrementally; do not attempt a single
+  wide-scope rewrite. The runtime, infrastructure, knowledge, and graph
+  packages are now outside the largest cluster; next targets are the remaining
+  `aitest.adapters` / `audit_engine` / `llm` / `mcp` / `platform` /
+  `testing` links.
 
 ## How To Refresh
 

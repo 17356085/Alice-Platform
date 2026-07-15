@@ -77,7 +77,13 @@ AITEST_DB_BACKEND=sqlite aitest server start
 # 多用户模式 (PostgreSQL, 需要 Docker)
 docker compose up -d postgres
 AITEST_DB_BACKEND=postgres aitest server start
+
+# 生产式部署（包含正式 migration、API 与 Linux RQ worker）
+docker compose -f docker-compose.production.yml up -d --build
 ```
+
+生产部署变量、migration runner、ready 检查和 RQ 恢复语义见
+[`docs/operations/PRODUCTION_DEPLOYMENT.md`](docs/operations/PRODUCTION_DEPLOYMENT.md)。
 
 | 后端 | 场景 | 数据位置 |
 | ---- | ---- | -------- |

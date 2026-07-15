@@ -21,43 +21,11 @@ Usage:
 import logging
 import json
 from contextlib import AsyncExitStack
-from dataclasses import dataclass, field
 from typing import Awaitable, Callable, Optional
 
+from aitest.mcp.types import McpClientResult, McpServerConfig
+
 logger = logging.getLogger(__name__)
-
-
-# ── Types ──────────────────────────────────────────────────────────────────
-
-@dataclass
-class McpClientResult:
-    """Result of connecting to one MCP server.
-
-    Attributes:
-        server_id: MCP server identifier
-        tools: tool_name → tool_definition (for LLM function calling)
-        close: Async cleanup function. Must be awaited: await client.close()
-        call_tool: Async tool call function. Must be awaited: await client.call_tool(name, args)
-                   Signature: async (tool_name: str, arguments: dict | None) -> dict
-    """
-    server_id: str
-    tools: dict      # tool_name → tool_definition (for LLM function calling)
-    close: Callable[[], Awaitable[None]]
-    call_tool: Optional[Callable[[str, Optional[dict]], Awaitable[dict]]] = None
-
-
-@dataclass
-class McpServerConfig:
-    """Configuration for a single MCP server."""
-    id: str
-    name: str
-    description: str = ""
-    enabled_by_default: bool = False
-    transport_type: str = "stdio"       # "stdio" | "streamable-http"
-    command: str = ""                    # For stdio transport
-    args: list[str] = field(default_factory=list)
-    url: str = ""                        # For streamable-http transport
-    env: dict[str, str] = field(default_factory=dict)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

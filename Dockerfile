@@ -21,6 +21,7 @@ COPY packages/ packages/
 COPY aitest/ aitest/
 COPY governance/ governance/
 COPY docs/ docs/
+COPY migrations/ migrations/
 
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir \

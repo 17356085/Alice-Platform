@@ -4,7 +4,7 @@ import subprocess
 
 from aitest.mcp.config import CODE_QUALITY_SCRIPT
 from aitest.mcp.error_taxonomy import ErrorCode, error_response
-from aitest.platform.paths import get_test_project_root
+from aitest.runtime.paths import get_test_project_root
 
 
 def run_code_quality_check(target: str = "", staged: bool = False) -> dict:

@@ -103,7 +103,7 @@ def get_top_errors(limit: int = 10) -> list[dict]:
 
 
 def import_from_bug_analysis(artifacts_dir: Path = None) -> int:
-    from aitest.platform.paths import get_workstudy
+    from aitest.runtime.paths import get_workstudy
     if artifacts_dir is None:
         artifacts_dir = get_workstudy() / "governance" / "artifacts"
     if not artifacts_dir.exists():

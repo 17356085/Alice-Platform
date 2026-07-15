@@ -23,6 +23,8 @@ class QualityStore:
     def _ensure_quality_tables(self):
         """确保质量表存在（自动迁移）"""
         try:
+            if self.session.get_bind().dialect.name != "sqlite":
+                return
             from sqlalchemy import text
             # 检查 datasets 表是否存在
             result = self.session.execute(text(

@@ -151,7 +151,9 @@ class AgentState:
         return {
             "agent_name": self.agent_name, "goal": self.goal,
             "module": self.module, "page": self.page, "provider": self.provider,
-            "step": self.step, "completed_skills": self.completed_skills,
+            "step": self.step, "max_steps": self.max_steps,
+            "current_skill": self.current_skill,
+            "completed_skills": self.completed_skills,
             "failed_skills": self.failed_skills, "retry_counts": self.retry_counts,
             "observations": [
                 {"skill_id": o.skill_id, "status": o.status,
@@ -166,7 +168,67 @@ class AgentState:
             "memory": self.memory, "artifacts": self.artifacts,
             "done": self.done, "success": self.success,
             "termination_reason": self.termination_reason,
+            "task_state": self.task_state,
         }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "AgentState":
+        """Restore a JSON checkpoint produced by :meth:`to_dict`.
+
+        The restored state is intentionally data-only. Runtime handles such as
+        providers, MCP clients, and abort events are recreated by AgentLoop.
+        Unknown/missing fields are tolerated so checkpoints written by older
+        workers remain recoverable.
+        """
+        if not isinstance(data, dict):
+            raise TypeError("AgentState checkpoint must be a mapping")
+
+        state = cls(
+            agent_name=str(data.get("agent_name", "")),
+            goal=str(data.get("goal", "")),
+            module=str(data.get("module", "")),
+            page=str(data.get("page", "")),
+            provider=data.get("provider"),
+            max_steps=int(data.get("max_steps", 12) or 12),
+        )
+        state.step = int(data.get("step", 0) or 0)
+        state.current_skill = str(data.get("current_skill", "") or "")
+        state.completed_skills = list(data.get("completed_skills", []) or [])
+        state.failed_skills = dict(data.get("failed_skills", {}) or {})
+        state.retry_counts = dict(data.get("retry_counts", {}) or {})
+        state.memory = dict(data.get("memory", {}) or {})
+        state.artifacts = dict(data.get("artifacts", {}) or {})
+        state.done = bool(data.get("done", False))
+        state.success = bool(data.get("success", False))
+        state.termination_reason = str(data.get("termination_reason", "") or "")
+        state.task_state = str(data.get("task_state", "backlog") or "backlog")
+
+        observations = []
+        for raw in data.get("observations", []) or []:
+            if not isinstance(raw, dict):
+                continue
+            observations.append(
+                Observation(
+                    skill_id=str(raw.get("skill_id", "")),
+                    status=str(raw.get("status", "pending")),
+                    artifacts_found=list(raw.get("artifacts_found", []) or []),
+                    artifacts_missing=list(raw.get("artifacts_missing", []) or []),
+                    quality_issues=list(raw.get("quality_issues", []) or []),
+                    safety_flags=list(raw.get("safety_flags", []) or []),
+                    summary=str(raw.get("summary", "") or ""),
+                    suggestion=str(raw.get("suggestion", "continue") or "continue"),
+                    raw_output_preview=str(raw.get("raw_output_preview", "") or ""),
+                    raw_output_full=str(raw.get("raw_output_full", "") or ""),
+                    token_usage=dict(raw.get("token_usage", {}) or {}),
+                    timestamp=str(raw.get("timestamp", "") or ""),
+                    latency_ms=int(raw.get("latency_ms", 0) or 0),
+                    model_name=str(raw.get("model_name", "") or ""),
+                    run_id=str(raw.get("run_id", "") or ""),
+                    failure_category=str(raw.get("failure_category", "") or ""),
+                )
+            )
+        state.observations = observations
+        return state
 
 
 AgentEventType = Literal[

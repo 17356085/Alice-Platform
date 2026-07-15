@@ -153,14 +153,14 @@ class BrowserMCPServer:
         from aitest.config import config
 
         if self._backend == "remote":
-            from aitest.platform.runtime import RemoteBrowserRuntime
+            from aitest.runtime.browser import RemoteBrowserRuntime
             self._runtime = RemoteBrowserRuntime(
                 ws_url=config.browser_ws_url,
                 api_key=config.browser_api_key,
                 base_url=config.base_url,
             )
         else:
-            from aitest.platform.runtime import BrowserRuntime
+            from aitest.runtime.browser import BrowserRuntime
             self._runtime = BrowserRuntime(
                 base_url=config.base_url,
                 headless=False,

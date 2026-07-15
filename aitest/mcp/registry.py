@@ -16,7 +16,7 @@ Usage:
     servers = get_agent_mcp_servers("qa_reviewer")  # → ["browser-mcp"]
 """
 
-from aitest.mcp.mcp_client import McpServerConfig
+from aitest.mcp.types import McpServerConfig
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  Server definitions
@@ -97,12 +97,10 @@ def get_agent_mcp_servers(agent_type: str, use_db: bool = True) -> list[str]:
     # P6-2: 优先从数据库加载，回退到硬编码
     if use_db:
         try:
-            from aitest.platform.mcp_server_store import MCPServerStore
-            store = MCPServerStore()
-            try:
-                server_ids = store.get_agent_mcp_servers(agent_type)
-            finally:
-                store.close()
+            # 延迟导入避免循环依赖
+            from aitest.mcp.store import get_mcp_server_store
+            store = get_mcp_server_store()
+            server_ids = store.get_agent_mcp_servers(agent_type)
             if server_ids:
                 return server_ids
         except Exception:
@@ -134,12 +132,10 @@ def get_mcp_server_registry(use_db: bool = True) -> dict[str, McpServerConfig]:
     # P6-2: 优先从数据库加载
     if use_db:
         try:
-            from aitest.platform.mcp_server_store import MCPServerStore
-            store = MCPServerStore()
-            try:
-                servers = store.list_mcp_servers()
-            finally:
-                store.close()
+            # 延迟导入避免循环依赖
+            from aitest.mcp.store import get_mcp_server_store
+            store = get_mcp_server_store()
+            servers = store.list_mcp_servers()
             if servers:
                 return {s.mcp_server_id: s.to_config() for s in servers}
         except Exception:

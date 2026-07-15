@@ -36,6 +36,7 @@ Usage:
 """
 
 import asyncio
+import base64
 import logging
 import sys
 import warnings
@@ -866,6 +867,14 @@ class BrowserUseDriver:
         """
         page = await self._browser.get_current_page()
         return await page.evaluate(js_code)
+
+    async def screenshot(self) -> bytes:
+        """Capture the current browser-use page as PNG bytes."""
+        page = await self._browser.get_current_page()
+        if page is None:
+            return b""
+        image = await page.screenshot(format="png")
+        return base64.b64decode(image) if isinstance(image, str) else bytes(image)
 
     # ═══════════════════════════════════════════════════════════════
     #  Core: Run Task

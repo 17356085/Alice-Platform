@@ -1,6 +1,20 @@
 """Codegen Capability Providers."""
 import time
+from collections.abc import Callable
 from aitest.platform.capability_router.router import CapabilityProvider, ToolDef, ToolCall, ToolResult
+
+
+_skill_runner: Callable | None = None
+
+
+def register_skill_runner(runner: Callable) -> None:
+    """Inject the agent skill runner from the composition root."""
+    global _skill_runner
+    _skill_runner = runner
+
+
+def _get_skill_runner(context: dict) -> Callable | None:
+    return context.get("skill_runner") or _skill_runner
 
 
 class PageObjectGenProvider(CapabilityProvider):
@@ -30,11 +44,18 @@ class PageObjectGenProvider(CapabilityProvider):
     def execute(self, call: ToolCall, context: dict) -> ToolResult:
         start = time.time()
         try:
-            from aitest.agents.skill_executor import run_skill
+            runner = _get_skill_runner(context)
+            if runner is None:
+                return ToolResult(
+                    call_id=call.id,
+                    success=False,
+                    content="Page Object 生成器未注册 skill runner",
+                    error="skill_runner_not_registered",
+                )
             module = call.arguments.get("module", context.get("module", ""))
             page = call.arguments.get("page", context.get("page", ""))
             ctx_summary = call.arguments.get("context_summary", "")
-            response = run_skill(
+            response = runner(
                 skill_id="automation/page-object-generator",
                 user_input=f"模块:{module}\n页面:{page}\n上下文:{ctx_summary}",
                 provider=context.get("provider", "claude"),
@@ -74,11 +95,18 @@ class TestScriptGenProvider(CapabilityProvider):
     def execute(self, call: ToolCall, context: dict) -> ToolResult:
         start = time.time()
         try:
-            from aitest.agents.skill_executor import run_skill
+            runner = _get_skill_runner(context)
+            if runner is None:
+                return ToolResult(
+                    call_id=call.id,
+                    success=False,
+                    content="测试脚本生成器未注册 skill runner",
+                    error="skill_runner_not_registered",
+                )
             module = call.arguments.get("module", context.get("module", ""))
             page = call.arguments.get("page", context.get("page", ""))
             tc_summary = call.arguments.get("testcase_summary", "")
-            response = run_skill(
+            response = runner(
                 skill_id="automation/test-script-generator",
                 user_input=f"模块:{module}\n页面:{page}\n测试用例:{tc_summary}",
                 provider=context.get("provider", "claude"),

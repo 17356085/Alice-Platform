@@ -7,7 +7,7 @@ import subprocess
 
 from aitest.mcp.config import SOP_GATE_SCRIPT
 from aitest.mcp.error_taxonomy import ErrorCode, error_response
-from aitest.platform.paths import get_test_project_root
+from aitest.runtime.paths import get_test_project_root
 
 
 def check_sop_gate(module: str = "", agent: str = "") -> dict:

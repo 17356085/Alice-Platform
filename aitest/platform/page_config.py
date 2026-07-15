@@ -88,12 +88,17 @@ class PageConfig(BaseModel):
     @classmethod
     def from_payload(cls, page_id: str, payload: Mapping[str, Any] | None) -> "PageConfig":
         raw = dict(payload or {})
+        execution = raw.get("execution", {})
+        if execution is None:
+            execution = {}
+        if not isinstance(execution, dict):
+            raise ValueError("page execution must be a JSON object")
         return cls(
             page_id=page_id,
             url=str(raw.get("url", "") or ""),
             config=raw.get("config") if isinstance(raw.get("config"), dict) else {},
             locators=raw.get("locators") if isinstance(raw.get("locators"), dict) else {},
-            execution=raw.get("execution") if isinstance(raw.get("execution"), dict) else {},
+            execution=execution,
             enabled=bool(raw.get("enabled", True)),
         )
 

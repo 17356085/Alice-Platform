@@ -47,6 +47,10 @@ class TestConfigDefaults:
         c = Config()
         assert "11434" in c.ollama_base_url
 
+    def test_mimo_base_url_compat_property(self, monkeypatch):
+        monkeypatch.setenv("MIMO_BASE_URL", "https://mimo.example/v1")
+        assert Config().mimo_base_url == "https://mimo.example/v1"
+
     def test_database_url_default(self):
         c = Config()
         assert "sqlite" in c.database_url

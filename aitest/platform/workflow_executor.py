@@ -152,7 +152,7 @@ class NodeExecutor:
         state: WorkflowState,
     ) -> Dict[str, Any]:
         """执行 agent 节点（复用现有 ExecutionService）"""
-        from aitest.server.api.execution import get_execution_service_static
+        from aitest.platform.execution_service import get_execution_service_static
 
         logger.info(f"[WorkflowExecutor] Executing agent node: {node.node_id} (agent={node.agent_id})")
 

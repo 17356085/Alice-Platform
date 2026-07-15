@@ -40,7 +40,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
-from aitest.platform.paths import get_workstudy
+from aitest.runtime.paths import get_workstudy
 
 # ── 路径配置 ──────────────────────────────────────────────────────────
 WORKSTUDY = get_workstudy()

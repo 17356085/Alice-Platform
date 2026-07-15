@@ -1,8 +1,17 @@
-version: "3.8"
-
 # Production baseline. Secrets must be injected by the deployment platform;
 # this file intentionally has no development password fallback.
 services:
+  migrate:
+    build: .
+    command: ["python", "-m", "aitest.infra.postgres_migrations"]
+    environment:
+      AITEST_DB_BACKEND: postgres
+      AITEST_DATABASE_URL: postgresql://aitest:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/aitest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
   aitest:
     build: .
     environment:
@@ -24,7 +33,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
+    stop_grace_period: 30s
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/ready"]
       interval: 30s
@@ -48,15 +60,26 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       MIMO_API_KEY: ${MIMO_API_KEY:-}
+      MIMO_BASE_URL: ${MIMO_BASE_URL:-}
+      MIMO_MODEL: ${MIMO_MODEL:-mimo-v2.5}
     volumes:
-      - ${TEST_PROJECT_PATH:-./demo}:/app/project:ro
+      - ${TEST_PROJECT_PATH:?TEST_PROJECT_PATH is required}:/app/project:ro
       - ./governance:/app/governance:ro
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "rq", "info", "--url", "redis://redis:6379/0", "--only-workers"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   postgres:
     image: postgres:16

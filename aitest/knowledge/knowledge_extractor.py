@@ -33,7 +33,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
-from aitest.platform.paths import get_workstudy
+from aitest.runtime.paths import get_workstudy
 
 _log = logging.getLogger(__name__)
 _WORKSTUDY = get_workstudy()

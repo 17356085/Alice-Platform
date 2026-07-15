@@ -59,6 +59,18 @@ def _scan_projects() -> list[str]:
 # ── Global active project ────────────────────────────────────────────────
 _active_project_id: Optional[str] = None
 
+_artifact_factory = None
+_knowledge_factory = None
+_runtime_factory = None
+
+
+def register_context_services(*, artifact_factory, knowledge_factory, runtime_factory) -> None:
+    """Inject platform service factories without importing the platform layer."""
+    global _artifact_factory, _knowledge_factory, _runtime_factory
+    _artifact_factory = artifact_factory
+    _knowledge_factory = knowledge_factory
+    _runtime_factory = runtime_factory
+
 
 def get_active_project_id() -> str:
     """Return the currently active project ID."""
@@ -178,15 +190,17 @@ class ProjectContext:
     def artifacts(self):
         """返回 ArtifactStore 实例（惰性创建）。"""
         if self._artifacts is None:
-            from aitest.platform.artifacts import ArtifactStore
-            self._artifacts = ArtifactStore(self._project_id)
+            if _artifact_factory is None:
+                raise RuntimeError("ProjectContext artifact service is not registered")
+            self._artifacts = _artifact_factory(self._project_id)
         return self._artifacts
 
     def knowledge(self):
         """返回 KnowledgeStore 实例（惰性创建）。"""
         if self._knowledge is None:
-            from aitest.platform.knowledge import KnowledgeStore
-            self._knowledge = KnowledgeStore(self.config.chroma_namespace)
+            if _knowledge_factory is None:
+                raise RuntimeError("ProjectContext knowledge service is not registered")
+            self._knowledge = _knowledge_factory(self.config.chroma_namespace)
         return self._knowledge
 
     def runtime(self, runtime_type: str = None):
@@ -198,12 +212,14 @@ class ProjectContext:
             cfg = self.config
             rt_type = runtime_type or cfg.sut_type or "browser"
             if rt_type in ("web", "browser", "vue-hash-router", "react-spa"):
-                from aitest.platform.runtime import BrowserRuntime
-                self._runtime = BrowserRuntime(base_url=cfg.base_url)
+                if _runtime_factory is None:
+                    raise RuntimeError("ProjectContext runtime service is not registered")
+                self._runtime = _runtime_factory(base_url=cfg.base_url)
             else:
                 # Future: APIRuntime, MiniAppRuntime, etc.
-                from aitest.platform.runtime import BrowserRuntime
-                self._runtime = BrowserRuntime(base_url=cfg.base_url)
+                if _runtime_factory is None:
+                    raise RuntimeError("ProjectContext runtime service is not registered")
+                self._runtime = _runtime_factory(base_url=cfg.base_url)
         return self._runtime
 
     # ── Convenience: URL / type ──────────────────────────────────────────

@@ -21,10 +21,10 @@ from .db import Base
 JSON_PAYLOAD = JSON().with_variant(JSONB, "postgresql")
 
 # Import all models to ensure they're registered with SQLAlchemy
-from aitest.platform.workflow_models import WorkflowModel  # noqa: F401
-from aitest.platform.model_provider_models import ModelProviderModel  # noqa: F401
-from aitest.platform.secret_models import SecretModel, SecretAuditLogModel  # noqa: F401
-from aitest.platform.environment_models import EnvironmentModel  # noqa: F401
+from aitest.infra.models.workflow import WorkflowModel  # noqa: F401
+from aitest.infra.models.model_provider import ModelProviderModel  # noqa: F401
+from aitest.infra.models.secret import SecretModel, SecretAuditLogModel  # noqa: F401
+from aitest.infra.models.environment import EnvironmentModel  # noqa: F401
 
 
 # ── Platform: Run + Events + Requests ─────────────────────────────────
@@ -216,15 +216,15 @@ class ChatSessionModel(Base):
 
 # ── Quality Loop: Dataset/Evaluation/Experiment (P5-1) ────────────────
 
-from aitest.platform.quality_models import DatasetModel, EvaluationModel, ExperimentModel
+from aitest.infra.models.quality import DatasetModel, EvaluationModel, ExperimentModel
 
 # ── Workflow: Graph Model (P8-1) ───────────────────────────────────────
 
-from aitest.platform.workflow_models import WorkflowModel
+from aitest.infra.models.workflow import WorkflowModel
 
 # ── Worker Lease: Heartbeat (P3-5) ─────────────────────────────────────
 
-from aitest.platform.worker_lease_models import WorkerLeaseModel
+from aitest.infra.models.worker_lease import WorkerLeaseModel
 
 __all__ = [
     "Base",

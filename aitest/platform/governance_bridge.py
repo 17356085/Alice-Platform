@@ -15,14 +15,26 @@ Usage:
 from __future__ import annotations
 
 import threading
-from typing import TYPE_CHECKING
+from collections.abc import Callable, Mapping
 
 from aitest.infra.logging import get_logger
 
-if TYPE_CHECKING:
-    from aitest.adapters.event.interface import Event
-
 _log = get_logger(__name__)
+
+# The composition root injects the governance event source. This keeps the
+# platform layer independent from the adapter implementation.
+_event_actions: Mapping[str, object] | None = None
+_subscribe: Callable | None = None
+
+
+def register_governance_source(
+    event_actions: Mapping[str, object],
+    subscribe: Callable,
+) -> None:
+    """Inject the file-backed governance bus before starting the bridge."""
+    global _event_actions, _subscribe
+    _event_actions = event_actions
+    _subscribe = subscribe
 
 
 class GovernanceBridge:
@@ -42,13 +54,14 @@ class GovernanceBridge:
         if self._active:
             return
 
-        from aitest.adapters.event.interface import EVENT_ACTIONS, subscribe
+        if _event_actions is None or _subscribe is None:
+            raise RuntimeError("governance event source is not registered")
         from aitest.platform.event_bus import get_bus as get_platform_bus
         from aitest.platform.runtime_contracts import runtime_event_from_payload, runtime_event_to_run_event
 
         platform_bus = get_platform_bus()
 
-        def _forward(event: Event) -> None:
+        def _forward(event) -> None:
             """Forward a governance event to the platform EventBus."""
             try:
                 if not self._active:
@@ -66,14 +79,14 @@ class GovernanceBridge:
                 _log.error(f"Failed to forward governance event {event.type} to platform bus")
 
         # Subscribe to all governance event types
-        for event_type in EVENT_ACTIONS:
+        for event_type in _event_actions:
             try:
-                subscribe(event_type, _forward)
+                _subscribe(event_type, _forward)
             except Exception:
                 _log.error(f"Failed to subscribe to governance event {event_type}")
 
         self._active = True
-        _log.info(f"GovernanceBridge started, forwarding {len(EVENT_ACTIONS)} event types")
+        _log.info(f"GovernanceBridge started, forwarding {len(_event_actions)} event types")
 
     def stop(self) -> None:
         """Unsubscribe from governance events.

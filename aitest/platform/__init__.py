@@ -21,6 +21,12 @@ from .runtime import Runtime, BrowserRuntime
 from .knowledge import KnowledgeStore
 from .artifacts import ArtifactStore
 
+# Register platform-backed discovery persistence without making discovery
+# import the platform package.
+from aitest.discovery.base import register_artifact_store_factory
+
+register_artifact_store_factory(ArtifactStore)
+
 # ★ v2.2 Platform Runtime Foundation
 from .run import Run
 from .run_event import (
@@ -33,7 +39,7 @@ from .run_event import (
 from .event_bus import EventBus, get_bus, set_bus, reset_bus
 from .run_store import RunStore, get_run_store, set_run_store, reset_run_store
 from .execution_request import ExecutionRequest, RequestStatus
-from .execution_service import ExecutionService, ExecutionResult
+from .execution_service import ExecutionService, ExecutionResult, get_execution_service_static
 from .execution_worker import ExecutionWorker, get_execution_worker
 from .scheduler import (
     JobStatus,
@@ -62,6 +68,17 @@ from .observation_bus import PlatformBridge, get_platform_bridge
 # ★ v2.0 Platform Foundation
 from .organization import Organization, OrganizationManager, get_org_manager
 from .workspace import Workspace, WorkspaceManager, ExecutionContext, get_ws_manager
+
+# Register platform implementations through the runtime service port. This
+# keeps runtime.context free of platform imports while preserving the public
+# ProjectContext behavior for normal platform startup.
+from aitest.runtime.context import register_context_services as _register_context_services
+
+_register_context_services(
+    artifact_factory=ArtifactStore,
+    knowledge_factory=KnowledgeStore,
+    runtime_factory=BrowserRuntime,
+)
 
 __all__ = [
     # v1.x
@@ -108,6 +125,7 @@ __all__ = [
     "RequestStatus",
     "ExecutionService",
     "ExecutionResult",
+    "get_execution_service_static",
     "ExecutionWorker",
     "get_execution_worker",
     "JobStatus",

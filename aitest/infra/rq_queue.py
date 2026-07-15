@@ -20,12 +20,21 @@ Install:
 from __future__ import annotations
 
 import json
+import os
 import time
 import uuid
 import logging
 from typing import Optional
 
 logger = logging.getLogger("rq_queue")
+
+AGENT_CHECKPOINT_PREFIX = "aitest:agentloop:checkpoint:"
+AGENT_CHECKPOINT_TTL = 7 * 24 * 3600
+
+
+def agent_checkpoint_key(job_id: str) -> str:
+    """Return the Redis key used for a job's durable AgentLoop checkpoint."""
+    return f"{AGENT_CHECKPOINT_PREFIX}{job_id}"
 
 _RQ_AVAILABLE = False
 try:
@@ -123,19 +132,89 @@ class RQTaskQueue:
 
     # ── Recovery ──────────────────────────────────────────────────────
 
-    def recover_stale_tasks(self) -> int:
-        """RQ has built-in job timeout. Stale jobs are moved to FAILED
-        by rq's maintenance thread. Manual recovery returns count of
-        failed jobs that can be retried."""
+    def _prepare_recovery_job(self, job) -> bool:
+        """Mark a requeued job for AgentLoop resume and record its source."""
+        has_checkpoint = bool(self._redis.exists(agent_checkpoint_key(job.id)))
+        job.kwargs = dict(job.kwargs or {})
+        job.kwargs["mode"] = "resume"
+        job.meta = dict(job.meta or {})
+        job.meta["recovery_mode"] = (
+            "checkpoint_continuation" if has_checkpoint else "entrypoint_restart_no_checkpoint"
+        )
+        job.meta["recovery_count"] = int(job.meta.get("recovery_count", 0) or 0) + 1
+        job.save()
+        return has_checkpoint
+
+    def recover_stale_tasks(self, stale_after_seconds: float = 3600) -> int:
+        """Requeue failed jobs and abandoned started jobs.
+
+        RQ's maintenance thread eventually moves an abandoned worker job to
+        ``FailedJobRegistry``.  A killed worker can nevertheless leave a job
+        in ``StartedJobRegistry`` until that timeout expires, so production
+        recovery needs an explicit, conservative stale threshold.  Active
+        jobs are never touched when their age is below the threshold.
+        """
+        recovered = 0
         failed_registry = self._queue.failed_job_registry
-        count = failed_registry.count
         # Jobs in FailedJobRegistry can be requeued
-        for job_id in failed_registry.get_job_ids():
+        for job_id in failed_registry.get_job_ids(cleanup=False):
             try:
+                job = Job.fetch(job_id, connection=self._redis)
+                self._prepare_recovery_job(job)
                 failed_registry.requeue(job_id)
+                recovered += 1
             except Exception:
                 pass
-        return count
+
+        started_registry = self._queue.started_job_registry
+        now = time.time()
+        if hasattr(started_registry, "get_job_and_execution_ids"):
+            # RQ 2.x stores ``job_id:execution_id`` composite members in the
+            # started sorted set.  Keep the raw member so requeue can remove
+            # the exact entry (StartedJobRegistry.requeue(job_id) otherwise
+            # misses the composite key and silently leaves the job stuck).
+            from rq.registry import parse_composite_key
+
+            raw_entries = self._redis.zrange(started_registry.key, 0, -1)
+            started_entries = [
+                (raw, parse_composite_key(raw.decode() if isinstance(raw, bytes) else raw))
+                for raw in raw_entries
+            ]
+        else:
+            started_entries = [
+                (job_id, (job_id, ""))
+                for job_id in started_registry.get_job_ids(cleanup=False)
+            ]
+        for raw_key, (job_id, _execution_id) in started_entries:
+            try:
+                job = Job.fetch(job_id, connection=self._redis)
+                started_at = job.started_at.timestamp() if job.started_at else 0
+                if started_at and (now - started_at) >= max(0, stale_after_seconds):
+                    self._requeue_started_job(started_registry, raw_key, job)
+                    recovered += 1
+            except Exception:
+                # A worker may complete/delete the job between the registry
+                # scan and the requeue call; that race is intentionally benign.
+                pass
+        return recovered
+
+    def _requeue_started_job(self, started_registry, raw_key, job) -> None:
+        """Requeue a job using the exact RQ started-registry member."""
+        queue = _RQQueue(
+            job.origin,
+            connection=self._redis,
+            job_class=job.__class__,
+            serializer=getattr(job, "serializer", None),
+        )
+        with self._redis.pipeline() as pipeline:
+            pipeline.zrem(started_registry.key, raw_key)
+            job.started_at = None
+            job.ended_at = None
+            job._exc_info = ""
+            self._prepare_recovery_job(job)
+            job.save()
+            queue._enqueue_job(job, pipeline=pipeline)
+            pipeline.execute()
 
     def retry_failed(self, task_id: str) -> bool:
         """Requeue a failed job."""
@@ -279,14 +358,61 @@ def _run_agent_task(agent_name: str, provider: str = "claude",
                     module: str = "", page: str = "", mode: str = "full") -> dict:
     """RQ worker entry point — called in a separate process."""
     from alice_engine.core.executor import run_agent  # noqa: E402
-    return run_agent(
+    job = rq.get_current_job() if _RQ_AVAILABLE else None
+    resume_state = None
+    checkpoint_callback = None
+    run_id = None
+    if job is not None:
+        run_id = f"rq-agent-{job.id}"
+        key = agent_checkpoint_key(job.id)
+        if mode == "resume":
+            raw = job.connection.get(key)
+            if raw:
+                try:
+                    resume_state = json.loads(raw)
+                except (TypeError, ValueError, json.JSONDecodeError):
+                    logger.warning("invalid_agent_checkpoint", extra={"job_id": job.id})
+
+        checkpoint_pause_used = False
+
+        def save_checkpoint(snapshot: dict) -> None:
+            nonlocal checkpoint_pause_used
+            try:
+                job.connection.set(
+                    key,
+                    json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")),
+                    ex=AGENT_CHECKPOINT_TTL,
+                )
+                # Staging-only hook: keep the worker alive after a durable
+                # checkpoint so a kill/recovery probe can terminate between
+                # Skills. It is disabled by default and has no production
+                # latency impact.
+                pause = float(os.environ.get("AITEST_AGENTLOOP_CHECKPOINT_PAUSE_SECONDS", "0") or 0)
+                if pause > 0 and not checkpoint_pause_used:
+                    checkpoint_pause_used = True
+                    time.sleep(pause)
+            except Exception as exc:
+                logger.warning("agent_checkpoint_write_failed", extra={"error": str(exc)[:200]})
+
+        checkpoint_callback = save_checkpoint
+
+    result = run_agent(
         agent_name=agent_name,
         provider=provider,
         module=module,
         page=page,
         mode=mode,
         verbose=False,
+        **({"run_id": run_id} if run_id else {}),
+        **({"resume_state": resume_state} if resume_state is not None else {}),
+        **({"checkpoint_callback": checkpoint_callback} if checkpoint_callback else {}),
     )
+    if job is not None and isinstance(result, dict) and result.get("success"):
+        try:
+            job.connection.delete(agent_checkpoint_key(job.id))
+        except Exception:
+            pass
+    return result
 
 
 # ── Factory ───────────────────────────────────────────────────────────

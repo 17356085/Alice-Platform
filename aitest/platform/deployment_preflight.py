@@ -23,6 +23,20 @@ class DeploymentPreflight:
         return {"status": self.status, "checks": self.checks}
 
 
+def _check_postgres_ready() -> tuple[bool, str]:
+    """Verify connectivity and that the formal migration step ran."""
+    from aitest.infra import database_pg
+
+    with database_pg._get_conn() as connection:
+        connection.execute("SELECT 1")
+        row = connection.execute(
+            "SELECT 1 FROM aitest_schema_migrations LIMIT 1"
+        ).fetchone()
+    if row is None:
+        return False, "PostgreSQL is reachable but formal migrations are not recorded"
+    return True, "PostgreSQL connection and migration ledger are ready"
+
+
 def run_deployment_preflight(*, production: bool | None = None) -> DeploymentPreflight:
     production = production if production is not None else os.environ.get("AITEST_PRODUCTION", "0").lower() in {"1", "true", "yes"}
     result = DeploymentPreflight()
@@ -32,6 +46,13 @@ def run_deployment_preflight(*, production: bool | None = None) -> DeploymentPre
     result.add("database_backend", backend == "postgres" if production else backend in {"sqlite", "postgres"}, f"selected={backend}")
     database_url = os.environ.get("AITEST_DATABASE_URL", "")
     result.add("database_url", bool(database_url) if production else True, "PostgreSQL URL configured" if database_url else "AITEST_DATABASE_URL is missing", blocking=production)
+
+    if production and backend == "postgres" and database_url:
+        try:
+            ready, detail = _check_postgres_ready()
+            result.add("database_connection", ready, detail, blocking=True)
+        except Exception as exc:
+            result.add("database_connection", False, f"PostgreSQL readiness failed: {exc}", blocking=True)
 
     api_key = os.environ.get("AITEST_API_KEY", "")
     result.add("api_auth", bool(api_key), "AITEST_API_KEY configured" if api_key else "AITEST_API_KEY is missing", blocking=production)

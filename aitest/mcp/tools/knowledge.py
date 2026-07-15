@@ -4,7 +4,6 @@ import yaml
 from aitest.mcp.config import KNOWN_ISSUES
 from aitest.mcp.error_taxonomy import ErrorCode, error_response
 from aitest.mcp.sampling import request_llm_sync
-from aitest.knowledge.rag_engine import search_known_issues as rag_search_known_issues_raw
 
 
 def search_known_issues(query: str = "", category: str = "", component: str = "",
@@ -61,6 +60,9 @@ def search_known_issues(query: str = "", category: str = "", component: str = ""
 
 def rag_search_with_sampling(query: str, n_results: int = 5, use_sampling: bool = True) -> dict:
     """P2-1: RAG 搜索 + LLM Sampling 重排序。sampling 不可用时自动降级。"""
+    # 延迟导入打破 mcp → knowledge 循环依赖
+    from aitest.knowledge.rag_engine import search_known_issues as rag_search_known_issues_raw
+
     try:
         raw_result = rag_search_known_issues_raw(query=query, n_results=n_results)
     except Exception as e:

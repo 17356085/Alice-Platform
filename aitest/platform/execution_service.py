@@ -7,7 +7,7 @@ Official mainline:
 
 from __future__ import annotations
 
-__all__ = ["ExecutionService", "ExecutionResult", "ExecutionContext"]
+__all__ = ["ExecutionService", "ExecutionResult", "ExecutionContext", "get_execution_service_static"]
 
 import asyncio
 from datetime import datetime, timezone
@@ -31,6 +31,22 @@ from .run_event import EventDataKey as K, EventType, make_event
 from .run_store import get_run_store
 from .versioning import resolve_version_metadata
 from alice_engine.kernel import KernelExecutionRequest
+
+
+_STATIC_SERVICE: "ExecutionService | None" = None
+
+
+def get_execution_service_static() -> "ExecutionService":
+    """Return the process-local service used by non-request adapters.
+
+    Keeping this factory in the platform layer prevents workflow/CLI adapters
+    from importing the HTTP server layer and gives those adapters the same
+    service boundary as the FastAPI dependency.
+    """
+    global _STATIC_SERVICE
+    if _STATIC_SERVICE is None:
+        _STATIC_SERVICE = ExecutionService()
+    return _STATIC_SERVICE
 
 
 class ExecutionService:

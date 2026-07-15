@@ -113,6 +113,7 @@ async def lifespan(app: FastAPI):
 
     # Background loops
     audit_stop = asyncio.Event()
+    rq_recovery_stop = asyncio.Event()
     from aitest.config import config
 
     from aitest.server.core.audit_scheduler import audit_scheduler_loop
@@ -131,6 +132,21 @@ async def lifespan(app: FastAPI):
         owner="main:lifespan", lifecycle_id="rate-cleanup",
     )
 
+    rq_recovery_task = None
+    if backend == "redis" and hasattr(queue, "recover_stale_tasks"):
+        from aitest.server.core.rq_recovery import rq_recovery_loop
+
+        rq_recovery_task = task_guard.create_task(
+            rq_recovery_loop(
+                queue,
+                rq_recovery_stop,
+                interval_seconds=float(os.environ.get("AITEST_RQ_RECOVERY_INTERVAL", "60")),
+                stale_after_seconds=float(os.environ.get("AITEST_RQ_STALE_AFTER", "3600")),
+                log=log,
+            ),
+            owner="main:lifespan", lifecycle_id="rq-stale-recovery",
+        )
+
     # ★ v2.6: Crash recovery — detect in-flight runs from previous session
     try:
         from aitest.platform.run_store import get_run_store
@@ -141,9 +157,13 @@ async def lifespan(app: FastAPI):
         recovered_requests = rs.recover_stale_requests()
         if recovered_requests:
             log.warning("stale_request_recovery", recovered_requests=recovered_requests)
-        from aitest.infra.task_queue import get_queue
-        tq = get_queue()
-        tq.recover_stale_tasks()
+        if backend == "redis" and hasattr(queue, "recover_stale_tasks"):
+            queue.recover_stale_tasks(
+                stale_after_seconds=float(os.environ.get("AITEST_RQ_STALE_AFTER", "3600"))
+            )
+        else:
+            from aitest.infra.task_queue import get_queue
+            get_queue().recover_stale_tasks()
     except Exception as e:
         log.warning("crash_recovery_failed", error=str(e))
 
@@ -168,6 +188,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     log.info("server_shutdown_start")
     audit_stop.set()
+    rq_recovery_stop.set()
     cancelled = task_guard.cancel_all()
     log.info("task_guard_cancel_all", cancelled=cancelled)
 

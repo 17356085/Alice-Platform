@@ -15,7 +15,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Type, TypeVar
 from dataclasses import dataclass, field
 
-from aitest.platform.runtime import PageStructure
+from aitest.runtime.types import PageStructure
 
 T = TypeVar("T", bound="Capability")
 

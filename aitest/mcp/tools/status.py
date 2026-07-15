@@ -3,7 +3,7 @@ import os
 
 from aitest.mcp.config import MODULE_INDEX, CONTEXT_MODULES
 from aitest.mcp.error_taxonomy import ErrorCode, error_response
-from aitest.platform.paths import get_test_project_root
+from aitest.runtime.paths import get_test_project_root
 
 
 def get_module_status(module_name: str = "") -> dict:

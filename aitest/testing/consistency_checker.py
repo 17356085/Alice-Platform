@@ -24,7 +24,7 @@ from typing import Optional
 
 import yaml
 
-from aitest.platform.paths import get_workstudy, get_context_modules, get_governance_dir
+from aitest.runtime.paths import get_workstudy, get_context_modules, get_governance_dir
 WORKSTUDY = get_workstudy()
 GOVERNANCE = get_governance_dir()
 AGENT_DEFS = GOVERNANCE / "agents" / "agent-definitions.yaml"

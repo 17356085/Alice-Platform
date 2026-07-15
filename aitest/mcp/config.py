@@ -1,13 +1,11 @@
 """
-MCP 路径配置 — delegates to aitest.platform.ProjectContext (single source of truth).
+MCP 路径配置 — delegates to aitest.runtime.paths (single source of truth).
 
-Backward compat: all constants below still work. They derive from ProjectContext.
-New code should import from aitest.platform directly.
+Backward compat: all constants below still work. They derive from runtime paths.
+New code should import from aitest.runtime.paths directly.
 
 Usage (new):
-    from aitest.platform import get_project
-    ctx = get_project()
-    modules_dir = ctx.artifacts()._modules_dir
+    from aitest.runtime.paths import get_test_project_root, get_context_modules
 
 Usage (legacy — still works):
     from aitest.mcp.config import CONTEXT_MODULES, ZJSN_TEST
@@ -15,45 +13,18 @@ Usage (legacy — still works):
 from pathlib import Path
 
 # ── Root paths (platform-independent) ────────────────────────────────────
-from aitest.platform.paths import get_workstudy
+from aitest.runtime.paths import get_workstudy
 WORKSTUDY = get_workstudy()
 GOVERNANCE = WORKSTUDY / "governance"
 
-# ── Active-project paths — derived from ProjectContext ───────────────────
+# ── Active-project paths — derived from runtime.paths ───────────────────
 # Lazily resolved: when imported at module level, active project may not be set yet.
-# Call _resolve() to force resolution for a specific project_id.
 
-_ctx = None
-
-
-def _get_ctx(project_id: str = None):
-    """Lazy-load ProjectContext for path resolution."""
-    global _ctx
-    if _ctx is None or project_id:
-        from aitest.platform.context import get_project
-        _ctx = get_project(project_id)
-    return _ctx
-
-
-def _resolve_legacy(project_id: str = None):
-    """Resolve legacy path constants from current project context."""
-    ctx = _get_ctx(project_id)
-    project_dir = _PROJECTS_ROOT / ctx.project_id if '_PROJECTS_ROOT' in dir() else WORKSTUDY / "governance" / "context" / "projects" / ctx.project_id
-    return {
-        "PROJECT_CONTEXT": project_dir / "PROJECT_CONTEXT.md",
-        "MODULE_INDEX": project_dir / "MODULE_INDEX.md",
-        "CONTEXT_MODULES": project_dir / "modules",
-        "ZJSN_TEST": WORKSTUDY / ctx.config.test_project_code_path if ctx.config.test_project_code_path else None,
-    }
-
-
-_PROJECTS_ROOT = WORKSTUDY / "governance" / "context" / "projects"
-
-# ── Default constants (resolved from active project via ProjectContext) ──
-# These are resolved at import time from the active project for backward compat.
-# New code should use aitest.platform.paths or get_project_paths() directly.
-
-from aitest.platform.paths import get_test_project_root, get_context_modules, get_project_dir
+from aitest.runtime.paths import (
+    get_test_project_root,
+    get_context_modules,
+    get_project_dir,
+)
 
 # Resolve ZJSN_TEST from active project — None if no test project configured.
 # Downstream callers MUST handle None (graceful error, not silent fallback).
@@ -76,6 +47,8 @@ MODULE_INDEX = _resolved_dir / "MODULE_INDEX.md"
 SOP_GATE_SCRIPT = ZJSN_TEST / "tools" / "check_sop_gate.py" if ZJSN_TEST else None
 CODE_QUALITY_SCRIPT = ZJSN_TEST / "tools" / "check_code_quality.py" if ZJSN_TEST else None
 
+_PROJECTS_ROOT = WORKSTUDY / "governance" / "context" / "projects"
+
 
 def get_project_paths(project_id: str = None):
     """
@@ -84,10 +57,10 @@ def get_project_paths(project_id: str = None):
 
     Returns dict with all path constants.
     """
-    from aitest.platform.context import get_project
+    from aitest.runtime.context import get_project
     ctx = get_project(project_id)
     project_dir = _PROJECTS_ROOT / ctx.project_id
-    from aitest.platform.paths import get_test_project_root as _get_root
+    from aitest.runtime.paths import get_test_project_root as _get_root
     zjsn = _get_root(project_id)  # may be None
 
     return {

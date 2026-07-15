@@ -83,3 +83,6 @@ def test_page_config_accepts_explicit_locator_strategy():
 
     with pytest.raises(ValueError, match="requires target"):
         page_config.PageExecutionPlan(actions=[{"action": "click"}])
+
+    with pytest.raises(ValueError, match="execution must be a JSON object"):
+        page_config.PageConfig.from_payload("login", {"execution": ["click"]})

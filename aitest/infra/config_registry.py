@@ -135,13 +135,6 @@ class PlatformConfig:
         """Default agent for chat fallback. Default: test-design-agent."""
         return os.environ.get("AITEST_DEFAULT_CHAT_AGENT", "test-design-agent")
 
-    @property
-    def governance_policy_version(self) -> str:
-        """Current governance/policy version used by the runtime."""
-        from aitest.platform.versioning import resolve_policy_version
-
-        return resolve_policy_version()
-
     # ── Tenant limits ──────────────────────────────────────────────────
     @property
     def tenant_max_concurrent_agents(self) -> int:

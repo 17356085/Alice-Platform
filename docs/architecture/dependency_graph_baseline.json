@@ -252,19 +252,12 @@
       "target": "alice_engine.extensions"
     },
     {
-      "source": "aitest.config",
-      "sources": [
-        "aitest.config"
-      ],
-      "target": "aitest.runtime"
-    },
-    {
       "source": "aitest.discovery",
       "sources": [
         "aitest.discovery.base",
         "aitest.discovery.browser_use"
       ],
-      "target": "aitest.platform"
+      "target": "aitest.runtime"
     },
     {
       "source": "aitest.engine",
@@ -403,14 +396,6 @@
     {
       "source": "aitest.infra",
       "sources": [
-        "aitest.infra.config_registry",
-        "aitest.infra.models"
-      ],
-      "target": "aitest.platform"
-    },
-    {
-      "source": "aitest.infra",
-      "sources": [
         "aitest.infra.error_logger",
         "aitest.infra.paths"
       ],
@@ -454,7 +439,7 @@
         "aitest.knowledge.rag_engine",
         "aitest.knowledge.skill_proposer"
       ],
-      "target": "aitest.platform"
+      "target": "aitest.runtime"
     },
     {
       "source": "aitest.llm",
@@ -488,6 +473,13 @@
     {
       "source": "aitest.mcp",
       "sources": [
+        "aitest.mcp.database"
+      ],
+      "target": "aitest.infra"
+    },
+    {
+      "source": "aitest.mcp",
+      "sources": [
         "aitest.mcp.tools.knowledge"
       ],
       "target": "aitest.knowledge"
@@ -495,20 +487,26 @@
     {
       "source": "aitest.mcp",
       "sources": [
-        "aitest.mcp.browser_server",
-        "aitest.mcp.config",
-        "aitest.mcp.registry",
-        "aitest.mcp.tools.execution",
-        "aitest.mcp.tools.gate_checker",
-        "aitest.mcp.tools.quality",
-        "aitest.mcp.tools.status"
+        "aitest.mcp.database"
       ],
       "target": "aitest.platform"
     },
     {
       "source": "aitest.mcp",
       "sources": [
-        "aitest.mcp.tools.consistency"
+        "aitest.mcp.browser_server",
+        "aitest.mcp.config",
+        "aitest.mcp.tools.gate_checker",
+        "aitest.mcp.tools.quality",
+        "aitest.mcp.tools.status"
+      ],
+      "target": "aitest.runtime"
+    },
+    {
+      "source": "aitest.mcp",
+      "sources": [
+        "aitest.mcp.tools.consistency",
+        "aitest.mcp.tools.execution"
       ],
       "target": "aitest.testing"
     },
@@ -543,20 +541,6 @@
     {
       "source": "aitest.platform",
       "sources": [
-        "aitest.platform.governance_bridge"
-      ],
-      "target": "aitest.adapters"
-    },
-    {
-      "source": "aitest.platform",
-      "sources": [
-        "aitest.platform.capability_router.providers.codegen"
-      ],
-      "target": "aitest.agents"
-    },
-    {
-      "source": "aitest.platform",
-      "sources": [
         "aitest.platform.capability_router.providers.browser"
       ],
       "target": "aitest.bu_adapter"
@@ -564,14 +548,14 @@
     {
       "source": "aitest.platform",
       "sources": [
-        "aitest.platform.plugin",
-        "aitest.platform.runtime"
+        "aitest.platform.plugin"
       ],
       "target": "aitest.config"
     },
     {
       "source": "aitest.platform",
       "sources": [
+        "aitest.platform",
         "aitest.platform.capability_router.providers.browser",
         "aitest.platform.ecosystem"
       ],
@@ -601,6 +585,7 @@
         "aitest.platform.memory_consumer",
         "aitest.platform.model_provider_models",
         "aitest.platform.model_provider_store",
+        "aitest.platform.notification_state",
         "aitest.platform.ownership",
         "aitest.platform.performance_baseline",
         "aitest.platform.plugin",
@@ -609,7 +594,6 @@
         "aitest.platform.query_layer",
         "aitest.platform.replay",
         "aitest.platform.run_store",
-        "aitest.platform.runtime",
         "aitest.platform.secret_models",
         "aitest.platform.secret_store",
         "aitest.platform.timeline",
@@ -620,13 +604,6 @@
         "aitest.platform.workflow_store"
       ],
       "target": "aitest.infra"
-    },
-    {
-      "source": "aitest.platform",
-      "sources": [
-        "aitest.platform.runtime"
-      ],
-      "target": "aitest.integrations"
     },
     {
       "source": "aitest.platform",
@@ -646,7 +623,6 @@
     {
       "source": "aitest.platform",
       "sources": [
-        "aitest.platform.capability_router.providers.execute",
         "aitest.platform.mcp_server_manager",
         "aitest.platform.mcp_server_store",
         "aitest.platform.sdk_ports"
@@ -656,10 +632,14 @@
     {
       "source": "aitest.platform",
       "sources": [
+        "aitest.platform",
         "aitest.platform._paths_core",
+        "aitest.platform.capabilities.abc",
+        "aitest.platform.capabilities.browser_adapter",
         "aitest.platform.context",
         "aitest.platform.ecosystem",
         "aitest.platform.paths",
+        "aitest.platform.runtime",
         "aitest.platform.versioning"
       ],
       "target": "aitest.runtime"
@@ -667,9 +647,9 @@
     {
       "source": "aitest.platform",
       "sources": [
-        "aitest.platform.workflow_executor"
+        "aitest.platform.capability_router.providers.execute"
       ],
-      "target": "aitest.server"
+      "target": "aitest.testing"
     },
     {
       "source": "aitest.platform",
@@ -742,15 +722,23 @@
     {
       "source": "aitest.runtime",
       "sources": [
-        "aitest.runtime.context",
-        "aitest.runtime.paths"
+        "aitest.runtime.browser",
+        "aitest.runtime.config"
       ],
-      "target": "aitest.platform"
+      "target": "aitest.config"
+    },
+    {
+      "source": "aitest.runtime",
+      "sources": [
+        "aitest.runtime.browser"
+      ],
+      "target": "aitest.integrations"
     },
     {
       "source": "aitest.server",
       "sources": [
-        "aitest.server.api.providers_v1"
+        "aitest.server.api.providers_v1",
+        "aitest.server.core.subscribers"
       ],
       "target": "aitest.adapters"
     },
@@ -758,7 +746,8 @@
       "source": "aitest.server",
       "sources": [
         "aitest.server.api.agents",
-        "aitest.server.api.chat"
+        "aitest.server.api.chat",
+        "aitest.server.core.subscribers"
       ],
       "target": "aitest.agents"
     },
@@ -952,10 +941,11 @@
         "aitest.testing.bug_history",
         "aitest.testing.consistency_checker",
         "aitest.testing.evaluator",
+        "aitest.testing.pytest_runner",
         "aitest.testing.regression",
         "aitest.testing.testcase_exporter"
       ],
-      "target": "aitest.platform"
+      "target": "aitest.runtime"
     },
     {
       "source": "aitest.testing",
@@ -1018,6 +1008,7 @@
     {
       "source": "aitest.tests",
       "sources": [
+        "aitest.tests.platform.test_dependency_seams",
         "aitest.tests.platform.test_ecosystem"
       ],
       "target": "aitest.discovery"
@@ -1052,16 +1043,21 @@
         "aitest.tests.infra.test_database_backend",
         "aitest.tests.infra.test_logging",
         "aitest.tests.infra.test_remote_task_claim",
+        "aitest.tests.infra.test_rq_checkpoint",
+        "aitest.tests.infra.test_rq_queue_contract",
         "aitest.tests.infra.test_secure_subprocess",
         "aitest.tests.infra.test_trace",
         "aitest.tests.infra.test_worktree_manager",
+        "aitest.tests.platform.test_db_pool",
         "aitest.tests.platform.test_deployment_preflight",
         "aitest.tests.platform.test_environment",
         "aitest.tests.platform.test_event_query_phase3",
         "aitest.tests.platform.test_execution_service_phase2",
         "aitest.tests.platform.test_execution_worker",
+        "aitest.tests.platform.test_postgres_migrations",
         "aitest.tests.platform.test_replay_phase2",
         "aitest.tests.platform.test_worker_lease",
+        "aitest.tests.server.test_notifications_api",
         "aitest.tests.test_task_queue"
       ],
       "target": "aitest.infra"
@@ -1111,12 +1107,14 @@
         "aitest.tests.platform.test_complexity",
         "aitest.tests.platform.test_context",
         "aitest.tests.platform.test_control_audit",
+        "aitest.tests.platform.test_dependency_seams",
         "aitest.tests.platform.test_deployment_preflight",
         "aitest.tests.platform.test_ecosystem",
         "aitest.tests.platform.test_environment",
         "aitest.tests.platform.test_event_query_phase3",
         "aitest.tests.platform.test_execution_request",
         "aitest.tests.platform.test_execution_service_phase2",
+        "aitest.tests.platform.test_execution_service_static",
         "aitest.tests.platform.test_execution_worker",
         "aitest.tests.platform.test_human_gates",
         "aitest.tests.platform.test_lifecycle",
@@ -1124,6 +1122,8 @@
         "aitest.tests.platform.test_observation_bus",
         "aitest.tests.platform.test_operational_metrics",
         "aitest.tests.platform.test_organization",
+        "aitest.tests.platform.test_page_config",
+        "aitest.tests.platform.test_page_execution",
         "aitest.tests.platform.test_parallel_node",
         "aitest.tests.platform.test_paths",
         "aitest.tests.platform.test_performance_baseline",
@@ -1147,6 +1147,7 @@
         "aitest.tests.server.test_execution_access",
         "aitest.tests.server.test_execution_local_access",
         "aitest.tests.server.test_global_resource_apis",
+        "aitest.tests.server.test_notifications_api",
         "aitest.tests.server.test_run_executor",
         "aitest.tests.server.test_studio_insights",
         "aitest.tests.test_config",
@@ -1159,6 +1160,7 @@
     {
       "source": "aitest.tests",
       "sources": [
+        "aitest.tests.platform.test_dependency_seams",
         "aitest.tests.platform.test_ecosystem"
       ],
       "target": "aitest.runtime"
@@ -1180,6 +1182,7 @@
         "aitest.tests.server.test_kpi_artifact_api",
         "aitest.tests.server.test_modules_api",
         "aitest.tests.server.test_notifications_api",
+        "aitest.tests.server.test_rq_recovery",
         "aitest.tests.server.test_run_executor",
         "aitest.tests.server.test_server_dependencies",
         "aitest.tests.server.test_studio_insights",
@@ -1237,6 +1240,7 @@
     {
       "source": "aitest.tests",
       "sources": [
+        "aitest.tests.infra.test_trace",
         "aitest.tests.server.test_run_executor",
         "aitest.tests.test_provider_base"
       ],
@@ -1494,6 +1498,16 @@
     {
       "source": "alice_engine.providers",
       "sources": [
+        "alice_engine.providers.claude",
+        "alice_engine.providers.deepseek",
+        "alice_engine.providers.mimo",
+        "alice_engine.providers.openai"
+      ],
+      "target": "alice_engine.env"
+    },
+    {
+      "source": "alice_engine.providers",
+      "sources": [
         "alice_engine.providers.registry"
       ],
       "target": "alice_engine.exceptions"
@@ -1578,6 +1592,7 @@
     "alice_engine.discovery",
     "alice_engine.drift_detector",
     "alice_engine.engine",
+    "alice_engine.env",
     "alice_engine.events",
     "alice_engine.exceptions",
     "alice_engine.extension",
@@ -1596,24 +1611,10 @@
   "sccs": [
     [
       "aitest.adapters",
-      "aitest.agents",
       "aitest.audit_engine",
-      "aitest.bu_adapter",
-      "aitest.chat",
-      "aitest.config",
-      "aitest.discovery",
-      "aitest.engine",
-      "aitest.graphs",
-      "aitest.graphs_dev",
-      "aitest.infra",
-      "aitest.integrations",
-      "aitest.knowledge",
       "aitest.llm",
       "aitest.mcp",
-      "aitest.onboarding",
       "aitest.platform",
-      "aitest.runtime",
-      "aitest.server",
       "aitest.testing"
     ],
     [
@@ -1626,9 +1627,9 @@
     ]
   ],
   "summary": {
-    "edge_count": 167,
-    "largest_scc_size": 20,
-    "node_count": 50,
+    "edge_count": 166,
+    "largest_scc_size": 6,
+    "node_count": 51,
     "scc_count": 3
   }
 }

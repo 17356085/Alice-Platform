@@ -25,7 +25,7 @@ class RunExecutor:
         execution: Dict[str, Any],
     ) -> Dict[str, Any]:
         """执行 Agent（Phase 1 已实现，保持不变）"""
-        from aitest.server.api.execution import get_execution_service_static
+        from aitest.platform.execution_service import get_execution_service_static
 
         svc = get_execution_service_static()
         result = svc.execute(

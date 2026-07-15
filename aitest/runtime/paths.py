@@ -39,10 +39,10 @@ def register_project_resolver(resolver) -> None:
 
 
 def _get_project(project_id: str = None):
-    """获取项目上下文——优先使用注入的 resolver，回退到 platform import。"""
+    """获取项目上下文——优先使用注入的 resolver，回退到 runtime context。"""
     if _project_resolver is not None:
         return _project_resolver(project_id)
-    from aitest.platform.context import get_project
+    from aitest.runtime.context import get_project
     return get_project(project_id)
 
 
@@ -51,7 +51,7 @@ def _get_active_project_id() -> str:
     if _project_resolver is not None:
         ctx = _project_resolver(None)
         return ctx.project_id
-    from aitest.platform.context import get_active_project_id
+    from aitest.runtime.context import get_active_project_id
     return get_active_project_id()
 
 

@@ -87,13 +87,28 @@ async def activate_subscribers(log) -> dict:
 
     # v3.1: GovernanceBridge — forward governance events to platform EventBus
     try:
-        from aitest.platform.governance_bridge import get_governance_bridge
+        from aitest.adapters.event.interface import EVENT_ACTIONS, subscribe
+        from aitest.platform.governance_bridge import (
+            get_governance_bridge,
+            register_governance_source,
+        )
+        register_governance_source(EVENT_ACTIONS, subscribe)
         obj = get_governance_bridge()
         obj.start()
         activated["governance-bridge"] = obj
         log.info("governance_bridge_started")
     except Exception as e:
         log.error("governance_bridge_failed", error=str(e))
+
+    # Register the agent skill runner through the composition root so the
+    # platform capability providers do not import the agents layer.
+    try:
+        from aitest.agents.skill_executor import run_skill
+        from aitest.platform.capability_router.providers.codegen import register_skill_runner
+        register_skill_runner(run_skill)
+        log.info("codegen_skill_runner_registered")
+    except Exception as e:
+        log.error("codegen_skill_runner_registration_failed", error=str(e))
 
     # v3.0: PlatformBridge — forward ObservationBus events to platform EventBus
     try:

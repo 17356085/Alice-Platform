@@ -20,6 +20,8 @@ class WorkflowStore:
     def _ensure_workflow_tables(self):
         """确保工作流表存在（自动迁移）"""
         try:
+            if self.session.get_bind().dialect.name != "sqlite":
+                return
             from sqlalchemy import text
             # 检查 workflows 表是否存在
             result = self.session.execute(text(

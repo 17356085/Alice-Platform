@@ -15,7 +15,7 @@ from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Optional
 
-from aitest.platform.paths import get_workstudy, get_test_project_root, get_context_modules, get_governance_dir
+from aitest.runtime.paths import get_workstudy, get_test_project_root, get_context_modules, get_governance_dir
 WORKSTUDY = get_workstudy()
 GOVERNANCE = get_governance_dir()
 CONTEXT_MODULES = get_context_modules()

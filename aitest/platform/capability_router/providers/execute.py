@@ -31,7 +31,7 @@ class PytestProvider(CapabilityProvider):
     def execute(self, call: ToolCall, context: dict) -> ToolResult:
         start = time.time()
         try:
-            from aitest.mcp.tools.execution import run_pytest
+            from aitest.testing import run_pytest
             r = run_pytest(
                 module=call.arguments.get("module", ""),
                 test_file=call.arguments.get("test_file", ""),

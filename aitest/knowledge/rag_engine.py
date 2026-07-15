@@ -15,7 +15,7 @@ from chromadb.config import Settings
 logger = logging.getLogger(__name__)
 
 # ChromaDB 持久化目录
-from aitest.platform.paths import get_workstudy
+from aitest.runtime.paths import get_workstudy
 CHROMA_DIR = get_workstudy() / "governance" / ".chroma"
 
 

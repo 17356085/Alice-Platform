@@ -12,8 +12,9 @@ import logging
 import subprocess
 from typing import Optional
 
-from aitest.mcp.mcp_client import create_mcp_client, McpClientResult
-from aitest.platform.mcp_server_store import MCPServerStore, MCPServer
+from aitest.mcp.mcp_client import create_mcp_client
+from aitest.mcp.types import McpClientResult, MCPServer
+from aitest.platform.mcp_server_store import MCPServerStore
 
 logger = logging.getLogger(__name__)
 

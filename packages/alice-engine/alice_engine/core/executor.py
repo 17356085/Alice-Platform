@@ -153,6 +153,8 @@ class AgentLoop:
         self.context = context
         self.page_configs = context.get("page_configs", [])
         self.mode = str(context.get("mode", "full"))
+        self._resume_state = context.get("resume_state")
+        self._checkpoint_callback = context.get("checkpoint_callback")
         self._skill_subset = skill_subset
         self.deep_review = deep_review
         self._focused_context = focused_context
@@ -248,6 +250,20 @@ class AgentLoop:
             provider=provider,
             max_steps=context.get("max_steps", len(self.skills) * 2),
         )
+        if self.mode == "resume" and isinstance(self._resume_state, dict):
+            restored = AgentState.from_dict(self._resume_state)
+            # Runtime-selected values win over stale values in the checkpoint.
+            restored.agent_name = agent_name
+            restored.provider = provider
+            restored.module = module or restored.module
+            restored.page = page or restored.page
+            restored.goal = goal or restored.goal
+            restored.done = False
+            restored.success = False
+            restored.termination_reason = ""
+            restored.memory["mode"] = self.mode
+            restored.memory["resumed_from_checkpoint"] = True
+            self.state = restored
         self.state.memory["mode"] = self.mode
         self._runtime_context_builder = RuntimeContextBuilder(
             state=self.state,
@@ -882,6 +898,27 @@ class AgentLoop:
         from alice_engine.core.state_machine import update_agent_state
         update_agent_state(self.state, skill_id, observation,
                           agent_name=self.agent_name, module=self.module, logger=self._log)
+        callback = self._checkpoint_callback
+        if callback is not None:
+            try:
+                callback(self.state.to_dict())
+            except Exception as exc:
+                # Checkpoint persistence must never turn a successful Skill
+                # into a failed task; the next retry can still restart it.
+                self._log(f"[warn] checkpoint persist failed: {exc}")
+
+    def _resume_skill_index(self) -> int:
+        """Return the first unfinished Skill for a durable AgentLoop resume."""
+        if self.mode != "resume" or not isinstance(self._resume_state, dict):
+            return 0
+
+        completed = set(self.state.completed_skills)
+        if self.state.current_skill in self.skills and self.state.current_skill not in completed:
+            return self.skills.index(self.state.current_skill)
+        for index, skill_id in enumerate(self.skills):
+            if skill_id not in completed:
+                return index
+        return len(self.skills)
 
     # ── Cache Summary ────────────────────────────────────────────
 
@@ -1085,7 +1122,7 @@ class AgentLoop:
             self._log(f"  🔄 Continuation #{self._continuation_count}")
         self._log("-" * 60)
 
-        skill_index = 0
+        skill_index = self._resume_skill_index()
         self._session_orchestrator = SessionLoopOrchestrator(
             state=self.state,
             skills=self.skills,

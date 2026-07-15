@@ -41,6 +41,27 @@ def _database_url() -> str:
     return f"sqlite:///{db_path.as_posix()}"
 
 
+def _pool_options(url: str | None = None) -> dict:
+    """Return bounded PostgreSQL pool settings without exposing credentials."""
+    target = url or _database_url()
+    if target.startswith("sqlite"):
+        return {}
+
+    def _int_env(name: str, default: int, minimum: int = 1) -> int:
+        try:
+            return max(minimum, int(os.environ.get(name, str(default))))
+        except (TypeError, ValueError):
+            return default
+
+    return {
+        "pool_pre_ping": True,
+        "pool_size": _int_env("AITEST_DB_POOL_SIZE", 5),
+        "max_overflow": _int_env("AITEST_DB_MAX_OVERFLOW", 10, minimum=0),
+        "pool_timeout": _int_env("AITEST_DB_POOL_TIMEOUT", 30),
+        "pool_recycle": _int_env("AITEST_DB_POOL_RECYCLE", 1800),
+    }
+
+
 def _get_session_factory() -> sessionmaker[Session]:
     global _engine, _session_factory
     if _session_factory is None:
@@ -48,7 +69,12 @@ def _get_session_factory() -> sessionmaker[Session]:
             if _session_factory is None:
                 url = _database_url()
                 connect_args = {"check_same_thread": False} if url.startswith("sqlite") else {}
-                _engine = create_engine(url, future=True, connect_args=connect_args)
+                _engine = create_engine(
+                    url,
+                    future=True,
+                    connect_args=connect_args,
+                    **_pool_options(url),
+                )
                 # Local mode is intentionally zero-setup.  Resource stores use
                 # this SQLAlchemy facade, so ensure their tables exist before
                 # the first query (including on an already-created SQLite DB).
