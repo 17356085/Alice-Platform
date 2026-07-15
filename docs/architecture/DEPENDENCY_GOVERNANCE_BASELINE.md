@@ -19,15 +19,14 @@ PRs reduce the historical clusters.
 ## Current Baseline
 
 - First-level nodes: `51`
-- First-level edges: `162`
-- Multi-node SCC count: `3`
+- First-level edges: `161`
+- Multi-node SCC count: `2`
 - Largest SCC size: `2`
 
 Reviewed SCC sets:
 
-1. `aitest.adapters`, `aitest.audit_engine`
-2. `alice_engine.core`, `alice_engine.workflow`
-3. `alice_engine.engine`, `alice_engine.extension`
+1. `alice_engine.core`, `alice_engine.workflow`
+2. `alice_engine.engine`, `alice_engine.extension`
 
 ## Hard Gates
 
@@ -38,7 +37,7 @@ Reviewed SCC sets:
 - Existing SCC count must not grow above the reviewed baseline.
 - Existing largest SCC size must not grow above the reviewed baseline.
 
-The 2026-07-15 audit reports `51` nodes and `162` edges after moving the
+The 2026-07-15 audit reports `51` nodes and `161` edges after moving the
 runtime contract into `aitest.runtime.base`, registering page execution and
 capability adapters from the platform composition root, and retaining
 `aitest.platform.runtime` as a compatibility facade. Discovery persistence now
@@ -48,7 +47,7 @@ ports registered by the `aitest` package root, so `aitest.testing` no longer
 imports concrete LLM or audit implementations. MCP persistence now receives
 secret/environment resolvers through a platform composition port, so
 `aitest.mcp` no longer imports platform implementations. It reports exactly
-`3` SCCs with a largest size of `2`, and no `alice_engine -> aitest` boundary
+`2` SCCs with a largest size of `2`, and no `alice_engine -> aitest` boundary
 violation. The complexity classifier now receives its LLM provider through the
 same composition-root port, so `aitest.platform` no longer points back to
 `aitest.llm`.
@@ -94,6 +93,9 @@ intentionally small dependency seams, not a broad architecture rewrite.
 - `aitest.platform.complexity.classifier` receives its LLM provider factory
   from the `aitest` package composition root, preserving the DeepSeek boundary
   refinement and removing the platform-to-LLM reverse edge.
+- `aitest.adapters.audit` receives KPI recording through a narrow port wired by
+  the `aitest` package composition root, so audit adapters no longer import the
+  `audit_engine` implementation package.
 
 ## Pending Reduction Targets
 
@@ -101,11 +103,10 @@ intentionally small dependency seams, not a broad architecture rewrite.
   AgentLoop boundary reduction work in `PH8-PR-8.3`.
 - Remove the `alice_engine.engine <-> alice_engine.extension` SCC after the
   extension contract is simplified or inverted.
-- Shrink the remaining `aitest.adapters <-> aitest.audit_engine` SCC
-  incrementally; do not attempt a single wide-scope rewrite. The LLM and
-  platform packages are now outside this cluster, while the audit/adapter
-  implementation cycle still requires an explicit event/audit contract before
-  it can be inverted safely.
+- The first-level `aitest.*` SCCs are now eliminated. Keep the package-root
+  composition ports explicit and block reintroduction of platform ↔ adapter
+  cycles while the two SDK-internal SCCs are reduced under the separate
+  `alice-engine` governance plan.
 
 ## How To Refresh
 

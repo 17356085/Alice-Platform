@@ -4,14 +4,6 @@
     {
       "source": "aitest.adapters",
       "sources": [
-        "aitest.adapters.audit.sop",
-        "aitest.adapters.audit.state"
-      ],
-      "target": "aitest.audit_engine"
-    },
-    {
-      "source": "aitest.adapters",
-      "sources": [
         "aitest.adapters.audit.state",
         "aitest.adapters.llm.interface"
       ],
@@ -931,6 +923,7 @@
     {
       "source": "aitest.tests",
       "sources": [
+        "aitest.tests.platform.test_dependency_seams",
         "aitest.tests.platform.test_provider_adapter"
       ],
       "target": "aitest.adapters"
@@ -1586,10 +1579,6 @@
   ],
   "sccs": [
     [
-      "aitest.adapters",
-      "aitest.audit_engine"
-    ],
-    [
       "alice_engine.core",
       "alice_engine.workflow"
     ],
@@ -1599,9 +1588,9 @@
     ]
   ],
   "summary": {
-    "edge_count": 162,
+    "edge_count": 161,
     "largest_scc_size": 2,
     "node_count": 51,
-    "scc_count": 3
+    "scc_count": 2
   }
 }

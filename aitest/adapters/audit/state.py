@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from aitest.adapters.audit.state_checks import StateCheckMixin
+from aitest.adapters.audit.ports import record_kpi
 
 logger = logging.getLogger(__name__)
 
@@ -165,8 +166,7 @@ class StateAuditor(StateCheckMixin):
 
         # L4-MEASURED (2026-06-15): 记录 KPI 数据点
         try:
-            from aitest.audit_engine.governance_kpi import KPICollector
-            KPICollector().record_audit("state", module, report)
+            record_kpi("state", module, report)
         except Exception as e:
             from aitest.infra.error_logger import log_error
             log_error("state_auditor.kpi", "record", e, {"module": module})

@@ -46,6 +46,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from aitest.runtime.paths import get_workstudy
 from aitest.adapters.event.interface import emit
+from aitest.adapters.audit.ports import record_kpi
 
 
 import logging
@@ -153,8 +154,7 @@ class SOPAuditor(SOPCheckMixin):
 
         # L4-MEASURED (2026-06-15): 记录 KPI 数据点
         try:
-            from aitest.audit_engine.governance_kpi import KPICollector
-            KPICollector().record_audit("sop", module, report)
+            record_kpi("sop", module, report)
         except Exception as e:
             from aitest.runtime.error_handling import log_error
             log_error("sop_auditor.kpi", "record", e, {"module": module})

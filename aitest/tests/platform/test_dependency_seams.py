@@ -101,3 +101,26 @@ def test_complexity_provider_is_registered_at_package_composition_root():
     from aitest.platform.complexity import classifier
 
     assert classifier._provider_factory is get_provider
+
+
+def test_audit_adapters_receive_kpi_port_at_package_composition_root():
+    from aitest.adapters.audit import ports
+    from aitest.audit_engine.governance_kpi import KPICollector
+
+    assert ports._kpi_factory is KPICollector
+
+
+def test_audit_kpi_port_forwards_records_without_importing_audit_engine(monkeypatch):
+    from aitest.adapters.audit import ports
+
+    calls = []
+
+    class Collector:
+        def record_audit(self, audit_type, module, report):
+            calls.append((audit_type, module, report))
+            return "recorded"
+
+    monkeypatch.setattr(ports, "_kpi_factory", Collector)
+
+    assert ports.record_kpi("state", "demo", {"drift_count": 0}) == "recorded"
+    assert calls == [("state", "demo", {"drift_count": 0})]

@@ -56,6 +56,11 @@ from aitest.testing.regression import (
 register_provider_factory(get_provider)
 from aitest.audit_engine.event_bus import emit as _audit_emit
 register_event_sink(_audit_emit)
+from aitest.adapters.audit.ports import (
+    register_kpi_factory as _register_audit_kpi_factory,
+)
+from aitest.audit_engine.governance_kpi import KPICollector as _KPICollector
+_register_audit_kpi_factory(_KPICollector)
 from aitest.platform.complexity.classifier import (
     register_provider_factory as _register_complexity_provider_factory,
 )
